@@ -4,7 +4,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.1-brightgreen?logo=springboot)
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL_Supabase-blue?logo=postgresql)
 ![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker)
-![Koyeb](https://img.shields.io/badge/Deployment-Koyeb_Cloud-121212?logo=koyeb)
+![Render](https://img.shields.io/badge/Deployment-Render_Cloud-46E3B7?logo=render)
 ![Security](https://img.shields.io/badge/Auth-JWT_%26_BCrypt-red?logo=jsonwebtokens)
 
 API RESTful robusta y de alto rendimiento desarrollada en **Java 17** con el framework **Spring Boot**, diseñada como el núcleo transaccional para la terminal de Punto de Venta (POS) y control integral de inventario de **Bodega KARLIZ**.
@@ -38,7 +38,7 @@ src/main/java/com/bodega/backend/
 - **Seguridad:** Spring Security + JSON Web Tokens (JWT) + BCrypt
 - **Validación:** Jakarta Bean Validation (`@NotNull`, `@Positive`, etc.)
 - **Contenedores:** Docker (Multi-stage build sobre Alpine Linux)
-- **Infraestructura Cloud:** Koyeb Serverless MicroVMs
+- **Infraestructura Cloud:** Render Cloud / Containerized Hosting
 
 ---
 
@@ -101,20 +101,26 @@ Para ejecutar la aplicación (tanto en local como en la nube), se requieren las 
 
 ---
 
-## ☁️ Despliegue en Koyeb (Paso a Paso)
+## ☁️ Despliegue en Render (Paso a Paso)
 
-Este repositorio está preconfigurado con un `Dockerfile` optimizado con recolección de basura `SerialGC` y límites de memoria adaptados al entorno gratuito de 512 MB de Koyeb.
+Este repositorio incluye un `Dockerfile` optimizado con recolección de basura `SerialGC` y límites de memoria adaptados al entorno gratuito de 512 MB de Render.
 
-1. **Vincular Repositorio:**
-   - En [Koyeb Dashboard](https://app.koyeb.com/), haz clic en **"Create Service"**.
-   - Selecciona **GitHub** y escoge este repositorio (`bodega-karliz-backend`).
+1. **Crear Servicio Web:**
+   - En [Render Dashboard](https://dashboard.render.com/), haz clic en **"New +"** y selecciona **"Web Service"**.
+   - Conecta tu cuenta de **GitHub** y selecciona el repositorio `angxl10t/bodega-karliz-backend`.
 2. **Configuración de Build:**
-   - Modo de construcción: **Dockerfile** (se detectará automáticamente en la raíz).
-3. **Variables de Entorno:**
-   - Añade las variables `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` y `JWT_SECRET`.
-4. **Puerto y Dominio:**
-   - Define el puerto interno como `8080`.
-   - Haz clic en **"Deploy"**. En 2 a 3 minutos tu backend estará en línea con HTTPS seguro.
+   - Nombre: `bodega-karliz-backend` (o el de tu preferencia).
+   - Runtime / Environment: **Docker** (detectará automáticamente el `Dockerfile`).
+   - Plan: **Free** (512 MB RAM / 0.1 CPU).
+3. **Variables de Entorno (Environment Variables):**
+   - Agrega las variables requeridas:
+     * `DB_URL` = `jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres`
+     * `DB_USERNAME` = `postgres.rmdbcmnoanyqumjlfphy`
+     * `DB_PASSWORD` = `[TU_CONTRASEÑA_SUPABASE]`
+     * `JWT_SECRET` = `karliz_pos_secure_production_secret_key_2026_998877`
+4. **Despliegue y URL Pública:**
+   - Haz clic en **"Create Web Service"**.
+   - Render compilará la imagen Docker y en pocos minutos generará tu dominio HTTPS público (ej. `https://bodega-karliz-backend.onrender.com`).
 
 ---
 
