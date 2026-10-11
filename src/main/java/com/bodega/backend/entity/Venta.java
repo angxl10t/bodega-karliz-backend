@@ -1,0 +1,32 @@
+package com.bodega.backend.entity;
+import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
+@Data
+@Entity
+@Table(name = "ventas")
+public class Venta {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_venta")
+    private Long idVenta;
+
+    @Column(name = "cliente_documento", length = 20)
+    private String clienteDocumento;
+
+    @Column(name = "cliente_nombre", length = 150)
+    private String clienteNombre;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal total;
+
+    @Column(name = "metodo_pago", length = 50)
+    private String metodoPago;
+
+    @CreationTimestamp
+    @Column(name = "fecha_venta", updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaVenta;
+}

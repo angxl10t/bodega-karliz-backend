@@ -1,0 +1,114 @@
+package com.bodega.backend.service;
+
+import com.bodega.backend.dto.CompraDTO;
+import com.bodega.backend.dto.CompraDetalleDTO;
+import com.bodega.backend.entity.*;
+import com.bodega.backend.repository.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class CompraService {
+
+    private final CompraRepository compraRepository;
+    private final CompraDetalleRepository compraDetalleRepository;
+    private final ProveedorRepository proveedorRepository;
+    private final ProductoRepository productoRepository;
+    private final MovimientoInventarioRepository movimientoInventarioRepository;
+
+    public CompraService(CompraRepository compraRepository,
+                         CompraDetalleRepository compraDetalleRepository,
+                         ProveedorRepository proveedorRepository,
+                         ProductoRepository productoRepository,
+                         MovimientoInventarioRepository movimientoInventarioRepository) {
+        this.compraRepository = compraRepository;
+        this.compraDetalleRepository = compraDetalleRepository;
+        this.proveedorRepository = proveedorRepository;
+        this.productoRepository = productoRepository;
+        this.movimientoInventarioRepository = movimientoInventarioRepository;
+    }
+
+    // ACCIDENTAL DATA LOSS PREVENTION: Usamos @Transactional para que todo sea "Todo o Nada"
+    @Transactional
+    public CompraDTO registrarCompra(CompraDTO dto) {
+        Proveedor proveedor = proveedorRepository.findById(dto.getIdProveedor())
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+
+        // 1. Crear Cabecera
+        Compra compra = new Compra();
+        compra.setProveedor(proveedor);
+        compra.setComprobante(dto.getComprobante());
+        
+        BigDecimal totalCompra = BigDecimal.ZERO;
+        
+        // 2. Procesar Detalles y Stock
+        List<CompraDetalle> detallesGuardados = new ArrayList<>();
+        
+        for (CompraDetalleDTO detDto : dto.getDetalles()) {
+            Producto producto = productoRepository.findById(detDto.getIdProducto())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detDto.getIdProducto()));
+
+            // Backend calcula el subtotal para evitar hackeos desde el frontend
+            BigDecimal subtotal = detDto.getCantidad().multiply(detDto.getPrecioUnitario());
+            totalCompra = totalCompra.add(subtotal);
+
+            CompraDetalle detalle = new CompraDetalle();
+            detalle.setProducto(producto);
+            detalle.setCantidad(detDto.getCantidad());
+            detalle.setPrecioUnitario(detDto.getPrecioUnitario());
+            detalle.setSubtotal(subtotal);
+            detallesGuardados.add(detalle);
+
+            // 3. Actualizar Stock del Producto
+            producto.setStockActual(producto.getStockActual().add(detDto.getCantidad()));
+            productoRepository.save(producto);
+
+            // 4. Registrar en el Kardex (Movimiento Inventario)
+            MovimientoInventario mov = new MovimientoInventario();
+            mov.setProducto(producto);
+            mov.setTipoMovimiento("ENTRADA");
+            mov.setCantidad(detDto.getCantidad());
+            mov.setMotivo("Compra a proveedor: " + proveedor.getRazonSocial());
+            movimientoInventarioRepository.save(mov);
+        }
+
+        // Finalizar y guardar
+        compra.setTotal(totalCompra);
+        Compra cabeceraGuardada = compraRepository.save(compra);
+
+        for (CompraDetalle det : detallesGuardados) {
+            det.setCompra(cabeceraGuardada);
+            compraDetalleRepository.save(det);
+        }
+
+        return mapToDTO(cabeceraGuardada, detallesGuardados);
+    }
+
+    private CompraDTO mapToDTO(Compra compra, List<CompraDetalle> detalles) {
+        CompraDTO dto = new CompraDTO();
+        dto.setIdCompra(compra.getIdCompra());
+        dto.setIdProveedor(compra.getProveedor().getIdProveedor());
+        dto.setRazonSocialProveedor(compra.getProveedor().getRazonSocial());
+        dto.setComprobante(compra.getComprobante());
+        dto.setTotal(compra.getTotal());
+        dto.setFechaCompra(compra.getFechaCompra());
+
+        dto.setDetalles(detalles.stream().map(d -> {
+            CompraDetalleDTO detDto = new CompraDetalleDTO();
+            detDto.setIdDetalleCompra(d.getIdDetalleCompra());
+            detDto.setIdProducto(d.getProducto().getIdProducto());
+            detDto.setNombreProducto(d.getProducto().getNombre());
+            detDto.setCantidad(d.getCantidad());
+            detDto.setPrecioUnitario(d.getPrecioUnitario());
+            detDto.setSubtotal(d.getSubtotal());
+            return detDto;
+        }).collect(Collectors.toList()));
+
+        return dto;
+    }
+}
