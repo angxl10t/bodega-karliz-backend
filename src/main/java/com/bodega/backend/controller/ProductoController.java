@@ -28,4 +28,15 @@ public class ProductoController {
     public ResponseEntity<ProductoDTO> crear(@Valid @RequestBody ProductoDTO dto) {
         return new ResponseEntity<>(productoService.crear(dto), HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductoDTO> actualizar(@PathVariable Long id, @RequestBody ProductoDTO dto) {
+        return ResponseEntity.ok(productoService.actualizar(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> desactivar(@PathVariable Long id) {
+        productoService.desactivar(id);
+        return ResponseEntity.noContent().build();
+    }
 }

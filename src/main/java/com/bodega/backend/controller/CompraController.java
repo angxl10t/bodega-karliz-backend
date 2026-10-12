@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/compras")
 public class CompraController {
@@ -15,6 +17,11 @@ public class CompraController {
 
     public CompraController(CompraService compraService) {
         this.compraService = compraService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CompraDTO>> listarTodas() {
+        return ResponseEntity.ok(compraService.listarTodas());
     }
 
     @PostMapping

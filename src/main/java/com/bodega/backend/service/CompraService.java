@@ -89,6 +89,15 @@ public class CompraService {
         return mapToDTO(cabeceraGuardada, detallesGuardados);
     }
 
+    @Transactional(readOnly = true)
+    public List<CompraDTO> listarTodas() {
+        List<Compra> compras = compraRepository.findAllByOrderByFechaCompraDesc();
+        return compras.stream().map(c -> {
+            List<CompraDetalle> dets = compraDetalleRepository.findByCompra_IdCompra(c.getIdCompra());
+            return mapToDTO(c, dets);
+        }).collect(Collectors.toList());
+    }
+
     private CompraDTO mapToDTO(Compra compra, List<CompraDetalle> detalles) {
         CompraDTO dto = new CompraDTO();
         dto.setIdCompra(compra.getIdCompra());

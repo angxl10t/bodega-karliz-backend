@@ -62,6 +62,48 @@ public class ProductoService {
         return mapToDTO(guardado);
     }
 
+    @Transactional
+    public ProductoDTO actualizar(Long id, ProductoDTO dto) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+
+        if (dto.getIdCategoria() != null) {
+            Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
+                    .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
+            producto.setCategoria(categoria);
+        }
+
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            producto.setNombre(dto.getNombre());
+        }
+        if (dto.getMarca() != null) {
+            producto.setMarca(dto.getMarca());
+        }
+        if (dto.getPrecioVenta() != null) {
+            producto.setPrecioVenta(dto.getPrecioVenta());
+        }
+        if (dto.getStockMinimo() != null) {
+            producto.setStockMinimo(dto.getStockMinimo());
+        }
+        if (dto.getCodigoBarras() != null) {
+            producto.setCodigoBarras(dto.getCodigoBarras());
+        }
+        if (dto.getControlaVencimiento() != null) {
+            producto.setControlaVencimiento(dto.getControlaVencimiento());
+        }
+
+        Producto actualizado = productoRepository.save(producto);
+        return mapToDTO(actualizado);
+    }
+
+    @Transactional
+    public void desactivar(Long id) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+        producto.setEstado(false);
+        productoRepository.save(producto);
+    }
+
     private ProductoDTO mapToDTO(Producto producto) {
         ProductoDTO dto = new ProductoDTO();
         dto.setIdProducto(producto.getIdProducto());

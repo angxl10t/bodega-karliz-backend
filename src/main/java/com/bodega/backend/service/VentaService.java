@@ -1,5 +1,6 @@
 package com.bodega.backend.service;
 
+import com.bodega.backend.dto.CierreCajaDTO;
 import com.bodega.backend.dto.VentaDTO;
 import com.bodega.backend.dto.VentaDetalleDTO;
 import com.bodega.backend.entity.*;
@@ -8,6 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -85,6 +89,83 @@ public class VentaService {
         }
 
         return mapToDTO(cabeceraGuardada, detallesGuardados);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VentaDTO> listarTodas() {
+        List<Venta> ventas = ventaRepository.findAllByOrderByFechaVentaDesc();
+        return ventas.stream().map(v -> {
+            List<VentaDetalle> dets = ventaDetalleRepository.findByVenta(v);
+            return mapToDTO(v, dets);
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public CierreCajaDTO obtenerCierreCajaHoy() {
+        LocalDate hoy = LocalDate.now();
+        OffsetDateTime inicioHoy = hoy.atStartOfDay().atOffset(ZoneOffset.UTC);
+        OffsetDateTime finHoy = hoy.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+
+        List<Venta> ventasHoy = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicioHoy, finHoy);
+
+        CierreCajaDTO resumen = new CierreCajaDTO();
+        resumen.setFecha(OffsetDateTime.now());
+        resumen.setCantidadVentas(ventasHoy.size());
+
+        BigDecimal totalVentas = BigDecimal.ZERO;
+        BigDecimal totalEfectivo = BigDecimal.ZERO;
+        BigDecimal totalYape = BigDecimal.ZERO;
+        BigDecimal totalPlin = BigDecimal.ZERO;
+        BigDecimal totalTarjeta = BigDecimal.ZERO;
+
+        for (Venta v : ventasHoy) {
+            BigDecimal tot = v.getTotal() != null ? v.getTotal() : BigDecimal.ZERO;
+            totalVentas = totalVentas.add(tot);
+
+            String metodo = v.getMetodoPago() != null ? v.getMetodoPago().trim().toLowerCase() : "efectivo";
+            if (metodo.contains("yape")) {
+                totalYape = totalYape.add(tot);
+            } else if (metodo.contains("plin")) {
+                totalPlin = totalPlin.add(tot);
+            } else if (metodo.contains("tarjeta") || metodo.contains("pos") || metodo.contains("card")) {
+                totalTarjeta = totalTarjeta.add(tot);
+            } else {
+                totalEfectivo = totalEfectivo.add(tot);
+            }
+        }
+
+        resumen.setTotalVentas(totalVentas);
+        resumen.setTotalEfectivo(totalEfectivo);
+        resumen.setTotalYape(totalYape);
+        resumen.setTotalPlin(totalPlin);
+        resumen.setTotalTarjeta(totalTarjeta);
+
+        return resumen;
+    }
+
+    @Transactional
+    public void anularVenta(Long idVenta) {
+        Venta venta = ventaRepository.findById(idVenta)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + idVenta));
+
+        List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
+
+        // Restaurar stock en inventario y registrar en Kardex
+        for (VentaDetalle det : detalles) {
+            Producto prod = det.getProducto();
+            prod.setStockActual(prod.getStockActual().add(det.getCantidad()));
+            productoRepository.save(prod);
+
+            MovimientoInventario mov = new MovimientoInventario();
+            mov.setProducto(prod);
+            mov.setTipoMovimiento("ENTRADA");
+            mov.setCantidad(det.getCantidad());
+            mov.setMotivo("Anulación de Venta #" + idVenta);
+            movimientoInventarioRepository.save(mov);
+        }
+
+        ventaDetalleRepository.deleteAll(detalles);
+        ventaRepository.delete(venta);
     }
 
     private VentaDTO mapToDTO(Venta venta, List<VentaDetalle> detalles) {
