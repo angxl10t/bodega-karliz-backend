@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -102,14 +104,15 @@ public class VentaService {
 
     @Transactional(readOnly = true)
     public CierreCajaDTO obtenerCierreCajaHoy() {
-        LocalDate hoy = LocalDate.now();
-        OffsetDateTime inicioHoy = hoy.atStartOfDay().atOffset(ZoneOffset.UTC);
-        OffsetDateTime finHoy = hoy.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+        ZoneId zonePeru = ZoneId.of("America/Lima");
+        LocalDate hoyPeru = LocalDate.now(zonePeru);
+        OffsetDateTime inicioHoy = hoyPeru.atStartOfDay(zonePeru).toOffsetDateTime();
+        OffsetDateTime finHoy = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
 
         List<Venta> ventasHoy = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicioHoy, finHoy);
 
         CierreCajaDTO resumen = new CierreCajaDTO();
-        resumen.setFecha(OffsetDateTime.now());
+        resumen.setFecha(OffsetDateTime.now(zonePeru));
         resumen.setCantidadVentas(ventasHoy.size());
 
         BigDecimal totalVentas = BigDecimal.ZERO;

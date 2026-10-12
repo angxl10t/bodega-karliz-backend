@@ -33,6 +33,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Única ruta abierta al público (Para poder iniciar sesión)
+                .requestMatchers("/error").permitAll() // Permitir respuestas de error para evitar enmascarar códigos HTTP
                 .anyRequest().authenticated() // BLOQUEO TOTAL a todas las demás rutas
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
