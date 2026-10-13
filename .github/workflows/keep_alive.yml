@@ -1,0 +1,26 @@
+name: 24/7 Keep-Alive Monitor (Render & Supabase)
+
+on:
+  schedule:
+    # Se ejecuta cada 10 minutos para evitar que Render se suspenda (límite de reposo es 15 min)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente con un clic en GitHub Actions
+
+jobs:
+  keep-alive:
+    name: Ping Backend & Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Bodega KARLIZ API
+        run: |
+          echo "Enviando ping a Bodega KARLIZ backend en Render..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" https://bodega-karliz-backend.onrender.com/api/health)
+          BODY=$(echo "$RESPONSE" | sed -e '$d')
+          STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d: -f2)
+          echo "Status: $STATUS"
+          echo "Body: $BODY"
+          if [ "$STATUS" -eq 200 ]; then
+            echo "Backend y Supabase PostgreSQL activos y operativos 24/7."
+          else
+            echo "Notificando despertar de servidor (Status: $STATUS)..."
+          fi
