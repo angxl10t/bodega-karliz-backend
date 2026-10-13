@@ -15,7 +15,9 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -106,14 +108,55 @@ public class VentaService {
     public CierreCajaDTO obtenerCierreCajaHoy() {
         ZoneId zonePeru = ZoneId.of("America/Lima");
         LocalDate hoyPeru = LocalDate.now(zonePeru);
-        OffsetDateTime inicioHoy = hoyPeru.atStartOfDay(zonePeru).toOffsetDateTime();
-        OffsetDateTime finHoy = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
+        return obtenerCierreCajaPorFecha(hoyPeru);
+    }
 
-        List<Venta> ventasHoy = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicioHoy, finHoy);
+    @Transactional(readOnly = true)
+    public CierreCajaDTO obtenerCierreCajaPorFecha(LocalDate fecha) {
+        ZoneId zonePeru = ZoneId.of("America/Lima");
+        if (fecha == null) {
+            fecha = LocalDate.now(zonePeru);
+        }
+        OffsetDateTime inicio = fecha.atStartOfDay(zonePeru).toOffsetDateTime();
+        OffsetDateTime fin = fecha.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
 
+        List<Venta> ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
+        return calcularCierre(ventas, fecha.atStartOfDay(zonePeru).toOffsetDateTime());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CierreCajaDTO> obtenerHistorialCierres(int dias) {
+        ZoneId zonePeru = ZoneId.of("America/Lima");
+        LocalDate hoyPeru = LocalDate.now(zonePeru);
+        int rangoDias = dias <= 0 ? 30 : dias;
+        LocalDate inicioFecha = hoyPeru.minusDays(rangoDias);
+
+        OffsetDateTime inicio = inicioFecha.atStartOfDay(zonePeru).toOffsetDateTime();
+        OffsetDateTime fin = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
+
+        List<Venta> ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
+
+        Map<LocalDate, List<Venta>> ventasPorDia = ventas.stream()
+                .filter(v -> v.getFechaVenta() != null)
+                .collect(Collectors.groupingBy(v -> v.getFechaVenta().atZoneSameInstant(zonePeru).toLocalDate()));
+
+        List<CierreCajaDTO> historial = new ArrayList<>();
+        List<LocalDate> fechasOrdenadas = ventasPorDia.keySet().stream()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+
+        for (LocalDate dia : fechasOrdenadas) {
+            List<Venta> ventasDelDia = ventasPorDia.get(dia);
+            historial.add(calcularCierre(ventasDelDia, dia.atStartOfDay(zonePeru).toOffsetDateTime()));
+        }
+
+        return historial;
+    }
+
+    private CierreCajaDTO calcularCierre(List<Venta> ventas, OffsetDateTime fecha) {
         CierreCajaDTO resumen = new CierreCajaDTO();
-        resumen.setFecha(OffsetDateTime.now(zonePeru));
-        resumen.setCantidadVentas(ventasHoy.size());
+        resumen.setFecha(fecha);
+        resumen.setCantidadVentas(ventas != null ? ventas.size() : 0);
 
         BigDecimal totalVentas = BigDecimal.ZERO;
         BigDecimal totalEfectivo = BigDecimal.ZERO;
@@ -121,19 +164,21 @@ public class VentaService {
         BigDecimal totalPlin = BigDecimal.ZERO;
         BigDecimal totalTarjeta = BigDecimal.ZERO;
 
-        for (Venta v : ventasHoy) {
-            BigDecimal tot = v.getTotal() != null ? v.getTotal() : BigDecimal.ZERO;
-            totalVentas = totalVentas.add(tot);
+        if (ventas != null) {
+            for (Venta v : ventas) {
+                BigDecimal tot = v.getTotal() != null ? v.getTotal() : BigDecimal.ZERO;
+                totalVentas = totalVentas.add(tot);
 
-            String metodo = v.getMetodoPago() != null ? v.getMetodoPago().trim().toLowerCase() : "efectivo";
-            if (metodo.contains("yape")) {
-                totalYape = totalYape.add(tot);
-            } else if (metodo.contains("plin")) {
-                totalPlin = totalPlin.add(tot);
-            } else if (metodo.contains("tarjeta") || metodo.contains("pos") || metodo.contains("card")) {
-                totalTarjeta = totalTarjeta.add(tot);
-            } else {
-                totalEfectivo = totalEfectivo.add(tot);
+                String metodo = v.getMetodoPago() != null ? v.getMetodoPago().trim().toLowerCase() : "efectivo";
+                if (metodo.contains("yape")) {
+                    totalYape = totalYape.add(tot);
+                } else if (metodo.contains("plin")) {
+                    totalPlin = totalPlin.add(tot);
+                } else if (metodo.contains("tarjeta") || metodo.contains("pos") || metodo.contains("card")) {
+                    totalTarjeta = totalTarjeta.add(tot);
+                } else {
+                    totalEfectivo = totalEfectivo.add(tot);
+                }
             }
         }
 
