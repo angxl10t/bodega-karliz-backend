@@ -62,6 +62,27 @@ public class AuthController {
         return ResponseEntity.ok("Primer Usuario ADMIN creado con éxito. Clave: 123456");
     }
 
+    @PostMapping("/cambiar-clave-admin")
+    public ResponseEntity<String> cambiarClaveAdmin(@RequestBody(required = false) Map<String, String> body) {
+        String nuevaClave = (body != null && body.containsKey("nuevaClave") && !body.get("nuevaClave").isBlank())
+                ? body.get("nuevaClave").trim()
+                : "654321";
+
+        java.util.Optional<Usuario> adminOpt = usuarioRepository.findByUsername("admin");
+        if (adminOpt.isEmpty()) {
+            Usuario admin = new Usuario();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode(nuevaClave));
+            admin.setRol("ADMIN");
+            usuarioRepository.save(admin);
+            return ResponseEntity.ok("Usuario admin creado con clave: " + nuevaClave);
+        }
+        Usuario admin = adminOpt.get();
+        admin.setPassword(passwordEncoder.encode(nuevaClave));
+        usuarioRepository.save(admin);
+        return ResponseEntity.ok("Contraseña de admin actualizada con éxito a: " + nuevaClave);
+    }
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> response = new HashMap<>();
