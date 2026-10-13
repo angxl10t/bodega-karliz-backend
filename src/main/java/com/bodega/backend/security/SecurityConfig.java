@@ -33,7 +33,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll() // Única ruta abierta al público (Para poder iniciar sesión)
-                .requestMatchers("/api/health/**").permitAll() // Health check público para mantener el backend activo 24/7
+                .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**").permitAll() // Health check público para mantener el backend activo 24/7
                 .requestMatchers("/error").permitAll() // Permitir respuestas de error para evitar enmascarar códigos HTTP
                 .anyRequest().authenticated() // BLOQUEO TOTAL a todas las demás rutas
             )

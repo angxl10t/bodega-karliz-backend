@@ -61,4 +61,19 @@ public class AuthController {
         usuarioRepository.save(admin);
         return ResponseEntity.ok("Primer Usuario ADMIN creado con éxito. Clave: 123456");
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("service", "bodega-karliz-backend");
+        response.put("timestamp", java.time.Instant.now().toString());
+        try {
+            response.put("database", "CONNECTED");
+            response.put("userCount", usuarioRepository.count());
+        } catch (Exception e) {
+            response.put("database", "DEGRADED: " + e.getMessage());
+        }
+        return ResponseEntity.ok(response);
+    }
 }
