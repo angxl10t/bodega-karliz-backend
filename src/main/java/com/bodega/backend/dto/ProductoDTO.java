@@ -14,7 +14,6 @@ public class ProductoDTO {
 
     private String nombreCategoria; // Nos servirá para mostrarlo bonito en la app móvil y web
 
-    @NotBlank(message = "El código interno es obligatorio")
     @Size(max = 50, message = "El código no puede exceder 50 caracteres")
     private String codigo;
 

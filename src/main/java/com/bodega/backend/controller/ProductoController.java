@@ -24,6 +24,12 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.listarActivos());
     }
 
+    @GetMapping("/siguiente-codigo")
+    public ResponseEntity<java.util.Map<String, String>> siguienteCodigo(@RequestParam Long idCategoria) {
+        String codigo = productoService.generarSiguienteCodigo(idCategoria);
+        return ResponseEntity.ok(java.util.Map.of("codigo", codigo));
+    }
+
     @PostMapping
     public ResponseEntity<ProductoDTO> crear(@Valid @RequestBody ProductoDTO dto) {
         return new ResponseEntity<>(productoService.crear(dto), HttpStatus.CREATED);

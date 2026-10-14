@@ -30,8 +30,76 @@ public class ProductoService {
                 .collect(Collectors.toList());
     }
 
+    public String getPrefixForCategoria(String nombre) {
+        if (nombre == null) return "PROD";
+        String clean = nombre.trim().toLowerCase();
+        if (clean.contains("gaseosa") || (clean.contains("bebida") && !clean.contains("alcoh"))) {
+            return "GSE";
+        } else if (clean.contains("alcoh") || clean.contains("cerveza") || clean.contains("licor")) {
+            return "ALC";
+        } else if (clean.contains("snack") || clean.contains("piqueo")) {
+            return "SNK";
+        } else if (clean.contains("lácteo") || clean.contains("lacteo") || clean.contains("leche")) {
+            return "LAC";
+        } else if (clean.contains("embutido") || clean.contains("fiambrer")) {
+            return "EMB";
+        } else if (clean.contains("abarrote") || clean.contains("fideo")) {
+            return "ABA";
+        } else if (clean.contains("helado") || clean.contains("postre")) {
+            return "HLD";
+        } else if (clean.contains("golosina") || clean.contains("chocolate")) {
+            return "GLS";
+        } else if (clean.contains("dental") || clean.contains("personal") || clean.contains("colino")) {
+            return "CPD";
+        } else if (clean.contains("limpieza") || clean.contains("hogar") || clean.contains("detergente")) {
+            return "LMP";
+        } else if (clean.contains("cigar") || clean.contains("tabaco")) {
+            return "CIG";
+        } else if (clean.contains("panader") || clean.contains("desayuno") || clean.contains("pan")) {
+            return "PAN";
+        }
+        String norm = clean.replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
+        if (norm.length() >= 3) {
+            return norm.substring(0, 3);
+        }
+        return (norm + "GEN").substring(0, 3);
+    }
+
+    @Transactional(readOnly = true)
+    public String generarSiguienteCodigo(Long idCategoria) {
+        Categoria categoria = categoriaRepository.findById(idCategoria)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + idCategoria));
+        String prefix = getPrefixForCategoria(categoria.getNombre());
+        List<Producto> productos = productoRepository.findAll();
+        int maxNum = 0;
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^" + java.util.regex.Pattern.quote(prefix) + "-(\\d+)$");
+        for (Producto p : productos) {
+            if (p.getCodigo() != null) {
+                java.util.regex.Matcher m = pattern.matcher(p.getCodigo().trim());
+                if (m.matches()) {
+                    try {
+                        int num = Integer.parseInt(m.group(1));
+                        if (num > maxNum) {
+                            maxNum = num;
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+        return String.format("%s-%04d", prefix, maxNum + 1);
+    }
+
     @Transactional
     public ProductoDTO crear(ProductoDTO dto) {
+        // Enlazar con la categoría
+        Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
+
+        // Generar código según categoría si no fue proporcionado
+        if (dto.getCodigo() == null || dto.getCodigo().isBlank()) {
+            dto.setCodigo(generarSiguienteCodigo(categoria.getIdCategoria()));
+        }
+
         // Validaciones de reglas de negocio
         if (productoRepository.findByCodigo(dto.getCodigo()).isPresent()) {
             throw new RuntimeException("Ya existe un producto con el código interno: " + dto.getCodigo());
@@ -40,10 +108,6 @@ public class ProductoService {
             productoRepository.findByCodigoBarras(dto.getCodigoBarras()).isPresent()) {
             throw new RuntimeException("Ya existe un producto con el código de barras: " + dto.getCodigoBarras());
         }
-
-        // Enlazar con la categoría
-        Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
 
         Producto producto = new Producto();
         producto.setCategoria(categoria);
