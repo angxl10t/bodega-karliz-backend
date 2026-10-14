@@ -73,6 +73,14 @@ public class ProductoService {
             producto.setCategoria(categoria);
         }
 
+        if (dto.getCodigo() != null && !dto.getCodigo().isBlank()) {
+            productoRepository.findByCodigo(dto.getCodigo())
+                    .filter(otro -> !otro.getIdProducto().equals(id))
+                    .ifPresent(otro -> {
+                        throw new RuntimeException("Ya existe otro producto con el código: " + dto.getCodigo());
+                    });
+            producto.setCodigo(dto.getCodigo());
+        }
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             producto.setNombre(dto.getNombre());
         }
@@ -82,11 +90,23 @@ public class ProductoService {
         if (dto.getPrecioVenta() != null) {
             producto.setPrecioVenta(dto.getPrecioVenta());
         }
+        if (dto.getStockActual() != null) {
+            producto.setStockActual(dto.getStockActual());
+        }
         if (dto.getStockMinimo() != null) {
             producto.setStockMinimo(dto.getStockMinimo());
         }
         if (dto.getCodigoBarras() != null) {
-            producto.setCodigoBarras(dto.getCodigoBarras());
+            if (!dto.getCodigoBarras().isBlank()) {
+                productoRepository.findByCodigoBarras(dto.getCodigoBarras())
+                        .filter(otro -> !otro.getIdProducto().equals(id))
+                        .ifPresent(otro -> {
+                            throw new RuntimeException("Ya existe otro producto con el código de barras: " + dto.getCodigoBarras());
+                        });
+                producto.setCodigoBarras(dto.getCodigoBarras());
+            } else {
+                producto.setCodigoBarras(null);
+            }
         }
         if (dto.getControlaVencimiento() != null) {
             producto.setControlaVencimiento(dto.getControlaVencimiento());
