@@ -316,7 +316,8 @@ public class VentaService {
             Producto prod = productoRepository.findByIdForUpdate(idProd)
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado para reponer stock: " + idProd));
 
-            prod.setStockActual(prod.getStockActual().add(det.getCantidad()));
+            BigDecimal stockPrevio = (prod.getStockActual() != null ? prod.getStockActual() : BigDecimal.ZERO);
+            prod.setStockActual(stockPrevio.add(det.getCantidad()));
             productoRepository.save(prod);
 
             MovimientoInventario mov = new MovimientoInventario();

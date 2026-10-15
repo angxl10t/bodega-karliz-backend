@@ -166,12 +166,28 @@ public class ProductoService {
             });
         }
 
+        if (dto.getNombre() == null || dto.getNombre().trim().isBlank()) {
+            throw new RuntimeException("El nombre del producto es obligatorio.");
+        }
+        String nombreLimpio = dto.getNombre().trim();
+        String marcaLimpia = (dto.getMarca() != null && !dto.getMarca().isBlank()) ? dto.getMarca().trim() : null;
+
+        if (dto.getPrecioVenta() == null || dto.getPrecioVenta().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El precio de venta debe ser mayor a cero.");
+        }
+        if (dto.getStockActual() == null || dto.getStockActual().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("El stock inicial no puede ser negativo.");
+        }
+        if (dto.getStockMinimo() == null || dto.getStockMinimo().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("El stock mínimo no puede ser negativo.");
+        }
+
         Producto producto = new Producto();
         producto.setCategoria(categoria);
         producto.setCodigo(dto.getCodigo().trim());
         producto.setCodigoBarras(dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank() ? dto.getCodigoBarras().trim() : null);
-        producto.setNombre(dto.getNombre());
-        producto.setMarca(dto.getMarca());
+        producto.setNombre(nombreLimpio);
+        producto.setMarca(marcaLimpia);
         producto.setPrecioVenta(dto.getPrecioVenta());
         producto.setStockActual(dto.getStockActual());
         producto.setStockMinimo(dto.getStockMinimo());
@@ -228,16 +244,25 @@ public class ProductoService {
                     });
             producto.setCodigo(dto.getCodigo().trim());
         }
-        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
-            producto.setNombre(dto.getNombre());
+        if (dto.getNombre() != null) {
+            if (dto.getNombre().trim().isBlank()) {
+                throw new RuntimeException("El nombre del producto no puede estar vacío.");
+            }
+            producto.setNombre(dto.getNombre().trim());
         }
         if (dto.getMarca() != null) {
-            producto.setMarca(dto.getMarca());
+            producto.setMarca(dto.getMarca().trim().isBlank() ? null : dto.getMarca().trim());
         }
         if (dto.getPrecioVenta() != null) {
+            if (dto.getPrecioVenta().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("El precio de venta debe ser mayor a cero.");
+            }
             producto.setPrecioVenta(dto.getPrecioVenta());
         }
         if (dto.getStockActual() != null) {
+            if (dto.getStockActual().compareTo(BigDecimal.ZERO) < 0) {
+                throw new RuntimeException("El stock actual no puede ser negativo.");
+            }
             BigDecimal stockAnterior = producto.getStockActual() != null ? producto.getStockActual() : BigDecimal.ZERO;
             BigDecimal nuevoStock = dto.getStockActual();
             if (stockAnterior.compareTo(nuevoStock) != 0) {
@@ -253,6 +278,9 @@ public class ProductoService {
             producto.setStockActual(nuevoStock);
         }
         if (dto.getStockMinimo() != null) {
+            if (dto.getStockMinimo().compareTo(BigDecimal.ZERO) < 0) {
+                throw new RuntimeException("El stock mínimo no puede ser negativo.");
+            }
             producto.setStockMinimo(dto.getStockMinimo());
         }
         if (dto.getCodigoBarras() != null) {
@@ -284,6 +312,9 @@ public class ProductoService {
     public void desactivar(Long id) {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+        if (Boolean.FALSE.equals(producto.getEstado())) {
+            return;
+        }
         producto.setEstado(false);
         // Liberar el código de barras al dar de baja para que pueda ser reutilizado si fue dado de baja por error
         if (producto.getCodigoBarras() != null && !producto.getCodigoBarras().isBlank()) {

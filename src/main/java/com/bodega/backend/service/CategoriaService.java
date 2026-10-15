@@ -35,8 +35,19 @@ public class CategoriaService {
             throw new RuntimeException("El nombre de la categoría es obligatorio");
         }
         String nombreTrim = dto.getNombre().trim();
-        if (categoriaRepository.existsByNombreIgnoreCase(nombreTrim)) {
-            throw new RuntimeException("Ya existe una categoría con el nombre: " + nombreTrim);
+        java.util.Optional<Categoria> existente = categoriaRepository.findByNombreIgnoreCase(nombreTrim);
+        if (existente.isPresent()) {
+            Categoria cat = existente.get();
+            if (Boolean.FALSE.equals(cat.getEstado())) {
+                // Reactivación transparente de categoría previamente dada de baja
+                cat.setEstado(true);
+                if (dto.getDescripcion() != null && !dto.getDescripcion().isBlank()) {
+                    cat.setDescripcion(dto.getDescripcion().trim());
+                }
+                Categoria reactivada = categoriaRepository.save(cat);
+                return mapToDTO(reactivada);
+            }
+            throw new RuntimeException("Ya existe una categoría activa con el nombre: " + nombreTrim);
         }
 
         Categoria categoria = new Categoria();
@@ -75,6 +86,10 @@ public class CategoriaService {
     public void desactivar(Long id) {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + id));
+
+        if (Boolean.FALSE.equals(categoria.getEstado())) {
+            return;
+        }
 
         // Integridad referencial: Impedir desactivar categorías que tengan productos activos vinculados
         if (productoRepository.existsByCategoria_IdCategoriaAndEstadoTrue(id)) {

@@ -81,6 +81,9 @@ public class ProveedorService {
     public void desactivar(Long idProveedor) {
         Proveedor proveedor = proveedorRepository.findById(idProveedor)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + idProveedor));
+        if (Boolean.FALSE.equals(proveedor.getEstado())) {
+            return;
+        }
         proveedor.setEstado(false);
         proveedorRepository.save(proveedor);
     }

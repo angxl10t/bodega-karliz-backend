@@ -110,7 +110,8 @@ public class CompraService {
             detallesGuardados.add(detalle);
 
             // 3. Actualizar Stock del Producto
-            producto.setStockActual(producto.getStockActual().add(cantidadTotal));
+            BigDecimal stockPrevio = (producto.getStockActual() != null ? producto.getStockActual() : BigDecimal.ZERO);
+            producto.setStockActual(stockPrevio.add(cantidadTotal));
             productoRepository.save(producto);
 
             // 4. Registrar en el Kardex (Movimiento Inventario)

@@ -83,8 +83,14 @@ public class SecurityConfig {
         // Restricción estricta de orígenes autorizados: GitHub Pages oficial y entornos locales de desarrollo/pruebas
         configuration.setAllowedOriginPatterns(List.of(
             "https://angxl10t.github.io",
+            "http://localhost",
+            "https://localhost",
             "http://localhost:[*]",
+            "https://localhost:[*]",
+            "http://127.0.0.1",
+            "https://127.0.0.1",
             "http://127.0.0.1:[*]",
+            "https://127.0.0.1:[*]",
             "http://192.168.[*].[*]:[*]",
             "http://10.[*].[*].[*]:[*]"
         ));

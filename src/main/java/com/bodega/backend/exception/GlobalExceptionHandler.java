@@ -64,6 +64,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    // Atrapa JSON mal formado o tipos de datos incompatibles en el cuerpo del request
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleHttpMessageNotReadable(org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "El formato del cuerpo de la solicitud (JSON) es inválido o contiene tipos de datos incorrectos.");
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // Atrapa parámetros de URL con tipos incorrectos (ej. pasar letras donde se espera un ID numérico o fecha)
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatch(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex) {
+        Map<String, String> error = new HashMap<>();
+        String paramName = ex.getName();
+        error.put("error", "El parámetro '" + paramName + "' proporcionado en la solicitud tiene un formato o tipo de dato inválido.");
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     // Captura universal de cualquier error inesperado no controlado para evitar fuga de trazas o stack traces
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {

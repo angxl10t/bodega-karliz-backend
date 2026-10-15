@@ -9,5 +9,6 @@ import java.util.List;
 public interface PresentacionRepository extends JpaRepository<Presentacion, Long> {
     // Buscar presentaciones activas que pertenezcan a un producto en específico
     List<Presentacion> findByProducto_IdProductoAndEstadoTrue(Long idProducto);
+    java.util.Optional<Presentacion> findByProducto_IdProductoAndNombreIgnoreCase(Long idProducto, String nombre);
     boolean existsByProducto_IdProductoAndNombreIgnoreCaseAndEstadoTrue(Long idProducto, String nombre);
 }

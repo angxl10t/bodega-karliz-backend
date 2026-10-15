@@ -2,6 +2,7 @@ package com.bodega.backend.repository;
 
 import com.bodega.backend.entity.Producto;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
+    @EntityGraph(attributePaths = {"categoria"})
     List<Producto> findByEstadoTrue();
     List<Producto> findByEstadoFalse();
     
