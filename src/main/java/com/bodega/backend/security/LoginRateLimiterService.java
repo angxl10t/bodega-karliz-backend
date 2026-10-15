@@ -134,4 +134,22 @@ public class LoginRateLimiterService {
             userIpAttempts.remove(getCompositeKey(ip, username));
         }
     }
+
+    /**
+     * Tarea programada: Purga periódica cada 5 minutos para prevenir fugas de memoria (unbounded growth).
+     */
+    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 300000)
+    public void limpiarRegistrosExpirados() {
+        Instant now = Instant.now();
+        ipAttempts.entrySet().removeIf(entry -> {
+            AttemptRecord r = entry.getValue();
+            return (r.blockedUntil != null && now.isAfter(r.blockedUntil))
+                || (r.blockedUntil == null && java.time.Duration.between(r.lastAttemptTime, now).getSeconds() > BLOCK_DURATION_SECONDS);
+        });
+        userIpAttempts.entrySet().removeIf(entry -> {
+            AttemptRecord r = entry.getValue();
+            return (r.blockedUntil != null && now.isAfter(r.blockedUntil))
+                || (r.blockedUntil == null && java.time.Duration.between(r.lastAttemptTime, now).getSeconds() > BLOCK_DURATION_SECONDS);
+        });
+    }
 }

@@ -38,8 +38,10 @@ public class MovimientoService {
     private MovimientoInventarioDTO mapToDTO(MovimientoInventario mov) {
         MovimientoInventarioDTO dto = new MovimientoInventarioDTO();
         dto.setIdMovimiento(mov.getIdMovimiento());
-        dto.setIdProducto(mov.getProducto().getIdProducto());
-        dto.setNombreProducto(mov.getProducto().getNombre());
+        if (mov.getProducto() != null) {
+            dto.setIdProducto(mov.getProducto().getIdProducto());
+            dto.setNombreProducto(mov.getProducto().getNombre());
+        }
         dto.setTipoMovimiento(mov.getTipoMovimiento());
         dto.setCantidad(mov.getCantidad());
         dto.setMotivo(mov.getMotivo());

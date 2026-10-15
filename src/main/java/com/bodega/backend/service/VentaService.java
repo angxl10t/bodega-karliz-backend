@@ -46,9 +46,15 @@ public class VentaService {
         String docCliente = (dto.getClienteDocumento() != null && !dto.getClienteDocumento().isBlank()) 
                 ? dto.getClienteDocumento().trim() 
                 : null;
+        if (docCliente != null && docCliente.length() > 20) {
+            docCliente = docCliente.substring(0, 20);
+        }
         String nomCliente = (dto.getClienteNombre() != null && !dto.getClienteNombre().isBlank()) 
                 ? dto.getClienteNombre().trim() 
                 : "Público General";
+        if (nomCliente.length() > 150) {
+            nomCliente = nomCliente.substring(0, 150);
+        }
         venta.setClienteDocumento(docCliente);
         venta.setClienteNombre(nomCliente);
         venta.setMetodoPago(dto.getMetodoPago() != null ? dto.getMetodoPago() : "Efectivo");
@@ -88,15 +94,16 @@ public class VentaService {
                 throw new RuntimeException("No se puede vender el producto dado de baja o inactivo: " + producto.getNombre());
             }
 
-            // Validación estricta de Stock contra la cantidad total solicitada
-            if (producto.getStockActual().compareTo(cantidadTotal) < 0) {
+            // Validación estricta y segura de Stock contra la cantidad total solicitada
+            BigDecimal stockDisponible = (producto.getStockActual() != null ? producto.getStockActual() : BigDecimal.ZERO);
+            if (stockDisponible.compareTo(cantidadTotal) < 0) {
                 throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + 
-                                           ". Tienes: " + producto.getStockActual() + " y quieres vender: " + cantidadTotal);
+                                           ". Tienes: " + stockDisponible + " y quieres vender: " + cantidadTotal);
             }
 
-            // Seguridad: El precio se extrae directamente de la base de datos
+            // Seguridad: El precio se extrae directamente de la base de datos con redondeo comercial exacto
             BigDecimal precioFinal = producto.getPrecioVenta();
-            BigDecimal subtotal = cantidadTotal.multiply(precioFinal);
+            BigDecimal subtotal = cantidadTotal.multiply(precioFinal).setScale(2, java.math.RoundingMode.HALF_UP);
             totalVenta = totalVenta.add(subtotal);
 
             VentaDetalle detalle = new VentaDetalle();
@@ -106,19 +113,26 @@ public class VentaService {
             detalle.setSubtotal(subtotal);
             detallesGuardados.add(detalle);
 
-            // Restar Stock
-            producto.setStockActual(producto.getStockActual().subtract(cantidadTotal));
+            // Restar Stock de forma segura frente a nulos
+            producto.setStockActual(stockDisponible.subtract(cantidadTotal));
             productoRepository.save(producto);
 
-            // Registrar en Kardex
+            // Registrar en Kardex con protección de longitud VARCHAR(255)
             MovimientoInventario mov = new MovimientoInventario();
             mov.setProducto(producto);
             mov.setTipoMovimiento("SALIDA");
             mov.setCantidad(cantidadTotal);
-            String nombreCliente = (dto.getClienteNombre() != null) ? dto.getClienteNombre() : "Público General";
-            mov.setMotivo("Venta al cliente: " + nombreCliente);
+            String motivoVenta = "Venta al cliente: " + nomCliente;
+            if (motivoVenta.length() > 255) {
+                motivoVenta = motivoVenta.substring(0, 255);
+            }
+            mov.setMotivo(motivoVenta);
             mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
+        }
+
+        if (totalVenta.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El importe total de la venta debe ser mayor a cero.");
         }
 
         venta.setTotal(totalVenta);

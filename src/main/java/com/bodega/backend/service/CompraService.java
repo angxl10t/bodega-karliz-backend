@@ -50,6 +50,9 @@ public class CompraService {
         String comprobanteTrim = (dto.getComprobante() != null && !dto.getComprobante().isBlank()) 
                 ? dto.getComprobante().trim() 
                 : null;
+        if (comprobanteTrim != null && comprobanteTrim.length() > 50) {
+            comprobanteTrim = comprobanteTrim.substring(0, 50);
+        }
 
         if (comprobanteTrim != null && compraRepository.existsByProveedor_IdProveedorAndComprobanteIgnoreCase(proveedor.getIdProveedor(), comprobanteTrim)) {
             throw new RuntimeException("Ya existe una compra registrada con el comprobante '" + comprobanteTrim + "' para el proveedor " + proveedor.getRazonSocial());
@@ -89,6 +92,10 @@ public class CompraService {
             BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd);
             BigDecimal precioUnitario = preciosPorProducto.get(idProd);
 
+            if (precioUnitario == null || precioUnitario.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("El precio unitario de compra debe ser mayor a cero.");
+            }
+
             // Bloqueo pesimista exclusivo para evitar Race Conditions con ventas en curso
             Producto producto = productoRepository.findByIdForUpdate(idProd)
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + idProd));
@@ -98,8 +105,8 @@ public class CompraService {
                 throw new RuntimeException("No se puede registrar compra para el producto dado de baja o inactivo: " + producto.getNombre());
             }
 
-            // Backend calcula el subtotal para evitar hackeos desde el frontend
-            BigDecimal subtotal = cantidadTotal.multiply(precioUnitario);
+            // Backend calcula el subtotal con redondeo comercial exacto
+            BigDecimal subtotal = cantidadTotal.multiply(precioUnitario).setScale(2, java.math.RoundingMode.HALF_UP);
             totalCompra = totalCompra.add(subtotal);
 
             CompraDetalle detalle = new CompraDetalle();
@@ -114,14 +121,22 @@ public class CompraService {
             producto.setStockActual(stockPrevio.add(cantidadTotal));
             productoRepository.save(producto);
 
-            // 4. Registrar en el Kardex (Movimiento Inventario)
+            // 4. Registrar en el Kardex (Movimiento Inventario) con protección de longitud VARCHAR(255)
             MovimientoInventario mov = new MovimientoInventario();
             mov.setProducto(producto);
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(cantidadTotal);
-            mov.setMotivo("Compra a proveedor: " + proveedor.getRazonSocial() + (comprobanteTrim != null ? " (" + comprobanteTrim + ")" : ""));
+            String motivoCompra = "Compra a proveedor: " + proveedor.getRazonSocial() + (comprobanteTrim != null ? " (" + comprobanteTrim + ")" : "");
+            if (motivoCompra.length() > 255) {
+                motivoCompra = motivoCompra.substring(0, 255);
+            }
+            mov.setMotivo(motivoCompra);
             mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
+        }
+
+        if (totalCompra.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El importe total de la compra debe ser mayor a cero.");
         }
 
         // Finalizar y guardar
