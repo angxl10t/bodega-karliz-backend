@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado en el sistema"));
 
-        if (!usuario.getEstado()) {
+        if (Boolean.FALSE.equals(usuario.getEstado())) {
             throw new RuntimeException("Tu usuario ha sido desactivado");
         }
 

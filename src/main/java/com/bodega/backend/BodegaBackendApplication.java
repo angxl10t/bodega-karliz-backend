@@ -18,14 +18,21 @@ public class BodegaBackendApplication {
 	@Bean
 	public CommandLineRunner inicializarAdminSeguro(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
-			if (usuarioRepository.findByUsername("admin").isEmpty()) {
+			usuarioRepository.findByUsername("admin").ifPresentOrElse(admin -> {
+				if (admin.getEstado() == null) {
+					admin.setEstado(true);
+					usuarioRepository.save(admin);
+					System.out.println(">>> [SEGURIDAD] Estado de usuario 'admin' asegurado como activo (true).");
+				}
+			}, () -> {
 				Usuario admin = new Usuario();
 				admin.setUsername("admin");
 				admin.setPassword(passwordEncoder.encode("123456"));
 				admin.setRol("ADMIN");
+				admin.setEstado(true);
 				usuarioRepository.save(admin);
 				System.out.println(">>> [SEGURIDAD] Usuario inicial 'admin' creado automáticamente con contraseña por defecto.");
-			}
+			});
 		};
 	}
 }
