@@ -23,12 +23,13 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado en el sistema"));
 
         if (Boolean.FALSE.equals(usuario.getEstado())) {
-            throw new RuntimeException("Tu usuario ha sido desactivado");
+            throw new org.springframework.security.authentication.DisabledException("Tu cuenta de usuario ha sido desactivada");
         }
 
         return User.builder()
                 .username(usuario.getUsername())
                 .password(usuario.getPassword())
+                .disabled(!Boolean.TRUE.equals(usuario.getEstado()))
                 .roles(usuario.getRol())
                 .build();
     }

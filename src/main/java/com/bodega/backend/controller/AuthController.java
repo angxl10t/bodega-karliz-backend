@@ -82,11 +82,42 @@ public class AuthController {
     }
 
     private String extractClientIp(HttpServletRequest request) {
+        // 1. Cabeceras inmutables desde proxy perimetral (Cloudflare / Render Edge)
+        String cfIp = request.getHeader("CF-Connecting-IP");
+        if (cfIp != null && !cfIp.isBlank() && isValidIp(cfIp.trim())) {
+            return cfIp.trim();
+        }
+
+        String trueClientIp = request.getHeader("True-Client-IP");
+        if (trueClientIp != null && !trueClientIp.isBlank() && isValidIp(trueClientIp.trim())) {
+            return trueClientIp.trim();
+        }
+
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isBlank() && isValidIp(xRealIp.trim())) {
+            return xRealIp.trim();
+        }
+
+        // 2. X-Forwarded-For: Sanitizar y obtener la IP origen válida
         String xf = request.getHeader("X-Forwarded-For");
         if (xf != null && !xf.isBlank()) {
-            return xf.split(",")[0].trim();
+            String[] ips = xf.split(",");
+            for (String part : ips) {
+                String candidate = part.trim();
+                if (isValidIp(candidate)) {
+                    return candidate;
+                }
+            }
         }
-        return request.getRemoteAddr();
+
+        String remote = request.getRemoteAddr();
+        return (remote != null && isValidIp(remote)) ? remote : "unknown_ip";
+    }
+
+    private boolean isValidIp(String ip) {
+        if (ip == null || ip.isBlank() || ip.length() > 45) return false;
+        // Valida IPv4 estándar o IPv6
+        return ip.matches("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$") || ip.contains(":");
     }
 
     @PostMapping("/cambiar-password")

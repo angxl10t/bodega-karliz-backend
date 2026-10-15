@@ -3,6 +3,7 @@ package com.bodega.backend.security;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -27,8 +28,11 @@ public class LoginRateLimiterService {
         }
     }
 
+    private static final int MAX_GLOBAL_USER_FAILED_ATTEMPTS = 15;
+
     private final ConcurrentHashMap<String, AttemptRecord> ipAttempts = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AttemptRecord> userIpAttempts = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AttemptRecord> globalUserAttempts = new ConcurrentHashMap<>();
 
     private String getCompositeKey(String ip, String username) {
         String cleanIp = (ip != null && !ip.isBlank()) ? ip.trim() : "unknown_ip";
@@ -38,12 +42,14 @@ public class LoginRateLimiterService {
 
     /**
      * Verifica si una IP o usuario se encuentra actualmente bloqueado.
-     * La verificación por usuario está acotada a la IP origen para prevenir ataques de
-     * Denegación de Servicio por Bloqueo de Cuentas (Account Lockout DoS).
+     * Evalúa IP de origen, combinación IP + Usuario, y umbral global contra ataques distribuidos.
      */
     public boolean isBlocked(String ip, String username) {
         Instant now = Instant.now();
-        return isKeyBlocked(ipAttempts, ip, now) || isKeyBlocked(userIpAttempts, getCompositeKey(ip, username), now);
+        String cleanUser = (username != null && !username.isBlank()) ? username.trim().toLowerCase() : "";
+        return isKeyBlocked(ipAttempts, ip, now) 
+            || isKeyBlocked(userIpAttempts, getCompositeKey(ip, username), now)
+            || (!cleanUser.isEmpty() && isKeyBlocked(globalUserAttempts, cleanUser, now));
     }
 
     private boolean isKeyBlocked(ConcurrentHashMap<String, AttemptRecord> map, String key, Instant now) {
@@ -68,14 +74,18 @@ public class LoginRateLimiterService {
         Instant now = Instant.now();
         Instant untilIp = getBlockedUntil(ipAttempts, ip);
         Instant untilUser = getBlockedUntil(userIpAttempts, getCompositeKey(ip, username));
+        String cleanUser = (username != null && !username.isBlank()) ? username.trim().toLowerCase() : "";
+        Instant untilGlobalUser = !cleanUser.isEmpty() ? getBlockedUntil(globalUserAttempts, cleanUser) : null;
 
         Instant maxUntil = null;
-        if (untilIp != null && untilUser != null) {
-            maxUntil = untilIp.isAfter(untilUser) ? untilIp : untilUser;
-        } else if (untilIp != null) {
+        if (untilIp != null) {
             maxUntil = untilIp;
-        } else {
+        }
+        if (untilUser != null && (maxUntil == null || untilUser.isAfter(maxUntil))) {
             maxUntil = untilUser;
+        }
+        if (untilGlobalUser != null && (maxUntil == null || untilGlobalUser.isAfter(maxUntil))) {
+            maxUntil = untilGlobalUser;
         }
 
         if (maxUntil != null && now.isBefore(maxUntil)) {
@@ -92,15 +102,32 @@ public class LoginRateLimiterService {
     }
 
     /**
-     * Registra un intento fallido para la IP y para la combinación IP + usuario.
+     * Registra un intento fallido para la IP, la combinación IP + usuario y el contador global de usuario.
+     * Aplica tarpit (retraso progresivo) para estrangular bots de fuerza bruta.
      */
     public void registerFailedAttempt(String ip, String username) {
         Instant now = Instant.now();
-        recordFailedAttempt(ipAttempts, ip, now);
-        recordFailedAttempt(userIpAttempts, getCompositeKey(ip, username), now);
+        recordFailedAttempt(ipAttempts, ip, now, MAX_FAILED_ATTEMPTS);
+        recordFailedAttempt(userIpAttempts, getCompositeKey(ip, username), now, MAX_FAILED_ATTEMPTS);
+
+        String cleanUser = (username != null && !username.isBlank()) ? username.trim().toLowerCase() : "";
+        if (!cleanUser.isEmpty()) {
+            recordFailedAttempt(globalUserAttempts, cleanUser, now, MAX_GLOBAL_USER_FAILED_ATTEMPTS);
+        }
+
+        // Tarpit defensivo: retardo progresivo (350ms * intentos) para desarmar automatizaciones masivas
+        AttemptRecord rec = userIpAttempts.get(getCompositeKey(ip, username));
+        if (rec != null && rec.failedAttempts > 1) {
+            try {
+                long delayMs = Math.min((long) rec.failedAttempts * 350L, 2000L);
+                Thread.sleep(delayMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
-    private void recordFailedAttempt(ConcurrentHashMap<String, AttemptRecord> map, String key, Instant now) {
+    private void recordFailedAttempt(ConcurrentHashMap<String, AttemptRecord> map, String key, Instant now, int maxAttempts) {
         if (key == null || key.isBlank()) return;
 
         map.compute(key, (k, record) -> {
@@ -114,7 +141,7 @@ public class LoginRateLimiterService {
                 record.blockedUntil = null;
             } else {
                 record.failedAttempts++;
-                if (record.failedAttempts >= MAX_FAILED_ATTEMPTS) {
+                if (record.failedAttempts >= maxAttempts) {
                     record.blockedUntil = now.plusSeconds(BLOCK_DURATION_SECONDS);
                 }
             }
@@ -132,6 +159,7 @@ public class LoginRateLimiterService {
         }
         if (username != null && !username.isBlank()) {
             userIpAttempts.remove(getCompositeKey(ip, username));
+            globalUserAttempts.remove(username.trim().toLowerCase());
         }
     }
 
@@ -141,15 +169,12 @@ public class LoginRateLimiterService {
     @org.springframework.scheduling.annotation.Scheduled(fixedRate = 300000)
     public void limpiarRegistrosExpirados() {
         Instant now = Instant.now();
-        ipAttempts.entrySet().removeIf(entry -> {
-            AttemptRecord r = entry.getValue();
-            return (r.blockedUntil != null && now.isAfter(r.blockedUntil))
-                || (r.blockedUntil == null && java.time.Duration.between(r.lastAttemptTime, now).getSeconds() > BLOCK_DURATION_SECONDS);
-        });
-        userIpAttempts.entrySet().removeIf(entry -> {
-            AttemptRecord r = entry.getValue();
-            return (r.blockedUntil != null && now.isAfter(r.blockedUntil))
-                || (r.blockedUntil == null && java.time.Duration.between(r.lastAttemptTime, now).getSeconds() > BLOCK_DURATION_SECONDS);
-        });
+        java.util.function.Predicate<AttemptRecord> isExpired = r ->
+            (r.blockedUntil != null && now.isAfter(r.blockedUntil))
+            || (r.blockedUntil == null && java.time.Duration.between(r.lastAttemptTime, now).getSeconds() > BLOCK_DURATION_SECONDS);
+
+        ipAttempts.entrySet().removeIf(entry -> isExpired.test(entry.getValue()));
+        userIpAttempts.entrySet().removeIf(entry -> isExpired.test(entry.getValue()));
+        globalUserAttempts.entrySet().removeIf(entry -> isExpired.test(entry.getValue()));
     }
 }

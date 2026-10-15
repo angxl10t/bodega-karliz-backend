@@ -85,14 +85,15 @@ public class SecurityConfig {
             "https://angxl10t.github.io",
             "http://localhost",
             "https://localhost",
-            "http://localhost:[*]",
-            "https://localhost:[*]",
+            "http://localhost:*",
+            "https://localhost:*",
             "http://127.0.0.1",
             "https://127.0.0.1",
-            "http://127.0.0.1:[*]",
-            "https://127.0.0.1:[*]",
-            "http://192.168.[*].[*]:[*]",
-            "http://10.[*].[*].[*]:[*]"
+            "http://127.0.0.1:*",
+            "https://127.0.0.1:*",
+            "http://10.0.2.2:*",
+            "http://192.168.*.*:*",
+            "http://10.*.*.*:*"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(List.of("*"));

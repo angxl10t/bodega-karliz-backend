@@ -38,6 +38,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    // Atrapa intentos de inicio de sesión con cuentas desactivadas
+    @ExceptionHandler(org.springframework.security.authentication.DisabledException.class)
+    public ResponseEntity<Map<String, String>> handleDisabledAccount(org.springframework.security.authentication.DisabledException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Esta cuenta de usuario ha sido desactivada. Contacta al administrador del sistema.");
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
     // Atrapa intentos de acceso no autorizados por RBAC (@PreAuthorize)
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {

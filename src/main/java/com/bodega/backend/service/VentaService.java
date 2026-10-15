@@ -158,7 +158,7 @@ public class VentaService {
             ZoneId zonePeru = ZoneId.of("America/Lima");
             LocalDate hoyPeru = LocalDate.now(zonePeru);
             OffsetDateTime inicio = hoyPeru.atStartOfDay(zonePeru).toOffsetDateTime();
-            OffsetDateTime fin = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
+            OffsetDateTime fin = hoyPeru.atTime(java.time.LocalTime.MAX).atZone(zonePeru).toOffsetDateTime();
             ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
         } else {
             // Protección contra agotamiento de memoria: límite de 150 ventas recientes para el administrador
@@ -208,7 +208,7 @@ public class VentaService {
         }
 
         OffsetDateTime inicio = fecha.atStartOfDay(zonePeru).toOffsetDateTime();
-        OffsetDateTime fin = fecha.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
+        OffsetDateTime fin = fecha.atTime(java.time.LocalTime.MAX).atZone(zonePeru).toOffsetDateTime();
 
         List<Venta> ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
         return calcularCierre(ventas, fecha.atStartOfDay(zonePeru).toOffsetDateTime());
@@ -227,7 +227,7 @@ public class VentaService {
         }
 
         OffsetDateTime inicio = inicioFecha.atStartOfDay(zonePeru).toOffsetDateTime();
-        OffsetDateTime fin = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
+        OffsetDateTime fin = hoyPeru.atTime(java.time.LocalTime.MAX).atZone(zonePeru).toOffsetDateTime();
 
         List<Venta> ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
 
