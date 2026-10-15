@@ -1,15 +1,19 @@
 package com.bodega.backend.controller;
 
 import com.bodega.backend.dto.AuthDTO;
+import com.bodega.backend.dto.CambiarPasswordDTO;
 import com.bodega.backend.entity.Usuario;
 import com.bodega.backend.repository.UsuarioRepository;
 import com.bodega.backend.security.JwtUtil;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,53 +52,27 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // Endpoint mágico temporal para poder crear tu primera cuenta de administrador
-    @PostMapping("/crear-admin")
-    public ResponseEntity<String> crearAdmin() {
-        if (usuarioRepository.findByUsername("admin").isPresent()) {
-            return ResponseEntity.badRequest().body("El admin ya existe en la base de datos.");
+    @PostMapping("/cambiar-password")
+    public ResponseEntity<Map<String, String>> cambiarPassword(
+            @Valid @RequestBody CambiarPasswordDTO dto,
+            Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Usuario admin = new Usuario();
-        admin.setUsername("admin");
-        admin.setPassword(passwordEncoder.encode("123456")); // Bcrypt encriptará el 123456
-        admin.setRol("ADMIN");
-        usuarioRepository.save(admin);
-        return ResponseEntity.ok("Primer Usuario ADMIN creado con éxito. Clave: 123456");
-    }
 
-    @PostMapping("/cambiar-clave-admin")
-    public ResponseEntity<String> cambiarClaveAdmin(@RequestBody(required = false) Map<String, String> body) {
-        String nuevaClave = (body != null && body.containsKey("nuevaClave") && !body.get("nuevaClave").isBlank())
-                ? body.get("nuevaClave").trim()
-                : "654321";
+        String username = principal.getName();
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        java.util.Optional<Usuario> adminOpt = usuarioRepository.findByUsername("admin");
-        if (adminOpt.isEmpty()) {
-            Usuario admin = new Usuario();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode(nuevaClave));
-            admin.setRol("ADMIN");
-            usuarioRepository.save(admin);
-            return ResponseEntity.ok("Usuario admin creado con clave: " + nuevaClave);
+        if (!passwordEncoder.matches(dto.getPasswordActual(), usuario.getPassword())) {
+            throw new RuntimeException("La contraseña actual no es correcta.");
         }
-        Usuario admin = adminOpt.get();
-        admin.setPassword(passwordEncoder.encode(nuevaClave));
-        usuarioRepository.save(admin);
-        return ResponseEntity.ok("Contraseña de admin actualizada con éxito a: " + nuevaClave);
-    }
 
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, Object>> health() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("service", "bodega-karliz-backend");
-        response.put("timestamp", java.time.Instant.now().toString());
-        try {
-            response.put("database", "CONNECTED");
-            response.put("userCount", usuarioRepository.count());
-        } catch (Exception e) {
-            response.put("database", "DEGRADED: " + e.getMessage());
-        }
+        usuario.setPassword(passwordEncoder.encode(dto.getNuevaPassword()));
+        usuarioRepository.save(usuario);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("mensaje", "Contraseña actualizada exitosamente.");
         return ResponseEntity.ok(response);
     }
 }

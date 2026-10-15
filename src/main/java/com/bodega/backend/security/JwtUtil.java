@@ -13,11 +13,11 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Clave secreta (en prod debe ir en variables de entorno, la quemamos aquí para fácil acceso)
-    private final String SECRET_KEY = "BodegaSecretaBodegaSecretaBodegaSecretaBodegaSecretaBodegaSecretaBodega";
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret:BodegaSecretaBodegaSecretaBodegaSecretaBodegaSecretaBodegaSecretaBodega}")
+    private String secretKey;
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     public String extractUsername(String token) {

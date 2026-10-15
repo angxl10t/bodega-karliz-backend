@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -32,10 +34,13 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Única ruta abierta al público (Para poder iniciar sesión)
-                .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**").permitAll() // Health check público para mantener el backend activo 24/7
-                .requestMatchers("/error").permitAll() // Permitir respuestas de error para evitar enmascarar códigos HTTP
-                .anyRequest().authenticated() // BLOQUEO TOTAL a todas las demás rutas
+                // Solo el inicio de sesión es público en /api/auth
+                .requestMatchers("/api/auth/login").permitAll()
+                // Health checks públicos para monitor de Render
+                .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                // Bloqueo total y autenticación obligatoria para todo lo demás
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -55,9 +60,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // Permite acceso desde Flutter Web/Celular
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Restricción de orígenes autorizados: GitHub Pages y entornos locales de desarrollo/pruebas
+        configuration.setAllowedOriginPatterns(List.of(
+            "https://angxl10t.github.io",
+            "https://*.github.io",
+            "http://localhost:[*]",
+            "http://127.0.0.1:[*]",
+            "http://192.168.[*].[*]:[*]",
+            "http://10.[*].[*].[*]:[*]"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

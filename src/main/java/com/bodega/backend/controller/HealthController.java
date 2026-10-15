@@ -28,12 +28,11 @@ public class HealthController {
         response.put("timestamp", Instant.now().toString());
 
         try {
-            // Consulta ultraligera para mantener activa la conexión a Supabase PostgreSQL y evitar pausas por inactividad
-            long count = usuarioRepository.count();
+            // Consulta ultraligera para mantener activa la conexión a PostgreSQL y evitar pausas de inactividad
+            usuarioRepository.count();
             response.put("database", "CONNECTED");
-            response.put("userCount", count);
         } catch (Exception e) {
-            response.put("database", "DEGRADED: " + e.getMessage());
+            response.put("database", "DEGRADED");
         }
 
         return ResponseEntity.ok(response);

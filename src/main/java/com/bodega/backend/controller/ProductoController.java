@@ -5,6 +5,7 @@ import com.bodega.backend.service.ProductoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,16 +32,19 @@ public class ProductoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductoDTO> crear(@Valid @RequestBody ProductoDTO dto) {
         return new ResponseEntity<>(productoService.crear(dto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductoDTO> actualizar(@PathVariable Long id, @RequestBody ProductoDTO dto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductoDTO> actualizar(@PathVariable Long id, @Valid @RequestBody ProductoDTO dto) {
         return ResponseEntity.ok(productoService.actualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> desactivar(@PathVariable Long id) {
         productoService.desactivar(id);
         return ResponseEntity.noContent().build();
