@@ -28,12 +28,48 @@ public class CategoriaService {
 
     @Transactional
     public CategoriaDTO crear(CategoriaDTO dto) {
+        if (dto.getNombre() == null || dto.getNombre().trim().isBlank()) {
+            throw new RuntimeException("El nombre de la categoría es obligatorio");
+        }
+        String nombreTrim = dto.getNombre().trim();
+        if (categoriaRepository.existsByNombreIgnoreCase(nombreTrim)) {
+            throw new RuntimeException("Ya existe una categoría con el nombre: " + nombreTrim);
+        }
+
         Categoria categoria = new Categoria();
-        categoria.setNombre(dto.getNombre());
-        categoria.setDescripcion(dto.getDescripcion());
+        categoria.setNombre(nombreTrim);
+        categoria.setDescripcion(dto.getDescripcion() != null ? dto.getDescripcion().trim() : null);
         
         Categoria guardada = categoriaRepository.save(categoria);
         return mapToDTO(guardada);
+    }
+
+    @Transactional
+    public CategoriaDTO actualizar(Long id, CategoriaDTO dto) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + id));
+
+        if (dto.getNombre() == null || dto.getNombre().trim().isBlank()) {
+            throw new RuntimeException("El nombre de la categoría es obligatorio");
+        }
+        String nombreTrim = dto.getNombre().trim();
+        if (categoriaRepository.existsByNombreIgnoreCaseAndIdCategoriaNot(nombreTrim, id)) {
+            throw new RuntimeException("Ya existe otra categoría con el nombre: " + nombreTrim);
+        }
+
+        categoria.setNombre(nombreTrim);
+        categoria.setDescripcion(dto.getDescripcion() != null ? dto.getDescripcion().trim() : null);
+
+        Categoria guardada = categoriaRepository.save(categoria);
+        return mapToDTO(guardada);
+    }
+
+    @Transactional
+    public void desactivar(Long id) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + id));
+        categoria.setEstado(false);
+        categoriaRepository.save(categoria);
     }
 
     // Método utilitario para convertir de Entidad a DTO

@@ -30,6 +30,12 @@ public class ProveedorController {
         return new ResponseEntity<>(proveedorService.crear(dto), HttpStatus.CREATED);
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProveedorDTO> actualizar(@PathVariable Long id, @Valid @RequestBody ProveedorDTO dto) {
+        return ResponseEntity.ok(proveedorService.actualizar(id, dto));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> desactivar(@PathVariable Long id) {

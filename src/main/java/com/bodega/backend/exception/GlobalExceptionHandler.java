@@ -50,8 +50,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
-            errors.put(error.getField(), error.getDefaultMessage()));
+        String primerMensaje = null;
+        for (var error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+            if (primerMensaje == null) {
+                primerMensaje = error.getDefaultMessage();
+            }
+        }
+        if (primerMensaje == null) {
+            primerMensaje = "Datos de entrada inválidos.";
+        }
+        errors.put("error", primerMensaje);
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 

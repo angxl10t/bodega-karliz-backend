@@ -197,6 +197,10 @@ public class ProductoService {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
 
+        if (Boolean.FALSE.equals(producto.getEstado())) {
+            throw new RuntimeException("No se puede editar un producto dado de baja o inactivo. Debe reactivarlo primero.");
+        }
+
         if (dto.getIdCategoria() != null) {
             Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));

@@ -10,4 +10,6 @@ import java.util.List;
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
     // Método automático de Spring Data para buscar solo las categorías activas
     List<Categoria> findByEstadoTrue();
+    boolean existsByNombreIgnoreCase(String nombre);
+    boolean existsByNombreIgnoreCaseAndIdCategoriaNot(String nombre, Long idCategoria);
 }

@@ -174,7 +174,7 @@ public class VentaService {
     public List<CierreCajaDTO> obtenerHistorialCierres(int dias) {
         ZoneId zonePeru = ZoneId.of("America/Lima");
         LocalDate hoyPeru = LocalDate.now(zonePeru);
-        int rangoDias = dias <= 0 ? 30 : dias;
+        int rangoDias = (dias <= 0) ? 30 : Math.min(dias, 365);
         LocalDate inicioFecha = hoyPeru.minusDays(rangoDias);
 
         // Seguridad RBAC: Si el usuario no es ADMIN (es cajero), solo puede ver el cierre de hoy

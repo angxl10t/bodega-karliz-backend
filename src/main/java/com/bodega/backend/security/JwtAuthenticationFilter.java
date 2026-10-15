@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -20,14 +21,11 @@ import java.util.Date;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final CustomUserDetailsService userDetailsService;
     private final UsuarioRepository usuarioRepository;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, 
-                                   CustomUserDetailsService userDetailsService,
                                    UsuarioRepository usuarioRepository) {
         this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
         this.usuarioRepository = usuarioRepository;
     }
 
@@ -50,11 +48,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-
             Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
 
-            if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+            if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) && jwtUtil.validateToken(jwt, usuario.getUsername())) {
                 // Validación de revocación de sesión: si la contraseña cambió luego de emitir el token, se invalida
                 Date issuedAt = jwtUtil.extractIssuedAt(jwt);
                 boolean tokenRevocado = false;
@@ -69,6 +65,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 if (!tokenRevocado) {
+                    UserDetails userDetails = User.builder()
+                            .username(usuario.getUsername())
+                            .password(usuario.getPassword())
+                            .roles(usuario.getRol())
+                            .build();
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
