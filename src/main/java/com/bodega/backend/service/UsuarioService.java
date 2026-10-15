@@ -79,13 +79,18 @@ public class UsuarioService {
     }
 
     @Transactional
-    public void resetearPassword(Long idUsuario, String nuevaPassword) {
+    public void resetearPassword(Long idUsuario, String nuevaPassword, String adminActual) {
         if (nuevaPassword == null || nuevaPassword.trim().length() < 8) {
             throw new RuntimeException("La nueva contraseña debe tener al menos 8 caracteres.");
         }
 
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+
+        // Seguridad de cuenta raíz: solo 'admin' en persona puede restablecer la contraseña de 'admin'
+        if ("admin".equalsIgnoreCase(usuario.getUsername()) && !"admin".equalsIgnoreCase(adminActual)) {
+            throw new RuntimeException("Solo la cuenta administradora raíz puede restablecer su propia contraseña.");
+        }
 
         usuario.setPassword(passwordEncoder.encode(nuevaPassword.trim()));
         usuario.setFechaCambioClave(OffsetDateTime.now());

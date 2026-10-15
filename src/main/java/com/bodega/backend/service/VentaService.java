@@ -15,7 +15,9 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,47 +54,57 @@ public class VentaService {
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<VentaDetalle> detallesGuardados = new ArrayList<>();
 
-        // Prevención de Deadlock en concurrencia: ordenar siempre por idProducto ascendente
-        List<VentaDetalleDTO> detallesOrdenados = new ArrayList<>(dto.getDetalles());
-        detallesOrdenados.sort(Comparator.comparing(VentaDetalleDTO::getIdProducto));
+        // Consolidación atómica: fusionar cantidades repetidas del mismo idProducto
+        Map<Long, BigDecimal> cantidadesConsolidadas = new LinkedHashMap<>();
+        for (VentaDetalleDTO d : dto.getDetalles()) {
+            if (d.getIdProducto() != null && d.getCantidad() != null && d.getCantidad().compareTo(BigDecimal.ZERO) > 0) {
+                cantidadesConsolidadas.merge(d.getIdProducto(), d.getCantidad(), BigDecimal::add);
+            }
+        }
 
-        for (VentaDetalleDTO detDto : detallesOrdenados) {
+        // Prevención de Deadlock en concurrencia: ordenar siempre por idProducto ascendente
+        List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesConsolidadas.keySet());
+        Collections.sort(idsProductosOrdenados);
+
+        for (Long idProd : idsProductosOrdenados) {
+            BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd);
+
             // Bloqueo pesimista exclusivo para evitar Race Conditions / sobreventas simultáneas
-            Producto producto = productoRepository.findByIdForUpdate(detDto.getIdProducto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detDto.getIdProducto()));
+            Producto producto = productoRepository.findByIdForUpdate(idProd)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + idProd));
 
             // Validación de Integridad de Catálogo: No vender productos dados de baja o inactivos
             if (Boolean.FALSE.equals(producto.getEstado())) {
                 throw new RuntimeException("No se puede vender el producto dado de baja o inactivo: " + producto.getNombre());
             }
 
-            // Validación estricta de Stock
-            if (producto.getStockActual().compareTo(detDto.getCantidad()) < 0) {
+            // Validación estricta de Stock contra la cantidad total solicitada
+            if (producto.getStockActual().compareTo(cantidadTotal) < 0) {
                 throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + 
-                                           ". Tienes: " + producto.getStockActual() + " y quieres vender: " + detDto.getCantidad());
+                                           ". Tienes: " + producto.getStockActual() + " y quieres vender: " + cantidadTotal);
             }
 
             // Seguridad: El precio se extrae directamente de la base de datos
             BigDecimal precioFinal = producto.getPrecioVenta();
-            BigDecimal subtotal = detDto.getCantidad().multiply(precioFinal);
+            BigDecimal subtotal = cantidadTotal.multiply(precioFinal);
             totalVenta = totalVenta.add(subtotal);
 
             VentaDetalle detalle = new VentaDetalle();
             detalle.setProducto(producto);
-            detalle.setCantidad(detDto.getCantidad());
+            detalle.setCantidad(cantidadTotal);
             detalle.setPrecioUnitario(precioFinal);
             detalle.setSubtotal(subtotal);
             detallesGuardados.add(detalle);
 
             // Restar Stock
-            producto.setStockActual(producto.getStockActual().subtract(detDto.getCantidad()));
+            producto.setStockActual(producto.getStockActual().subtract(cantidadTotal));
             productoRepository.save(producto);
 
             // Registrar en Kardex
             MovimientoInventario mov = new MovimientoInventario();
             mov.setProducto(producto);
             mov.setTipoMovimiento("SALIDA");
-            mov.setCantidad(detDto.getCantidad());
+            mov.setCantidad(cantidadTotal);
             String nombreCliente = (dto.getClienteNombre() != null) ? dto.getClienteNombre() : "Público General";
             mov.setMotivo("Venta al cliente: " + nombreCliente);
             mov.setUsuarioResponsable(usuarioActual);

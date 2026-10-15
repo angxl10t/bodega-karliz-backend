@@ -48,9 +48,11 @@ public class UsuarioController {
     @PutMapping("/{id}/reset-password")
     public ResponseEntity<Map<String, String>> resetearPassword(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            Principal principal) {
+        String adminActual = principal != null ? principal.getName() : "";
         String nuevaPassword = body.get("nuevaPassword");
-        usuarioService.resetearPassword(id, nuevaPassword);
+        usuarioService.resetearPassword(id, nuevaPassword, adminActual);
         Map<String, String> res = new HashMap<>();
         res.put("mensaje", "Contraseña restablecida exitosamente.");
         return ResponseEntity.ok(res);

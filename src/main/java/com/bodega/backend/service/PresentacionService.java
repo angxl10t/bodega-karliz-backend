@@ -36,9 +36,18 @@ public class PresentacionService {
             throw new RuntimeException("No se puede asignar una presentación a un producto inactivo o dado de baja: " + producto.getNombre());
         }
 
+        String nombreTrim = dto.getNombre() != null ? dto.getNombre().trim() : "";
+        if (nombreTrim.isBlank()) {
+            throw new RuntimeException("El nombre de la presentación es obligatorio.");
+        }
+
+        if (presentacionRepository.existsByProducto_IdProductoAndNombreIgnoreCaseAndEstadoTrue(dto.getIdProducto(), nombreTrim)) {
+            throw new RuntimeException("Ya existe una presentación activa con el nombre '" + nombreTrim + "' para este producto.");
+        }
+
         Presentacion presentacion = new Presentacion();
         presentacion.setProducto(producto);
-        presentacion.setNombre(dto.getNombre());
+        presentacion.setNombre(nombreTrim);
         presentacion.setFactorConversion(dto.getFactorConversion());
 
         Presentacion guardada = presentacionRepository.save(presentacion);

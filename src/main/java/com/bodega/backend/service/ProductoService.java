@@ -104,7 +104,7 @@ public class ProductoService {
         Categoria categoria = categoriaRepository.findById(idCategoria)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + idCategoria));
         String prefix = getPrefixForCategoria(categoria.getNombre());
-        List<Producto> productos = productoRepository.findAll();
+        List<Producto> productos = productoRepository.findByCodigoStartingWith(prefix);
         int maxNum = 0;
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^" + java.util.regex.Pattern.quote(prefix) + "-(\\d+)$");
         for (Producto p : productos) {

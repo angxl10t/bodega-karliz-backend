@@ -28,14 +28,22 @@ public class LoginRateLimiterService {
     }
 
     private final ConcurrentHashMap<String, AttemptRecord> ipAttempts = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, AttemptRecord> userAttempts = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AttemptRecord> userIpAttempts = new ConcurrentHashMap<>();
+
+    private String getCompositeKey(String ip, String username) {
+        String cleanIp = (ip != null && !ip.isBlank()) ? ip.trim() : "unknown_ip";
+        String cleanUser = (username != null && !username.isBlank()) ? username.trim().toLowerCase() : "unknown_user";
+        return cleanIp + "#" + cleanUser;
+    }
 
     /**
      * Verifica si una IP o usuario se encuentra actualmente bloqueado.
+     * La verificación por usuario está acotada a la IP origen para prevenir ataques de
+     * Denegación de Servicio por Bloqueo de Cuentas (Account Lockout DoS).
      */
     public boolean isBlocked(String ip, String username) {
         Instant now = Instant.now();
-        return isKeyBlocked(ipAttempts, ip, now) || isKeyBlocked(userAttempts, username, now);
+        return isKeyBlocked(ipAttempts, ip, now) || isKeyBlocked(userIpAttempts, getCompositeKey(ip, username), now);
     }
 
     private boolean isKeyBlocked(ConcurrentHashMap<String, AttemptRecord> map, String key, Instant now) {
@@ -59,7 +67,7 @@ public class LoginRateLimiterService {
     public long getRemainingBlockMinutes(String ip, String username) {
         Instant now = Instant.now();
         Instant untilIp = getBlockedUntil(ipAttempts, ip);
-        Instant untilUser = getBlockedUntil(userAttempts, username);
+        Instant untilUser = getBlockedUntil(userIpAttempts, getCompositeKey(ip, username));
 
         Instant maxUntil = null;
         if (untilIp != null && untilUser != null) {
@@ -84,12 +92,12 @@ public class LoginRateLimiterService {
     }
 
     /**
-     * Registra un intento fallido para la IP y el usuario.
+     * Registra un intento fallido para la IP y para la combinación IP + usuario.
      */
     public void registerFailedAttempt(String ip, String username) {
         Instant now = Instant.now();
         recordFailedAttempt(ipAttempts, ip, now);
-        recordFailedAttempt(userAttempts, username, now);
+        recordFailedAttempt(userIpAttempts, getCompositeKey(ip, username), now);
     }
 
     private void recordFailedAttempt(ConcurrentHashMap<String, AttemptRecord> map, String key, Instant now) {
@@ -123,7 +131,7 @@ public class LoginRateLimiterService {
             ipAttempts.remove(ip);
         }
         if (username != null && !username.isBlank()) {
-            userAttempts.remove(username);
+            userIpAttempts.remove(getCompositeKey(ip, username));
         }
     }
 }
