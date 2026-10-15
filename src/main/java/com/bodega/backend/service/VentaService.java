@@ -61,6 +61,11 @@ public class VentaService {
             Producto producto = productoRepository.findByIdForUpdate(detDto.getIdProducto())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detDto.getIdProducto()));
 
+            // Validación de Integridad de Catálogo: No vender productos dados de baja o inactivos
+            if (Boolean.FALSE.equals(producto.getEstado())) {
+                throw new RuntimeException("No se puede vender el producto dado de baja o inactivo: " + producto.getNombre());
+            }
+
             // Validación estricta de Stock
             if (producto.getStockActual().compareTo(detDto.getCantidad()) < 0) {
                 throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + 
@@ -116,11 +121,22 @@ public class VentaService {
             OffsetDateTime fin = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
             ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
         } else {
-            ventas = ventaRepository.findAllByOrderByFechaVentaDesc();
+            // Protección contra agotamiento de memoria: límite de 150 ventas recientes para el administrador
+            ventas = ventaRepository.findTop150ByOrderByFechaVentaDesc();
         }
 
+        if (ventas.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        // Eliminación de consulta N+1: Cargar todos los detalles en una única consulta batch IN
+        List<Long> idsVenta = ventas.stream().map(Venta::getIdVenta).collect(Collectors.toList());
+        List<VentaDetalle> todosLosDetalles = ventaDetalleRepository.findByVenta_IdVentaIn(idsVenta);
+        java.util.Map<Long, List<VentaDetalle>> detallesPorVenta = todosLosDetalles.stream()
+                .collect(Collectors.groupingBy(d -> d.getVenta().getIdVenta()));
+
         return ventas.stream().map(v -> {
-            List<VentaDetalle> dets = ventaDetalleRepository.findByVenta(v);
+            List<VentaDetalle> dets = detallesPorVenta.getOrDefault(v.getIdVenta(), java.util.Collections.emptyList());
             return mapToDTO(v, dets);
         }).collect(Collectors.toList());
     }
@@ -235,6 +251,11 @@ public class VentaService {
 
     @Transactional
     public void anularVenta(Long idVenta) {
+        anularVenta(idVenta, null);
+    }
+
+    @Transactional
+    public void anularVenta(Long idVenta, String motivo) {
         Venta venta = ventaRepository.findById(idVenta)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + idVenta));
 
@@ -245,6 +266,9 @@ public class VentaService {
 
         List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
         String usuarioActual = obtenerUsuarioActual();
+        String motivoLimpio = (motivo != null && !motivo.isBlank()) 
+                ? motivo.trim() 
+                : "Anulada por usuario " + usuarioActual + " (Sin justificación especificada)";
 
         // 1. Ordenar por idProducto ascendente para prevenir interbloqueos (Deadlocks) en concurrencia masiva
         List<VentaDetalle> detallesOrdenados = new ArrayList<>(detalles);
@@ -263,7 +287,7 @@ public class VentaService {
             mov.setProducto(prod);
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(det.getCantidad());
-            mov.setMotivo("Anulación de Venta #" + idVenta + " por " + usuarioActual);
+            mov.setMotivo("Anulación Venta #" + idVenta + " - Justificación: " + motivoLimpio);
             mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
         }
@@ -272,7 +296,7 @@ public class VentaService {
         venta.setEstado("ANULADA");
         venta.setFechaAnulacion(OffsetDateTime.now());
         venta.setUsuarioAnulacion(usuarioActual);
-        venta.setMotivoAnulacion("Anulada por usuario " + usuarioActual);
+        venta.setMotivoAnulacion(motivoLimpio);
         ventaRepository.save(venta);
     }
 

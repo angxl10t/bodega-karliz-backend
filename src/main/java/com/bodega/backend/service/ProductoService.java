@@ -129,6 +129,10 @@ public class ProductoService {
         Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
 
+        if (Boolean.FALSE.equals(categoria.getEstado())) {
+            throw new RuntimeException("No se puede registrar el producto en una categoría inactiva o dada de baja: " + categoria.getNombre());
+        }
+
         // Generar código según categoría si no fue proporcionado
         if (dto.getCodigo() == null || dto.getCodigo().isBlank()) {
             dto.setCodigo(generarSiguienteCodigo(categoria.getIdCategoria()));
@@ -196,6 +200,9 @@ public class ProductoService {
         if (dto.getIdCategoria() != null) {
             Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
+            if (Boolean.FALSE.equals(categoria.getEstado())) {
+                throw new RuntimeException("No se puede asignar el producto a una categoría inactiva o dada de baja: " + categoria.getNombre());
+            }
             producto.setCategoria(categoria);
         }
 

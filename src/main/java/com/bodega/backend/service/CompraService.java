@@ -40,6 +40,10 @@ public class CompraService {
         Proveedor proveedor = proveedorRepository.findById(dto.getIdProveedor())
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
 
+        if (Boolean.FALSE.equals(proveedor.getEstado())) {
+            throw new RuntimeException("No se puede registrar compra para el proveedor inactivo o dado de baja: " + proveedor.getRazonSocial());
+        }
+
         String usuarioActual = obtenerUsuarioActual();
 
         // 1. Crear Cabecera con Auditoría de Operador
@@ -105,9 +109,20 @@ public class CompraService {
 
     @Transactional(readOnly = true)
     public List<CompraDTO> listarTodas() {
-        List<Compra> compras = compraRepository.findAllByOrderByFechaCompraDesc();
+        // Carga protegida con límite de 150 registros para evitar agotamiento de memoria en Render
+        List<Compra> compras = compraRepository.findTop150ByOrderByFechaCompraDesc();
+        if (compras.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        // Eliminación de consulta N+1: Cargar todos los detalles en una única consulta batch IN
+        List<Long> idsCompra = compras.stream().map(Compra::getIdCompra).collect(Collectors.toList());
+        List<CompraDetalle> todosLosDetalles = compraDetalleRepository.findByCompra_IdCompraIn(idsCompra);
+        java.util.Map<Long, List<CompraDetalle>> detallesPorCompra = todosLosDetalles.stream()
+                .collect(Collectors.groupingBy(d -> d.getCompra().getIdCompra()));
+
         return compras.stream().map(c -> {
-            List<CompraDetalle> dets = compraDetalleRepository.findByCompra_IdCompra(c.getIdCompra());
+            List<CompraDetalle> dets = detallesPorCompra.getOrDefault(c.getIdCompra(), java.util.Collections.emptyList());
             return mapToDTO(c, dets);
         }).collect(Collectors.toList());
     }

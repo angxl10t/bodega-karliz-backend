@@ -10,5 +10,6 @@ import java.util.List;
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, Long> {
     List<Venta> findAllByOrderByFechaVentaDesc();
+    List<Venta> findTop150ByOrderByFechaVentaDesc();
     List<Venta> findByFechaVentaBetweenOrderByFechaVentaDesc(OffsetDateTime start, OffsetDateTime end);
 }

@@ -32,6 +32,10 @@ public class PresentacionService {
         Producto producto = productoRepository.findById(dto.getIdProducto())
                 .orElseThrow(() -> new RuntimeException("El producto al que intentas asignar la presentación no existe."));
 
+        if (Boolean.FALSE.equals(producto.getEstado())) {
+            throw new RuntimeException("No se puede asignar una presentación a un producto inactivo o dado de baja: " + producto.getNombre());
+        }
+
         Presentacion presentacion = new Presentacion();
         presentacion.setProducto(producto);
         presentacion.setNombre(dto.getNombre());

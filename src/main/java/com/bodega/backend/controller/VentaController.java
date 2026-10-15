@@ -52,8 +52,10 @@ public class VentaController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> anularVenta(@PathVariable Long id) {
-        ventaService.anularVenta(id);
+    public ResponseEntity<Void> anularVenta(
+            @PathVariable Long id,
+            @RequestParam(required = false) String motivo) {
+        ventaService.anularVenta(id, motivo);
         return ResponseEntity.noContent().build();
     }
 }

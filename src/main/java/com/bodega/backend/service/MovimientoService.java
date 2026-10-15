@@ -20,7 +20,8 @@ public class MovimientoService {
 
     @Transactional(readOnly = true)
     public List<MovimientoInventarioDTO> listarTodos() {
-        return movimientoRepository.findAllByOrderByFechaMovimientoDesc()
+        // Carga protegida con límite de 200 registros recientes para evitar agotamiento de memoria
+        return movimientoRepository.findTop200ByOrderByFechaMovimientoDesc()
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -28,7 +29,7 @@ public class MovimientoService {
 
     @Transactional(readOnly = true)
     public List<MovimientoInventarioDTO> listarPorProducto(Long idProducto) {
-        return movimientoRepository.findByProducto_IdProductoOrderByFechaMovimientoDesc(idProducto)
+        return movimientoRepository.findTop100ByProducto_IdProductoOrderByFechaMovimientoDesc(idProducto)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
