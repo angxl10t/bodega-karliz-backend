@@ -1,4 +1,5 @@
 package com.bodega.backend.entity;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,4 +31,8 @@ public class MovimientoInventario {
     @CreationTimestamp
     @Column(name = "fecha_movimiento", updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaMovimiento;
+
+    // Auditoría: Usuario responsable del movimiento en Kardex
+    @Column(name = "usuario_responsable", length = 50)
+    private String usuarioResponsable;
 }

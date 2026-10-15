@@ -1,6 +1,8 @@
 package com.bodega.backend.entity;
+
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.OffsetDateTime;
 
 @Data
 @Entity
@@ -22,4 +24,8 @@ public class Usuario {
 
     @Column(nullable = false)
     private Boolean estado = true;
+
+    // Control de revocación de sesiones JWT al cambiar de contraseña
+    @Column(name = "fecha_cambio_clave", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaCambioClave;
 }

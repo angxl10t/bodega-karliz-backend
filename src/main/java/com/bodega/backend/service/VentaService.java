@@ -45,6 +45,9 @@ public class VentaService {
         venta.setClienteNombre(dto.getClienteNombre());
         venta.setMetodoPago(dto.getMetodoPago() != null ? dto.getMetodoPago() : "Efectivo");
 
+        String usuarioActual = obtenerUsuarioActual();
+        venta.setUsuarioRegistro(usuarioActual);
+
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<VentaDetalle> detallesGuardados = new ArrayList<>();
 
@@ -86,6 +89,7 @@ public class VentaService {
             mov.setCantidad(detDto.getCantidad());
             String nombreCliente = (dto.getClienteNombre() != null) ? dto.getClienteNombre() : "Público General";
             mov.setMotivo("Venta al cliente: " + nombreCliente);
+            mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
         }
 
@@ -203,6 +207,8 @@ public class VentaService {
 
         List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
 
+        String usuarioActual = obtenerUsuarioActual();
+
         // Restaurar stock en inventario y registrar en Kardex
         for (VentaDetalle det : detalles) {
             Producto prod = det.getProducto();
@@ -213,12 +219,21 @@ public class VentaService {
             mov.setProducto(prod);
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(det.getCantidad());
-            mov.setMotivo("Anulación de Venta #" + idVenta);
+            mov.setMotivo("Anulación de Venta #" + idVenta + " por " + usuarioActual);
+            mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
         }
 
         ventaDetalleRepository.deleteAll(detalles);
         ventaRepository.delete(venta);
+    }
+
+    private String obtenerUsuarioActual() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            return auth.getName();
+        }
+        return "SISTEMA";
     }
 
     private VentaDTO mapToDTO(Venta venta, List<VentaDetalle> detalles) {
@@ -229,6 +244,7 @@ public class VentaService {
         dto.setMetodoPago(venta.getMetodoPago());
         dto.setTotal(venta.getTotal());
         dto.setFechaVenta(venta.getFechaVenta());
+        dto.setUsuarioRegistro(venta.getUsuarioRegistro());
 
         dto.setDetalles(detalles.stream().map(d -> {
             VentaDetalleDTO detDto = new VentaDetalleDTO();

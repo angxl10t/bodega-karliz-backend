@@ -1,5 +1,7 @@
 package com.bodega.backend.security;
 
+import com.bodega.backend.entity.Usuario;
+import com.bodega.backend.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,16 +14,21 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final UsuarioRepository usuarioRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, 
+                                   CustomUserDetailsService userDetailsService,
+                                   UsuarioRepository usuarioRepository) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
@@ -33,26 +40,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
-        // Si la petición trae un candado (token) en la cabecera, tratamos de leerlo
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
             try {
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                // Token inválido o expirado, se ignora
+                // Token inválido o expirado
             }
         }
 
-        // Si sabemos quién es, validamos matemáticamente su pase
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                // Damos acceso total a Spring Security para esta petición
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
+
+            if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) && jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+                // Validación de revocación de sesión: si la contraseña cambió luego de emitir el token, se invalida
+                Date issuedAt = jwtUtil.extractIssuedAt(jwt);
+                boolean tokenRevocado = false;
+
+                if (usuario.getFechaCambioClave() != null && issuedAt != null) {
+                    long issuedMillis = issuedAt.getTime();
+                    long passwordChangeMillis = usuario.getFechaCambioClave().toInstant().toEpochMilli();
+                    // Margen de 1 segundo de tolerancia de sincronización de reloj
+                    if (issuedMillis < (passwordChangeMillis - 1000)) {
+                        tokenRevocado = true;
+                    }
+                }
+
+                if (!tokenRevocado) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
         }
         chain.doFilter(request, response);

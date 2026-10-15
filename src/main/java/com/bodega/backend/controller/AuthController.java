@@ -69,6 +69,7 @@ public class AuthController {
         }
 
         usuario.setPassword(passwordEncoder.encode(dto.getNuevaPassword()));
+        usuario.setFechaCambioClave(java.time.OffsetDateTime.now());
         usuarioRepository.save(usuario);
 
         Map<String, String> response = new HashMap<>();

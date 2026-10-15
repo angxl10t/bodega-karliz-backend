@@ -13,4 +13,5 @@ public class MovimientoInventarioDTO {
     private BigDecimal cantidad;
     private String motivo;
     private OffsetDateTime fechaMovimiento;
+    private String usuarioResponsable;
 }

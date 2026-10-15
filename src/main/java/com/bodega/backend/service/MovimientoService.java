@@ -43,6 +43,7 @@ public class MovimientoService {
         dto.setCantidad(mov.getCantidad());
         dto.setMotivo(mov.getMotivo());
         dto.setFechaMovimiento(mov.getFechaMovimiento());
+        dto.setUsuarioResponsable(mov.getUsuarioResponsable());
         return dto;
     }
 }

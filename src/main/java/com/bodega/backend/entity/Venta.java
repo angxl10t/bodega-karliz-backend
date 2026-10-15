@@ -1,4 +1,5 @@
 package com.bodega.backend.entity;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,4 +30,8 @@ public class Venta {
     @CreationTimestamp
     @Column(name = "fecha_venta", updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaVenta;
+
+    // Auditoría: Nombre del cajero o administrador que emitió la venta
+    @Column(name = "usuario_registro", length = 50)
+    private String usuarioRegistro;
 }

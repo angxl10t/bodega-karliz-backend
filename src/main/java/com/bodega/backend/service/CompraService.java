@@ -74,6 +74,7 @@ public class CompraService {
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(detDto.getCantidad());
             mov.setMotivo("Compra a proveedor: " + proveedor.getRazonSocial());
+            mov.setUsuarioResponsable(obtenerUsuarioActual());
             movimientoInventarioRepository.save(mov);
         }
 
@@ -119,5 +120,13 @@ public class CompraService {
         }).collect(Collectors.toList()));
 
         return dto;
+    }
+
+    private String obtenerUsuarioActual() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            return auth.getName();
+        }
+        return "SISTEMA";
     }
 }
