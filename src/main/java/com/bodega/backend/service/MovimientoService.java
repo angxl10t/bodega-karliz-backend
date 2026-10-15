@@ -29,6 +29,9 @@ public class MovimientoService {
 
     @Transactional(readOnly = true)
     public List<MovimientoInventarioDTO> listarPorProducto(Long idProducto) {
+        if (idProducto == null || idProducto <= 0) {
+            return java.util.Collections.emptyList();
+        }
         return movimientoRepository.findTop100ByProducto_IdProductoOrderByFechaMovimientoDesc(idProducto)
                 .stream()
                 .map(this::mapToDTO)

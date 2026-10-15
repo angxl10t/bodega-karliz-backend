@@ -73,10 +73,17 @@ public class CompraService {
         Map<Long, BigDecimal> preciosPorProducto = new LinkedHashMap<>();
 
         for (CompraDetalleDTO detDto : dto.getDetalles()) {
-            if (detDto.getIdProducto() != null && detDto.getCantidad() != null && detDto.getCantidad().compareTo(BigDecimal.ZERO) > 0) {
-                cantidadesConsolidadas.merge(detDto.getIdProducto(), detDto.getCantidad(), BigDecimal::add);
-                preciosPorProducto.putIfAbsent(detDto.getIdProducto(), detDto.getPrecioUnitario());
+            if (detDto.getIdProducto() == null) {
+                throw new RuntimeException("Cada ítem de la compra debe especificar el producto correspondiente.");
             }
+            if (detDto.getCantidad() == null || detDto.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("La cantidad ingresada para cada producto en la compra debe ser mayor a cero.");
+            }
+            if (detDto.getPrecioUnitario() == null || detDto.getPrecioUnitario().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("El costo unitario para cada producto en la compra debe ser mayor a cero.");
+            }
+            cantidadesConsolidadas.merge(detDto.getIdProducto(), detDto.getCantidad(), BigDecimal::add);
+            preciosPorProducto.putIfAbsent(detDto.getIdProducto(), detDto.getPrecioUnitario());
         }
 
         if (cantidadesConsolidadas.isEmpty()) {

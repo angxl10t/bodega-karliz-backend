@@ -213,7 +213,8 @@ public class ProductoService {
 
     @Transactional
     public ProductoDTO actualizar(Long id, ProductoDTO dto) {
-        Producto producto = productoRepository.findById(id)
+        // Bloqueo pesimista exclusivo para serializar con ventas/compras concurrentes y evitar Lost Updates en stock
+        Producto producto = productoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
 
         if (Boolean.FALSE.equals(producto.getEstado())) {
@@ -310,7 +311,8 @@ public class ProductoService {
 
     @Transactional
     public void desactivar(Long id) {
-        Producto producto = productoRepository.findById(id)
+        // Bloqueo pesimista para evitar desactivar un producto durante una transacción de venta/compra en vuelo
+        Producto producto = productoRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
         if (Boolean.FALSE.equals(producto.getEstado())) {
             return;

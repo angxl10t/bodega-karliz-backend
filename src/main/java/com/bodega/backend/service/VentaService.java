@@ -69,9 +69,13 @@ public class VentaService {
         // Consolidación atómica: fusionar cantidades repetidas del mismo idProducto
         Map<Long, BigDecimal> cantidadesConsolidadas = new LinkedHashMap<>();
         for (VentaDetalleDTO d : dto.getDetalles()) {
-            if (d.getIdProducto() != null && d.getCantidad() != null && d.getCantidad().compareTo(BigDecimal.ZERO) > 0) {
-                cantidadesConsolidadas.merge(d.getIdProducto(), d.getCantidad(), BigDecimal::add);
+            if (d.getIdProducto() == null) {
+                throw new RuntimeException("Cada ítem de la venta debe tener un producto válido asignado.");
             }
+            if (d.getCantidad() == null || d.getCantidad().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("La cantidad solicitada para cada producto en la venta debe ser mayor a cero.");
+            }
+            cantidadesConsolidadas.merge(d.getIdProducto(), d.getCantidad(), BigDecimal::add);
         }
 
         if (cantidadesConsolidadas.isEmpty()) {
@@ -296,10 +300,19 @@ public class VentaService {
 
     @Transactional
     public void anularVenta(Long idVenta, String motivo) {
-        Venta venta = ventaRepository.findById(idVenta)
+        // Defensa en Profundidad: El servicio valida autorización de administrador
+        if (!esAdmin()) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                "Solo un usuario con rol de Administrador puede anular ventas registradas."
+            );
+        }
+
+        // Bloqueo pesimista exclusivo (PESSIMISTIC_WRITE) sobre la cabecera de la venta
+        // para prevenir anulación concurrente duplicada en microsegundos
+        Venta venta = ventaRepository.findByIdForUpdate(idVenta)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + idVenta));
 
-        // Validación de idempotencia: impedir anular doblemente y duplicar stock en Kardex
+        // Validación de idempotencia atómica bajo lock
         if ("ANULADA".equalsIgnoreCase(venta.getEstado())) {
             throw new RuntimeException("La venta #" + idVenta + " ya se encuentra anulada.");
         }
@@ -320,24 +333,33 @@ public class VentaService {
             motivoKardex = motivoKardex.substring(0, 255);
         }
 
-        // 1. Ordenar por idProducto ascendente para prevenir interbloqueos (Deadlocks) en concurrencia masiva
-        List<VentaDetalle> detallesOrdenados = new ArrayList<>(detalles);
-        detallesOrdenados.sort(Comparator.comparing(d -> d.getProducto().getIdProducto()));
+        // 1. Consolidar cantidades por producto y ordenar por idProducto ascendente
+        // para prevenir interbloqueos (Deadlocks) y duplicidad de Kardex
+        Map<Long, BigDecimal> cantidadesARestaurar = new LinkedHashMap<>();
+        for (VentaDetalle det : detalles) {
+            if (det.getProducto() != null && det.getProducto().getIdProducto() != null 
+                    && det.getCantidad() != null && det.getCantidad().compareTo(BigDecimal.ZERO) > 0) {
+                cantidadesARestaurar.merge(det.getProducto().getIdProducto(), det.getCantidad(), BigDecimal::add);
+            }
+        }
+
+        List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesARestaurar.keySet());
+        Collections.sort(idsProductosOrdenados);
 
         // 2. Restaurar stock en inventario con bloqueo pesimista exclusivo (PESSIMISTIC_WRITE) y registrar en Kardex
-        for (VentaDetalle det : detallesOrdenados) {
-            Long idProd = det.getProducto().getIdProducto();
+        for (Long idProd : idsProductosOrdenados) {
+            BigDecimal cantidadRestaurar = cantidadesARestaurar.get(idProd);
             Producto prod = productoRepository.findByIdForUpdate(idProd)
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado para reponer stock: " + idProd));
 
             BigDecimal stockPrevio = (prod.getStockActual() != null ? prod.getStockActual() : BigDecimal.ZERO);
-            prod.setStockActual(stockPrevio.add(det.getCantidad()));
+            prod.setStockActual(stockPrevio.add(cantidadRestaurar));
             productoRepository.save(prod);
 
             MovimientoInventario mov = new MovimientoInventario();
             mov.setProducto(prod);
             mov.setTipoMovimiento("ENTRADA");
-            mov.setCantidad(det.getCantidad());
+            mov.setCantidad(cantidadRestaurar);
             mov.setMotivo(motivoKardex);
             mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);

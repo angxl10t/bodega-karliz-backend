@@ -25,15 +25,19 @@ public class ProveedorService {
     @Transactional
     public ProveedorDTO crear(ProveedorDTO dto) {
         String rucTrim = dto.getRuc() != null ? dto.getRuc().trim() : "";
+        if (!rucTrim.matches("^[0-9]{8}$|^[0-9]{11}$")) {
+            throw new RuntimeException("El documento debe ser un DNI de 8 dígitos o RUC de 11 dígitos numéricos.");
+        }
+
         java.util.Optional<Proveedor> existente = proveedorRepository.findByRuc(rucTrim);
         if (existente.isPresent()) {
             Proveedor p = existente.get();
             if (Boolean.FALSE.equals(p.getEstado())) {
                 // Reactivación segura de proveedor previamente dado de baja lógica
                 p.setEstado(true);
-                p.setRazonSocial(dto.getRazonSocial());
-                p.setDireccion(dto.getDireccion());
-                p.setTelefono(dto.getTelefono());
+                p.setRazonSocial(sanitizarTexto(dto.getRazonSocial(), 255));
+                p.setDireccion(sanitizarTexto(dto.getDireccion(), 255));
+                p.setTelefono(sanitizarTexto(dto.getTelefono(), 20));
                 Proveedor reactivado = proveedorRepository.save(p);
                 return mapToDTO(reactivado);
             }
@@ -42,9 +46,9 @@ public class ProveedorService {
 
         Proveedor proveedor = new Proveedor();
         proveedor.setRuc(rucTrim);
-        proveedor.setRazonSocial(dto.getRazonSocial());
-        proveedor.setDireccion(dto.getDireccion());
-        proveedor.setTelefono(dto.getTelefono());
+        proveedor.setRazonSocial(sanitizarTexto(dto.getRazonSocial(), 255));
+        proveedor.setDireccion(sanitizarTexto(dto.getDireccion(), 255));
+        proveedor.setTelefono(sanitizarTexto(dto.getTelefono(), 20));
 
         Proveedor guardado = proveedorRepository.save(proveedor);
         return mapToDTO(guardado);
@@ -61,6 +65,9 @@ public class ProveedorService {
 
         if (dto.getRuc() != null && !dto.getRuc().trim().equalsIgnoreCase(proveedor.getRuc())) {
             String rucTrim = dto.getRuc().trim();
+            if (!rucTrim.matches("^[0-9]{8}$|^[0-9]{11}$")) {
+                throw new RuntimeException("El documento debe ser un DNI de 8 dígitos o RUC de 11 dígitos numéricos.");
+            }
             java.util.Optional<Proveedor> otro = proveedorRepository.findByRuc(rucTrim);
             if (otro.isPresent() && !otro.get().getIdProveedor().equals(idProveedor)) {
                 throw new RuntimeException("Ya existe otro proveedor con el RUC: " + rucTrim);
@@ -68,12 +75,20 @@ public class ProveedorService {
             proveedor.setRuc(rucTrim);
         }
 
-        proveedor.setRazonSocial(dto.getRazonSocial());
-        proveedor.setDireccion(dto.getDireccion());
-        proveedor.setTelefono(dto.getTelefono());
+        if (dto.getRazonSocial() != null && !dto.getRazonSocial().isBlank()) {
+            proveedor.setRazonSocial(sanitizarTexto(dto.getRazonSocial(), 255));
+        }
+        proveedor.setDireccion(sanitizarTexto(dto.getDireccion(), 255));
+        proveedor.setTelefono(sanitizarTexto(dto.getTelefono(), 20));
 
         Proveedor guardado = proveedorRepository.save(proveedor);
         return mapToDTO(guardado);
+    }
+
+    private String sanitizarTexto(String valor, int maxLen) {
+        if (valor == null || valor.isBlank()) return null;
+        String trimmed = valor.trim();
+        return trimmed.length() > maxLen ? trimmed.substring(0, maxLen) : trimmed;
     }
 
     // ACCIDENTAL DATA LOSS PREVENTION: Borrado Lógico
