@@ -36,7 +36,7 @@ public class UsuarioService {
             throw new RuntimeException("El nombre de usuario no puede estar vacío.");
         }
 
-        if (usuarioRepository.existsByUsername(normalizedUsername)) {
+        if (usuarioRepository.existsByUsernameIgnoreCase(normalizedUsername)) {
             throw new RuntimeException("El nombre de usuario '" + normalizedUsername + "' ya está registrado en el sistema.");
         }
 

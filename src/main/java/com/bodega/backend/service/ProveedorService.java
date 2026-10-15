@@ -55,6 +55,10 @@ public class ProveedorService {
         Proveedor proveedor = proveedorRepository.findById(idProveedor)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + idProveedor));
 
+        if (Boolean.FALSE.equals(proveedor.getEstado())) {
+            throw new RuntimeException("No se puede editar un proveedor inactivo o dado de baja.");
+        }
+
         if (dto.getRuc() != null && !dto.getRuc().trim().equalsIgnoreCase(proveedor.getRuc())) {
             String rucTrim = dto.getRuc().trim();
             java.util.Optional<Proveedor> otro = proveedorRepository.findByRuc(rucTrim);

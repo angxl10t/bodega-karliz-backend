@@ -76,6 +76,10 @@ public class CompraService {
             }
         }
 
+        if (cantidadesConsolidadas.isEmpty()) {
+            throw new RuntimeException("La compra debe contener al menos un producto con cantidad válida.");
+        }
+
         List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesConsolidadas.keySet());
         Collections.sort(idsProductosOrdenados);
 

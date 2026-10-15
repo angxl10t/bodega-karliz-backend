@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
+            Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username).orElse(null);
 
             if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) && jwtUtil.validateToken(jwt, usuario.getUsername())) {
                 // Validación de revocación de sesión: si la contraseña cambió luego de emitir el token, se invalida

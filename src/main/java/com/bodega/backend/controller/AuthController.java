@@ -70,7 +70,7 @@ public class AuthController {
         loginRateLimiterService.resetAttempts(clientIp, username);
 
         // 4. Genera el JWT
-        Usuario usuario = usuarioRepository.findByUsername(username)
+        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol());
 
@@ -114,7 +114,7 @@ public class AuthController {
             throw new RuntimeException("La nueva contraseña no puede ser idéntica a la contraseña actual.");
         }
 
-        Usuario usuario = usuarioRepository.findByUsername(username)
+        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         // 3. Validación de contraseña actual con penalización en caso de fallo

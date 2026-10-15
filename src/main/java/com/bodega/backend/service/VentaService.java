@@ -68,6 +68,10 @@ public class VentaService {
             }
         }
 
+        if (cantidadesConsolidadas.isEmpty()) {
+            throw new RuntimeException("La venta debe contener al menos un producto con cantidad válida.");
+        }
+
         // Prevención de Deadlock en concurrencia: ordenar siempre por idProducto ascendente
         List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesConsolidadas.keySet());
         Collections.sort(idsProductosOrdenados);
@@ -172,6 +176,10 @@ public class VentaService {
         LocalDate hoyPeru = LocalDate.now(zonePeru);
         if (fecha == null) {
             fecha = hoyPeru;
+        }
+
+        if (fecha.isAfter(hoyPeru)) {
+            throw new RuntimeException("No se puede consultar el arqueo de caja de una fecha futura: " + fecha);
         }
 
         // Seguridad RBAC: Un cajero solo puede consultar el cierre de hoy, no días pasados

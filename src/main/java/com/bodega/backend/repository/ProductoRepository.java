@@ -20,6 +20,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Optional<Producto> findByCodigo(String codigo);
     Optional<Producto> findByCodigoBarras(String codigoBarras);
     List<Producto> findByCodigoStartingWith(String prefix);
+    boolean existsByCategoria_IdCategoriaAndEstadoTrue(Long idCategoria);
 
     // Bloqueo pesimista (SELECT ... FOR UPDATE) para evitar condiciones de carrera (Race Condition) en ventas concurrentes
     @Lock(LockModeType.PESSIMISTIC_WRITE)

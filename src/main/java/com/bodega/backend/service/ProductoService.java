@@ -3,9 +3,11 @@ package com.bodega.backend.service;
 import com.bodega.backend.dto.ProductoDTO;
 import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.MovimientoInventario;
+import com.bodega.backend.entity.Presentacion;
 import com.bodega.backend.entity.Producto;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.MovimientoInventarioRepository;
+import com.bodega.backend.repository.PresentacionRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,16 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final MovimientoInventarioRepository movimientoInventarioRepository;
+    private final PresentacionRepository presentacionRepository;
 
     public ProductoService(ProductoRepository productoRepository, 
                            CategoriaRepository categoriaRepository,
-                           MovimientoInventarioRepository movimientoInventarioRepository) {
+                           MovimientoInventarioRepository movimientoInventarioRepository,
+                           PresentacionRepository presentacionRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
+        this.presentacionRepository = presentacionRepository;
     }
 
     @PostConstruct
@@ -290,6 +295,13 @@ public class ProductoService {
             producto.setCodigo(base + "_BAJA_" + producto.getIdProducto());
         }
         productoRepository.save(producto);
+
+        // Desactivación en cascada de presentaciones activas del producto
+        List<Presentacion> presentaciones = presentacionRepository.findByProducto_IdProductoAndEstadoTrue(id);
+        for (Presentacion p : presentaciones) {
+            p.setEstado(false);
+            presentacionRepository.save(p);
+        }
     }
 
     private String obtenerUsuarioActual() {

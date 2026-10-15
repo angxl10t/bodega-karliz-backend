@@ -18,7 +18,7 @@ public class BodegaBackendApplication {
 	@Bean
 	public CommandLineRunner inicializarAdminSeguro(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
-			usuarioRepository.findByUsername("admin").ifPresentOrElse(admin -> {
+			usuarioRepository.findByUsernameIgnoreCase("admin").ifPresentOrElse(admin -> {
 				if (admin.getEstado() == null) {
 					admin.setEstado(true);
 					usuarioRepository.save(admin);
