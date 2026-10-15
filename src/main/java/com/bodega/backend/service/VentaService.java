@@ -47,6 +47,7 @@ public class VentaService {
 
         String usuarioActual = obtenerUsuarioActual();
         venta.setUsuarioRegistro(usuarioActual);
+        venta.setEstado("COMPLETADA");
 
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<VentaDetalle> detallesGuardados = new ArrayList<>();
@@ -106,7 +107,18 @@ public class VentaService {
 
     @Transactional(readOnly = true)
     public List<VentaDTO> listarTodas() {
-        List<Venta> ventas = ventaRepository.findAllByOrderByFechaVentaDesc();
+        List<Venta> ventas;
+        // Seguridad RBAC: Los cajeros solo pueden consultar transacciones del turno de hoy
+        if (!esAdmin()) {
+            ZoneId zonePeru = ZoneId.of("America/Lima");
+            LocalDate hoyPeru = LocalDate.now(zonePeru);
+            OffsetDateTime inicio = hoyPeru.atStartOfDay(zonePeru).toOffsetDateTime();
+            OffsetDateTime fin = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
+            ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
+        } else {
+            ventas = ventaRepository.findAllByOrderByFechaVentaDesc();
+        }
+
         return ventas.stream().map(v -> {
             List<VentaDetalle> dets = ventaDetalleRepository.findByVenta(v);
             return mapToDTO(v, dets);
@@ -123,9 +135,18 @@ public class VentaService {
     @Transactional(readOnly = true)
     public CierreCajaDTO obtenerCierreCajaPorFecha(LocalDate fecha) {
         ZoneId zonePeru = ZoneId.of("America/Lima");
+        LocalDate hoyPeru = LocalDate.now(zonePeru);
         if (fecha == null) {
-            fecha = LocalDate.now(zonePeru);
+            fecha = hoyPeru;
         }
+
+        // Seguridad RBAC: Un cajero solo puede consultar el cierre de hoy, no días pasados
+        if (!esAdmin() && !fecha.isEqual(hoyPeru)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                "No tienes permisos suficientes para consultar cierres de caja de fechas pasadas."
+            );
+        }
+
         OffsetDateTime inicio = fecha.atStartOfDay(zonePeru).toOffsetDateTime();
         OffsetDateTime fin = fecha.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
 
@@ -139,6 +160,11 @@ public class VentaService {
         LocalDate hoyPeru = LocalDate.now(zonePeru);
         int rangoDias = dias <= 0 ? 30 : dias;
         LocalDate inicioFecha = hoyPeru.minusDays(rangoDias);
+
+        // Seguridad RBAC: Si el usuario no es ADMIN (es cajero), solo puede ver el cierre de hoy
+        if (!esAdmin()) {
+            return List.of(obtenerCierreCajaHoy());
+        }
 
         OffsetDateTime inicio = inicioFecha.atStartOfDay(zonePeru).toOffsetDateTime();
         OffsetDateTime fin = hoyPeru.plusDays(1).atStartOfDay(zonePeru).toOffsetDateTime();
@@ -165,16 +191,22 @@ public class VentaService {
     private CierreCajaDTO calcularCierre(List<Venta> ventas, OffsetDateTime fecha) {
         CierreCajaDTO resumen = new CierreCajaDTO();
         resumen.setFecha(fecha);
-        resumen.setCantidadVentas(ventas != null ? ventas.size() : 0);
 
         BigDecimal totalVentas = BigDecimal.ZERO;
         BigDecimal totalEfectivo = BigDecimal.ZERO;
         BigDecimal totalYape = BigDecimal.ZERO;
         BigDecimal totalPlin = BigDecimal.ZERO;
         BigDecimal totalTarjeta = BigDecimal.ZERO;
+        int cantidadVentasValidas = 0;
 
         if (ventas != null) {
             for (Venta v : ventas) {
+                // Seguridad contable: Excluir ventas anuladas del cálculo de ingresos y arqueo
+                if ("ANULADA".equalsIgnoreCase(v.getEstado())) {
+                    continue;
+                }
+
+                cantidadVentasValidas++;
                 BigDecimal tot = v.getTotal() != null ? v.getTotal() : BigDecimal.ZERO;
                 totalVentas = totalVentas.add(tot);
 
@@ -191,6 +223,7 @@ public class VentaService {
             }
         }
 
+        resumen.setCantidadVentas(cantidadVentasValidas);
         resumen.setTotalVentas(totalVentas);
         resumen.setTotalEfectivo(totalEfectivo);
         resumen.setTotalYape(totalYape);
@@ -205,13 +238,24 @@ public class VentaService {
         Venta venta = ventaRepository.findById(idVenta)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + idVenta));
 
-        List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
+        // Validación de idempotencia: impedir anular doblemente y duplicar stock en Kardex
+        if ("ANULADA".equalsIgnoreCase(venta.getEstado())) {
+            throw new RuntimeException("La venta #" + idVenta + " ya se encuentra anulada.");
+        }
 
+        List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
         String usuarioActual = obtenerUsuarioActual();
 
-        // Restaurar stock en inventario y registrar en Kardex
-        for (VentaDetalle det : detalles) {
-            Producto prod = det.getProducto();
+        // 1. Ordenar por idProducto ascendente para prevenir interbloqueos (Deadlocks) en concurrencia masiva
+        List<VentaDetalle> detallesOrdenados = new ArrayList<>(detalles);
+        detallesOrdenados.sort(Comparator.comparing(d -> d.getProducto().getIdProducto()));
+
+        // 2. Restaurar stock en inventario con bloqueo pesimista exclusivo (PESSIMISTIC_WRITE) y registrar en Kardex
+        for (VentaDetalle det : detallesOrdenados) {
+            Long idProd = det.getProducto().getIdProducto();
+            Producto prod = productoRepository.findByIdForUpdate(idProd)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado para reponer stock: " + idProd));
+
             prod.setStockActual(prod.getStockActual().add(det.getCantidad()));
             productoRepository.save(prod);
 
@@ -224,8 +268,21 @@ public class VentaService {
             movimientoInventarioRepository.save(mov);
         }
 
-        ventaDetalleRepository.deleteAll(detalles);
-        ventaRepository.delete(venta);
+        // 3. Soft-delete contable: Marcar como ANULADA conservando el comprobante para auditoría
+        venta.setEstado("ANULADA");
+        venta.setFechaAnulacion(OffsetDateTime.now());
+        venta.setUsuarioAnulacion(usuarioActual);
+        venta.setMotivoAnulacion("Anulada por usuario " + usuarioActual);
+        ventaRepository.save(venta);
+    }
+
+    private boolean esAdmin() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getAuthorities() != null) {
+            return auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        }
+        return false;
     }
 
     private String obtenerUsuarioActual() {
@@ -245,6 +302,12 @@ public class VentaService {
         dto.setTotal(venta.getTotal());
         dto.setFechaVenta(venta.getFechaVenta());
         dto.setUsuarioRegistro(venta.getUsuarioRegistro());
+
+        // Campos de Soft-Delete y Auditoría de Anulación
+        dto.setEstado(venta.getEstado() != null ? venta.getEstado() : "COMPLETADA");
+        dto.setFechaAnulacion(venta.getFechaAnulacion());
+        dto.setUsuarioAnulacion(venta.getUsuarioAnulacion());
+        dto.setMotivoAnulacion(venta.getMotivoAnulacion());
 
         dto.setDetalles(detalles.stream().map(d -> {
             VentaDetalleDTO detDto = new VentaDetalleDTO();

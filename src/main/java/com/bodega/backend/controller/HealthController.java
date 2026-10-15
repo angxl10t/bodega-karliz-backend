@@ -16,6 +16,11 @@ public class HealthController {
 
     private final UsuarioRepository usuarioRepository;
 
+    // Caché en memoria para proteger el pool HikariCP frente a ráfagas de pings o ataques DoS
+    private volatile long lastDbCheckTime = 0;
+    private volatile String cachedDbStatus = "CONNECTED";
+    private static final long DB_CHECK_INTERVAL_MS = 60000; // Máximo 1 consulta a la BD cada 60 segundos
+
     public HealthController(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
@@ -27,14 +32,23 @@ public class HealthController {
         response.put("service", "bodega-karliz-backend");
         response.put("timestamp", Instant.now().toString());
 
-        try {
-            // Consulta ultraligera para mantener activa la conexión a PostgreSQL y evitar pausas de inactividad
-            usuarioRepository.count();
-            response.put("database", "CONNECTED");
-        } catch (Exception e) {
-            response.put("database", "DEGRADED");
+        long now = System.currentTimeMillis();
+        if (now - lastDbCheckTime > DB_CHECK_INTERVAL_MS) {
+            synchronized (this) {
+                if (now - lastDbCheckTime > DB_CHECK_INTERVAL_MS) {
+                    try {
+                        // Consulta ultraligera de verificación y keep-alive de conexión
+                        usuarioRepository.count();
+                        cachedDbStatus = "CONNECTED";
+                    } catch (Exception e) {
+                        cachedDbStatus = "DEGRADED";
+                    }
+                    lastDbCheckTime = System.currentTimeMillis();
+                }
+            }
         }
 
+        response.put("database", cachedDbStatus);
         return ResponseEntity.ok(response);
     }
 }

@@ -34,4 +34,17 @@ public class Venta {
     // Auditoría: Nombre del cajero o administrador que emitió la venta
     @Column(name = "usuario_registro", length = 50)
     private String usuarioRegistro;
+
+    // Estado de la transacción para Soft-Delete contable ("COMPLETADA" | "ANULADA")
+    @Column(name = "estado", length = 20)
+    private String estado = "COMPLETADA";
+
+    @Column(name = "fecha_anulacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaAnulacion;
+
+    @Column(name = "usuario_anulacion", length = 50)
+    private String usuarioAnulacion;
+
+    @Column(name = "motivo_anulacion", length = 255)
+    private String motivoAnulacion;
 }

@@ -54,4 +54,12 @@ public class GlobalExceptionHandler {
             errors.put(error.getField(), error.getDefaultMessage()));
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
+    // Captura universal de cualquier error inesperado no controlado para evitar fuga de trazas o stack traces
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Error interno al procesar la solicitud en el servidor.");
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
