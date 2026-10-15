@@ -32,6 +32,14 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(org.springframework.security.config.Customizer.withDefaults())
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000)
+                )
+            )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) -> {
@@ -72,10 +80,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Restricción de orígenes autorizados: GitHub Pages y entornos locales de desarrollo/pruebas
+        // Restricción estricta de orígenes autorizados: GitHub Pages oficial y entornos locales de desarrollo/pruebas
         configuration.setAllowedOriginPatterns(List.of(
             "https://angxl10t.github.io",
-            "https://*.github.io",
             "http://localhost:[*]",
             "http://127.0.0.1:[*]",
             "http://192.168.[*].[*]:[*]",
