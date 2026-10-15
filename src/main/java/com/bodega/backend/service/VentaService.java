@@ -48,8 +48,13 @@ public class VentaService {
         BigDecimal totalVenta = BigDecimal.ZERO;
         List<VentaDetalle> detallesGuardados = new ArrayList<>();
 
-        for (VentaDetalleDTO detDto : dto.getDetalles()) {
-            Producto producto = productoRepository.findById(detDto.getIdProducto())
+        // Prevención de Deadlock en concurrencia: ordenar siempre por idProducto ascendente
+        List<VentaDetalleDTO> detallesOrdenados = new ArrayList<>(dto.getDetalles());
+        detallesOrdenados.sort(Comparator.comparing(VentaDetalleDTO::getIdProducto));
+
+        for (VentaDetalleDTO detDto : detallesOrdenados) {
+            // Bloqueo pesimista exclusivo para evitar Race Conditions / sobreventas simultáneas
+            Producto producto = productoRepository.findByIdForUpdate(detDto.getIdProducto())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detDto.getIdProducto()));
 
             // Validación estricta de Stock
