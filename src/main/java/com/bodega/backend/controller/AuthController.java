@@ -92,19 +92,39 @@ public class AuthController {
     @PostMapping("/cambiar-password")
     public ResponseEntity<Map<String, String>> cambiarPassword(
             @Valid @RequestBody CambiarPasswordDTO dto,
-            Principal principal) {
+            Principal principal,
+            HttpServletRequest request) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        String clientIp = extractClientIp(request);
         String username = principal.getName();
+
+        // 1. Verificación previa de Rate Limiting para evitar ataques de fuerza bruta al passwordActual
+        if (loginRateLimiterService.isBlocked(clientIp, username)) {
+            long remaining = loginRateLimiterService.getRemainingBlockMinutes(clientIp, username);
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Demasiados intentos fallidos. Operación bloqueada temporalmente por " + remaining + " minuto(s) por seguridad.");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
+        }
+
+        // 2. Prevenir reutilización inmediata de la misma contraseña
+        if (dto.getPasswordActual().equals(dto.getNuevaPassword())) {
+            throw new RuntimeException("La nueva contraseña no puede ser idéntica a la contraseña actual.");
+        }
+
         Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
+        // 3. Validación de contraseña actual con penalización en caso de fallo
         if (!passwordEncoder.matches(dto.getPasswordActual(), usuario.getPassword())) {
+            loginRateLimiterService.registerFailedAttempt(clientIp, username);
             throw new RuntimeException("La contraseña actual no es correcta.");
         }
 
+        // 4. Éxito: limpiar penalizaciones, actualizar hash y registrar fecha de cambio
+        loginRateLimiterService.resetAttempts(clientIp, username);
         usuario.setPassword(passwordEncoder.encode(dto.getNuevaPassword()));
         usuario.setFechaCambioClave(java.time.OffsetDateTime.now());
         usuarioRepository.save(usuario);

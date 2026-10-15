@@ -61,6 +61,11 @@ public class CompraService {
             Producto producto = productoRepository.findByIdForUpdate(detDto.getIdProducto())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detDto.getIdProducto()));
 
+            // Validación de Integridad de Negocio: No permitir ingreso de inventario para productos inactivos o descontinuados
+            if (Boolean.FALSE.equals(producto.getEstado())) {
+                throw new RuntimeException("No se puede registrar compra para el producto dado de baja o inactivo: " + producto.getNombre());
+            }
+
             // Backend calcula el subtotal para evitar hackeos desde el frontend
             BigDecimal subtotal = detDto.getCantidad().multiply(detDto.getPrecioUnitario());
             totalCompra = totalCompra.add(subtotal);
