@@ -18,6 +18,7 @@ public class CompraDTO {
     private String comprobante;
     private BigDecimal total;
     private OffsetDateTime fechaCompra;
+    private String usuarioRegistro;
 
     @NotEmpty(message = "La compra debe tener al menos un detalle")
     @Valid

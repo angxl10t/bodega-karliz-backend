@@ -2,13 +2,16 @@ package com.bodega.backend.service;
 
 import com.bodega.backend.dto.ProductoDTO;
 import com.bodega.backend.entity.Categoria;
+import com.bodega.backend.entity.MovimientoInventario;
 import com.bodega.backend.entity.Producto;
 import com.bodega.backend.repository.CategoriaRepository;
+import com.bodega.backend.repository.MovimientoInventarioRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,10 +20,14 @@ public class ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final MovimientoInventarioRepository movimientoInventarioRepository;
 
-    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
+    public ProductoService(ProductoRepository productoRepository, 
+                           CategoriaRepository categoriaRepository,
+                           MovimientoInventarioRepository movimientoInventarioRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
+        this.movimientoInventarioRepository = movimientoInventarioRepository;
     }
 
     @PostConstruct
@@ -166,6 +173,18 @@ public class ProductoService {
         producto.setControlaVencimiento(dto.getControlaVencimiento() != null ? dto.getControlaVencimiento() : false);
 
         Producto guardado = productoRepository.save(producto);
+
+        // Auditoría Kardex: Si el producto se registra con existencias iniciales, registrar entrada
+        if (guardado.getStockActual() != null && guardado.getStockActual().compareTo(BigDecimal.ZERO) > 0) {
+            MovimientoInventario mov = new MovimientoInventario();
+            mov.setProducto(guardado);
+            mov.setTipoMovimiento("ENTRADA");
+            mov.setCantidad(guardado.getStockActual());
+            mov.setMotivo("Inventario Inicial de Apertura");
+            mov.setUsuarioResponsable(obtenerUsuarioActual());
+            movimientoInventarioRepository.save(mov);
+        }
+
         return mapToDTO(guardado);
     }
 
@@ -205,7 +224,19 @@ public class ProductoService {
             producto.setPrecioVenta(dto.getPrecioVenta());
         }
         if (dto.getStockActual() != null) {
-            producto.setStockActual(dto.getStockActual());
+            BigDecimal stockAnterior = producto.getStockActual() != null ? producto.getStockActual() : BigDecimal.ZERO;
+            BigDecimal nuevoStock = dto.getStockActual();
+            if (stockAnterior.compareTo(nuevoStock) != 0) {
+                BigDecimal diff = nuevoStock.subtract(stockAnterior);
+                MovimientoInventario mov = new MovimientoInventario();
+                mov.setProducto(producto);
+                mov.setTipoMovimiento(diff.signum() > 0 ? "ENTRADA" : "SALIDA");
+                mov.setCantidad(diff.abs());
+                mov.setMotivo("Ajuste manual de inventario (de " + stockAnterior + " a " + nuevoStock + ")");
+                mov.setUsuarioResponsable(obtenerUsuarioActual());
+                movimientoInventarioRepository.save(mov);
+            }
+            producto.setStockActual(nuevoStock);
         }
         if (dto.getStockMinimo() != null) {
             producto.setStockMinimo(dto.getStockMinimo());
@@ -250,6 +281,14 @@ public class ProductoService {
             producto.setCodigo(base + "_BAJA_" + producto.getIdProducto());
         }
         productoRepository.save(producto);
+    }
+
+    private String obtenerUsuarioActual() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            return auth.getName();
+        }
+        return "SISTEMA";
     }
 
     private ProductoDTO mapToDTO(Producto producto) {

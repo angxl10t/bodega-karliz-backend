@@ -5,10 +5,13 @@ import com.bodega.backend.dto.CambiarPasswordDTO;
 import com.bodega.backend.entity.Usuario;
 import com.bodega.backend.repository.UsuarioRepository;
 import com.bodega.backend.security.JwtUtil;
+import com.bodega.backend.security.LoginRateLimiterService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -25,31 +28,65 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoginRateLimiterService loginRateLimiterService;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, 
-                          UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+                          UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+                          LoginRateLimiterService loginRateLimiterService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.loginRateLimiterService = loginRateLimiterService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody AuthDTO authDTO) {
-        // 1. Valida usuario y contraseña en BD automáticamente
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authDTO.getUsername(), authDTO.getPassword())
-        );
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody AuthDTO authDTO, HttpServletRequest request) {
+        String clientIp = extractClientIp(request);
+        String username = authDTO.getUsername() != null ? authDTO.getUsername().trim() : "";
 
-        // 2. Si es correcto, genera el JWT
-        Usuario usuario = usuarioRepository.findByUsername(authDTO.getUsername()).get();
+        // 1. Verificación previa de Rate Limiting (sin tocar la base de datos ni el pool Hikari)
+        if (loginRateLimiterService.isBlocked(clientIp, username)) {
+            long remaining = loginRateLimiterService.getRemainingBlockMinutes(clientIp, username);
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Demasiados intentos fallidos. Acceso bloqueado temporalmente por " + remaining + " minuto(s) por seguridad.");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
+        }
+
+        try {
+            // 2. Valida usuario y contraseña en BD
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, authDTO.getPassword())
+            );
+        } catch (BadCredentialsException ex) {
+            loginRateLimiterService.registerFailedAttempt(clientIp, username);
+            throw ex;
+        } catch (Exception ex) {
+            loginRateLimiterService.registerFailedAttempt(clientIp, username);
+            throw ex;
+        }
+
+        // 3. Login exitoso: limpiar contador de intentos
+        loginRateLimiterService.resetAttempts(clientIp, username);
+
+        // 4. Genera el JWT
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol());
 
-        // 3. Lo entrega a Flutter
+        // 5. Retorna credenciales al cliente
         Map<String, String> response = new HashMap<>();
         response.put("token", jwt);
         response.put("rol", usuario.getRol());
         return ResponseEntity.ok(response);
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xf = request.getHeader("X-Forwarded-For");
+        if (xf != null && !xf.isBlank()) {
+            return xf.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @PostMapping("/cambiar-password")

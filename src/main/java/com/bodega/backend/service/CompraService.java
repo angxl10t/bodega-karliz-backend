@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,18 +40,25 @@ public class CompraService {
         Proveedor proveedor = proveedorRepository.findById(dto.getIdProveedor())
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
 
-        // 1. Crear Cabecera
+        String usuarioActual = obtenerUsuarioActual();
+
+        // 1. Crear Cabecera con Auditoría de Operador
         Compra compra = new Compra();
         compra.setProveedor(proveedor);
         compra.setComprobante(dto.getComprobante());
+        compra.setUsuarioRegistro(usuarioActual);
         
         BigDecimal totalCompra = BigDecimal.ZERO;
         
-        // 2. Procesar Detalles y Stock
+        // 2. Procesar Detalles y Stock con Prevención de Deadlocks y Bloqueo Pesimista
+        List<CompraDetalleDTO> detallesOrdenados = new ArrayList<>(dto.getDetalles());
+        detallesOrdenados.sort(Comparator.comparing(CompraDetalleDTO::getIdProducto));
+
         List<CompraDetalle> detallesGuardados = new ArrayList<>();
         
-        for (CompraDetalleDTO detDto : dto.getDetalles()) {
-            Producto producto = productoRepository.findById(detDto.getIdProducto())
+        for (CompraDetalleDTO detDto : detallesOrdenados) {
+            // Bloqueo pesimista exclusivo para evitar Race Conditions con ventas en curso
+            Producto producto = productoRepository.findByIdForUpdate(detDto.getIdProducto())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detDto.getIdProducto()));
 
             // Backend calcula el subtotal para evitar hackeos desde el frontend
@@ -74,7 +82,7 @@ public class CompraService {
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(detDto.getCantidad());
             mov.setMotivo("Compra a proveedor: " + proveedor.getRazonSocial());
-            mov.setUsuarioResponsable(obtenerUsuarioActual());
+            mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
         }
 
@@ -107,6 +115,7 @@ public class CompraService {
         dto.setComprobante(compra.getComprobante());
         dto.setTotal(compra.getTotal());
         dto.setFechaCompra(compra.getFechaCompra());
+        dto.setUsuarioRegistro(compra.getUsuarioRegistro());
 
         dto.setDetalles(detalles.stream().map(d -> {
             CompraDetalleDTO detDto = new CompraDetalleDTO();
