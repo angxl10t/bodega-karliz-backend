@@ -45,13 +45,16 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
+    @org.springframework.beans.factory.annotation.Value("${jwt.expiration-ms:7776000000}")
+    private long expirationMs;
+
     public String generateToken(String username, String rol) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("rol", rol)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                // Expira en 12 horas exactas
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 12)) 
+                // Expira en 90 días para terminales POS
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs)) 
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
