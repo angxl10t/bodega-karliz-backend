@@ -9,8 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,26 +47,47 @@ public class CompraService {
             throw new RuntimeException("No se puede registrar compra para el proveedor inactivo o dado de baja: " + proveedor.getRazonSocial());
         }
 
+        String comprobanteTrim = (dto.getComprobante() != null && !dto.getComprobante().isBlank()) 
+                ? dto.getComprobante().trim() 
+                : null;
+
+        if (comprobanteTrim != null && compraRepository.existsByProveedor_IdProveedorAndComprobanteIgnoreCase(proveedor.getIdProveedor(), comprobanteTrim)) {
+            throw new RuntimeException("Ya existe una compra registrada con el comprobante '" + comprobanteTrim + "' para el proveedor " + proveedor.getRazonSocial());
+        }
+
         String usuarioActual = obtenerUsuarioActual();
 
         // 1. Crear Cabecera con Auditoría de Operador
         Compra compra = new Compra();
         compra.setProveedor(proveedor);
-        compra.setComprobante(dto.getComprobante());
+        compra.setComprobante(comprobanteTrim);
         compra.setUsuarioRegistro(usuarioActual);
         
         BigDecimal totalCompra = BigDecimal.ZERO;
         
-        // 2. Procesar Detalles y Stock con Prevención de Deadlocks y Bloqueo Pesimista
-        List<CompraDetalleDTO> detallesOrdenados = new ArrayList<>(dto.getDetalles());
-        detallesOrdenados.sort(Comparator.comparing(CompraDetalleDTO::getIdProducto));
+        // 2. Consolidación atómica: fusionar cantidades repetidas del mismo idProducto
+        Map<Long, BigDecimal> cantidadesConsolidadas = new LinkedHashMap<>();
+        Map<Long, BigDecimal> preciosPorProducto = new LinkedHashMap<>();
+
+        for (CompraDetalleDTO detDto : dto.getDetalles()) {
+            if (detDto.getIdProducto() != null && detDto.getCantidad() != null && detDto.getCantidad().compareTo(BigDecimal.ZERO) > 0) {
+                cantidadesConsolidadas.merge(detDto.getIdProducto(), detDto.getCantidad(), BigDecimal::add);
+                preciosPorProducto.putIfAbsent(detDto.getIdProducto(), detDto.getPrecioUnitario());
+            }
+        }
+
+        List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesConsolidadas.keySet());
+        Collections.sort(idsProductosOrdenados);
 
         List<CompraDetalle> detallesGuardados = new ArrayList<>();
         
-        for (CompraDetalleDTO detDto : detallesOrdenados) {
+        for (Long idProd : idsProductosOrdenados) {
+            BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd);
+            BigDecimal precioUnitario = preciosPorProducto.get(idProd);
+
             // Bloqueo pesimista exclusivo para evitar Race Conditions con ventas en curso
-            Producto producto = productoRepository.findByIdForUpdate(detDto.getIdProducto())
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + detDto.getIdProducto()));
+            Producto producto = productoRepository.findByIdForUpdate(idProd)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + idProd));
 
             // Validación de Integridad de Negocio: No permitir ingreso de inventario para productos inactivos o descontinuados
             if (Boolean.FALSE.equals(producto.getEstado())) {
@@ -71,26 +95,26 @@ public class CompraService {
             }
 
             // Backend calcula el subtotal para evitar hackeos desde el frontend
-            BigDecimal subtotal = detDto.getCantidad().multiply(detDto.getPrecioUnitario());
+            BigDecimal subtotal = cantidadTotal.multiply(precioUnitario);
             totalCompra = totalCompra.add(subtotal);
 
             CompraDetalle detalle = new CompraDetalle();
             detalle.setProducto(producto);
-            detalle.setCantidad(detDto.getCantidad());
-            detalle.setPrecioUnitario(detDto.getPrecioUnitario());
+            detalle.setCantidad(cantidadTotal);
+            detalle.setPrecioUnitario(precioUnitario);
             detalle.setSubtotal(subtotal);
             detallesGuardados.add(detalle);
 
             // 3. Actualizar Stock del Producto
-            producto.setStockActual(producto.getStockActual().add(detDto.getCantidad()));
+            producto.setStockActual(producto.getStockActual().add(cantidadTotal));
             productoRepository.save(producto);
 
             // 4. Registrar en el Kardex (Movimiento Inventario)
             MovimientoInventario mov = new MovimientoInventario();
             mov.setProducto(producto);
             mov.setTipoMovimiento("ENTRADA");
-            mov.setCantidad(detDto.getCantidad());
-            mov.setMotivo("Compra a proveedor: " + proveedor.getRazonSocial());
+            mov.setCantidad(cantidadTotal);
+            mov.setMotivo("Compra a proveedor: " + proveedor.getRazonSocial() + (comprobanteTrim != null ? " (" + comprobanteTrim + ")" : ""));
             mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
         }

@@ -34,9 +34,7 @@ public class ProductoService {
     @Transactional
     public void liberarCodigosInactivos() {
         try {
-            List<Producto> inactivos = productoRepository.findAll().stream()
-                    .filter(p -> Boolean.FALSE.equals(p.getEstado()))
-                    .collect(Collectors.toList());
+            List<Producto> inactivos = productoRepository.findByEstadoFalse();
             for (Producto p : inactivos) {
                 boolean modificado = false;
                 if (p.getCodigoBarras() != null && !p.getCodigoBarras().isBlank()) {

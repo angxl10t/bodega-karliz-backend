@@ -14,6 +14,7 @@ import java.util.Optional;
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findByEstadoTrue();
+    List<Producto> findByEstadoFalse();
     
     // Para validar que no se repitan códigos (Reglas RN-01 y RN-02)
     Optional<Producto> findByCodigo(String codigo);

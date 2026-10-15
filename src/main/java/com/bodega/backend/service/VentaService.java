@@ -43,8 +43,14 @@ public class VentaService {
     @Transactional
     public VentaDTO registrarVenta(VentaDTO dto) {
         Venta venta = new Venta();
-        venta.setClienteDocumento(dto.getClienteDocumento());
-        venta.setClienteNombre(dto.getClienteNombre());
+        String docCliente = (dto.getClienteDocumento() != null && !dto.getClienteDocumento().isBlank()) 
+                ? dto.getClienteDocumento().trim() 
+                : null;
+        String nomCliente = (dto.getClienteNombre() != null && !dto.getClienteNombre().isBlank()) 
+                ? dto.getClienteNombre().trim() 
+                : "Público General";
+        venta.setClienteDocumento(docCliente);
+        venta.setClienteNombre(nomCliente);
         venta.setMetodoPago(dto.getMetodoPago() != null ? dto.getMetodoPago() : "Efectivo");
 
         String usuarioActual = obtenerUsuarioActual();
@@ -282,6 +288,16 @@ public class VentaService {
                 ? motivo.trim() 
                 : "Anulada por usuario " + usuarioActual + " (Sin justificación especificada)";
 
+        // Prevenir desbordamiento de columna VARCHAR(255) en base de datos
+        if (motivoLimpio.length() > 200) {
+            motivoLimpio = motivoLimpio.substring(0, 200);
+        }
+
+        String motivoKardex = "Anulación Venta #" + idVenta + " - Justificación: " + motivoLimpio;
+        if (motivoKardex.length() > 255) {
+            motivoKardex = motivoKardex.substring(0, 255);
+        }
+
         // 1. Ordenar por idProducto ascendente para prevenir interbloqueos (Deadlocks) en concurrencia masiva
         List<VentaDetalle> detallesOrdenados = new ArrayList<>(detalles);
         detallesOrdenados.sort(Comparator.comparing(d -> d.getProducto().getIdProducto()));
@@ -299,7 +315,7 @@ public class VentaService {
             mov.setProducto(prod);
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(det.getCantidad());
-            mov.setMotivo("Anulación Venta #" + idVenta + " - Justificación: " + motivoLimpio);
+            mov.setMotivo(motivoKardex);
             mov.setUsuarioResponsable(usuarioActual);
             movimientoInventarioRepository.save(mov);
         }

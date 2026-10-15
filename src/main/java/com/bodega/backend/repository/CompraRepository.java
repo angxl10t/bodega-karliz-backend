@@ -10,4 +10,5 @@ import java.util.List;
 public interface CompraRepository extends JpaRepository<Compra, Long> {
     List<Compra> findAllByOrderByFechaCompraDesc();
     List<Compra> findTop150ByOrderByFechaCompraDesc();
+    boolean existsByProveedor_IdProveedorAndComprobanteIgnoreCase(Long idProveedor, String comprobante);
 }
