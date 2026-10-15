@@ -5,6 +5,7 @@ import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.Producto;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,32 @@ public class ProductoService {
     public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
+    }
+
+    @PostConstruct
+    @Transactional
+    public void liberarCodigosInactivos() {
+        try {
+            List<Producto> inactivos = productoRepository.findAll().stream()
+                    .filter(p -> Boolean.FALSE.equals(p.getEstado()))
+                    .collect(Collectors.toList());
+            for (Producto p : inactivos) {
+                boolean modificado = false;
+                if (p.getCodigoBarras() != null && !p.getCodigoBarras().isBlank()) {
+                    p.setCodigoBarras(null);
+                    modificado = true;
+                }
+                if (p.getCodigo() != null && !p.getCodigo().contains("_BAJA_")) {
+                    String base = p.getCodigo();
+                    if (base.length() > 30) base = base.substring(0, 30);
+                    p.setCodigo(base + "_BAJA_" + p.getIdProducto());
+                    modificado = true;
+                }
+                if (modificado) {
+                    productoRepository.save(p);
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     @Transactional(readOnly = true)
@@ -101,18 +128,34 @@ public class ProductoService {
         }
 
         // Validaciones de reglas de negocio
-        if (productoRepository.findByCodigo(dto.getCodigo()).isPresent()) {
-            throw new RuntimeException("Ya existe un producto con el código interno: " + dto.getCodigo());
+        if (dto.getCodigo() != null && !dto.getCodigo().isBlank()) {
+            productoRepository.findByCodigo(dto.getCodigo().trim()).ifPresent(existente -> {
+                if (Boolean.TRUE.equals(existente.getEstado())) {
+                    throw new RuntimeException("Ya existe un producto activo con el código interno: " + dto.getCodigo());
+                } else {
+                    String base = existente.getCodigo();
+                    if (base.length() > 30) base = base.substring(0, 30);
+                    existente.setCodigo(base + "_BAJA_" + existente.getIdProducto());
+                    productoRepository.saveAndFlush(existente);
+                }
+            });
         }
-        if (dto.getCodigoBarras() != null && !dto.getCodigoBarras().isEmpty() &&
-            productoRepository.findByCodigoBarras(dto.getCodigoBarras()).isPresent()) {
-            throw new RuntimeException("Ya existe un producto con el código de barras: " + dto.getCodigoBarras());
+        if (dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank()) {
+            productoRepository.findByCodigoBarras(dto.getCodigoBarras().trim()).ifPresent(existente -> {
+                if (Boolean.TRUE.equals(existente.getEstado())) {
+                    throw new RuntimeException("Ya existe un producto activo con el código de barras: " + dto.getCodigoBarras() + " (" + existente.getNombre() + ")");
+                } else {
+                    // Si el producto anterior fue dado de baja (por error o descarte), liberar su código de barras
+                    existente.setCodigoBarras(null);
+                    productoRepository.saveAndFlush(existente);
+                }
+            });
         }
 
         Producto producto = new Producto();
         producto.setCategoria(categoria);
-        producto.setCodigo(dto.getCodigo());
-        producto.setCodigoBarras(dto.getCodigoBarras());
+        producto.setCodigo(dto.getCodigo().trim());
+        producto.setCodigoBarras(dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank() ? dto.getCodigoBarras().trim() : null);
         producto.setNombre(dto.getNombre());
         producto.setMarca(dto.getMarca());
         producto.setPrecioVenta(dto.getPrecioVenta());
@@ -138,12 +181,19 @@ public class ProductoService {
         }
 
         if (dto.getCodigo() != null && !dto.getCodigo().isBlank()) {
-            productoRepository.findByCodigo(dto.getCodigo())
+            productoRepository.findByCodigo(dto.getCodigo().trim())
                     .filter(otro -> !otro.getIdProducto().equals(id))
                     .ifPresent(otro -> {
-                        throw new RuntimeException("Ya existe otro producto con el código: " + dto.getCodigo());
+                        if (Boolean.TRUE.equals(otro.getEstado())) {
+                            throw new RuntimeException("Ya existe otro producto activo con el código: " + dto.getCodigo());
+                        } else {
+                            String base = otro.getCodigo();
+                            if (base.length() > 30) base = base.substring(0, 30);
+                            otro.setCodigo(base + "_BAJA_" + otro.getIdProducto());
+                            productoRepository.saveAndFlush(otro);
+                        }
                     });
-            producto.setCodigo(dto.getCodigo());
+            producto.setCodigo(dto.getCodigo().trim());
         }
         if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
             producto.setNombre(dto.getNombre());
@@ -162,12 +212,17 @@ public class ProductoService {
         }
         if (dto.getCodigoBarras() != null) {
             if (!dto.getCodigoBarras().isBlank()) {
-                productoRepository.findByCodigoBarras(dto.getCodigoBarras())
+                productoRepository.findByCodigoBarras(dto.getCodigoBarras().trim())
                         .filter(otro -> !otro.getIdProducto().equals(id))
                         .ifPresent(otro -> {
-                            throw new RuntimeException("Ya existe otro producto con el código de barras: " + dto.getCodigoBarras());
+                            if (Boolean.TRUE.equals(otro.getEstado())) {
+                                throw new RuntimeException("Ya existe otro producto activo con el código de barras: " + dto.getCodigoBarras());
+                            } else {
+                                otro.setCodigoBarras(null);
+                                productoRepository.saveAndFlush(otro);
+                            }
                         });
-                producto.setCodigoBarras(dto.getCodigoBarras());
+                producto.setCodigoBarras(dto.getCodigoBarras().trim());
             } else {
                 producto.setCodigoBarras(null);
             }
@@ -185,6 +240,15 @@ public class ProductoService {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
         producto.setEstado(false);
+        // Liberar el código de barras al dar de baja para que pueda ser reutilizado si fue dado de baja por error
+        if (producto.getCodigoBarras() != null && !producto.getCodigoBarras().isBlank()) {
+            producto.setCodigoBarras(null);
+        }
+        if (producto.getCodigo() != null && !producto.getCodigo().contains("_BAJA_")) {
+            String base = producto.getCodigo();
+            if (base.length() > 30) base = base.substring(0, 30);
+            producto.setCodigo(base + "_BAJA_" + producto.getIdProducto());
+        }
         productoRepository.save(producto);
     }
 
