@@ -13,6 +13,7 @@ import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -635,7 +636,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                          color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -643,7 +644,7 @@ class _VentasScreenState extends State<VentasScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: AppTheme.primaryOrange,
+                            color: AppTheme.brandPrimary,
                           ),
                         ),
                       ),
@@ -715,13 +716,13 @@ class _VentasScreenState extends State<VentasScreen> {
                                   height: 44,
                                   decoration: BoxDecoration(
                                     color: yaEnCarrito
-                                        ? AppTheme.primaryOrange.withValues(alpha: 0.15)
-                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface),
+                                        ? AppTheme.brandPrimary.withValues(alpha: 0.15)
+                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Icon(
                                     yaEnCarrito ? LucideIcons.check : LucideIcons.package2,
-                                    color: AppTheme.primaryOrange,
+                                    color: AppTheme.brandPrimary,
                                     size: 20,
                                   ),
                                 ),
@@ -748,13 +749,13 @@ class _VentasScreenState extends State<VentasScreen> {
                                       style: GoogleFonts.plusJakartaSans(
                                         fontWeight: FontWeight.w800,
                                         fontSize: 15,
-                                        color: AppTheme.primaryOrange,
+                                        color: AppTheme.brandPrimary,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     IconButton(
                                       style: IconButton.styleFrom(
-                                        backgroundColor: AppTheme.primaryOrange,
+                                        backgroundColor: AppTheme.brandPrimary,
                                         foregroundColor: Colors.white,
                                         padding: const EdgeInsets.all(8),
                                         minimumSize: const Size(36, 36),
@@ -781,7 +782,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     height: 46,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryOrange,
+                        backgroundColor: AppTheme.brandPrimary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(23)),
                       ),
@@ -970,7 +971,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w800,
                           fontSize: 12.5,
-                          color: AppTheme.primaryOrange,
+                          color: AppTheme.brandPrimary,
                         ),
                       ),
                       Expanded(
@@ -1004,7 +1005,7 @@ class _VentasScreenState extends State<VentasScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: AppTheme.primaryOrange.withValues(alpha: 0.08),
+                color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -1025,7 +1026,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
-                          color: AppTheme.primaryOrange,
+                          color: AppTheme.brandPrimary,
                         ),
                       ),
                     ],
@@ -1089,7 +1090,7 @@ class _VentasScreenState extends State<VentasScreen> {
               height: 48,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryOrange,
+                  backgroundColor: AppTheme.brandPrimary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 ),
@@ -1354,7 +1355,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.user, size: 18, color: AppTheme.primaryOrange),
+                    const Icon(LucideIcons.user, size: 18, color: AppTheme.brandPrimary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
@@ -1430,7 +1431,7 @@ class _VentasScreenState extends State<VentasScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primaryOrange,
+                                  color: AppTheme.brandPrimary,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -1581,14 +1582,15 @@ class _VentasScreenState extends State<VentasScreen> {
                               ),
                               const SizedBox(width: 10),
                               SizedBox(
-                                width: 68,
+                                width: 72,
                                 child: Text(
                                   'S/ ${item.subtotal.toStringAsFixed(2)}',
                                   textAlign: TextAlign.right,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800,
-                                    color: AppTheme.primaryOrange,
+                                    color: AppTheme.brandPrimary,
+                                    fontFeatures: const [FontFeature.tabularFigures()],
                                   ),
                                 ),
                               ),
@@ -1613,8 +1615,8 @@ class _VentasScreenState extends State<VentasScreen> {
                             height: 44,
                             child: OutlinedButton.icon(
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: AppTheme.primaryOrange,
-                                side: const BorderSide(color: AppTheme.primaryOrange, width: 1.2),
+                                foregroundColor: AppTheme.brandPrimary,
+                                side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                               ),
                               icon: const Icon(LucideIcons.plusCircle, size: 18),
@@ -1704,7 +1706,7 @@ class _VentasScreenState extends State<VentasScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryOrange,
+                              color: AppTheme.brandPrimary,
                             ),
                           ),
                         ],
@@ -1743,7 +1745,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                 prefixText: 'S/ ',
                                 prefixStyle: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w800,
-                                  color: AppTheme.primaryOrange,
+                                  color: AppTheme.brandPrimary,
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                               ),
@@ -1807,12 +1809,12 @@ class _VentasScreenState extends State<VentasScreen> {
                   color: isDark ? AppTheme.cardDark : Colors.white,
                   borderRadius: BorderRadius.circular(26),
                   border: Border.all(
-                    color: isDark ? AppTheme.borderDark : AppTheme.peachBorder,
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderTint,
                     width: 1.4,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryOrange.withValues(alpha: 0.08),
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                       blurRadius: 18,
                       offset: const Offset(0, 6),
                     ),
@@ -1829,11 +1831,11 @@ class _VentasScreenState extends State<VentasScreen> {
                           children: [
                             Text(
                               'TOTAL A COBRAR',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 color: AppTheme.textMuted,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
+                                letterSpacing: 0.8,
                               ),
                             ),
                             Text(
@@ -1841,16 +1843,19 @@ class _VentasScreenState extends State<VentasScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11.5,
                                 color: AppTheme.textMuted,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
                         Text(
                           'S/ ${_totalVenta.toStringAsFixed(2)}',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: AppTheme.primaryOrange,
-                            fontSize: 28,
+                          style: GoogleFonts.outfit(
+                            color: AppTheme.brandPrimary,
+                            fontSize: 30,
                             fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ],
@@ -1879,10 +1884,10 @@ class _VentasScreenState extends State<VentasScreen> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryOrange,
+                          backgroundColor: AppTheme.brandPrimary,
                           foregroundColor: Colors.white,
                           elevation: 3,
-                          shadowColor: AppTheme.primaryOrange.withValues(alpha: 0.35),
+                          shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
                         ),
                       ),
@@ -2787,19 +2792,21 @@ class _VentasScreenState extends State<VentasScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [const Color(0xFF0F172A), const Color(0xFF022C22)]
-                    : [const Color(0xFF0F172A), const Color(0xFF134E4A)],
+                    ? [const Color(0xFF0B0F19), const Color(0xFF1E293B)]
+                    : [const Color(0xFF0F172A), const Color(0xFF1E3A8A)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppTheme.brandPrimary.withValues(alpha: 0.4),
+                color: isDark
+                    ? const Color(0xFF38BDF8).withValues(alpha: 0.35)
+                    : AppTheme.brandPrimary.withValues(alpha: 0.5),
                 width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.18),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -2813,18 +2820,18 @@ class _VentasScreenState extends State<VentasScreen> {
                   children: [
                     Text(
                       'TOTAL A COBRAR',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
+                      style: GoogleFonts.outfit(
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.0,
-                        color: const Color(0xFF2DD4BF),
+                        color: const Color(0xFF38BDF8),
                       ),
                     ),
                     Text(
                       '${_carrito.length} items seleccionados',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
-                        color: Colors.white60,
+                        color: Colors.white70,
                       ),
                     ),
                   ],
@@ -2832,10 +2839,11 @@ class _VentasScreenState extends State<VentasScreen> {
                 Text(
                   'S/ ${_totalVenta.toStringAsFixed(2)}',
                   style: GoogleFonts.outfit(
-                    fontSize: 24,
+                    fontSize: 25,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
                     color: Colors.white,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ],

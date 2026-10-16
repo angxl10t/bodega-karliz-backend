@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'movimiento_model.dart';
 import 'movimiento_service.dart';
 import '../../core/theme.dart';
+import 'dart:ui';
 
 class KardexScreen extends StatefulWidget {
   const KardexScreen({super.key});
@@ -255,12 +256,12 @@ class _KardexScreenState extends State<KardexScreen> {
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 12,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? AppTheme.primaryOrange : (isDark ? Colors.white70 : const Color(0xFF475569)),
+        color: isSelected ? AppTheme.brandPrimary : (isDark ? Colors.white70 : const Color(0xFF475569)),
       ),
-      selectedColor: isDark ? AppTheme.primaryOrange.withValues(alpha: 0.2) : AppTheme.peachSurface,
+      selectedColor: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.2) : AppTheme.surfaceTint,
       backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
       side: BorderSide(
-        color: isSelected ? AppTheme.primaryOrange : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+        color: isSelected ? AppTheme.brandPrimary : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       onSelected: (_) => setState(() => _filtroTipo = key),
@@ -287,7 +288,7 @@ class _KardexScreenState extends State<KardexScreen> {
       icon = LucideIcons.rotateCcw;
       sign = '+';
     } else {
-      badgeColor = AppTheme.primaryOrange;
+      badgeColor = AppTheme.brandPrimary;
       icon = LucideIcons.arrowUpRight;
       sign = '-';
     }
@@ -362,10 +363,11 @@ class _KardexScreenState extends State<KardexScreen> {
                     : m.cantidad.toStringAsFixed(2);
                 return Text(
                   '$sign$cantFormateada u.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
                     fontWeight: FontWeight.w900,
                     color: badgeColor,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 );
               },

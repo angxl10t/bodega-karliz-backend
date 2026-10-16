@@ -174,10 +174,10 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(LucideIcons.building2, color: AppTheme.primaryOrange, size: 22),
+                    child: const Icon(LucideIcons.building2, color: AppTheme.brandPrimary, size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -263,8 +263,8 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                        side: const BorderSide(color: AppTheme.primaryOrange, width: 1.2),
-                        foregroundColor: AppTheme.primaryOrange,
+                        side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
+                        foregroundColor: AppTheme.brandPrimary,
                       ),
                       icon: const Icon(LucideIcons.sparkles, size: 15),
                       label: Text(
@@ -381,11 +381,11 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                 child: ElevatedButton.icon(
                   onPressed: _isGuardando ? null : _guardarProveedor,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryOrange,
+                    backgroundColor: AppTheme.brandPrimary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
                     elevation: 3,
-                    shadowColor: AppTheme.primaryOrange.withValues(alpha: 0.35),
+                    shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
                   ),
                   icon: _isGuardando
                       ? const SizedBox(

@@ -228,7 +228,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       ),
                       TextButton.icon(
                         style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.primaryOrange,
+                          foregroundColor: AppTheme.brandPrimary,
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -302,13 +302,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                   height: 40,
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? AppTheme.primaryOrange
-                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface),
+                                        ? AppTheme.brandPrimary
+                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     LucideIcons.building2,
-                                    color: isSelected ? Colors.white : AppTheme.primaryOrange,
+                                    color: isSelected ? Colors.white : AppTheme.brandPrimary,
                                     size: 20,
                                   ),
                                 ),
@@ -324,7 +324,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                   style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
                                 ),
                                 trailing: isSelected
-                                    ? const Icon(LucideIcons.check, color: AppTheme.primaryOrange, size: 20)
+                                    ? const Icon(LucideIcons.check, color: AppTheme.brandPrimary, size: 20)
                                     : null,
                                 onTap: () {
                                   setState(() => _proveedorSeleccionado = p);
@@ -405,7 +405,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                          color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -413,7 +413,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: AppTheme.primaryOrange,
+                            color: AppTheme.brandPrimary,
                           ),
                         ),
                       ),
@@ -482,12 +482,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                   decoration: BoxDecoration(
                                     color: yaEnOrden
                                         ? AppTheme.accentGreen.withValues(alpha: 0.15)
-                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface),
+                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     yaEnOrden ? LucideIcons.check : LucideIcons.package,
-                                    color: yaEnOrden ? AppTheme.accentGreen : AppTheme.primaryOrange,
+                                    color: yaEnOrden ? AppTheme.accentGreen : AppTheme.brandPrimary,
                                     size: 20,
                                   ),
                                 ),
@@ -511,7 +511,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 trailing: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: yaEnOrden ? AppTheme.accentGreen : AppTheme.primaryOrange,
+                                    color: yaEnOrden ? AppTheme.accentGreen : AppTheme.brandPrimary,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Row(
@@ -545,7 +545,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryOrange,
+                        backgroundColor: AppTheme.brandPrimary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                       ),
@@ -595,10 +595,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                    color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(LucideIcons.packagePlus, color: AppTheme.primaryOrange, size: 20),
+                  child: const Icon(LucideIcons.packagePlus, color: AppTheme.brandPrimary, size: 20),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -656,7 +656,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryOrange.withValues(alpha: 0.08),
+                    color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
@@ -671,7 +671,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: AppTheme.primaryOrange,
+                          color: AppTheme.brandPrimary,
                         ),
                       ),
                     ],
@@ -686,7 +686,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryOrange,
+                  backgroundColor: AppTheme.brandPrimary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
@@ -859,7 +859,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   height: 44,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryOrange,
+                      backgroundColor: AppTheme.brandPrimary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                     ),
@@ -899,7 +899,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.primaryOrange));
+      return const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary));
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1004,10 +1004,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                                  color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(LucideIcons.building2, color: AppTheme.primaryOrange, size: 20),
+                                child: const Icon(LucideIcons.building2, color: AppTheme.brandPrimary, size: 20),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -1126,7 +1126,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppTheme.peachSurface,
+                              color: AppTheme.surfaceTint,
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Text(
@@ -1134,7 +1134,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w800,
-                                color: AppTheme.primaryOrange,
+                                color: AppTheme.brandPrimary,
                               ),
                             ),
                           ),
@@ -1151,7 +1151,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             height: 48,
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryOrange,
+                                backgroundColor: AppTheme.brandPrimary,
                                 foregroundColor: Colors.white,
                                 elevation: 1,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -1301,7 +1301,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    icon: const Icon(LucideIcons.plusCircle, size: 20, color: AppTheme.primaryOrange),
+                                    icon: const Icon(LucideIcons.plusCircle, size: 20, color: AppTheme.brandPrimary),
                                     onPressed: () {
                                       setState(() {
                                         item.cantidad += 1;
@@ -1333,12 +1333,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   color: isDark ? AppTheme.cardDark : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: isDark ? AppTheme.borderDark : AppTheme.peachBorder,
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderTint,
                     width: 1.4,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryOrange.withValues(alpha: 0.08),
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -1380,7 +1380,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             return Text(
                               'S/ ${val.toStringAsFixed(2)}',
                               style: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.primaryOrange,
+                                color: AppTheme.brandPrimary,
                                 fontSize: 26,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -1409,7 +1409,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w800),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryOrange,
+                          backgroundColor: AppTheme.brandPrimary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                         ),
@@ -1513,10 +1513,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                                        color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: const Icon(LucideIcons.truck, color: AppTheme.primaryOrange, size: 18),
+                                      child: const Icon(LucideIcons.truck, color: AppTheme.brandPrimary, size: 18),
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
@@ -1551,7 +1551,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w900,
-                                  color: AppTheme.primaryOrange,
+                                  color: AppTheme.brandPrimary,
                                 ),
                               ),
                             ],

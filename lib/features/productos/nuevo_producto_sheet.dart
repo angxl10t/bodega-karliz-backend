@@ -300,10 +300,10 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                  color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(LucideIcons.folderPlus, color: AppTheme.primaryOrange, size: 20),
+                child: const Icon(LucideIcons.folderPlus, color: AppTheme.brandPrimary, size: 20),
               ),
               const SizedBox(width: 10),
               Text(
@@ -334,7 +334,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryOrange,
+                backgroundColor: AppTheme.brandPrimary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
@@ -494,10 +494,10 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(LucideIcons.plusCircle, color: AppTheme.primaryOrange, size: 22),
+                    child: const Icon(LucideIcons.plusCircle, color: AppTheme.brandPrimary, size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -576,7 +576,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                       padding: EdgeInsets.zero,
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: AppTheme.primaryOrange,
+                      foregroundColor: AppTheme.brandPrimary,
                     ),
                     icon: const Icon(LucideIcons.plus, size: 14),
                     label: Text(
@@ -589,7 +589,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
               ),
               const SizedBox(height: 6),
               if (_isLoadingCategorias)
-                const LinearProgressIndicator(color: AppTheme.primaryOrange)
+                const LinearProgressIndicator(color: AppTheme.brandPrimary)
               else
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -704,8 +704,8 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                        side: const BorderSide(color: AppTheme.primaryOrange, width: 1.2),
-                        foregroundColor: AppTheme.primaryOrange,
+                        side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
+                        foregroundColor: AppTheme.brandPrimary,
                       ),
                       icon: const Icon(LucideIcons.refreshCw, size: 15),
                       label: Text(
@@ -741,7 +741,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                           style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
                           decoration: InputDecoration(
                             hintText: '0.00',
-                            prefixIcon: const Icon(LucideIcons.circleDollarSign, size: 18, color: AppTheme.primaryOrange),
+                            prefixIcon: const Icon(LucideIcons.circleDollarSign, size: 18, color: AppTheme.brandPrimary),
                             filled: true,
                             fillColor: inputBg,
                             border: OutlineInputBorder(
@@ -816,7 +816,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                       Icon(
                         _mostrarOpcionesAvanzadas ? LucideIcons.chevronUp : LucideIcons.chevronDown,
                         size: 16,
-                        color: AppTheme.primaryOrange,
+                        color: AppTheme.brandPrimary,
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -824,7 +824,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryOrange,
+                          color: AppTheme.brandPrimary,
                         ),
                       ),
                     ],
@@ -984,11 +984,11 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                 child: ElevatedButton.icon(
                   onPressed: _isGuardando ? null : _guardarProducto,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryOrange,
+                    backgroundColor: AppTheme.brandPrimary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
                     elevation: 3,
-                    shadowColor: AppTheme.primaryOrange.withValues(alpha: 0.35),
+                    shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
                   ),
                   icon: _isGuardando
                       ? const SizedBox(

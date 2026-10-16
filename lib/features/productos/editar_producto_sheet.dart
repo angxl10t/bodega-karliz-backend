@@ -255,10 +255,10 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(LucideIcons.pencil, color: AppTheme.primaryOrange, size: 20),
+                    child: const Icon(LucideIcons.pencil, color: AppTheme.brandPrimary, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -322,9 +322,9 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                         TextFormField(
                           controller: _precioCtrl,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.primaryOrange),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.brandPrimary),
                           decoration: InputDecoration(
-                            prefixIcon: const Icon(LucideIcons.circleDollarSign, size: 18, color: AppTheme.primaryOrange),
+                            prefixIcon: const Icon(LucideIcons.circleDollarSign, size: 18, color: AppTheme.brandPrimary),
                             filled: true,
                             fillColor: inputBg,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
@@ -375,7 +375,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
               ),
               const SizedBox(height: 6),
               if (_isLoadingCategorias)
-                const LinearProgressIndicator(color: AppTheme.primaryOrange)
+                const LinearProgressIndicator(color: AppTheme.brandPrimary)
               else
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -483,7 +483,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                 child: ElevatedButton.icon(
                   onPressed: _isGuardando ? null : _guardarCambios,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryOrange,
+                    backgroundColor: AppTheme.brandPrimary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
                     elevation: 3,

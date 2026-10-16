@@ -5,6 +5,7 @@ import 'venta_model.dart';
 import 'venta_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/theme.dart';
+import 'dart:ui';
 
 class CajaVentasScreen extends StatefulWidget {
   const CajaVentasScreen({super.key});
@@ -698,6 +699,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
                             color: AppTheme.brandPrimary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
@@ -1315,10 +1317,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             curve: Curves.easeOutCubic,
             builder: (context, val, _) => Text(
               'S/ ${val.toStringAsFixed(2)}',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
+              style: GoogleFonts.outfit(
+                fontSize: 16.5,
                 fontWeight: FontWeight.w900,
                 color: isDark ? Colors.white : AppTheme.textDark,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ),
