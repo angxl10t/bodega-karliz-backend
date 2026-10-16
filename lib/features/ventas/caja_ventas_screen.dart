@@ -349,14 +349,14 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     children: [
                       Row(
                         children: [
-                          const Icon(LucideIcons.refreshCw, size: 14, color: AppTheme.primaryOrange),
+                          const Icon(LucideIcons.refreshCw, size: 14, color: AppTheme.brandPrimary),
                           const SizedBox(width: 6),
                           Text(
                             'Restauración Automática de Stock',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryOrange,
+                              color: AppTheme.brandPrimary,
                             ),
                           ),
                         ],

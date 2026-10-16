@@ -87,6 +87,22 @@ void main() {
       expect(receipt.contains('RUC/DNI: 20601234567'), isTrue);
       expect(receipt.contains('CajaYa Cloud POS'), isTrue);
     });
+
+    test('ThermalTicketService default ESC/POS uses CajaYa POS', () {
+      final bytes = ThermalTicketService.generateEscPosBytes(
+        ticketId: 1,
+        clienteNombre: 'Cliente General',
+        clienteDocumento: null,
+        metodoPago: 'Efectivo',
+        items: [
+          TicketItem(nombre: 'Item Test', cantidad: 1, precioUnitario: 5.0, subtotal: 5.0),
+        ],
+        total: 5.0,
+      );
+
+      final textDecoded = String.fromCharCodes(bytes);
+      expect(textDecoded.contains('CajaYa POS'), isTrue);
+    });
   });
 
   group('CajaYa Vector Widgets Tests', () {

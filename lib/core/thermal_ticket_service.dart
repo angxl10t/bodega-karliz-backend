@@ -168,7 +168,7 @@ class ThermalTicketService {
     String? cajero,
     DateTime? fecha,
     int width = width58mm,
-    String nombreComercio = 'BODEGA KARLIZ',
+    String nombreComercio = 'CajaYa POS',
   }) {
     final List<int> bytes = [];
 

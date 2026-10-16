@@ -332,11 +332,11 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Aislamiento Multi-inquilino seguro • Datos cifrados',
+                'Tus ventas e inventario 100% protegidos y respaldados',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : AppTheme.textMuted,
+                  color: isDark ? Colors.white70 : AppTheme.textMuted,
                 ),
               ),
             ),
@@ -779,17 +779,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // ============================================
-  // BADGE DE CONEXIÓN CLOUD
+  // FOOTER DE SEGURIDAD & COPYRIGHT B2B
   // ============================================
   Widget _buildCloudConnectionBadge(BuildContext context, bool isDark) {
-    return Center(
-      child: Tooltip(
-        message: 'Mantén presionado para configuración técnica avanzada',
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onLongPress: _solicitarClaveParaServidor,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onLongPress: kDebugMode ? _configurarServidor : null,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: isDark ? AppTheme.cardDark : Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -797,48 +796,47 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.accentGreen,
-                    shape: BoxShape.circle,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.accentGreen,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'En la nube: Render Live',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    color: AppTheme.textMuted,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(width: 7),
+                  Text(
+                    'Conexión segura SSL • Sistema en línea',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      color: isDark ? Colors.white70 : AppTheme.textMuted,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(LucideIcons.settings, size: 12, color: AppTheme.textMuted),
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _solicitarClaveParaServidor() {
-    if (kReleaseMode) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Servidor protegido: Conexión cifrada a la nube oficial de CajaYa Cloud.'),
-          backgroundColor: AppTheme.brandPrimary,
+        const SizedBox(height: 8),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            '© 2026 CajaYa Cloud POS • Todos los derechos reservados',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
-      );
-      return;
-    }
-    // Solo disponible en modo desarrollo / debug local
-    _configurarServidor();
+      ],
+    );
   }
 
   void _configurarServidor() {
@@ -884,7 +882,7 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                hintText: 'https://bodega-karliz-backend.onrender.com/api',
+                hintText: ApiConstants.defaultBaseUrl,
                 hintStyle: GoogleFonts.plusJakartaSans(
                   color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                   fontSize: 13,

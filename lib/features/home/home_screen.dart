@@ -14,7 +14,7 @@ import '../compras/compras_screen.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../core/update_service.dart';
-import '../../core/karliz_vectors.dart';
+import '../../core/cajaya_vectors.dart';
 import '../../core/lock_service.dart';
 import '../../core/widgets/karliz_lock_screen.dart';
 import '../../core/responsive_layout.dart';
@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<Widget> _screens;
   String _username = 'admin';
   String _userRol = 'ADMIN';
-  String _nombreBodega = 'Bodega KARLIZ';
+  String _nombreBodega = 'CajaYa POS';
   String _plan = 'PRO';
   Timer? _inactivityTimer;
   bool _orientationConfigured = false;
@@ -203,7 +203,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const KarlizShieldIcon(
+                                child: const Icon(
+                                  LucideIcons.shieldCheck,
                                   size: 18,
                                   color: AppTheme.brandPrimary,
                                 ),
@@ -263,7 +264,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                   child: const Center(
-                                    child: KarlizShieldIcon(
+                                    child: Icon(
+                                      LucideIcons.shieldCheck,
                                       color: Colors.white,
                                       size: 26,
                                     ),
@@ -879,14 +881,14 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 18),
             Row(
               children: [
-                const KarlizLogoMark(size: 38),
+                const CajaYaLogoMark(size: 38),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Guía Rápida KARLIZ POS',
+                        'Guía Rápida CajaYa POS',
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -1194,7 +1196,7 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const KarlizLogoMark(size: 34),
+            const CajaYaLogoMark(size: 34),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -1205,7 +1207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Flexible(
                         child: Text(
-                          'KARLIZ',
+                          'CajaYa',
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.outfit(
                             fontSize: 17,
@@ -1226,7 +1228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         child: Text(
-                          'MARKET POS',
+                          'CLOUD POS',
                           style: GoogleFonts.outfit(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
@@ -1238,7 +1240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   Text(
-                    'Control Inteligente de Bodega',
+                    _nombreBodega.isNotEmpty ? _nombreBodega : 'Punto de Venta',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: GoogleFonts.plusJakartaSans(
@@ -1349,7 +1351,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             shape: BoxShape.circle,
                           ),
                           child: const Center(
-                            child: KarlizShieldIcon(
+                            child: Icon(
+                              LucideIcons.shieldCheck,
                               size: 13,
                               color: Colors.white,
                             ),

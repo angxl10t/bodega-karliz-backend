@@ -79,7 +79,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Banner Ejecutivo Rebrandeado KARLIZ
+                    // Banner Ejecutivo Rebrandeado CajaYa
                     _buildGreetingBanner(isDark),
                     const SizedBox(height: 14),
 
@@ -490,7 +490,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Centro de Control KARLIZ',
+                  'Centro de Control CajaYa',
                   style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontSize: 20,

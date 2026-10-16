@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'auth_service.dart';
-import '../../core/karliz_vectors.dart';
+import '../../core/cajaya_vectors.dart';
 import '../../core/theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -120,105 +120,64 @@ class _SplashScreenState extends State<SplashScreen>
                         width: 92,
                         height: 92,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF0D9488), // Emerald Teal
-                              Color(0xFF0F766E), // Deep Forest Teal
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          color: AppTheme.cardDark,
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
-                            color: const Color(0xFF2DD4BF).withValues(alpha: 0.4),
+                            color: AppTheme.brandPrimary.withValues(alpha: 0.45),
                             width: 1.6,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0D9488).withValues(alpha: 0.45),
-                              blurRadius: 28,
-                              offset: const Offset(0, 10),
+                              color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+                              blurRadius: 32,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const KarlizStoreIcon(
-                              size: 28,
-                              color: Colors.white,
-                            ),
-                          ),
+                        child: const Center(
+                          child: CajaYaLogoMark(size: 52),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
-                    // Marca KARLIZ
+                    // Marca CajaYa
                     Text(
-                      'K A R L I Z',
+                      'CajaYa',
                       style: GoogleFonts.outfit(
-                        fontSize: 34,
+                        fontSize: 36,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 9,
+                        letterSpacing: -0.5,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
 
                     // Badge Subtítulo
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF131A29),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFF1E293B),
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF2DD4BF),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'MARKET & POS',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 3.5,
-                              color: const Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF2DD4BF),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'CLOUD POS',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: AppTheme.brandLight,
+                        ),
                       ),
                     ),
 
-                    const SizedBox(height: 54),
+                    const SizedBox(height: 48),
 
-                    // Barra de Carga Neomórfica Sleek
+                    // Barra de Carga Sleek Cobalt
                     Container(
                       width: 160,
                       height: 4,
@@ -230,15 +189,15 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(10),
                         child: const LinearProgressIndicator(
                           backgroundColor: Colors.transparent,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2DD4BF)),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.brandPrimary),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Leyenda de Estado
                     Text(
-                      'Iniciando sistema en la nube...',
+                      'Iniciando punto de venta seguro...',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -259,7 +218,7 @@ class _SplashScreenState extends State<SplashScreen>
             bottom: 24,
             child: Center(
               child: Text(
-                'SISTEMA EN LA NUBE • TIEMPO REAL',
+                'PLATAFORMA PUNTO DE VENTA • ALTA VELOCIDAD',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
