@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'usuarios_service.dart';
+import 'configuracion_marca_modal.dart';
 import '../../core/theme.dart';
 
 class PlanYPersonalSheet extends StatefulWidget {
@@ -443,6 +444,59 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Acceso a Configuración de Identidad & Marca (Niveles 1 y 2)
+                    InkWell(
+                      onTap: () => ConfiguracionMarcaModal.show(context, isPro: isPro),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(LucideIcons.palette, color: AppTheme.brandPrimary, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Identidad & Marca Comercial',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Nombre, RUC, lema en tickets y paleta de color',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(LucideIcons.chevronRight, size: 18, color: AppTheme.textMuted),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),

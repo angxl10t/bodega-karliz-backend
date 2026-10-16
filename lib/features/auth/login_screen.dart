@@ -3,12 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import 'auth_service.dart';
-import 'karliz_mascot_data.dart';
 import 'registro_bodega_sheet.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
 import '../../core/theme.dart';
+import '../../core/theme_provider.dart';
+import '../../core/cajaya_vectors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -68,7 +70,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (result.success) {
-        context.go('/home');
+        final colorHex = await _authService.getColorPrimario();
+        if (mounted && colorHex.isNotEmpty) {
+          context.read<ThemeProvider>().setAccentColorFromHex(colorHex);
+        }
+        if (mounted) context.go('/home');
       } else {
         setState(() => _errorMessage = result.errorMessage ?? 'Usuario o contraseña incorrectos');
       }
@@ -97,18 +103,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const KarlizLogoMark(size: 38),
+                      const CajaYaLogoMark(size: 38),
                       const SizedBox(width: 10),
                       Text(
-                        'KARLIZ',
+                        'CajaYa',
                         style: GoogleFonts.outfit(
-                          fontSize: 22,
+                          fontSize: 24,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
+                          letterSpacing: -0.3,
                           color: isDark ? Colors.white : AppTheme.brandInk,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                         decoration: BoxDecoration(
@@ -123,54 +129,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         child: Text(
-                          'MARKET POS',
+                          'CLOUD POS',
                           style: GoogleFonts.outfit(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                            letterSpacing: 0.4,
+                            letterSpacing: 0.6,
                           ),
                         ),
                       ),
                     ],
                   ),
 
+                  const SizedBox(height: 18),
+
+                  // Gráfico Hero B2B: Punto de Venta en la Nube
+                  const CajaYaHeroGraphic(width: 320, height: 160),
+
                   const SizedBox(height: 20),
-
-                  // Ilustración Familiar Familia Garcia Cueva
-                  Container(
-                    width: 220,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.05),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: Image.memory(
-                        kKarlizFamilyMascotBytes,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.center,
-                        errorBuilder: (context, error, stackTrace) => Image.asset(
-                          'assets/images/karliz_mascot.jpg',
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
 
                   // ============================================
                   // TARJETA ELEVADA DE LOGIN
@@ -197,9 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Bienvenidos Familia Garcia Cueva',
+                          'Bienvenido a tu Punto de Venta',
                           style: GoogleFonts.outfit(
-                            fontSize: 21,
+                            fontSize: 20,
                             fontWeight: FontWeight.w800,
                             color: isDark ? Colors.white : AppTheme.brandInk,
                             letterSpacing: -0.3,
@@ -207,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Sistema de Control & Caja • Bodega KARLIZ',
+                          'Control de Inventario, Ventas & Caja en Tiempo Real',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12.5,
                             color: AppTheme.textMuted,
@@ -555,7 +531,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (kReleaseMode) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Servidor protegido: Conexión cifrada a la nube oficial de Bodega KARLIZ.'),
+          content: Text('Servidor protegido: Conexión cifrada a la nube oficial de CajaYa Cloud.'),
           backgroundColor: AppTheme.brandPrimary,
         ),
       );

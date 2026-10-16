@@ -6,15 +6,15 @@ import 'karliz_vectors.dart';
 
 class AppTheme {
   // ============================================
-  // REBRANDING "KARLIZ MARKET & POS"
-  // Estética: Botanical Emerald & Obsidian Slate
+  // REBRANDING "CajaYa POS"
+  // Opción A: Fintech Cobalt & Deep Slate
   // ============================================
-  static const Color brandPrimary = Color(0xFF0D9488); // Teal Emerald ejecutivo
-  static const Color brandDark = Color(0xFF0F766E); // Deep Forest Teal
-  static const Color brandLight = Color(0xFF2DD4BF); // Mint Luminoso (Dark Mode)
-  static const Color brandInk = Color(0xFF0F172A); // Obsidian Slate
-  static const Color surfaceTint = Color(0xFFF0FDFA); // Porcelana Menta Suave
-  static const Color borderTint = Color(0xFFCCFBF1); // Borde Esmeralda Sutil
+  static const Color brandPrimary = Color(0xFF2563EB); // Electric Cobalt
+  static const Color brandDark = Color(0xFF1D4ED8); // Deep Cobalt
+  static const Color brandLight = Color(0xFF60A5FA); // Sky Blue Luminoso (Dark Mode)
+  static const Color brandInk = Color(0xFF0B0F19); // Obsidian Dark
+  static const Color surfaceTint = Color(0xFFEFF6FF); // Porcelana Azul Cobalto Suave
+  static const Color borderTint = Color(0xFFDBEAFE); // Borde Cobalto Sutil
 
   // Aliases de compatibilidad para unificar toda la app automáticamente
   static const Color primaryOrange = brandPrimary;
@@ -36,13 +36,13 @@ class AppTheme {
   static const Color textDark = Color(0xFF0F172A);
   static const Color textMuted = Color(0xFF64748B);
 
-  // Superficies Modo Oscuro (Executive Obsidian & Vivid Mint)
-  static const Color bgDark = Color(0xFF0A0F18); // Obsidian Slate Profundo
-  static const Color cardDark = Color(0xFF131D2D); // Dark Titanium Slate (Elevación 1)
-  static const Color cardDarkElevated = Color(0xFF1A263B); // Titanium Slate Elevado (Elevación 2)
-  static const Color borderDark = Color(0xFF22324A); // Borde Nítido Alta Claridad
-  static const Color surfaceTintDark = Color(0xFF0F2B2D); // Contenedor Esmeralda Suave Dark
-  static const Color borderTintDark = Color(0xFF134E4A); // Borde Esmeralda Dark
+  // Superficies Modo Oscuro (Executive Obsidian & Deep Slate)
+  static const Color bgDark = Color(0xFF0B0F19); // Obsidian Dark Profundo
+  static const Color cardDark = Color(0xFF111827); // Dark Slate Card (Elevación 1)
+  static const Color cardDarkElevated = Color(0xFF1E293B); // Slate Elevado (Elevación 2)
+  static const Color borderDark = Color(0xFF1F2937); // Borde Nítido Alta Claridad
+  static const Color surfaceTintDark = Color(0xFF1E3A8A); // Contenedor Cobalto Suave Dark
+  static const Color borderTintDark = Color(0xFF1D4ED8); // Borde Cobalto Dark
   static const Color textDarkPrimary = Color(0xFFF8FAFC); // Blanco Cristalino (98% L)
   static const Color textDarkSecondary = Color(0xFF94A3B8); // Slate 400 Legible
   static const Color textDarkMuted = Color(0xFF64748B); // Slate 500
@@ -79,7 +79,8 @@ class AppTheme {
   // ============================================
   // TEMA CLARO (LIGHT THEME)
   // ============================================
-  static ThemeData get lightTheme {
+  static ThemeData buildLightTheme({Color? primaryColor}) {
+    final primary = primaryColor ?? brandPrimary;
     final baseFont = GoogleFonts.plusJakartaSans();
 
     return ThemeData(
@@ -88,9 +89,9 @@ class AppTheme {
       fontFamily: baseFont.fontFamily,
       scaffoldBackgroundColor: bgLight,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: brandPrimary,
+        seedColor: primary,
         brightness: Brightness.light,
-        primary: brandPrimary,
+        primary: primary,
         secondary: brandInk,
         surface: cardLight,
       ),
@@ -130,7 +131,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: brandPrimary, width: 1.8),
+          borderSide: BorderSide(color: primary, width: 1.8),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
         labelStyle: GoogleFonts.plusJakartaSans(color: textMuted, fontSize: 13.5),
@@ -140,7 +141,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: brandPrimary,
+          backgroundColor: primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 22),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -149,7 +150,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: brandPrimary,
+          foregroundColor: primary,
           textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13.5),
         ),
       ),
@@ -157,7 +158,7 @@ class AppTheme {
         backgroundColor: cardLight,
         elevation: 0,
         height: 68,
-        indicatorColor: brandPrimary,
+        indicatorColor: primary,
         indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -170,7 +171,7 @@ class AppTheme {
           return GoogleFonts.outfit(
             fontSize: 11.5,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-            color: isSelected ? brandPrimary : textMuted,
+            color: isSelected ? primary : textMuted,
           );
         }),
       ),
@@ -184,7 +185,7 @@ class AppTheme {
         },
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: brandPrimary,
+        backgroundColor: primary,
         foregroundColor: Colors.white,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -192,10 +193,13 @@ class AppTheme {
     );
   }
 
+  static ThemeData get lightTheme => buildLightTheme();
+
   // ============================================
-  // TEMA OSCURO (DARK THEME - Executive Obsidian & Vivid Mint)
+  // TEMA OSCURO (DARK THEME - Executive Obsidian & Deep Slate)
   // ============================================
-  static ThemeData get darkTheme {
+  static ThemeData buildDarkTheme({Color? primaryColor}) {
+    final primary = primaryColor ?? brandPrimary;
     final baseFont = GoogleFonts.plusJakartaSans();
 
     return ThemeData(
@@ -204,9 +208,9 @@ class AppTheme {
       fontFamily: baseFont.fontFamily,
       scaffoldBackgroundColor: bgDark,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: brandPrimary,
+        seedColor: primary,
         brightness: Brightness.dark,
-        primary: brandPrimary,
+        primary: primary,
         secondary: brandLight,
         surface: cardDark,
         surfaceContainer: cardDarkElevated,
@@ -266,7 +270,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: brandPrimary,
+          backgroundColor: primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 22),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -283,7 +287,7 @@ class AppTheme {
         backgroundColor: cardDark,
         elevation: 0,
         height: 68,
-        indicatorColor: brandPrimary,
+        indicatorColor: primary,
         indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -310,13 +314,15 @@ class AppTheme {
         },
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: brandPrimary,
+        backgroundColor: primary,
         foregroundColor: Colors.white,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
     );
   }
+
+  static ThemeData get darkTheme => buildDarkTheme();
 }
 
 /// Banner didáctico reutilizable para guiar al usuario paso a paso en cada módulo

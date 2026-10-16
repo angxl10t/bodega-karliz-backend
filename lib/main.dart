@@ -6,7 +6,6 @@ import 'features/auth/auth_service.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/home_screen.dart';
-import 'core/theme.dart';
 import 'core/theme_provider.dart';
 import 'core/api_constants.dart';
 import 'core/update_service.dart';
@@ -57,10 +56,10 @@ class BodegaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     return MaterialApp.router(
-      title: 'KARLIZ Market & POS',
+      title: 'CajaYa POS',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: themeProvider.lightTheme,
+      darkTheme: themeProvider.darkTheme,
       themeMode: themeProvider.themeMode,
       routerConfig: _router,
       scrollBehavior: const MaterialScrollBehavior().copyWith(

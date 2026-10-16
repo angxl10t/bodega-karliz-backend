@@ -37,6 +37,24 @@ class AuthService {
         if (data['plan'] != null) {
           await SecureStorageService.write('plan_bodega', data['plan']);
         }
+        if (data['ruc'] != null) {
+          await SecureStorageService.write('ruc_bodega', data['ruc']);
+        }
+        if (data['direccion'] != null) {
+          await SecureStorageService.write('direccion_bodega', data['direccion']);
+        }
+        if (data['telefono'] != null) {
+          await SecureStorageService.write('telefono_bodega', data['telefono']);
+        }
+        if (data['colorPrimario'] != null) {
+          await SecureStorageService.write('color_primario', data['colorPrimario']);
+        }
+        if (data['lemaComercial'] != null) {
+          await SecureStorageService.write('lema_comercial', data['lemaComercial']);
+        }
+        if (data['logoUrl'] != null) {
+          await SecureStorageService.write('logo_url', data['logoUrl']);
+        }
         return AuthResult(success: true); // Login exitoso
       }
 
@@ -119,6 +137,30 @@ class AuthService {
     return await SecureStorageService.read('id_bodega') ?? '1';
   }
 
+  Future<String> getRucBodega() async {
+    return await SecureStorageService.read('ruc_bodega') ?? '';
+  }
+
+  Future<String> getDireccionBodega() async {
+    return await SecureStorageService.read('direccion_bodega') ?? '';
+  }
+
+  Future<String> getTelefonoBodega() async {
+    return await SecureStorageService.read('telefono_bodega') ?? '';
+  }
+
+  Future<String> getColorPrimario() async {
+    return await SecureStorageService.read('color_primario') ?? '#2563EB';
+  }
+
+  Future<String> getLemaComercial() async {
+    return await SecureStorageService.read('lema_comercial') ?? '';
+  }
+
+  Future<String> getLogoUrl() async {
+    return await SecureStorageService.read('logo_url') ?? '';
+  }
+
   Future<AuthResult> registrarBodega({
     required String nombreComercial,
     String? ruc,
@@ -126,6 +168,8 @@ class AuthService {
     String? telefono,
     required String adminUsername,
     required String adminPassword,
+    String? colorPrimario,
+    String? lemaComercial,
     String plan = 'PRO',
   }) async {
     try {
@@ -134,12 +178,13 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nombreComercial': nombreComercial,
-          'ruc': ruc,
+          'rucDni': ruc,
           'direccion': direccion,
           'telefono': telefono,
-          'adminUsername': adminUsername,
-          'adminPassword': adminPassword,
-          'plan': plan,
+          'username': adminUsername,
+          'password': adminPassword,
+          'colorPrimario': colorPrimario ?? '#2563EB',
+          'lemaComercial': lemaComercial,
         }),
       ).timeout(const Duration(seconds: 25));
 
@@ -159,6 +204,24 @@ class AuthService {
         }
         if (data['plan'] != null) {
           await SecureStorageService.write('plan_bodega', data['plan']);
+        }
+        if (data['ruc'] != null) {
+          await SecureStorageService.write('ruc_bodega', data['ruc']);
+        }
+        if (data['direccion'] != null) {
+          await SecureStorageService.write('direccion_bodega', data['direccion']);
+        }
+        if (data['telefono'] != null) {
+          await SecureStorageService.write('telefono_bodega', data['telefono']);
+        }
+        if (data['colorPrimario'] != null) {
+          await SecureStorageService.write('color_primario', data['colorPrimario']);
+        }
+        if (data['lemaComercial'] != null) {
+          await SecureStorageService.write('lema_comercial', data['lemaComercial']);
+        }
+        if (data['logoUrl'] != null) {
+          await SecureStorageService.write('logo_url', data['logoUrl']);
         }
         return AuthResult(success: true);
       }

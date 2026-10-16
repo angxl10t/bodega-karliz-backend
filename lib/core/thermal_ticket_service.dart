@@ -70,17 +70,27 @@ class ThermalTicketService {
     String? cajero,
     DateTime? fecha,
     int width = width58mm,
-    String nombreComercio = 'BODEGA KARLIZ',
+    String nombreComercio = 'CajaYa POS',
+    String? rucDni,
     String? direccion = 'Av. Principal 123 - Lima',
     String? telefono = 'Tel: 987 654 321',
+    String? lemaComercial,
   }) {
     final buffer = StringBuffer();
     final fechaVenta = fecha ?? DateTime.now();
     final d = fechaVenta;
     final dateStr = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}:${d.second.toString().padLeft(2, '0')}';
 
-    // Cabecera de la Bodega
-    buffer.writeln(center(nombreComercio, width));
+    // Cabecera de la Bodega (Nivel 1 & 2)
+    if (nombreComercio.isNotEmpty) {
+      buffer.writeln(center(nombreComercio, width));
+    }
+    if (lemaComercial != null && lemaComercial.isNotEmpty) {
+      buffer.writeln(center('"$lemaComercial"', width));
+    }
+    if (rucDni != null && rucDni.isNotEmpty) {
+      buffer.writeln(center('RUC/DNI: $rucDni', width));
+    }
     if (direccion != null && direccion.isNotEmpty) {
       buffer.writeln(center(direccion, width));
     }
@@ -138,7 +148,7 @@ class ThermalTicketService {
     // Pie de Ticket y Agradecimiento
     buffer.writeln(center('¡Gracias por su compra!', width));
     buffer.writeln(center('Conserve su comprobante', width));
-    buffer.writeln(center('KARLIZ Market & POS', width));
+    buffer.writeln(center('CajaYa Cloud POS', width));
     buffer.writeln(); // Avance de papel
 
     return buffer.toString();
