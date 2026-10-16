@@ -92,6 +92,63 @@ class _VentasScreenState extends State<VentasScreen> {
     }).toList();
   }
 
+  int _getCountForCategoria(String cat) {
+    if (cat == '⭐ Frecuentes') return _safeDisponibles.take(16).length;
+    if (cat == 'Todos') return _safeDisponibles.length;
+    return _safeDisponibles.where((p) => (p.nombreCategoria?.trim() ?? 'General') == cat).length;
+  }
+
+  IconData _getCategoryIcon(String? categoryName) {
+    if (categoryName == null) return LucideIcons.package2;
+    final cat = categoryName.toLowerCase();
+    if (cat.contains('frecuente') || cat.contains('estrella')) return LucideIcons.flame;
+    if (cat.contains('todo')) return LucideIcons.layoutGrid;
+    if (cat.contains('bebid') || cat.contains('gaseos') || cat.contains('cervez') || cat.contains('licor') || cat.contains('agua') || cat.contains('jugo')) {
+      return LucideIcons.cupSoda;
+    }
+    if (cat.contains('snack') || cat.contains('gallet') || cat.contains('piqueo') || cat.contains('frito') || cat.contains('chips')) {
+      return LucideIcons.cookie;
+    }
+    if (cat.contains('abarrot') || cat.contains('arroz') || cat.contains('azucar') || cat.contains('fideo') || cat.contains('aceite') || cat.contains('menestr')) {
+      return LucideIcons.shoppingBasket;
+    }
+    if (cat.contains('limpiez') || cat.contains('detergent') || cat.contains('jabon') || cat.contains('aseo') || cat.contains('shampoo')) {
+      return LucideIcons.sparkles;
+    }
+    if (cat.contains('lacteo') || cat.contains('leche') || cat.contains('yogurt') || cat.contains('queso') || cat.contains('huevo') || cat.contains('embutid')) {
+      return LucideIcons.egg;
+    }
+    if (cat.contains('golosin') || cat.contains('dulce') || cat.contains('caramel') || cat.contains('chocolat')) {
+      return LucideIcons.candy;
+    }
+    return LucideIcons.package2;
+  }
+
+  Color _getCategoryColor(String? categoryName, bool isDark) {
+    if (categoryName == null) return isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+    final cat = categoryName.toLowerCase();
+    if (cat.contains('frecuente') || cat.contains('estrella')) return const Color(0xFFF97316); // Amber/Orange
+    if (cat.contains('bebid') || cat.contains('gaseos') || cat.contains('cervez') || cat.contains('licor')) {
+      return const Color(0xFF0284C7); // Sky/Blue
+    }
+    if (cat.contains('snack') || cat.contains('gallet') || cat.contains('piqueo')) {
+      return const Color(0xFFF59E0B); // Amber
+    }
+    if (cat.contains('abarrot') || cat.contains('arroz') || cat.contains('aceite')) {
+      return const Color(0xFF10B981); // Emerald
+    }
+    if (cat.contains('limpiez') || cat.contains('aseo')) {
+      return const Color(0xFF06B6D4); // Cyan
+    }
+    if (cat.contains('lacteo') || cat.contains('huevo')) {
+      return const Color(0xFF8B5CF6); // Purple
+    }
+    if (cat.contains('golosin') || cat.contains('dulce')) {
+      return const Color(0xFFEC4899); // Pink
+    }
+    return AppTheme.brandPrimary;
+  }
+
   void _handleHardwareKey(KeyEvent event) {
     if (event is! KeyDownEvent) return;
 
@@ -1879,24 +1936,33 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   Widget _buildTabletLayout(bool isDark, Color cardBg, Color borderColor, Color labelColor) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // PANEL IZQUIERDO: Catálogo de productos interactivo y búsqueda (Flex: 6)
-          Expanded(
-            flex: 6,
-            child: _buildTabletCatalogoPanel(isDark, cardBg, borderColor, labelColor),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // En tablets y pantallas de mostrador fijamos el ancho del ticket al estándar ergonómico POS (385dp)
+        // permitiendo que el catálogo se expanda fluidamente con 4 a 6 columnas sin espacios muertos
+        final ticketWidth = constraints.maxWidth >= 1050
+            ? 385.0
+            : (constraints.maxWidth * 0.38).clamp(330.0, 420.0);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // PANEL IZQUIERDO: Catálogo Interactivo con densidad visual de terminal insignia
+              Expanded(
+                child: _buildTabletCatalogoPanel(isDark, cardBg, borderColor, labelColor),
+              ),
+              const SizedBox(width: 12),
+              // PANEL DERECHO: Terminal de Cobro POS / Ticket Digital
+              SizedBox(
+                width: ticketWidth,
+                child: _buildTabletTicketPanel(isDark, cardBg, borderColor, labelColor),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          // PANEL DERECHO: Ticket / Canasta de Venta POS persistente (Flex: 4)
-          Expanded(
-            flex: 4,
-            child: _buildTabletTicketPanel(isDark, cardBg, borderColor, labelColor),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1907,14 +1973,21 @@ class _VentasScreenState extends State<VentasScreen> {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Barra superior de búsqueda y acciones
+          // Barra superior de búsqueda y acciones rápidas
           Row(
             children: [
               Expanded(
@@ -1939,7 +2012,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       color: labelColor,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Buscar por producto, marca o código...',
+                      hintText: 'Buscar producto, marca o código de barras...',
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         color: AppTheme.textMuted,
@@ -1961,22 +2034,55 @@ class _VentasScreenState extends State<VentasScreen> {
                 ),
               ),
               const SizedBox(width: 8),
+
+              // Indicador de conteo de productos
+              Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.boxes, size: 15, color: AppTheme.brandPrimary),
+                    const SizedBox(width: 5),
+                    Text(
+                      '${productos.length}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white70 : AppTheme.textDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // Botón Escáner Láser / Cámara
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
                   backgroundColor: isDark ? const Color(0xFF134E4A) : const Color(0xFFCCFBF1),
                   foregroundColor: const Color(0xFF0F766E),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  minimumSize: const Size(44, 44),
                 ),
-                tooltip: 'Escanear Código de Barras',
+                tooltip: 'Escanear Código de Barras (Cámara / Láser USB)',
                 icon: const Icon(LucideIcons.scanLine, size: 20),
                 onPressed: _escanearCodigoParaVenta,
               ),
               const SizedBox(width: 6),
+
+              // Botón Actualizar
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
                   backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                   foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  minimumSize: const Size(44, 44),
                 ),
                 tooltip: 'Actualizar Catálogo & Stock',
                 icon: const Icon(LucideIcons.refreshCw, size: 18),
@@ -1986,10 +2092,10 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Chips de categorías
+          // Pestañas de categorías estilizadas estilo POS (con icono y cantidad)
           if (cats.length > 1)
             SizedBox(
-              height: 36,
+              height: 38,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: cats.length,
@@ -1997,36 +2103,88 @@ class _VentasScreenState extends State<VentasScreen> {
                 itemBuilder: (context, i) {
                   final cat = cats[i];
                   final isSelected = (_tabletSelectedCategoria ?? 'Todos') == cat;
-                  return ChoiceChip(
-                    label: Text(cat),
-                    selected: isSelected,
-                    selectedColor: isDark
-                        ? AppTheme.brandPrimary.withValues(alpha: 0.25)
-                        : AppTheme.surfaceTint,
-                    backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                    side: BorderSide(
-                      color: isSelected
-                          ? AppTheme.brandPrimary
-                          : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
-                      width: isSelected ? 1.4 : 1.0,
+                  final catIcon = _getCategoryIcon(cat);
+                  final catColor = _getCategoryColor(cat, isDark);
+                  final count = _getCountForCategoria(cat);
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _tabletSelectedCategoria = cat);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.brandPrimary
+                              : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppTheme.brandPrimary
+                                : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                            width: isSelected ? 1.4 : 1.0,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              catIcon,
+                              size: 15,
+                              color: isSelected ? Colors.white : catColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              cat,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.white.withValues(alpha: 0.25)
+                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '$count',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected ? Colors.white : AppTheme.textMuted,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    labelStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      color: isSelected ? AppTheme.brandPrimary : AppTheme.textMuted,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    onSelected: (_) {
-                      setState(() => _tabletSelectedCategoria = cat);
-                    },
                   );
                 },
               ),
             ),
           const SizedBox(height: 10),
 
-          // Grid de productos
+          // Cuadrícula de productos de alta densidad visual
           Expanded(
             child: productos.isEmpty
                 ? Center(
@@ -2052,10 +2210,10 @@ class _VentasScreenState extends State<VentasScreen> {
                     ),
                   )
                 : GridView.builder(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: 6),
                     gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 180,
-                      childAspectRatio: 0.84,
+                      maxCrossAxisExtent: 160,
+                      childAspectRatio: 0.88,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
                     ),
@@ -2066,12 +2224,17 @@ class _VentasScreenState extends State<VentasScreen> {
                       final inCart = cartIdx != -1;
                       final inCartQty = inCart ? _carrito[cartIdx].cantidad : 0.0;
                       final isLowStock = p.stockActual <= 5;
+                      final catIcon = _getCategoryIcon(p.nombreCategoria);
+                      final catColor = _getCategoryColor(p.nombreCategoria, isDark);
 
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(18),
-                          onTap: () => _agregarAlCarrito(p),
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            _agregarAlCarrito(p);
+                          },
                           onLongPress: () {
                             if (cartIdx != -1) {
                               _editarCantidadDirecta(cartIdx);
@@ -2088,35 +2251,47 @@ class _VentasScreenState extends State<VentasScreen> {
                               color: isDark
                                   ? (inCart ? const Color(0xFF132A30) : const Color(0xFF0F172A))
                                   : (inCart ? const Color(0xFFF0FDFA) : const Color(0xFFF8FAFC)),
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: inCart
                                     ? AppTheme.brandPrimary
                                     : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
                                 width: inCart ? 1.8 : 1.0,
                               ),
+                              boxShadow: inCart
+                                  ? [
+                                      BoxShadow(
+                                        color: AppTheme.brandPrimary.withValues(alpha: 0.18),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
                             ),
-                            padding: const EdgeInsets.all(10),
+                            padding: const EdgeInsets.all(9),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                // Fila Superior: Stock & Badge en carrito
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                       decoration: BoxDecoration(
                                         color: isLowStock
                                             ? AppTheme.alertRed.withValues(alpha: 0.15)
-                                            : AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(8),
+                                            : (isDark
+                                                ? const Color(0xFF134E4A).withValues(alpha: 0.5)
+                                                : const Color(0xFFCCFBF1)),
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
                                         '${p.stockActual.toInt()} u.',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 10,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9.5,
                                           fontWeight: FontWeight.w800,
-                                          color: isLowStock ? AppTheme.alertRed : AppTheme.brandPrimary,
+                                          color: isLowStock ? AppTheme.alertRed : const Color(0xFF0F766E),
                                         ),
                                       ),
                                     ),
@@ -2125,51 +2300,98 @@ class _VentasScreenState extends State<VentasScreen> {
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: AppTheme.brandPrimary,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
-                                        child: Text(
-                                          '${inCartQty.toInt()}',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                          ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(LucideIcons.check, size: 9, color: Colors.white),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              'x${inCartQty.toInt()}',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 9.5,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                   ],
                                 ),
-                                const Spacer(),
+                                const SizedBox(height: 4),
+
+                                // Centro Visual: Squircle del icono de categoría con gradiente armónico
+                                Expanded(
+                                  child: Center(
+                                    child: Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            catColor.withValues(alpha: isDark ? 0.28 : 0.16),
+                                            catColor.withValues(alpha: isDark ? 0.12 : 0.06),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(13),
+                                        border: Border.all(
+                                          color: catColor.withValues(alpha: isDark ? 0.4 : 0.25),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Icon(catIcon, size: 21, color: catColor),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+
+                                // Nombre del producto (2 líneas máximo)
                                 Text(
                                   p.nombre,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12.5,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
                                     color: labelColor,
-                                    height: 1.2,
+                                    height: 1.15,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 5),
+
+                                // Fila Inferior: Precio + Botón Táctil Rápido
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Text(
-                                      'S/ ${p.precioVenta.toStringAsFixed(2)}',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppTheme.brandPrimary,
+                                    Expanded(
+                                      child: Text(
+                                        'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppTheme.brandPrimary,
+                                        ),
                                       ),
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: AppTheme.brandPrimary,
-                                        shape: BoxShape.circle,
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: inCart
+                                            ? AppTheme.brandPrimary
+                                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: const Icon(LucideIcons.plus, size: 12, color: Colors.white),
+                                      child: Icon(
+                                        LucideIcons.plus,
+                                        size: 13,
+                                        color: inCart ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF334155)),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -2190,7 +2412,7 @@ class _VentasScreenState extends State<VentasScreen> {
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: borderColor, width: 1.2),
         boxShadow: [
           BoxShadow(
@@ -2200,11 +2422,11 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Cabecera del Ticket
+          // Cabecera del Ticket POS de Mostrador
           Row(
             children: [
               Container(
@@ -2213,28 +2435,46 @@ class _VentasScreenState extends State<VentasScreen> {
                   color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.2) : AppTheme.surfaceTint,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(LucideIcons.receipt, color: AppTheme.brandPrimary, size: 18),
+                child: const Icon(LucideIcons.receiptText, color: AppTheme.brandPrimary, size: 18),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Ticket de Venta (POS)',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: labelColor,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'TICKET POS • CAJA 1',
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                              color: labelColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.accentGreen,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       _carrito.isEmpty
-                          ? 'Canasta vacía'
+                          ? 'Listo para escanear'
                           : '$_totalUnidades u. • ${_carrito.length} productos',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: AppTheme.textMuted,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -2255,24 +2495,24 @@ class _VentasScreenState extends State<VentasScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
-          // Datos rápidos del cliente
+          // Barra Compacta de Datos del Cliente
           Container(
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: Row(
               children: [
-                const Icon(LucideIcons.user, size: 16, color: AppTheme.brandPrimary),
+                const Icon(LucideIcons.userCheck, size: 15, color: AppTheme.brandPrimary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: _clienteNombreController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: labelColor),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: labelColor),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
@@ -2283,11 +2523,11 @@ class _VentasScreenState extends State<VentasScreen> {
                 ),
                 const SizedBox(width: 6),
                 SizedBox(
-                  width: 80,
+                  width: 82,
                   child: TextField(
                     controller: _clienteDocController,
                     keyboardType: TextInputType.number,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: labelColor),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: labelColor),
                     decoration: const InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
@@ -2298,10 +2538,10 @@ class _VentasScreenState extends State<VentasScreen> {
                 ),
                 if (_clienteNombreController.text.trim() != 'Público General' || _clienteDocController.text.trim() != '00000000')
                   IconButton(
-                    icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                    icon: const Icon(LucideIcons.rotateCcw, size: 13),
                     tooltip: 'Restaurar Público General',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                    constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
                     onPressed: () {
                       setState(() {
                         _clienteNombreController.text = 'Público General';
@@ -2314,36 +2554,76 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Lista de items en ticket
+          // Lista de items en ticket o Banner de terminal listo
           Expanded(
             child: _carrito.isEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(LucideIcons.shoppingBag, size: 40, color: AppTheme.textMuted.withValues(alpha: 0.5)),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Toca productos para agregarlos',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textMuted,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: const Icon(LucideIcons.scanLine, size: 32, color: AppTheme.brandPrimary),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                          Text(
+                            'TERMINAL LISTO',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                              color: labelColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Pasa el lector láser o toca productos del catálogo para agregarlos a la venta.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              color: AppTheme.textMuted,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : ListView.separated(
                     itemCount: _carrito.length,
                     separatorBuilder: (_, _) => Divider(
-                      height: 12,
+                      height: 10,
                       color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
                     ),
                     itemBuilder: (context, idx) {
                       final item = _carrito[idx];
+                      final catIcon = _getCategoryIcon(item.producto.nombreCategoria);
+                      final catColor = _getCategoryColor(item.producto.nombreCategoria, isDark);
+
                       return Row(
                         children: [
+                          // Glyph de categoría en lista
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: catColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(catIcon, size: 16, color: catColor),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Título y Precio Unitario
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2353,85 +2633,97 @@ class _VentasScreenState extends State<VentasScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12.5,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                     color: labelColor,
                                   ),
                                 ),
                                 Text(
-                                  'S/ ${item.producto.precioVenta.toStringAsFixed(2)}',
+                                  'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
+                                    fontSize: 10.5,
                                     color: AppTheme.textMuted,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          // Steppers
-                          Row(
-                            children: [
-                              IconButton.filledTonal(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
-                                  foregroundColor: labelColor,
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(26, 26),
-                                ),
-                                icon: const Icon(LucideIcons.minus, size: 12),
-                                onPressed: () => _decrementarCantidad(idx),
-                              ),
-                              InkWell(
-                                borderRadius: BorderRadius.circular(8),
-                                onTap: () => _editarCantidadDirecta(idx),
-                                child: Container(
-                                  constraints: const BoxConstraints(minWidth: 30, minHeight: 26),
-                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: isDark ? AppTheme.cardDarkElevated.withValues(alpha: 0.5) : const Color(0xFFF1F5F9).withValues(alpha: 0.5),
-                                    borderRadius: BorderRadius.circular(8),
+
+                          // Steppers compactos táctiles
+                          Container(
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                            ),
+                            child: Row(
+                              children: [
+                                InkWell(
+                                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    _decrementarCantidad(idx);
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                    child: Icon(LucideIcons.minus, size: 12),
                                   ),
-                                  child: Text(
-                                    item.cantidad.toStringAsFixed(0),
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                      color: labelColor,
+                                ),
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(6),
+                                  onTap: () => _editarCantidadDirecta(idx),
+                                  child: Container(
+                                    constraints: const BoxConstraints(minWidth: 26),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      item.cantidad.toStringAsFixed(0),
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: labelColor,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              IconButton.filledTonal(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
-                                  foregroundColor: labelColor,
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(26, 26),
+                                InkWell(
+                                  borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    _incrementarCantidad(idx);
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                    child: Icon(LucideIcons.plus, size: 12),
+                                  ),
                                 ),
-                                icon: const Icon(LucideIcons.plus, size: 12),
-                                onPressed: () => _incrementarCantidad(idx),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(width: 8),
+
+                          // Subtotal
                           SizedBox(
-                            width: 60,
+                            width: 62,
                             child: Text(
                               'S/ ${item.subtotal.toStringAsFixed(2)}',
                               textAlign: TextAlign.right,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: AppTheme.brandPrimary,
                               ),
                             ),
                           ),
+
                           IconButton(
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
-                            icon: const Icon(LucideIcons.trash2, size: 14, color: Color(0xFF94A3B8)),
-                            onPressed: () => _eliminarDelCarrito(idx),
+                            icon: const Icon(LucideIcons.trash2, size: 13, color: Color(0xFF94A3B8)),
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              _eliminarDelCarrito(idx);
+                            },
                           ),
                         ],
                       );
@@ -2439,13 +2731,13 @@ class _VentasScreenState extends State<VentasScreen> {
                   ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Divider(height: 1, color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
-          // Formas de pago
+          // Canales de pago
           Wrap(
-            spacing: 6,
+            spacing: 5,
             runSpacing: 4,
             children: [
               _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark),
@@ -2455,11 +2747,11 @@ class _VentasScreenState extends State<VentasScreen> {
             ],
           ),
 
-          // Si es Efectivo: calculadora rápida
+          // Si es Efectivo: calculadora rápida con billetes
           if (_metodoPago == 'Efectivo') ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Wrap(
-              spacing: 6,
+              spacing: 5,
               runSpacing: 4,
               children: [
                 _buildDenomChip('Exacto', _totalVenta, isDark),
@@ -2478,7 +2770,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     child: TextField(
                       controller: _pagoConController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: labelColor),
+                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800, color: labelColor),
                       decoration: InputDecoration(
                         isDense: true,
                         labelText: 'Pagó con',
@@ -2504,11 +2796,15 @@ class _VentasScreenState extends State<VentasScreen> {
                     children: [
                       Text(
                         _montoRecibido >= _totalVenta ? 'Vuelto' : 'Falta',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textMuted,
+                        ),
                       ),
                       Text(
                         'S/ ${_vuelto >= 0 ? _vuelto.toStringAsFixed(2) : (_totalVenta - _montoRecibido).toStringAsFixed(2)}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
                           color: _montoRecibido >= _totalVenta ? AppTheme.accentGreen : AppTheme.alertRed,
@@ -2521,30 +2817,67 @@ class _VentasScreenState extends State<VentasScreen> {
             ),
           ],
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
-          // Total y Botón de Cobro
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'TOTAL',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.textMuted,
-                  letterSpacing: 0.5,
-                ),
+          // Totalizador Digital LED de Caja
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF0F172A), const Color(0xFF022C22)]
+                    : [const Color(0xFF0F172A), const Color(0xFF134E4A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              Text(
-                'S/ ${_totalVenta.toStringAsFixed(2)}',
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.brandPrimary,
-                ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.4),
+                width: 1.2,
               ),
-            ],
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TOTAL A COBRAR',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                        color: const Color(0xFF2DD4BF),
+                      ),
+                    ),
+                    Text(
+                      '${_carrito.length} items seleccionados',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        color: Colors.white60,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  'S/ ${_totalVenta.toStringAsFixed(2)}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
 
@@ -2557,9 +2890,9 @@ class _VentasScreenState extends State<VentasScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.brandPrimary,
                     side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    minimumSize: const Size(46, 46),
                   ),
                   onPressed: () {
                     _mostrarTicketTermicoDialog(
@@ -2576,7 +2909,7 @@ class _VentasScreenState extends State<VentasScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: SizedBox(
-                  height: 48,
+                  height: 46,
                   child: ElevatedButton.icon(
                     onPressed: (_isProcesando || _carrito.isEmpty) ? null : _procesarVenta,
                     icon: _isProcesando
@@ -2597,7 +2930,9 @@ class _VentasScreenState extends State<VentasScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandPrimary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 3,
+                      shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.3),
                     ),
                   ),
                 ),

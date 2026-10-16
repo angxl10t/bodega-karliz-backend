@@ -743,40 +743,55 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                 const SizedBox(height: 12),
 
                 // Tarjetas de Desglose
-                _buildCanalPagoTile(
-                  titulo: 'Efectivo en Caja',
-                  monto: totalEfectivo,
-                  icon: LucideIcons.banknote,
-                  color: AppTheme.accentGreen,
-                  isDark: isDark,
-                  descripcion: 'Dinero físico en cajón',
-                ),
-                const SizedBox(height: 10),
-                _buildCanalPagoTile(
-                  titulo: 'Yape Móvil',
-                  monto: totalYape,
-                  icon: LucideIcons.smartphone,
-                  color: const Color(0xFF7C3AED),
-                  isDark: isDark,
-                  descripcion: 'Pagos recibidos por código QR',
-                ),
-                const SizedBox(height: 10),
-                _buildCanalPagoTile(
-                  titulo: 'Plin',
-                  monto: totalPlin,
-                  icon: LucideIcons.smartphone,
-                  color: const Color(0xFF0284C7),
-                  isDark: isDark,
-                  descripcion: 'Transferencias interbancarias',
-                ),
-                const SizedBox(height: 10),
-                _buildCanalPagoTile(
-                  titulo: 'Tarjetas / POS',
-                  monto: totalTarjeta,
-                  icon: LucideIcons.creditCard,
-                  color: const Color(0xFFEA580C),
-                  isDark: isDark,
-                  descripcion: 'Cobros débito / crédito',
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final double tileWidth = constraints.maxWidth >= 750
+                        ? (constraints.maxWidth - 10) / 2
+                        : constraints.maxWidth;
+
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        _buildCanalPagoTile(
+                          width: tileWidth,
+                          titulo: 'Efectivo en Caja',
+                          monto: totalEfectivo,
+                          icon: LucideIcons.banknote,
+                          color: AppTheme.accentGreen,
+                          isDark: isDark,
+                          descripcion: 'Dinero físico en cajón',
+                        ),
+                        _buildCanalPagoTile(
+                          width: tileWidth,
+                          titulo: 'Yape Móvil',
+                          monto: totalYape,
+                          icon: LucideIcons.smartphone,
+                          color: const Color(0xFF7C3AED),
+                          isDark: isDark,
+                          descripcion: 'Pagos recibidos por código QR',
+                        ),
+                        _buildCanalPagoTile(
+                          width: tileWidth,
+                          titulo: 'Plin',
+                          monto: totalPlin,
+                          icon: LucideIcons.smartphone,
+                          color: const Color(0xFF0284C7),
+                          isDark: isDark,
+                          descripcion: 'Transferencias interbancarias',
+                        ),
+                        _buildCanalPagoTile(
+                          width: tileWidth,
+                          titulo: 'Tarjetas / POS',
+                          monto: totalTarjeta,
+                          icon: LucideIcons.creditCard,
+                          color: const Color(0xFF2563EB),
+                          isDark: isDark,
+                          descripcion: 'Cobros débito / crédito',
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
 
@@ -1246,8 +1261,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     required Color color,
     required bool isDark,
     required String descripcion,
+    double? width,
   }) {
     return Container(
+      width: width,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,

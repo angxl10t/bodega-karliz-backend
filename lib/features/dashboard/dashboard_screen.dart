@@ -174,75 +174,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    Row(
-                      children: [
-                        _buildQuickActionBtn(
-                          title: 'Cobrar en POS',
-                          subtitle: 'Terminal de Venta',
-                          icon: LucideIcons.shoppingBag,
-                          color: AppTheme.brandPrimary,
-                          isDark: isDark,
-                          onTap: () => widget.onNavigateTab(1), // Tab POS
-                        ),
-                        const SizedBox(width: 10),
-                        _buildQuickActionBtn(
-                          title: 'Arqueo de Caja',
-                          subtitle: 'Corte & Historial',
-                          icon: LucideIcons.banknote,
-                          color: AppTheme.accentGreen,
-                          isDark: isDark,
-                          onTap: () => widget.onNavigateTab(2), // Tab Caja
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        _buildQuickActionBtn(
-                          title: 'Ver Inventario',
-                          subtitle: 'Stock & Filtros',
-                          icon: LucideIcons.boxes,
-                          color: AppTheme.infoIndigo,
-                          isDark: isDark,
-                          onTap: () => widget.onNavigateTab(3), // Tab Stock
-                        ),
-                        const SizedBox(width: 10),
-                        _buildQuickActionBtn(
-                          title: 'Compras & Lotes',
-                          subtitle: 'Ingreso Proveedores',
-                          icon: LucideIcons.truck,
-                          color: const Color(0xFF0284C7),
-                          isDark: isDark,
-                          onTap: () => widget.onNavigateTab(4), // Tab Compras
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        _buildQuickActionBtn(
-                          title: 'Kardex Auditoría',
-                          subtitle: 'Historial de Movimientos',
-                          icon: LucideIcons.fileSpreadsheet,
-                          color: const Color(0xFF0D9488),
-                          isDark: isDark,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const KardexScreen()),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        _buildQuickActionBtn(
-                          title: '+ Nuevo Producto',
-                          subtitle: 'Crear en Catálogo',
-                          icon: LucideIcons.plusCircle,
-                          color: AppTheme.brandPrimary,
-                          isDark: isDark,
-                          onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final double btnWidth = constraints.maxWidth >= 850
+                            ? (constraints.maxWidth - 20) / 3
+                            : (constraints.maxWidth >= 480
+                                ? (constraints.maxWidth - 10) / 2
+                                : constraints.maxWidth);
+
+                        return Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Cobrar en POS',
+                              subtitle: 'Terminal de Venta',
+                              icon: LucideIcons.shoppingBag,
+                              color: AppTheme.brandPrimary,
+                              isDark: isDark,
+                              onTap: () => widget.onNavigateTab(1), // Tab POS
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Arqueo de Caja',
+                              subtitle: 'Corte & Historial',
+                              icon: LucideIcons.banknote,
+                              color: AppTheme.accentGreen,
+                              isDark: isDark,
+                              onTap: () => widget.onNavigateTab(2), // Tab Caja
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Ver Inventario',
+                              subtitle: 'Stock & Filtros',
+                              icon: LucideIcons.boxes,
+                              color: AppTheme.infoIndigo,
+                              isDark: isDark,
+                              onTap: () => widget.onNavigateTab(3), // Tab Stock
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Compras & Lotes',
+                              subtitle: 'Ingreso Proveedores',
+                              icon: LucideIcons.truck,
+                              color: const Color(0xFF0284C7),
+                              isDark: isDark,
+                              onTap: () => widget.onNavigateTab(4), // Tab Compras
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Kardex Auditoría',
+                              subtitle: 'Historial de Movimientos',
+                              icon: LucideIcons.fileSpreadsheet,
+                              color: const Color(0xFF0D9488),
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const KardexScreen()),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: '+ Nuevo Producto',
+                              subtitle: 'Crear en Catálogo',
+                              icon: LucideIcons.plusCircle,
+                              color: AppTheme.brandPrimary,
+                              isDark: isDark,
+                              onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 26),
 
@@ -326,82 +331,89 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       )
                     else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: [...productosCriticos, ...productosBajos].take(4).length,
-                        itemBuilder: (context, idx) {
-                          final p = [...productosCriticos, ...productosBajos][idx];
-                          final isCritico = p.stockActual <= 5;
-                          final color = isCritico ? AppTheme.alertRed : AppTheme.warningAmber;
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final items = [...productosCriticos, ...productosBajos].take(6).toList();
+                          final double itemWidth = constraints.maxWidth >= 750
+                              ? (constraints.maxWidth - 10) / 2
+                              : constraints.maxWidth;
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                            decoration: BoxDecoration(
-                              color: isDark ? AppTheme.cardDark : Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: color.withValues(alpha: 0.12),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    isCritico ? LucideIcons.alertCircle : LucideIcons.alertTriangle,
-                                    color: color,
-                                    size: 17,
+                          return Wrap(
+                            spacing: 10,
+                            runSpacing: 8,
+                            children: items.map((p) {
+                              final isCritico = p.stockActual <= 5;
+                              final color = isCritico ? AppTheme.alertRed : AppTheme.warningAmber;
+
+                              return Container(
+                                width: itemWidth,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppTheme.cardDark : Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                                    width: 1,
                                   ),
                                 ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        p.nombre,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark ? Colors.white : AppTheme.textDark,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.12),
+                                        shape: BoxShape.circle,
                                       ),
-                                      Text(
-                                        'Código: ${p.codigo}',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 11,
-                                          color: AppTheme.textMuted,
-                                        ),
+                                      child: Icon(
+                                        isCritico ? LucideIcons.alertCircle : LucideIcons.alertTriangle,
+                                        color: color,
+                                        size: 17,
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: color.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${p.stockActual.toInt()} u.',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w800,
-                                      color: color,
                                     ),
-                                  ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            p.nombre,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: isDark ? Colors.white : AppTheme.textDark,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            'Código: ${p.codigo}',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              color: AppTheme.textMuted,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${p.stockActual.toInt()} u.',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: color,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            }).toList(),
                           );
                         },
                       ),
@@ -550,9 +562,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color accentColor,
     required bool isDark,
   }) {
-    final double cardWidth = constraints.maxWidth > 520
-        ? (constraints.maxWidth - 10) / 2
-        : constraints.maxWidth;
+    final double cardWidth = constraints.maxWidth >= 950
+        ? (constraints.maxWidth - 30) / 4
+        : (constraints.maxWidth > 520
+            ? (constraints.maxWidth - 10) / 2
+            : constraints.maxWidth);
 
     return Container(
       width: cardWidth,
@@ -620,59 +634,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
     required bool isDark,
     required VoidCallback onTap,
+    double? width,
   }) {
-    return Expanded(
-      child: Material(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+    final card = Material(
+      color: isDark ? AppTheme.cardDark : Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                width: 1,
+        child: Container(
+          width: width,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 18),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: isDark ? 0.2 : 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 18),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : AppTheme.textDark,
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppTheme.textDark,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                subtitle,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  color: AppTheme.textMuted,
                 ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    color: AppTheme.textMuted,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ),
     );
+
+    if (width != null) return card;
+    return Expanded(child: card);
   }
 }

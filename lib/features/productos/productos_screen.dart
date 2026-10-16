@@ -121,7 +121,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: _cargarProductos,
-        color: AppTheme.primaryOrange,
+        color: AppTheme.brandPrimary,
         child: Column(
           children: [
             // Resumen de Métricas / KPI Cards
@@ -134,7 +134,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     title: 'Total Items',
                     value: '${_todosProductos.length}',
                     icon: LucideIcons.boxes,
-                    color: AppTheme.primaryOrange,
+                    color: AppTheme.brandPrimary,
                     isDark: isDark,
                   ),
                   const SizedBox(width: 10),
@@ -264,7 +264,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
             // Lista o Grid Adaptativa
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryOrange))
+                  ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
                   : RefreshIndicator(
                       onRefresh: () => _cargarProductos(forceRefresh: true),
                       color: AppTheme.brandPrimary,
@@ -309,7 +309,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       ),
       floatingActionButton: _userRol == 'ADMIN'
           ? FloatingActionButton.extended(
-              backgroundColor: AppTheme.primaryOrange,
+              backgroundColor: AppTheme.brandPrimary,
               foregroundColor: Colors.white,
               elevation: 4,
               icon: const Icon(LucideIcons.plus, size: 20),
