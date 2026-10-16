@@ -15,15 +15,20 @@ public class CategoriaService {
 
     private final CategoriaRepository categoriaRepository;
     private final ProductoRepository productoRepository;
+    private final TenantService tenantService;
 
-    public CategoriaService(CategoriaRepository categoriaRepository, ProductoRepository productoRepository) {
+    public CategoriaService(CategoriaRepository categoriaRepository, 
+                            ProductoRepository productoRepository,
+                            TenantService tenantService) {
         this.categoriaRepository = categoriaRepository;
         this.productoRepository = productoRepository;
+        this.tenantService = tenantService;
     }
 
     @Transactional(readOnly = true)
     public List<CategoriaDTO> listarActivas() {
-        return categoriaRepository.findByEstadoTrue()
+        Long idBodega = tenantService.getCurrentBodegaId();
+        return categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -35,7 +40,9 @@ public class CategoriaService {
             throw new RuntimeException("El nombre de la categoría es obligatorio");
         }
         String nombreTrim = dto.getNombre().trim();
-        java.util.Optional<Categoria> existente = categoriaRepository.findByNombreIgnoreCase(nombreTrim);
+        Long idBodega = tenantService.getCurrentBodegaId();
+
+        java.util.Optional<Categoria> existente = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idBodega, nombreTrim);
         if (existente.isPresent()) {
             Categoria cat = existente.get();
             if (Boolean.FALSE.equals(cat.getEstado())) {
@@ -51,6 +58,7 @@ public class CategoriaService {
         }
 
         Categoria categoria = new Categoria();
+        categoria.setBodega(tenantService.getCurrentBodega());
         categoria.setNombre(nombreTrim);
         categoria.setDescripcion(dto.getDescripcion() != null ? dto.getDescripcion().trim() : null);
         
@@ -60,7 +68,8 @@ public class CategoriaService {
 
     @Transactional
     public CategoriaDTO actualizar(Long id, CategoriaDTO dto) {
-        Categoria categoria = categoriaRepository.findById(id)
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(id, idBodega)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + id));
 
         if (Boolean.FALSE.equals(categoria.getEstado())) {
@@ -71,7 +80,7 @@ public class CategoriaService {
             throw new RuntimeException("El nombre de la categoría es obligatorio");
         }
         String nombreTrim = dto.getNombre().trim();
-        if (categoriaRepository.existsByNombreIgnoreCaseAndIdCategoriaNot(nombreTrim, id)) {
+        if (categoriaRepository.existsByBodega_IdBodegaAndNombreIgnoreCaseAndIdCategoriaNot(idBodega, nombreTrim, id)) {
             throw new RuntimeException("Ya existe otra categoría con el nombre: " + nombreTrim);
         }
 
@@ -84,15 +93,16 @@ public class CategoriaService {
 
     @Transactional
     public void desactivar(Long id) {
-        Categoria categoria = categoriaRepository.findById(id)
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(id, idBodega)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + id));
 
         if (Boolean.FALSE.equals(categoria.getEstado())) {
             return;
         }
 
-        // Integridad referencial: Impedir desactivar categorías que tengan productos activos vinculados
-        if (productoRepository.existsByCategoria_IdCategoriaAndEstadoTrue(id)) {
+        // Integridad referencial multi-inquilino: Impedir desactivar categorías que tengan productos activos vinculados
+        if (productoRepository.existsByCategoria_IdCategoriaAndBodega_IdBodegaAndEstadoTrue(id, idBodega)) {
             throw new RuntimeException("No se puede desactivar la categoría '" + categoria.getNombre() + 
                                        "' porque tiene productos activos asociados. Debe reasignar o desactivar los productos primero.");
         }

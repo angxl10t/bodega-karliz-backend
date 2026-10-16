@@ -12,14 +12,21 @@ import java.util.stream.Collectors;
 public class ProveedorService {
 
     private final ProveedorRepository proveedorRepository;
+    private final TenantService tenantService;
 
-    public ProveedorService(ProveedorRepository proveedorRepository) {
+    public ProveedorService(ProveedorRepository proveedorRepository,
+                            TenantService tenantService) {
         this.proveedorRepository = proveedorRepository;
+        this.tenantService = tenantService;
     }
 
     @Transactional(readOnly = true)
     public List<ProveedorDTO> listarActivos() {
-        return proveedorRepository.findByEstadoTrue().stream().map(this::mapToDTO).collect(Collectors.toList());
+        Long idBodega = tenantService.getCurrentBodegaId();
+        return proveedorRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega)
+                .stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -29,7 +36,8 @@ public class ProveedorService {
             throw new RuntimeException("El documento debe ser un DNI de 8 dígitos o RUC de 11 dígitos numéricos.");
         }
 
-        java.util.Optional<Proveedor> existente = proveedorRepository.findByRuc(rucTrim);
+        Long idBodega = tenantService.getCurrentBodegaId();
+        java.util.Optional<Proveedor> existente = proveedorRepository.findByBodega_IdBodegaAndRuc(idBodega, rucTrim);
         if (existente.isPresent()) {
             Proveedor p = existente.get();
             if (Boolean.FALSE.equals(p.getEstado())) {
@@ -45,6 +53,7 @@ public class ProveedorService {
         }
 
         Proveedor proveedor = new Proveedor();
+        proveedor.setBodega(tenantService.getCurrentBodega());
         proveedor.setRuc(rucTrim);
         proveedor.setRazonSocial(sanitizarTexto(dto.getRazonSocial(), 255));
         proveedor.setDireccion(sanitizarTexto(dto.getDireccion(), 255));
@@ -56,7 +65,8 @@ public class ProveedorService {
 
     @Transactional
     public ProveedorDTO actualizar(Long idProveedor, ProveedorDTO dto) {
-        Proveedor proveedor = proveedorRepository.findById(idProveedor)
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Proveedor proveedor = proveedorRepository.findByIdProveedorAndBodega_IdBodega(idProveedor, idBodega)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + idProveedor));
 
         if (Boolean.FALSE.equals(proveedor.getEstado())) {
@@ -68,7 +78,7 @@ public class ProveedorService {
             if (!rucTrim.matches("^[0-9]{8}$|^[0-9]{11}$")) {
                 throw new RuntimeException("El documento debe ser un DNI de 8 dígitos o RUC de 11 dígitos numéricos.");
             }
-            java.util.Optional<Proveedor> otro = proveedorRepository.findByRuc(rucTrim);
+            java.util.Optional<Proveedor> otro = proveedorRepository.findByBodega_IdBodegaAndRuc(idBodega, rucTrim);
             if (otro.isPresent() && !otro.get().getIdProveedor().equals(idProveedor)) {
                 throw new RuntimeException("Ya existe otro proveedor con el RUC: " + rucTrim);
             }
@@ -94,7 +104,8 @@ public class ProveedorService {
     // ACCIDENTAL DATA LOSS PREVENTION: Borrado Lógico
     @Transactional
     public void desactivar(Long idProveedor) {
-        Proveedor proveedor = proveedorRepository.findById(idProveedor)
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Proveedor proveedor = proveedorRepository.findByIdProveedorAndBodega_IdBodega(idProveedor, idBodega)
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado con ID: " + idProveedor));
         if (Boolean.FALSE.equals(proveedor.getEstado())) {
             return;

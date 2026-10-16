@@ -63,9 +63,15 @@ public class JwtUtil {
     private long expirationMs;
 
     public String generateToken(String username, String rol) {
+        return generateToken(username, rol, 1L, "PRO");
+    }
+
+    public String generateToken(String username, String rol, Long idBodega, String plan) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("rol", rol)
+                .claim("idBodega", idBodega != null ? idBodega : 1L)
+                .claim("plan", plan != null ? plan : "BASICO")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 // Expira en 24 horas (recomendado para turnos comerciales completos en POS)
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs)) 

@@ -18,8 +18,15 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
     List<Venta> findTop150ByOrderByFechaVentaDesc();
     List<Venta> findByFechaVentaBetweenOrderByFechaVentaDesc(OffsetDateTime start, OffsetDateTime end);
 
+    List<Venta> findByBodega_IdBodegaOrderByFechaVentaDesc(Long idBodega);
+    List<Venta> findTop150ByBodega_IdBodegaOrderByFechaVentaDesc(Long idBodega);
+    List<Venta> findByBodega_IdBodegaAndFechaVentaBetweenOrderByFechaVentaDesc(Long idBodega, OffsetDateTime start, OffsetDateTime end);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT v FROM Venta v WHERE v.idVenta = :id")
     Optional<Venta> findByIdForUpdate(@Param("id") Long id);
-}
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT v FROM Venta v WHERE v.idVenta = :id AND v.bodega.idBodega = :idBodega")
+    Optional<Venta> findByIdForUpdateAndBodega(@Param("id") Long id, @Param("idBodega") Long idBodega);
+}

@@ -33,4 +33,8 @@ public class Compra {
 
     @Column(name = "usuario_registro", length = 50)
     private String usuarioRegistro;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_bodega")
+    private Bodega bodega;
 }

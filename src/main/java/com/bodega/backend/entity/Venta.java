@@ -50,4 +50,8 @@ public class Venta {
 
     @Column(name = "motivo_anulacion", length = 255)
     private String motivoAnulacion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_bodega")
+    private Bodega bodega;
 }

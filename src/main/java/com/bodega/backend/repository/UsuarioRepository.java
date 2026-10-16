@@ -12,4 +12,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     boolean existsByUsername(String username);
     boolean existsByUsernameIgnoreCase(String username);
     java.util.List<Usuario> findAllByOrderByRolAscUsernameAsc();
+    java.util.List<Usuario> findByBodega_IdBodegaOrderByRolAscUsernameAsc(Long idBodega);
+    long countByBodega_IdBodegaAndEstadoTrue(Long idBodega);
 }

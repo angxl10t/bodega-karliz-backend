@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,24 +23,29 @@ public class CompraService {
     private final ProveedorRepository proveedorRepository;
     private final ProductoRepository productoRepository;
     private final MovimientoInventarioRepository movimientoInventarioRepository;
+    private final TenantService tenantService;
 
     public CompraService(CompraRepository compraRepository,
                          CompraDetalleRepository compraDetalleRepository,
                          ProveedorRepository proveedorRepository,
                          ProductoRepository productoRepository,
-                         MovimientoInventarioRepository movimientoInventarioRepository) {
+                         MovimientoInventarioRepository movimientoInventarioRepository,
+                         TenantService tenantService) {
         this.compraRepository = compraRepository;
         this.compraDetalleRepository = compraDetalleRepository;
         this.proveedorRepository = proveedorRepository;
         this.productoRepository = productoRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
+        this.tenantService = tenantService;
     }
 
     // ACCIDENTAL DATA LOSS PREVENTION: Usamos @Transactional para que todo sea "Todo o Nada"
     @Transactional
     public CompraDTO registrarCompra(CompraDTO dto) {
-        Proveedor proveedor = proveedorRepository.findById(dto.getIdProveedor())
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+        Long idBodega = tenantService.getCurrentBodegaId();
+
+        Proveedor proveedor = proveedorRepository.findByIdProveedorAndBodega_IdBodega(dto.getIdProveedor(), idBodega)
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado en esta bodega"));
 
         if (Boolean.FALSE.equals(proveedor.getEstado())) {
             throw new RuntimeException("No se puede registrar compra para el proveedor inactivo o dado de baja: " + proveedor.getRazonSocial());
@@ -54,14 +58,15 @@ public class CompraService {
             comprobanteTrim = comprobanteTrim.substring(0, 50);
         }
 
-        if (comprobanteTrim != null && compraRepository.existsByProveedor_IdProveedorAndComprobanteIgnoreCase(proveedor.getIdProveedor(), comprobanteTrim)) {
+        if (comprobanteTrim != null && compraRepository.existsByBodega_IdBodegaAndProveedor_IdProveedorAndComprobanteIgnoreCase(idBodega, proveedor.getIdProveedor(), comprobanteTrim)) {
             throw new RuntimeException("Ya existe una compra registrada con el comprobante '" + comprobanteTrim + "' para el proveedor " + proveedor.getRazonSocial());
         }
 
         String usuarioActual = obtenerUsuarioActual();
 
-        // 1. Crear Cabecera con Auditoría de Operador
+        // 1. Crear Cabecera con Aislamiento de Bodega y Auditoría de Operador
         Compra compra = new Compra();
+        compra.setBodega(tenantService.getCurrentBodega());
         compra.setProveedor(proveedor);
         compra.setComprobante(comprobanteTrim);
         compra.setUsuarioRegistro(usuarioActual);
@@ -103,9 +108,9 @@ public class CompraService {
                 throw new RuntimeException("El precio unitario de compra debe ser mayor a cero.");
             }
 
-            // Bloqueo pesimista exclusivo para evitar Race Conditions con ventas en curso
-            Producto producto = productoRepository.findByIdForUpdate(idProd)
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + idProd));
+            // Bloqueo pesimista exclusivo restringido al tenant actual
+            Producto producto = productoRepository.findByIdForUpdateAndBodega(idProd, idBodega)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado en esta bodega: " + idProd));
 
             // Validación de Integridad de Negocio: No permitir ingreso de inventario para productos inactivos o descontinuados
             if (Boolean.FALSE.equals(producto.getEstado())) {
@@ -160,8 +165,9 @@ public class CompraService {
 
     @Transactional(readOnly = true)
     public List<CompraDTO> listarTodas() {
+        Long idBodega = tenantService.getCurrentBodegaId();
         // Carga protegida con límite de 150 registros para evitar agotamiento de memoria en Render
-        List<Compra> compras = compraRepository.findTop150ByOrderByFechaCompraDesc();
+        List<Compra> compras = compraRepository.findTop150ByBodega_IdBodegaOrderByFechaCompraDesc(idBodega);
         if (compras.isEmpty()) {
             return java.util.Collections.emptyList();
         }

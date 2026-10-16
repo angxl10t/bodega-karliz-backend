@@ -24,15 +24,18 @@ public class ProductoService {
     private final CategoriaRepository categoriaRepository;
     private final MovimientoInventarioRepository movimientoInventarioRepository;
     private final PresentacionRepository presentacionRepository;
+    private final TenantService tenantService;
 
     public ProductoService(ProductoRepository productoRepository, 
                            CategoriaRepository categoriaRepository,
                            MovimientoInventarioRepository movimientoInventarioRepository,
-                           PresentacionRepository presentacionRepository) {
+                           PresentacionRepository presentacionRepository,
+                           TenantService tenantService) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.presentacionRepository = presentacionRepository;
+        this.tenantService = tenantService;
     }
 
     @PostConstruct
@@ -61,7 +64,8 @@ public class ProductoService {
 
     @Transactional(readOnly = true)
     public List<ProductoDTO> listarActivos() {
-        return productoRepository.findByEstadoTrue()
+        Long idBodega = tenantService.getCurrentBodegaId();
+        return productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -104,10 +108,11 @@ public class ProductoService {
 
     @Transactional(readOnly = true)
     public String generarSiguienteCodigo(Long idCategoria) {
-        Categoria categoria = categoriaRepository.findById(idCategoria)
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(idCategoria, idBodega)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + idCategoria));
         String prefix = getPrefixForCategoria(categoria.getNombre());
-        List<Producto> productos = productoRepository.findByCodigoStartingWith(prefix);
+        List<Producto> productos = productoRepository.findByBodega_IdBodegaAndCodigoStartingWith(idBodega, prefix);
         int maxNum = 0;
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^" + java.util.regex.Pattern.quote(prefix) + "-(\\d+)$");
         for (Producto p : productos) {
@@ -128,8 +133,10 @@ public class ProductoService {
 
     @Transactional
     public ProductoDTO crear(ProductoDTO dto) {
-        // Enlazar con la categoría
-        Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
+        Long idBodega = tenantService.getCurrentBodegaId();
+
+        // Enlazar con la categoría dentro del mismo tenant
+        Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(dto.getIdCategoria(), idBodega)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
 
         if (Boolean.FALSE.equals(categoria.getEstado())) {
@@ -141,9 +148,9 @@ public class ProductoService {
             dto.setCodigo(generarSiguienteCodigo(categoria.getIdCategoria()));
         }
 
-        // Validaciones de reglas de negocio
+        // Validaciones de reglas de negocio en el scope del tenant
         if (dto.getCodigo() != null && !dto.getCodigo().isBlank()) {
-            productoRepository.findByCodigo(dto.getCodigo().trim()).ifPresent(existente -> {
+            productoRepository.findByBodega_IdBodegaAndCodigo(idBodega, dto.getCodigo().trim()).ifPresent(existente -> {
                 if (Boolean.TRUE.equals(existente.getEstado())) {
                     throw new RuntimeException("Ya existe un producto activo con el código interno: " + dto.getCodigo());
                 } else {
@@ -155,11 +162,10 @@ public class ProductoService {
             });
         }
         if (dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank()) {
-            productoRepository.findByCodigoBarras(dto.getCodigoBarras().trim()).ifPresent(existente -> {
+            productoRepository.findByBodega_IdBodegaAndCodigoBarras(idBodega, dto.getCodigoBarras().trim()).ifPresent(existente -> {
                 if (Boolean.TRUE.equals(existente.getEstado())) {
                     throw new RuntimeException("Ya existe un producto activo con el código de barras: " + dto.getCodigoBarras() + " (" + existente.getNombre() + ")");
                 } else {
-                    // Si el producto anterior fue dado de baja (por error o descarte), liberar su código de barras
                     existente.setCodigoBarras(null);
                     productoRepository.saveAndFlush(existente);
                 }
@@ -183,6 +189,7 @@ public class ProductoService {
         }
 
         Producto producto = new Producto();
+        producto.setBodega(tenantService.getCurrentBodega());
         producto.setCategoria(categoria);
         producto.setCodigo(dto.getCodigo().trim());
         producto.setCodigoBarras(dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank() ? dto.getCodigoBarras().trim() : null);
@@ -213,8 +220,10 @@ public class ProductoService {
 
     @Transactional
     public ProductoDTO actualizar(Long id, ProductoDTO dto) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+
         // Bloqueo pesimista exclusivo para serializar con ventas/compras concurrentes y evitar Lost Updates en stock
-        Producto producto = productoRepository.findByIdForUpdate(id)
+        Producto producto = productoRepository.findByIdForUpdateAndBodega(id, idBodega)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
 
         if (Boolean.FALSE.equals(producto.getEstado())) {
@@ -222,7 +231,7 @@ public class ProductoService {
         }
 
         if (dto.getIdCategoria() != null) {
-            Categoria categoria = categoriaRepository.findById(dto.getIdCategoria())
+            Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(dto.getIdCategoria(), idBodega)
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
             if (Boolean.FALSE.equals(categoria.getEstado())) {
                 throw new RuntimeException("No se puede asignar el producto a una categoría inactiva o dada de baja: " + categoria.getNombre());
@@ -231,7 +240,7 @@ public class ProductoService {
         }
 
         if (dto.getCodigo() != null && !dto.getCodigo().isBlank()) {
-            productoRepository.findByCodigo(dto.getCodigo().trim())
+            productoRepository.findByBodega_IdBodegaAndCodigo(idBodega, dto.getCodigo().trim())
                     .filter(otro -> !otro.getIdProducto().equals(id))
                     .ifPresent(otro -> {
                         if (Boolean.TRUE.equals(otro.getEstado())) {
@@ -286,7 +295,7 @@ public class ProductoService {
         }
         if (dto.getCodigoBarras() != null) {
             if (!dto.getCodigoBarras().isBlank()) {
-                productoRepository.findByCodigoBarras(dto.getCodigoBarras().trim())
+                productoRepository.findByBodega_IdBodegaAndCodigoBarras(idBodega, dto.getCodigoBarras().trim())
                         .filter(otro -> !otro.getIdProducto().equals(id))
                         .ifPresent(otro -> {
                             if (Boolean.TRUE.equals(otro.getEstado())) {
@@ -311,8 +320,10 @@ public class ProductoService {
 
     @Transactional
     public void desactivar(Long id) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+
         // Bloqueo pesimista para evitar desactivar un producto durante una transacción de venta/compra en vuelo
-        Producto producto = productoRepository.findByIdForUpdate(id)
+        Producto producto = productoRepository.findByIdForUpdateAndBodega(id, idBodega)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
         if (Boolean.FALSE.equals(producto.getEstado())) {
             return;

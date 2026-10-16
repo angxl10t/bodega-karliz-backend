@@ -27,17 +27,24 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UsuarioRepository usuarioRepository;
+    private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
+    private final com.bodega.backend.repository.CategoriaRepository categoriaRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoginRateLimiterService loginRateLimiterService;
     private final com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, 
-                          UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
+                          UsuarioRepository usuarioRepository,
+                          com.bodega.backend.repository.BodegaRepository bodegaRepository,
+                          com.bodega.backend.repository.CategoriaRepository categoriaRepository,
+                          PasswordEncoder passwordEncoder,
                           LoginRateLimiterService loginRateLimiterService,
                           com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.usuarioRepository = usuarioRepository;
+        this.bodegaRepository = bodegaRepository;
+        this.categoriaRepository = categoriaRepository;
         this.passwordEncoder = passwordEncoder;
         this.loginRateLimiterService = loginRateLimiterService;
         this.userSecurityCacheService = userSecurityCacheService;
@@ -72,16 +79,114 @@ public class AuthController {
         // 3. Login exitoso: limpiar contador de intentos
         loginRateLimiterService.resetAttempts(clientIp, username);
 
-        // 4. Genera el JWT
+        // 4. Genera el JWT con claims de Bodega
         Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol());
+        Long idBodega = (usuario.getBodega() != null) ? usuario.getBodega().getIdBodega() : 1L;
+        String nombreBodega = (usuario.getBodega() != null && usuario.getBodega().getNombreComercial() != null) 
+                ? usuario.getBodega().getNombreComercial() : "Bodega KARLIZ";
+        String plan = (usuario.getBodega() != null && usuario.getBodega().getPlan() != null) 
+                ? usuario.getBodega().getPlan() : "PRO";
 
-        // 5. Retorna credenciales al cliente
+        String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol(), idBodega, plan);
+
+        // 5. Retorna credenciales y perfil de la tienda al cliente
         Map<String, String> response = new HashMap<>();
         response.put("token", jwt);
         response.put("rol", usuario.getRol());
+        response.put("idBodega", idBodega.toString());
+        response.put("nombreBodega", nombreBodega);
+        response.put("plan", plan);
+        if (usuario.getBodega() != null) {
+            response.put("ruc", usuario.getBodega().getRucDni() != null ? usuario.getBodega().getRucDni() : "");
+            response.put("direccion", usuario.getBodega().getDireccion() != null ? usuario.getBodega().getDireccion() : "");
+            response.put("telefono", usuario.getBodega().getTelefono() != null ? usuario.getBodega().getTelefono() : "");
+        }
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/registrar-bodega")
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<Map<String, String>> registrarBodega(
+            @Valid @RequestBody com.bodega.backend.dto.RegistroBodegaDTO dto,
+            HttpServletRequest request) {
+        String clientIp = extractClientIp(request);
+        String username = dto.getUsername().trim().toLowerCase();
+
+        if (loginRateLimiterService.isBlocked(clientIp, username)) {
+            long remaining = loginRateLimiterService.getRemainingBlockMinutes(clientIp, username);
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Demasiados intentos. Operación bloqueada temporalmente por " + remaining + " minuto(s).");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
+        }
+
+        if (usuarioRepository.existsByUsernameIgnoreCase(username)) {
+            throw new RuntimeException("El nombre de usuario '" + username + "' ya está registrado. Por favor elija otro.");
+        }
+
+        // 1. Crear Bodega Tenant
+        com.bodega.backend.entity.Bodega bodega = new com.bodega.backend.entity.Bodega();
+        bodega.setNombreComercial(dto.getNombreComercial().trim());
+        bodega.setRucDni(dto.getRucDni() != null && !dto.getRucDni().isBlank() ? dto.getRucDni().trim() : null);
+        bodega.setDireccion(dto.getDireccion() != null && !dto.getDireccion().isBlank() ? dto.getDireccion().trim() : null);
+        bodega.setTelefono(dto.getTelefono() != null && !dto.getTelefono().isBlank() ? dto.getTelefono().trim() : null);
+        bodega.setPlan("BASICO");
+        bodega.setEstado(true);
+        // Periodo de prueba gratuito inicial de 14 días
+        bodega.setFechaVencimientoPlan(java.time.OffsetDateTime.now().plusDays(14));
+
+        com.bodega.backend.entity.Bodega bodegaGuardada = bodegaRepository.save(bodega);
+
+        // 2. Crear Usuario Administrador Dueño
+        Usuario admin = new Usuario();
+        admin.setUsername(username);
+        admin.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
+        admin.setRol("ADMIN");
+        admin.setEstado(true);
+        admin.setFechaCambioClave(java.time.OffsetDateTime.now());
+        admin.setBodega(bodegaGuardada);
+        usuarioRepository.save(admin);
+
+        // 3. Clonar las categorías estándar peruanas para que la nueva tienda inicie lista
+        clonarCategoriasMaestras(bodegaGuardada);
+
+        // 4. Generar Token JWT inicial
+        String jwt = jwtUtil.generateToken(admin.getUsername(), admin.getRol(), bodegaGuardada.getIdBodega(), bodegaGuardada.getPlan());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("token", jwt);
+        response.put("rol", "ADMIN");
+        response.put("idBodega", bodegaGuardada.getIdBodega().toString());
+        response.put("nombreBodega", bodegaGuardada.getNombreComercial());
+        response.put("plan", bodegaGuardada.getPlan());
+        response.put("mensaje", "¡Bienvenido a la plataforma! Tu tienda '" + bodegaGuardada.getNombreComercial() + "' ha sido creada con éxito.");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private void clonarCategoriasMaestras(com.bodega.backend.entity.Bodega bodega) {
+        String[][] categoriasDefault = {
+            {"Gaseosas y Bebidas", "Gaseosas, aguas minerales, jugos, energizantes e hidratantes"},
+            {"Bebidas Alcohólicas", "Cervezas, piscos, rones, vinos y licores"},
+            {"Snacks y Piqueos", "Papas fritas, chizitos, tortillas, platanitos y frutos secos"},
+            {"Lácteos y Derivados", "Leche evaporada, fresca, yogures, mantequillas y quesos"},
+            {"Embutidos y Fiambrería", "Hot dogs, jamonadas, salchichas, tocinos y embutidos"},
+            {"Abarrotes y Fideos", "Arroz, azúcar, fideos, aceites, conservas y condimentos"},
+            {"Helados y Postres", "Helados en paleta, conos, bombones y potes familiares"},
+            {"Golosinas y Chocolates", "Chocolates, galletas dulces, caramelos y confitería"},
+            {"Cuidado Personal y Dental", "Cremas dentales (colinos), jabones, champús y papel"},
+            {"Limpieza y Cuidado del Hogar", "Detergentes, lejías, lavavajillas, suavizantes y esponjas"},
+            {"Cigarrillos y Tabacos", "Cigarrillos en cajetilla, fósforos y encendedores"},
+            {"Panadería y Desayuno", "Pan de molde, mermeladas, café, avena e infusiones"}
+        };
+
+        for (String[] catData : categoriasDefault) {
+            com.bodega.backend.entity.Categoria cat = new com.bodega.backend.entity.Categoria();
+            cat.setNombre(catData[0]);
+            cat.setDescripcion(catData[1]);
+            cat.setEstado(true);
+            cat.setBodega(bodega);
+            categoriaRepository.save(cat);
+        }
     }
 
     private String extractClientIp(HttpServletRequest request) {

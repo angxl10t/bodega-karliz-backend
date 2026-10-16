@@ -14,5 +14,10 @@ public interface CompraRepository extends JpaRepository<Compra, Long> {
 
     @EntityGraph(attributePaths = {"proveedor"})
     List<Compra> findTop150ByOrderByFechaCompraDesc();
+
+    @EntityGraph(attributePaths = {"proveedor"})
+    List<Compra> findTop150ByBodega_IdBodegaOrderByFechaCompraDesc(Long idBodega);
+
     boolean existsByProveedor_IdProveedorAndComprobanteIgnoreCase(Long idProveedor, String comprobante);
+    boolean existsByBodega_IdBodegaAndProveedor_IdProveedorAndComprobanteIgnoreCase(Long idBodega, Long idProveedor, String comprobante);
 }

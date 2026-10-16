@@ -12,14 +12,21 @@ public class UserSecurityProfile {
     private final String rol;
     private final Boolean estado;
     private final OffsetDateTime fechaCambioClave;
+    private final Long idBodega;
+    private final String nombreBodega;
+    private final String plan;
     private final Instant cachedAt;
 
-    public UserSecurityProfile(String username, String password, String rol, Boolean estado, OffsetDateTime fechaCambioClave) {
+    public UserSecurityProfile(String username, String password, String rol, Boolean estado, OffsetDateTime fechaCambioClave,
+                               Long idBodega, String nombreBodega, String plan) {
         this.username = username;
         this.password = password;
         this.rol = rol;
         this.estado = estado;
         this.fechaCambioClave = fechaCambioClave;
+        this.idBodega = idBodega;
+        this.nombreBodega = nombreBodega;
+        this.plan = plan;
         this.cachedAt = Instant.now();
     }
 
@@ -41,6 +48,18 @@ public class UserSecurityProfile {
 
     public OffsetDateTime getFechaCambioClave() {
         return fechaCambioClave;
+    }
+
+    public Long getIdBodega() {
+        return idBodega;
+    }
+
+    public String getNombreBodega() {
+        return nombreBodega;
+    }
+
+    public String getPlan() {
+        return plan;
     }
 
     public boolean isExpired(long ttlSeconds) {

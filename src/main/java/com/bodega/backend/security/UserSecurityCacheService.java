@@ -44,12 +44,21 @@ public class UserSecurityCacheService {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsernameIgnoreCase(key);
         if (usuarioOpt.isPresent()) {
             Usuario u = usuarioOpt.get();
+            Long idBodega = (u.getBodega() != null) ? u.getBodega().getIdBodega() : 1L;
+            String nombreBodega = (u.getBodega() != null && u.getBodega().getNombreComercial() != null) 
+                    ? u.getBodega().getNombreComercial() : "Bodega KARLIZ";
+            String plan = (u.getBodega() != null && u.getBodega().getPlan() != null) 
+                    ? u.getBodega().getPlan() : "PRO";
+
             UserSecurityProfile nuevo = new UserSecurityProfile(
                     u.getUsername(),
                     u.getPassword(),
                     u.getRol(),
                     u.getEstado(),
-                    u.getFechaCambioClave()
+                    u.getFechaCambioClave(),
+                    idBodega,
+                    nombreBodega,
+                    plan
             );
             cache.put(key, nuevo);
             purgeExpiredIfNeeded();

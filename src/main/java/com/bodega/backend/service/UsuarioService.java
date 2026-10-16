@@ -15,19 +15,29 @@ import java.util.stream.Collectors;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
 
     public UsuarioService(UsuarioRepository usuarioRepository, 
+                          com.bodega.backend.repository.BodegaRepository bodegaRepository,
                           PasswordEncoder passwordEncoder,
                           com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService) {
         this.usuarioRepository = usuarioRepository;
+        this.bodegaRepository = bodegaRepository;
         this.passwordEncoder = passwordEncoder;
         this.userSecurityCacheService = userSecurityCacheService;
     }
 
     @Transactional(readOnly = true)
     public List<UsuarioDTO> listarTodos() {
+        Usuario admin = obtenerUsuarioEnSesion();
+        if (admin != null && admin.getBodega() != null) {
+            return usuarioRepository.findByBodega_IdBodegaOrderByRolAscUsernameAsc(admin.getBodega().getIdBodega())
+                    .stream()
+                    .map(this::mapToDTO)
+                    .collect(Collectors.toList());
+        }
         return usuarioRepository.findAllByOrderByRolAscUsernameAsc().stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -53,12 +63,35 @@ public class UsuarioService {
             throw new RuntimeException("El rol asignado debe ser ADMIN o CAJERO.");
         }
 
+        Usuario admin = obtenerUsuarioEnSesion();
+        com.bodega.backend.entity.Bodega bodega = (admin != null && admin.getBodega() != null) ? admin.getBodega() : null;
+        if (bodega == null) {
+            bodega = bodegaRepository.findById(1L).orElse(null);
+        }
+
+        // Feature Gating: En Plan BÁSICO solo se permite 1 usuario administrador (el dueño)
+        if (bodega != null) {
+            String plan = (bodega.getPlan() != null) ? bodega.getPlan().toUpperCase() : "BASICO";
+            if ("BASICO".equals(plan)) {
+                long usuariosActivos = usuarioRepository.countByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega());
+                if (usuariosActivos >= 1) {
+                    throw new RuntimeException("Tu 'Plan Bodega' incluye 1 usuario administrador. " +
+                            "Para habilitar cajeros y empleados con PIN de seguridad, actualiza al 'Plan Minimarket Pro'.");
+                }
+                if ("CAJERO".equals(normalizedRol)) {
+                    throw new RuntimeException("El rol CAJERO no está disponible en el 'Plan Bodega'. " +
+                            "Pasa al 'Plan Minimarket Pro' para gestionar personal y turnos.");
+                }
+            }
+        }
+
         Usuario usuario = new Usuario();
         usuario.setUsername(normalizedUsername);
         usuario.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
         usuario.setRol(normalizedRol);
         usuario.setEstado(true);
         usuario.setFechaCambioClave(OffsetDateTime.now());
+        usuario.setBodega(bodega);
 
         Usuario guardado = usuarioRepository.save(usuario);
         return mapToDTO(guardado);
@@ -68,6 +101,9 @@ public class UsuarioService {
     public UsuarioDTO cambiarEstado(Long idUsuario, boolean nuevoEstado, String adminActual) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+
+        Usuario admin = obtenerUsuarioEnSesion();
+        validarMismaBodega(admin, usuario);
 
         if (!nuevoEstado && usuario.getUsername().equalsIgnoreCase(adminActual)) {
             throw new RuntimeException("No puedes desactivar tu propia cuenta de administrador en sesión.");
@@ -92,6 +128,9 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
 
+        Usuario admin = obtenerUsuarioEnSesion();
+        validarMismaBodega(admin, usuario);
+
         // Seguridad de cuenta raíz: solo 'admin' en persona puede restablecer la contraseña de 'admin'
         if ("admin".equalsIgnoreCase(usuario.getUsername()) && !"admin".equalsIgnoreCase(adminActual)) {
             throw new RuntimeException("Solo la cuenta administradora raíz puede restablecer su propia contraseña.");
@@ -103,6 +142,24 @@ public class UsuarioService {
         userSecurityCacheService.evict(usuario.getUsername());
     }
 
+    private Usuario obtenerUsuarioEnSesion() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            return usuarioRepository.findByUsernameIgnoreCase(auth.getName()).orElse(null);
+        }
+        return null;
+    }
+
+    private void validarMismaBodega(Usuario admin, Usuario target) {
+        if (admin != null && admin.getBodega() != null && target != null && target.getBodega() != null) {
+            if (!admin.getBodega().getIdBodega().equals(target.getBodega().getIdBodega())) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "No tienes permisos para modificar usuarios de otra bodega."
+                );
+            }
+        }
+    }
+
     private UsuarioDTO mapToDTO(Usuario u) {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setIdUsuario(u.getIdUsuario());
@@ -110,6 +167,11 @@ public class UsuarioService {
         dto.setRol(u.getRol());
         dto.setEstado(u.getEstado());
         dto.setFechaCambioClave(u.getFechaCambioClave());
+        if (u.getBodega() != null) {
+            dto.setIdBodega(u.getBodega().getIdBodega());
+            dto.setNombreBodega(u.getBodega().getNombreComercial());
+            dto.setPlanBodega(u.getBodega().getPlan());
+        }
         return dto;
     }
 }

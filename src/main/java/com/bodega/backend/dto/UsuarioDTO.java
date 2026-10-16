@@ -30,4 +30,8 @@ public class UsuarioDTO {
     private Boolean estado;
 
     private OffsetDateTime fechaCambioClave;
+
+    private Long idBodega;
+    private String nombreBodega;
+    private String planBodega;
 }

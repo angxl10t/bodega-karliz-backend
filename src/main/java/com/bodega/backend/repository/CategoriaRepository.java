@@ -9,9 +9,17 @@ import java.util.Optional;
 
 @Repository
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
-    // Método automático de Spring Data para buscar solo las categorías activas
     List<Categoria> findByEstadoTrue();
+    List<Categoria> findByBodega_IdBodegaAndEstadoTrue(Long idBodega);
+
     Optional<Categoria> findByNombreIgnoreCase(String nombre);
+    Optional<Categoria> findByBodega_IdBodegaAndNombreIgnoreCase(Long idBodega, String nombre);
+
     boolean existsByNombreIgnoreCase(String nombre);
+    boolean existsByBodega_IdBodegaAndNombreIgnoreCase(Long idBodega, String nombre);
+
     boolean existsByNombreIgnoreCaseAndIdCategoriaNot(String nombre, Long idCategoria);
+    boolean existsByBodega_IdBodegaAndNombreIgnoreCaseAndIdCategoriaNot(Long idBodega, String nombre, Long idCategoria);
+
+    Optional<Categoria> findByIdCategoriaAndBodega_IdBodega(Long idCategoria, Long idBodega);
 }

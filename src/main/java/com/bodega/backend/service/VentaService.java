@@ -12,8 +12,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,20 +27,26 @@ public class VentaService {
     private final VentaDetalleRepository ventaDetalleRepository;
     private final ProductoRepository productoRepository;
     private final MovimientoInventarioRepository movimientoInventarioRepository;
+    private final TenantService tenantService;
 
     public VentaService(VentaRepository ventaRepository,
                         VentaDetalleRepository ventaDetalleRepository,
                         ProductoRepository productoRepository,
-                        MovimientoInventarioRepository movimientoInventarioRepository) {
+                        MovimientoInventarioRepository movimientoInventarioRepository,
+                        TenantService tenantService) {
         this.ventaRepository = ventaRepository;
         this.ventaDetalleRepository = ventaDetalleRepository;
         this.productoRepository = productoRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
+        this.tenantService = tenantService;
     }
 
     @Transactional
     public VentaDTO registrarVenta(VentaDTO dto) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+
         Venta venta = new Venta();
+        venta.setBodega(tenantService.getCurrentBodega());
         String docCliente = sanitizarTextoImpresion(dto.getClienteDocumento(), 20, null);
         String nomCliente = sanitizarTextoImpresion(dto.getClienteNombre(), 150, "Público General");
 
@@ -80,9 +84,9 @@ public class VentaService {
         for (Long idProd : idsProductosOrdenados) {
             BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
 
-            // Bloqueo pesimista exclusivo para evitar Race Conditions / sobreventas simultáneas
-            Producto producto = productoRepository.findByIdForUpdate(idProd)
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + idProd));
+            // Bloqueo pesimista exclusivo restringido al tenant actual para evitar sobreventas simultáneas
+            Producto producto = productoRepository.findByIdForUpdateAndBodega(idProd, idBodega)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado en esta bodega: " + idProd));
 
             // Validación de Integridad de Catálogo: No vender productos dados de baja o inactivos
             if (Boolean.FALSE.equals(producto.getEstado())) {
@@ -143,6 +147,7 @@ public class VentaService {
 
     @Transactional(readOnly = true)
     public List<VentaDTO> listarTodas() {
+        Long idBodega = tenantService.getCurrentBodegaId();
         List<Venta> ventas;
         // Seguridad RBAC: Los cajeros solo pueden consultar transacciones del turno de hoy
         if (!esAdmin()) {
@@ -150,10 +155,10 @@ public class VentaService {
             LocalDate hoyPeru = LocalDate.now(zonePeru);
             OffsetDateTime inicio = hoyPeru.atStartOfDay(zonePeru).toOffsetDateTime();
             OffsetDateTime fin = hoyPeru.atTime(java.time.LocalTime.MAX).atZone(zonePeru).toOffsetDateTime();
-            ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
+            ventas = ventaRepository.findByBodega_IdBodegaAndFechaVentaBetweenOrderByFechaVentaDesc(idBodega, inicio, fin);
         } else {
             // Protección contra agotamiento de memoria: límite de 150 ventas recientes para el administrador
-            ventas = ventaRepository.findTop150ByOrderByFechaVentaDesc();
+            ventas = ventaRepository.findTop150ByBodega_IdBodegaOrderByFechaVentaDesc(idBodega);
         }
 
         if (ventas.isEmpty()) {
@@ -198,10 +203,11 @@ public class VentaService {
             );
         }
 
+        Long idBodega = tenantService.getCurrentBodegaId();
         OffsetDateTime inicio = fecha.atStartOfDay(zonePeru).toOffsetDateTime();
         OffsetDateTime fin = fecha.atTime(java.time.LocalTime.MAX).atZone(zonePeru).toOffsetDateTime();
 
-        List<Venta> ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
+        List<Venta> ventas = ventaRepository.findByBodega_IdBodegaAndFechaVentaBetweenOrderByFechaVentaDesc(idBodega, inicio, fin);
         return calcularCierre(ventas, fecha.atStartOfDay(zonePeru).toOffsetDateTime());
     }
 
@@ -217,10 +223,11 @@ public class VentaService {
             return List.of(obtenerCierreCajaHoy());
         }
 
+        Long idBodega = tenantService.getCurrentBodegaId();
         OffsetDateTime inicio = inicioFecha.atStartOfDay(zonePeru).toOffsetDateTime();
         OffsetDateTime fin = hoyPeru.atTime(java.time.LocalTime.MAX).atZone(zonePeru).toOffsetDateTime();
 
-        List<Venta> ventas = ventaRepository.findByFechaVentaBetweenOrderByFechaVentaDesc(inicio, fin);
+        List<Venta> ventas = ventaRepository.findByBodega_IdBodegaAndFechaVentaBetweenOrderByFechaVentaDesc(idBodega, inicio, fin);
 
         Map<LocalDate, List<Venta>> ventasPorDia = ventas.stream()
                 .filter(v -> v.getFechaVenta() != null)
@@ -298,10 +305,11 @@ public class VentaService {
             );
         }
 
-        // Bloqueo pesimista exclusivo (PESSIMISTIC_WRITE) sobre la cabecera de la venta
-        // para prevenir anulación concurrente duplicada en microsegundos
-        Venta venta = ventaRepository.findByIdForUpdate(idVenta)
-                .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + idVenta));
+        Long idBodega = tenantService.getCurrentBodegaId();
+
+        // Bloqueo pesimista exclusivo restringido a la bodega activa
+        Venta venta = ventaRepository.findByIdForUpdateAndBodega(idVenta, idBodega)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada en su bodega con ID: " + idVenta));
 
         // Validación de idempotencia atómica bajo lock
         if ("ANULADA".equalsIgnoreCase(venta.getEstado())) {
@@ -337,7 +345,7 @@ public class VentaService {
         // 2. Restaurar stock en inventario con bloqueo pesimista exclusivo (PESSIMISTIC_WRITE) y registrar en Kardex
         for (Long idProd : idsProductosOrdenados) {
             BigDecimal cantidadRestaurar = cantidadesARestaurar.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
-            Producto prod = productoRepository.findByIdForUpdate(idProd)
+            Producto prod = productoRepository.findByIdForUpdateAndBodega(idProd, idBodega)
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado para reponer stock: " + idProd));
 
             BigDecimal stockPrevio = (prod.getStockActual() != null ? prod.getStockActual() : BigDecimal.ZERO);

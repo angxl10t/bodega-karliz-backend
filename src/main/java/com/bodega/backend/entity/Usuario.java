@@ -28,4 +28,8 @@ public class Usuario {
     // Control de revocación de sesiones JWT al cambiar de contraseña
     @Column(name = "fecha_cambio_clave", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCambioClave;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_bodega")
+    private Bodega bodega;
 }
