@@ -433,6 +433,13 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
   String _error = '';
   bool _guardando = false;
 
+  @override
+  void dispose() {
+    _pinCtrl1.dispose();
+    _pinCtrl2.dispose();
+    super.dispose();
+  }
+
   Future<void> _guardar() async {
     final p1 = _pinCtrl1.text.trim();
     final p2 = _pinCtrl2.text.trim();
