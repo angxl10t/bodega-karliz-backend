@@ -666,13 +666,36 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       ),
                       const SizedBox(height: 6),
 
-                      // Fila 2: Categoría + SKU / Marca
+                      // Fila 2: SKU (Prioritario, siempre completo) + Categoría + Marca
                       Row(
                         children: [
+                          // Badge SKU completo e ininterrumpido
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Text(
+                              'SKU: ${p.codigo}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          // Pill Categoría
                           ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 115),
+                            constraints: const BoxConstraints(maxWidth: 105),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: catColor.withValues(alpha: isDark ? 0.15 : 0.1),
                                 borderRadius: BorderRadius.circular(6),
@@ -690,26 +713,26 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              p.marca != null && p.marca!.isNotEmpty
-                                  ? '${p.marca!} • ${p.codigo}'
-                                  : p.codigo,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textMuted,
+                          if (p.marca != null && p.marca!.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                p.marca!,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textMuted,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 6),
 
-                      // Fila 3: Indicador de Stock con píldora moderna
+                      // Fila 3: Indicador de Stock + Código de Barras (si aplica)
                       Row(
                         children: [
                           Container(
@@ -745,6 +768,23 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               ],
                             ),
                           ),
+                          if (p.codigoBarras != null && p.codigoBarras!.isNotEmpty && p.codigoBarras != p.codigo) ...[
+                            const SizedBox(width: 8),
+                            Icon(LucideIcons.barcode, size: 13, color: isDark ? Colors.white38 : AppTheme.textMuted),
+                            const SizedBox(width: 3),
+                            Expanded(
+                              child: Text(
+                                p.codigoBarras!,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10,
+                                  color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -820,42 +860,64 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        Row(
+                        const SizedBox(height: 5),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 120),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: catColor.withValues(alpha: isDark ? 0.18 : 0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  categoriaNombre.toUpperCase(),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: catColor,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: catColor.withValues(alpha: isDark ? 0.18 : 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                categoriaNombre.toUpperCase(),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: catColor,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                                  width: 0.8,
+                                ),
+                              ),
                               child: Text(
-                                'SKU: ${p.codigo}${p.marca != null && p.marca!.isNotEmpty ? " • Marca: ${p.marca}" : ""}',
+                                'SKU: ${p.codigo}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                                ),
+                              ),
+                            ),
+                            if (p.marca != null && p.marca!.isNotEmpty)
+                              Text(
+                                'Marca: ${p.marca}',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   color: AppTheme.textMuted,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            if (p.codigoBarras != null && p.codigoBarras!.isNotEmpty && p.codigoBarras != p.codigo)
+                              Text(
+                                'EAN: ${p.codigoBarras}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  color: AppTheme.textMuted,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
                           ],
                         ),
                       ],
