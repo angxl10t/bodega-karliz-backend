@@ -1,11 +1,11 @@
 {
-    "name": "KARLIZ Market & POS",
-    "short_name": "KARLIZ POS",
+    "name": "CajaYa Cloud POS",
+    "short_name": "CajaYa POS",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0F172A",
-    "theme_color": "#0D9488",
-    "description": "Punto de Venta (POS) y Control de Inventario en Tiempo Real",
+    "background_color": "#0B0F19",
+    "theme_color": "#2563EB",
+    "description": "CajaYa POS - Punto de Venta y Control de Inventario en la Nube",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
