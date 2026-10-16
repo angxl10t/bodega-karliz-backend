@@ -50,8 +50,8 @@ public class UsuarioService {
             throw new RuntimeException("El nombre de usuario no puede estar vacío.");
         }
 
-        if (usuarioRepository.existsByUsernameIgnoreCase(normalizedUsername)) {
-            throw new RuntimeException("El nombre de usuario '" + normalizedUsername + "' ya está registrado en el sistema.");
+        if (!normalizedUsername.matches("^[a-zA-Z0-9._-]+$")) {
+            throw new RuntimeException("El nombre de usuario solo puede contener letras, números, puntos (.), guiones (-) y guiones bajos (_), sin espacios ni acentos.");
         }
 
         if (dto.getPassword() == null || dto.getPassword().trim().length() < 8 || dto.getPassword().trim().length() > 72) {
@@ -69,32 +69,65 @@ public class UsuarioService {
             bodega = bodegaRepository.findById(1L).orElse(null);
         }
 
-        // Feature Gating: En Plan BÁSICO solo se permite 1 usuario administrador (el dueño)
+        // Feature Gating: En Plan BÁSICO se permiten hasta 2 cajeros activos + 1 admin (total 3 activos)
         if (bodega != null) {
-            String plan = (bodega.getPlan() != null) ? bodega.getPlan().toUpperCase() : "BASICO";
+            String plan = (bodega.getPlan() != null) ? bodega.getPlan().toUpperCase() : "PRO";
             if ("BASICO".equals(plan)) {
                 long usuariosActivos = usuarioRepository.countByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega());
-                if (usuariosActivos >= 1) {
-                    throw new RuntimeException("Tu 'Plan Bodega' incluye 1 usuario administrador. " +
-                            "Para habilitar cajeros y empleados con PIN de seguridad, actualiza al 'Plan Minimarket Pro'.");
-                }
-                if ("CAJERO".equals(normalizedRol)) {
-                    throw new RuntimeException("El rol CAJERO no está disponible en el 'Plan Bodega'. " +
-                            "Pasa al 'Plan Minimarket Pro' para gestionar personal y turnos.");
+                if (usuariosActivos >= 3) {
+                    throw new RuntimeException("El 'Plan Bodega' permite hasta 2 cajeros activos. " +
+                            "Para habilitar personal y turnos ilimitados, actualiza al 'Plan Minimarket Pro'.");
                 }
             }
         }
 
-        Usuario usuario = new Usuario();
-        usuario.setUsername(normalizedUsername);
-        usuario.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
-        usuario.setRol(normalizedRol);
-        usuario.setEstado(true);
-        usuario.setFechaCambioClave(OffsetDateTime.now());
-        usuario.setBodega(bodega);
+        // Resolución Inteligente de Duplicados
+        java.util.Optional<Usuario> usuarioExistenteOpt = usuarioRepository.findByUsernameIgnoreCase(normalizedUsername);
+        if (usuarioExistenteOpt.isPresent()) {
+            Usuario usuarioExistente = usuarioExistenteOpt.get();
+            boolean esMismaBodega = bodega != null && usuarioExistente.getBodega() != null &&
+                    bodega.getIdBodega().equals(usuarioExistente.getBodega().getIdBodega());
 
-        Usuario guardado = usuarioRepository.save(usuario);
-        return mapToDTO(guardado);
+            if (esMismaBodega) {
+                if (Boolean.TRUE.equals(usuarioExistente.getEstado())) {
+                    throw new RuntimeException("El cajero/usuario '" + normalizedUsername + "' ya está registrado y activo en tu bodega. Si olvidó su clave, puedes restablecerla desde la lista.");
+                } else {
+                    // Reactivación transparente de un cajero que estaba desactivado
+                    usuarioExistente.setEstado(true);
+                    usuarioExistente.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
+                    usuarioExistente.setRol(normalizedRol);
+                    usuarioExistente.setFechaCambioClave(OffsetDateTime.now());
+                    Usuario reactivado = usuarioRepository.save(usuarioExistente);
+                    userSecurityCacheService.evict(reactivado.getUsername());
+                    return mapToDTO(reactivado);
+                }
+            } else {
+                // Colisión Multi-Tenant: El username ya existe en OTRA bodega
+                String slugBodega = (bodega != null && bodega.getNombreComercial() != null)
+                        ? bodega.getNombreComercial().toLowerCase().replaceAll("[^a-z0-9]", "")
+                        : "b" + (bodega != null ? bodega.getIdBodega() : "1");
+                if (slugBodega.length() > 8) slugBodega = slugBodega.substring(0, 8);
+                String sugerencia1 = normalizedUsername + "_" + slugBodega;
+                String sugerencia2 = normalizedUsername + (bodega != null ? bodega.getIdBodega() : "1");
+
+                throw new RuntimeException("El usuario '" + normalizedUsername + "' ya está en uso por otra tienda. Te sugerimos usar: '" + sugerencia1 + "' o '" + sugerencia2 + "'.");
+            }
+        }
+
+        try {
+            Usuario usuario = new Usuario();
+            usuario.setUsername(normalizedUsername);
+            usuario.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
+            usuario.setRol(normalizedRol);
+            usuario.setEstado(true);
+            usuario.setFechaCambioClave(OffsetDateTime.now());
+            usuario.setBodega(bodega);
+
+            Usuario guardado = usuarioRepository.save(usuario);
+            return mapToDTO(guardado);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            throw new RuntimeException("El nombre de usuario '" + normalizedUsername + "' ya fue registrado simultáneamente. Por favor intenta con otro.");
+        }
     }
 
     @Transactional
