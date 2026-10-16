@@ -52,5 +52,8 @@ class SecureStorageService {
     await delete('jwt_token');
     await delete('user_rol');
     await delete('username');
+    await delete('id_bodega');
+    await delete('nombre_bodega');
+    await delete('plan_bodega');
   }
 }

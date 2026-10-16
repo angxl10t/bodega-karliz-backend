@@ -19,6 +19,7 @@ import '../../core/lock_service.dart';
 import '../../core/widgets/karliz_lock_screen.dart';
 import '../../core/responsive_layout.dart';
 import 'pixel_perfect_navbar.dart';
+import 'plan_y_personal_sheet.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -34,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<Widget> _screens;
   String _username = 'admin';
   String _userRol = 'ADMIN';
+  String _nombreBodega = 'Bodega KARLIZ';
+  String _plan = 'PRO';
   Timer? _inactivityTimer;
   bool _orientationConfigured = false;
   bool _railCollapsed = false;
@@ -114,10 +117,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _cargarDatosUsuario() async {
     final user = await AuthService().getUsername();
     final rol = await AuthService().getUserRole();
+    final nombreBodega = await AuthService().getNombreBodega();
+    final plan = await AuthService().getPlanBodega();
     if (mounted) {
       setState(() {
         _username = user;
         _userRol = rol;
+        _nombreBodega = nombreBodega;
+        _plan = plan;
       });
 
       // Si aún no ha configurado su PIN de caja, ofrecer configurarlo tras ingresar
@@ -284,27 +291,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                                              color: (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.15),
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Container(
-                                                  width: 5,
-                                                  height: 5,
-                                                  decoration: const BoxDecoration(
-                                                    color: AppTheme.accentGreen,
-                                                    shape: BoxShape.circle,
-                                                  ),
+                                                Icon(
+                                                  _plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.store,
+                                                  size: 10,
+                                                  color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  'En Línea',
+                                                  _plan == 'PRO' ? 'PLAN PRO' : 'PLAN BODEGA',
                                                   style: GoogleFonts.outfit(
                                                     fontSize: 10,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: AppTheme.accentGreen,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
                                                   ),
                                                 ),
                                               ],
@@ -325,9 +329,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'Bodega KARLIZ • Sede Central',
+                                        '$_nombreBodega • ${_plan == 'PRO' ? 'Plan Minimarket Pro' : 'Plan Bodega'}',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
+                                          fontWeight: FontWeight.w600,
                                           color: AppTheme.textMuted,
                                         ),
                                       ),
@@ -499,6 +504,95 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     Text(
                                       'Build Emerald 2026.10 • Comprobar parches OTA',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                LucideIcons.chevronRight,
+                                size: 18,
+                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Plan de Suscripción & Personal de la Bodega
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(bottomSheetContext);
+                          PlanYPersonalSheet.show(
+                            context,
+                            nombreBodega: _nombreBodega,
+                            plan: _plan,
+                            currentUsername: _username,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(18),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  _plan == 'PRO' ? LucideIcons.users : LucideIcons.store,
+                                  color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Suscripción & Personal',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            _plan == 'PRO' ? 'PRO' : 'BÁSICO',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      _plan == 'PRO'
+                                          ? 'Cajeros con PIN, turnos y cuota ilimitada'
+                                          : 'Plan Bodega (1 Admin) • Pasa a Pro para cajeros',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
                                         color: AppTheme.textMuted,

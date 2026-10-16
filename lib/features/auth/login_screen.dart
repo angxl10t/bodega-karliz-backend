@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'auth_service.dart';
 import 'karliz_mascot_data.dart';
+import 'registro_bodega_sheet.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
 import '../../core/theme.dart';
@@ -449,6 +450,46 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   )
                                 : const Text('INGRESAR AL SISTEMA'),
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        // Opción de Registro para Nuevas Bodegas (SaaS Onboarding)
+                        Center(
+                          child: InkWell(
+                            onTap: () => RegistroBodegaSheet.show(context),
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.store,
+                                    size: 15,
+                                    color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    '¿Tienes un negocio? ',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Registra tu bodega gratis',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ],
