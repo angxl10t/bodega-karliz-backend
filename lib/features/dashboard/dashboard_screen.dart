@@ -24,6 +24,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final ProductoService _productoService = ProductoService();
   List<Producto> _productos = [];
   String _nombreBodega = 'Bodega KARLIZ';
+  String _username = 'Usuario';
+  String _userRol = 'ADMIN';
+  String _plan = 'PRO';
+  String _ruc = '';
+  String _telefono = '';
+  String _direccion = '';
   bool _isLoading = true;
 
   @override
@@ -49,10 +55,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _isLoading = true);
     final prods = await _productoService.getProductos(forceRefresh: forceRefresh);
     final nombre = await AuthService().getNombreBodega();
+    final username = await AuthService().getUsername();
+    final rol = await AuthService().getUserRole();
+    final plan = await AuthService().getPlanBodega();
+    final ruc = await AuthService().getRucBodega();
+    final tel = await AuthService().getTelefonoBodega();
+    final dir = await AuthService().getDireccionBodega();
     if (mounted) {
       setState(() {
         _productos = prods;
         _nombreBodega = nombre;
+        _username = username;
+        _userRol = rol;
+        _plan = plan;
+        _ruc = ruc;
+        _telefono = tel;
+        _direccion = dir;
         _isLoading = false;
       });
     }
@@ -429,6 +447,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildGreetingBanner(bool isDark) {
+    final String initial = _username.isNotEmpty ? _username[0].toUpperCase() : 'U';
+    final bool isAdmin = _userRol.toUpperCase() == 'ADMIN';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -452,17 +473,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          // Fila Superior: Badges de Bodega, Plan y Estado en Vivo
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Badge de Bodega
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
                       width: 0.8,
@@ -471,87 +496,253 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: AppTheme.accentGreen,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Cloud Sync • Sincronizado en Vivo',
-                        style: GoogleFonts.outfit(
-                          color: const Color(0xFFE2E8F0),
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.4,
+                      const Icon(LucideIcons.store, size: 12, color: Color(0xFF38BDF8)),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          _nombreBodega,
+                          style: GoogleFonts.outfit(
+                            color: const Color(0xFFF1F5F9),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  '¡Bienvenido, $_nombreBodega! 👋',
-                  style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'CajaYa Cloud POS • Ventas, caja e inventario en tiempo real',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: const Color(0xFF94A3B8),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
-          InkWell(
-            onTap: () => widget.onNavigateTab(1),
-            borderRadius: BorderRadius.circular(18),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.brandPrimary, AppTheme.brandDark],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.brandPrimary.withValues(alpha: 0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
-              child: Column(
+              const SizedBox(width: 8),
+
+              // Badges de Plan y Live Sync
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(LucideIcons.shoppingBag, color: Colors.white, size: 22),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Ir a POS',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w800,
+                  // Badge Plan
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.5),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.shield,
+                          size: 10.5,
+                          color: _plan == 'PRO' ? const Color(0xFF38BDF8) : Colors.white,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _plan == 'PRO' ? 'PLAN PRO' : 'PLAN BODEGA',
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+
+                  // Live Dot
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.accentGreen.withValues(alpha: 0.4),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: AppTheme.accentGreen,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'En Vivo',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: const Color(0xFF86EFAC),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Fila Principal: Avatar de Usuario + Saludo y Rol Ampliados
+          Row(
+            children: [
+              // Avatar con inicial y gradiente
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.brandPrimary, Color(0xFF0EA5E9)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    initial,
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              // Textos de Bienvenida del Usuario
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '¡Bienvenido, $_username! 👋',
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.4,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(
+                          isAdmin ? LucideIcons.shieldCheck : LucideIcons.userCheck,
+                          size: 13,
+                          color: const Color(0xFF60A5FA),
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            isAdmin
+                                ? 'Administrador General • Acceso Total'
+                                : 'Operador de Tienda • Turno Activo',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: const Color(0xFF93C5FD),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Barra Inferior de Datos de Turno y Fiscales
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _ruc.isNotEmpty ? LucideIcons.fileText : LucideIcons.layers,
+                  size: 13,
+                  color: const Color(0xFF94A3B8),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    () {
+                      if (_ruc.isNotEmpty && _telefono.isNotEmpty) {
+                        return 'RUC: $_ruc • Tel: $_telefono';
+                      } else if (_ruc.isNotEmpty) {
+                        return 'RUC: $_ruc • ${_direccion.isNotEmpty ? _direccion : 'CajaYa Cloud POS'}';
+                      } else if (_telefono.isNotEmpty) {
+                        return 'Tel: $_telefono • CajaYa Cloud POS';
+                      } else {
+                        return 'CajaYa Cloud POS • Ventas, caja e inventario en tiempo real';
+                      }
+                    }(),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: const Color(0xFFCBD5E1),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.checkCheck, size: 11, color: AppTheme.accentGreen),
+                      const SizedBox(width: 4),
+                      Text(
+                        'POS Activo',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: const Color(0xFFE2E8F0),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],

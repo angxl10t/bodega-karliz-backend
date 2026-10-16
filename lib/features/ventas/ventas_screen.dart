@@ -13,7 +13,6 @@ import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import 'package:flutter/services.dart';
-import 'dart:ui';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});

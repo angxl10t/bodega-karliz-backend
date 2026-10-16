@@ -4,7 +4,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'movimiento_model.dart';
 import 'movimiento_service.dart';
 import '../../core/theme.dart';
-import 'dart:ui';
 
 class KardexScreen extends StatefulWidget {
   const KardexScreen({super.key});

@@ -817,52 +817,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // ============================================
-  // FOOTER DE SEGURIDAD & COPYRIGHT B2B
+  // FOOTER & COPYRIGHT B2B
   // ============================================
   Widget _buildCloudConnectionBadge(BuildContext context, bool isDark) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onLongPress: kDebugMode ? _configurarServidor : null,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.cardDark : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-              ),
-            ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppTheme.accentGreen,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 7),
-                  Text(
-                    'Conexión segura SSL • Sistema en línea',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      color: isDark ? Colors.white70 : AppTheme.textMuted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        FittedBox(
+    return GestureDetector(
+      onLongPress: kDebugMode ? _configurarServidor : null,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
             '© 2026 CajaYa Cloud POS • Todos los derechos reservados',
@@ -873,7 +836,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 

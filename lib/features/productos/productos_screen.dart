@@ -11,7 +11,6 @@ import '../auth/auth_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
-import 'dart:ui';
 
 class ProductosScreen extends StatefulWidget {
   const ProductosScreen({super.key});

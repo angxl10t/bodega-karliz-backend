@@ -5,7 +5,6 @@ import 'venta_model.dart';
 import 'venta_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/theme.dart';
-import 'dart:ui';
 
 class CajaVentasScreen extends StatefulWidget {
   const CajaVentasScreen({super.key});
