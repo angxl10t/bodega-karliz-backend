@@ -200,7 +200,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: bajoStockCount > 0 ? AppTheme.alertRed : AppTheme.accentGreen,
+                                color: bajoStockCount > 0
+                                    ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
+                                    : AppTheme.accentGreen,
                               ),
                             ),
                           ],
@@ -413,31 +415,44 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: _estadoStockFiltro == 'bajo_stock'
-                                    ? AppTheme.alertRed
-                                    : AppTheme.alertRed.withValues(alpha: isDark ? 0.15 : 0.08),
+                                    ? const Color(0xFFD97706)
+                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: _estadoStockFiltro == 'bajo_stock'
-                                      ? AppTheme.alertRed
-                                      : AppTheme.alertRed.withValues(alpha: isDark ? 0.4 : 0.25),
+                                      ? const Color(0xFFD97706)
+                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                                   width: 1.0,
                                 ),
+                                boxShadow: _estadoStockFiltro == 'bajo_stock'
+                                    ? [
+                                        BoxShadow(
+                                          color: const Color(0xFFD97706).withValues(alpha: 0.28),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    LucideIcons.alertTriangle,
+                                    LucideIcons.alertCircle,
                                     size: 13,
-                                    color: _estadoStockFiltro == 'bajo_stock' ? Colors.white : AppTheme.alertRed,
+                                    color: _estadoStockFiltro == 'bajo_stock'
+                                        ? Colors.white
+                                        : (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
                                     'Por Agotar ($bajoStockCount)',
                                     style: GoogleFonts.outfit(
                                       fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: _estadoStockFiltro == 'bajo_stock' ? Colors.white : AppTheme.alertRed,
+                                      fontWeight: _estadoStockFiltro == 'bajo_stock' ? FontWeight.w800 : FontWeight.w700,
+                                      color: _estadoStockFiltro == 'bajo_stock'
+                                          ? Colors.white
+                                          : (isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E)),
                                     ),
                                   ),
                                 ],
@@ -624,8 +639,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
     final bool stockCritico = p.stockActual <= 5;
     final bool stockBajo = p.stockActual > 5 && p.stockActual <= 10;
     final Color badgeColor = stockCritico
-        ? AppTheme.alertRed
-        : (stockBajo ? AppTheme.warningAmber : AppTheme.accentGreen);
+        ? (isDark ? const Color(0xFFFB7185) : const Color(0xFFE11D48))
+        : (stockBajo
+            ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
+            : AppTheme.accentGreen);
     final String estadoTexto = stockCritico
         ? 'Crítico'
         : (stockBajo ? 'Bajo' : 'Óptimo');
@@ -756,38 +773,48 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: badgeColor.withValues(alpha: isDark ? 0.18 : 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: badgeColor,
-                                    shape: BoxShape.circle,
+                          Flexible(
+                            flex: 3,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: badgeColor.withValues(alpha: isDark ? 0.16 : 0.08),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      color: badgeColor,
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  '${p.stockActual.toInt()} unidades ($estadoTexto)',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: badgeColor,
+                                  const SizedBox(width: 5),
+                                  Flexible(
+                                    child: Text(
+                                      '${p.stockActual.toInt()} u. ($estadoTexto)',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: badgeColor,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 6),
                           Flexible(
+                            flex: 2,
                             child: Text(
                               categoriaNombre.toUpperCase(),
+                              textAlign: TextAlign.end,
                               style: GoogleFonts.outfit(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
