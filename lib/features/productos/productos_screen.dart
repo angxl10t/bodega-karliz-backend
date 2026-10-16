@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'producto_model.dart';
@@ -9,6 +10,7 @@ import '../movimientos/kardex_screen.dart';
 import '../auth/auth_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/theme.dart';
+import '../../core/category_helper.dart';
 
 class ProductosScreen extends StatefulWidget {
   const ProductosScreen({super.key});
@@ -23,13 +25,31 @@ class _ProductosScreenState extends State<ProductosScreen> {
   List<Producto> _productosFiltrados = [];
   bool _isLoading = true;
   String _filtroTexto = '';
-  String _categoriaFiltro = 'todos'; // 'todos', 'bajo_stock', 'con_stock'
+  String _selectedCategoria = 'Todos';
+  String _estadoStockFiltro = 'todos'; // 'todos', 'bajo_stock', 'con_stock'
   String _userRol = 'CAJERO';
 
   final TextEditingController _searchController = TextEditingController();
 
   List<Producto> get _safeTodos => _todosProductos;
   List<Producto> get _safeFiltrados => _productosFiltrados;
+
+  List<String> get _categoriasDisponibles {
+    final Set<String> cats = {};
+    for (final p in _safeTodos) {
+      final c = p.nombreCategoria?.trim();
+      if (c != null && c.isNotEmpty) {
+        cats.add(c);
+      }
+    }
+    final list = cats.toList()..sort();
+    return ['Todos', ...list];
+  }
+
+  int _getCountForCategoria(String cat) {
+    if (cat == 'Todos') return _safeTodos.length;
+    return _safeTodos.where((p) => (p.nombreCategoria?.trim() ?? 'General') == cat).length;
+  }
 
   @override
   void initState() {
@@ -76,16 +96,26 @@ class _ProductosScreenState extends State<ProductosScreen> {
     final query = _filtroTexto.trim().toLowerCase();
     setState(() {
       _productosFiltrados = items.where((p) {
+        // 1. Filtro por texto / búsqueda (Nombre, Código SKU, Código de Barras, Marca, Categoría)
         if (query.isNotEmpty) {
           final nombreMatch = p.nombre.toLowerCase().contains(query);
           final codMatch = p.codigo.toLowerCase().contains(query);
           final barcodeMatch = (p.codigoBarras ?? '').toLowerCase().contains(query);
-          if (!nombreMatch && !codMatch && !barcodeMatch) return false;
+          final marcaMatch = (p.marca ?? '').toLowerCase().contains(query);
+          final catMatch = (p.nombreCategoria ?? '').toLowerCase().contains(query);
+          if (!nombreMatch && !codMatch && !barcodeMatch && !marcaMatch && !catMatch) return false;
         }
 
-        if (_categoriaFiltro == 'bajo_stock') {
+        // 2. Filtro por Categoría seleccionada
+        if (_selectedCategoria != 'Todos') {
+          final cat = p.nombreCategoria?.trim() ?? 'General';
+          if (cat != _selectedCategoria) return false;
+        }
+
+        // 3. Filtro por Estado de Stock
+        if (_estadoStockFiltro == 'bajo_stock') {
           return p.stockActual <= 10;
-        } else if (_categoriaFiltro == 'con_stock') {
+        } else if (_estadoStockFiltro == 'con_stock') {
           return p.stockActual > 10;
         }
         return true;
@@ -163,64 +193,192 @@ class _ProductosScreenState extends State<ProductosScreen> {
               color: cardBg,
               child: Column(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
-                      borderRadius: BorderRadius.circular(26),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Buscar por nombre o código...',
-                        hintStyle: GoogleFonts.plusJakartaSans(
-                          color: AppTheme.textMuted,
-                          fontSize: 14,
-                        ),
-                        prefixIcon: const Icon(LucideIcons.search, size: 19),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_filtroTexto.isNotEmpty)
-                              IconButton(
-                                icon: const Icon(LucideIcons.x, size: 18),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _filtroTexto = '';
-                                  _aplicarFiltros();
-                                },
-                              ),
-                            IconButton(
-                              tooltip: 'Escanear con Cámara',
-                              icon: const Icon(LucideIcons.scanBarcode, size: 20, color: AppTheme.brandPrimary),
-                              onPressed: _escanearCodigoParaBuscar,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
                             ),
-                            const SizedBox(width: 4),
-                          ],
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Buscar por nombre, código o marca...',
+                              hintStyle: GoogleFonts.plusJakartaSans(
+                                color: AppTheme.textMuted,
+                                fontSize: 13,
+                              ),
+                              prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppTheme.brandPrimary),
+                              suffixIcon: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_filtroTexto.isNotEmpty)
+                                    IconButton(
+                                      icon: const Icon(LucideIcons.x, size: 16),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        _filtroTexto = '';
+                                        _aplicarFiltros();
+                                      },
+                                    ),
+                                  IconButton(
+                                    tooltip: 'Escanear con Cámara / Láser',
+                                    icon: const Icon(LucideIcons.scanBarcode, size: 19, color: AppTheme.brandPrimary),
+                                    onPressed: _escanearCodigoParaBuscar,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            onChanged: (val) {
+                              _filtroTexto = val;
+                              _aplicarFiltros();
+                            },
+                          ),
                         ),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
-                      onChanged: (val) {
-                        _filtroTexto = val;
-                        _aplicarFiltros();
-                      },
-                    ),
+                      const SizedBox(width: 8),
+
+                      // Contador de resultados
+                      Container(
+                        height: 46,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${_safeFiltrados.length} / ${_safeTodos.length}',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 10),
 
-                  // Chips de Filtrado rápido + Acceso directo al Kardex
+                  // Pestañas de Categoría estilo POS Insignia (con icono temático y conteo)
+                  if (_categoriasDisponibles.length > 1) ...[
+                    SizedBox(
+                      height: 38,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _categoriasDisponibles.length,
+                        separatorBuilder: (_, _) => const SizedBox(width: 6),
+                        itemBuilder: (context, i) {
+                          final cat = _categoriasDisponibles[i];
+                          final isSelected = _selectedCategoria == cat;
+                          final catIcon = CategoryHelper.getIcon(cat);
+                          final catColor = CategoryHelper.getColor(cat, isDark);
+                          final count = _getCountForCategoria(cat);
+
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() {
+                                  _selectedCategoria = cat;
+                                  _aplicarFiltros();
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppTheme.brandPrimary
+                                      : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppTheme.brandPrimary
+                                        : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                                    width: isSelected ? 1.4 : 1.0,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      catIcon,
+                                      size: 15,
+                                      color: isSelected ? Colors.white : catColor,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      cat,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                        color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.white.withValues(alpha: 0.25)
+                                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '$count',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: isSelected ? Colors.white : AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+
+                  // Chips de Filtrado rápido de Stock + Acceso directo al Kardex
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildFilterChip('Todos (${_todosProductos.length})', 'todos', isDark),
+                        _buildFilterChip('Todo el Stock', 'todos', isDark),
                         const SizedBox(width: 8),
                         _buildFilterChip('Por Agotar (≤10)', 'bajo_stock', isDark),
                         const SizedBox(width: 8),
@@ -378,7 +536,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   Widget _buildFilterChip(String label, String value, bool isDark) {
-    final bool isSelected = _categoriaFiltro == value;
+    final bool isSelected = _estadoStockFiltro == value;
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
@@ -386,23 +544,22 @@ class _ProductosScreenState extends State<ProductosScreen> {
         fontSize: 12,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
         color: isSelected
-            ? AppTheme.primaryOrange
+            ? Colors.white
             : (isDark ? Colors.white70 : const Color(0xFF5D626A)),
       ),
-      selectedColor: isDark
-          ? AppTheme.primaryOrange.withValues(alpha: 0.2)
-          : AppTheme.peachSurface,
+      selectedColor: AppTheme.brandPrimary,
       backgroundColor: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
       side: BorderSide(
         color: isSelected
-            ? AppTheme.primaryOrange
+            ? AppTheme.brandPrimary
             : (isDark ? AppTheme.borderDark : const Color(0xFFE5E7EB)),
         width: 1.2,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       onSelected: (_) {
+        HapticFeedback.selectionClick();
         setState(() {
-          _categoriaFiltro = value;
+          _estadoStockFiltro = value;
           _aplicarFiltros();
         });
       },
@@ -419,6 +576,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
         ? 'Crítico'
         : (stockBajo ? 'Bajo' : 'Óptimo');
 
+    final catColor = CategoryHelper.getColor(p.nombreCategoria, isDark);
+    final catIcon = CategoryHelper.getIcon(p.nombreCategoria);
+    final categoriaNombre = p.nombreCategoria?.trim() ?? 'General';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -431,8 +592,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
         boxShadow: [
           if (!isDark)
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
               offset: const Offset(0, 3),
             ),
         ],
@@ -448,18 +609,24 @@ class _ProductosScreenState extends State<ProductosScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Icono / Avatar del Producto con fondo cálido
+                // Icono Temático por Categoría con Squircle & Gradiente Sutil
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 50,
+                  height: 50,
                   decoration: BoxDecoration(
-                    color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                    color: catColor.withValues(alpha: isDark ? 0.18 : 0.12),
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: catColor.withValues(alpha: isDark ? 0.35 : 0.22),
+                      width: 1,
+                    ),
                   ),
-                  child: const Icon(
-                    LucideIcons.package2,
-                    color: AppTheme.primaryOrange,
-                    size: 22,
+                  child: Center(
+                    child: Icon(
+                      catIcon,
+                      color: catColor,
+                      size: 22,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -471,6 +638,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
@@ -484,11 +652,12 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          // Precio de Venta Destacado
+                          const SizedBox(width: 8),
+                          // Precio de Venta Destacado en Outfit
                           Text(
                             'S/ ${p.precioVenta.toStringAsFixed(2)}',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 15.5,
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
                               fontWeight: FontWeight.w900,
                               color: isDark ? Colors.white : AppTheme.textDark,
                             ),
@@ -500,32 +669,61 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Badge Código / SKU
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF101622) : const Color(0xFFF4F5F7),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              p.codigo,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textMuted,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          // Badges: Categoría + SKU / Marca
+                          Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Pill Categoría
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                                  decoration: BoxDecoration(
+                                    color: catColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    categoriaNombre.toUpperCase(),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: catColor,
+                                      letterSpacing: 0.4,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                // SKU / Marca
+                                Flexible(
+                                  child: Text(
+                                    p.marca != null && p.marca!.isNotEmpty
+                                        ? '${p.marca!} • ${p.codigo}'
+                                        : p.codigo,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 8),
 
                           // Indicador de Stock con píldora moderna
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                             decoration: BoxDecoration(
                               color: badgeColor.withValues(alpha: isDark ? 0.2 : 0.1),
                               borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: badgeColor.withValues(alpha: isDark ? 0.35 : 0.2),
+                                width: 0.8,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -541,7 +739,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 const SizedBox(width: 5),
                                 Text(
                                   '${p.stockActual.toInt()} u. ($estadoTexto)',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
                                     color: badgeColor,
@@ -566,6 +764,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
   void _mostrarDetalleProducto(Producto p) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final catColor = CategoryHelper.getColor(p.nombreCategoria, isDark);
+    final catIcon = CategoryHelper.getIcon(p.nombreCategoria);
+    final categoriaNombre = p.nombreCategoria?.trim() ?? 'General';
 
     showModalBottomSheet(
       context: context,
@@ -595,13 +796,19 @@ class _ProductosScreenState extends State<ProductosScreen> {
               Row(
                 children: [
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 54,
+                    height: 54,
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                      color: catColor.withValues(alpha: isDark ? 0.2 : 0.12),
                       borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: catColor.withValues(alpha: isDark ? 0.4 : 0.25),
+                        width: 1.2,
+                      ),
                     ),
-                    child: const Icon(LucideIcons.package2, color: AppTheme.primaryOrange, size: 26),
+                    child: Center(
+                      child: Icon(catIcon, color: catColor, size: 26),
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -616,13 +823,38 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
-                        Text(
-                          'SKU: ${p.codigo}${p.marca != null && p.marca!.isNotEmpty ? " • Marca: ${p.marca}" : ""}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            color: AppTheme.textMuted,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: catColor.withValues(alpha: isDark ? 0.18 : 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                categoriaNombre.toUpperCase(),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: catColor,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'SKU: ${p.codigo}${p.marca != null && p.marca!.isNotEmpty ? " • Marca: ${p.marca}" : ""}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: AppTheme.textMuted,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -647,7 +879,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         children: [
                           Text('Precio Venta', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
-                          Text('S/ ${p.precioVenta.toStringAsFixed(2)}', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.primaryOrange)),
+                          Text(
+                            'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                            style: GoogleFonts.outfit(fontSize: 19, fontWeight: FontWeight.w900, color: AppTheme.brandPrimary),
+                          ),
                         ],
                       ),
                     ),
@@ -659,7 +894,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         children: [
                           Text('Stock Actual', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
-                          Text('${p.stockActual.toStringAsFixed(0)} unid.', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w900, color: isDark ? Colors.white : AppTheme.textDark)),
+                          Text(
+                            '${p.stockActual.toStringAsFixed(0)} unid.',
+                            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w900, color: isDark ? Colors.white : AppTheme.textDark),
+                          ),
                         ],
                       ),
                     ),
@@ -671,7 +909,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         children: [
                           Text('Valor Stock', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
-                          Text('S/ ${valorTotal.toStringAsFixed(2)}', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.accentGreen)),
+                          Text(
+                            'S/ ${valorTotal.toStringAsFixed(2)}',
+                            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.accentGreen),
+                          ),
                         ],
                       ),
                     ),
@@ -683,7 +924,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                 width: double.infinity,
                 child: TextButton.icon(
                   style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF0D9488),
+                    foregroundColor: AppTheme.brandPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                   ),
                   icon: const Icon(LucideIcons.fileSpreadsheet, size: 16),
@@ -709,8 +950,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                          side: const BorderSide(color: AppTheme.primaryOrange, width: 1.2),
-                          foregroundColor: AppTheme.primaryOrange,
+                          side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
+                          foregroundColor: AppTheme.brandPrimary,
                         ),
                         icon: const Icon(LucideIcons.pencil, size: 16),
                         label: Text(
@@ -729,7 +970,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        backgroundColor: AppTheme.primaryOrange,
+                        backgroundColor: AppTheme.brandPrimary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                       ),
@@ -748,6 +989,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   Widget _buildEmptyState(bool isDark) {
+    final hasActiveFilters = _filtroTexto.isNotEmpty ||
+        _selectedCategoria != 'Todos' ||
+        _estadoStockFiltro != 'todos';
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -757,10 +1002,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF171E2B) : AppTheme.peachSurface,
+                color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(LucideIcons.packageSearch, size: 40, color: AppTheme.primaryOrange),
+              child: const Icon(LucideIcons.packageSearch, size: 40, color: AppTheme.brandPrimary),
             ),
             const SizedBox(height: 18),
             Text(
@@ -773,23 +1018,49 @@ class _ProductosScreenState extends State<ProductosScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Prueba cambiando el término de búsqueda o el filtro.',
+              hasActiveFilters
+                  ? 'No hay productos que coincidan con la categoría o filtros aplicados.'
+                  : 'No hay productos registrados en el inventario.',
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
             ),
             const SizedBox(height: 18),
-            ElevatedButton.icon(
+            if (hasActiveFilters) ...[
+              ElevatedButton.icon(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  setState(() {
+                    _searchController.clear();
+                    _filtroTexto = '';
+                    _selectedCategoria = 'Todos';
+                    _estadoStockFiltro = 'todos';
+                    _aplicarFiltros();
+                  });
+                },
+                icon: const Icon(LucideIcons.filterX, size: 16),
+                label: Text(
+                  'Restablecer Filtros y Ver Todos',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            TextButton.icon(
               onPressed: _cargarProductos,
-              icon: const Icon(LucideIcons.refreshCw, size: 16),
+              icon: const Icon(LucideIcons.refreshCw, size: 15),
               label: Text(
                 'Sincronizar Inventario',
-                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 12.5),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.brandPrimary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              style: TextButton.styleFrom(
+                foregroundColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
             ),
           ],

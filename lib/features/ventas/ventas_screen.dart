@@ -11,6 +11,7 @@ import '../../core/karliz_sound_service.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/category_helper.dart';
 import 'package:flutter/services.dart';
 
 class VentasScreen extends StatefulWidget {
@@ -98,56 +99,9 @@ class _VentasScreenState extends State<VentasScreen> {
     return _safeDisponibles.where((p) => (p.nombreCategoria?.trim() ?? 'General') == cat).length;
   }
 
-  IconData _getCategoryIcon(String? categoryName) {
-    if (categoryName == null) return LucideIcons.package2;
-    final cat = categoryName.toLowerCase();
-    if (cat.contains('frecuente') || cat.contains('estrella')) return LucideIcons.flame;
-    if (cat.contains('todo')) return LucideIcons.layoutGrid;
-    if (cat.contains('bebid') || cat.contains('gaseos') || cat.contains('cervez') || cat.contains('licor') || cat.contains('agua') || cat.contains('jugo')) {
-      return LucideIcons.cupSoda;
-    }
-    if (cat.contains('snack') || cat.contains('gallet') || cat.contains('piqueo') || cat.contains('frito') || cat.contains('chips')) {
-      return LucideIcons.cookie;
-    }
-    if (cat.contains('abarrot') || cat.contains('arroz') || cat.contains('azucar') || cat.contains('fideo') || cat.contains('aceite') || cat.contains('menestr')) {
-      return LucideIcons.shoppingBasket;
-    }
-    if (cat.contains('limpiez') || cat.contains('detergent') || cat.contains('jabon') || cat.contains('aseo') || cat.contains('shampoo')) {
-      return LucideIcons.sparkles;
-    }
-    if (cat.contains('lacteo') || cat.contains('leche') || cat.contains('yogurt') || cat.contains('queso') || cat.contains('huevo') || cat.contains('embutid')) {
-      return LucideIcons.egg;
-    }
-    if (cat.contains('golosin') || cat.contains('dulce') || cat.contains('caramel') || cat.contains('chocolat')) {
-      return LucideIcons.candy;
-    }
-    return LucideIcons.package2;
-  }
+  IconData _getCategoryIcon(String? categoryName) => CategoryHelper.getIcon(categoryName);
 
-  Color _getCategoryColor(String? categoryName, bool isDark) {
-    if (categoryName == null) return isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
-    final cat = categoryName.toLowerCase();
-    if (cat.contains('frecuente') || cat.contains('estrella')) return const Color(0xFFF97316); // Amber/Orange
-    if (cat.contains('bebid') || cat.contains('gaseos') || cat.contains('cervez') || cat.contains('licor')) {
-      return const Color(0xFF0284C7); // Sky/Blue
-    }
-    if (cat.contains('snack') || cat.contains('gallet') || cat.contains('piqueo')) {
-      return const Color(0xFFF59E0B); // Amber
-    }
-    if (cat.contains('abarrot') || cat.contains('arroz') || cat.contains('aceite')) {
-      return const Color(0xFF10B981); // Emerald
-    }
-    if (cat.contains('limpiez') || cat.contains('aseo')) {
-      return const Color(0xFF06B6D4); // Cyan
-    }
-    if (cat.contains('lacteo') || cat.contains('huevo')) {
-      return const Color(0xFF8B5CF6); // Purple
-    }
-    if (cat.contains('golosin') || cat.contains('dulce')) {
-      return const Color(0xFFEC4899); // Pink
-    }
-    return AppTheme.brandPrimary;
-  }
+  Color _getCategoryColor(String? categoryName, bool isDark) => CategoryHelper.getColor(categoryName, isDark);
 
   void _handleHardwareKey(KeyEvent event) {
     if (event is! KeyDownEvent) return;

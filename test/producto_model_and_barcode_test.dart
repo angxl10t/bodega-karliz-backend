@@ -5,6 +5,8 @@ import 'package:bodega_mobile/features/ventas/venta_model.dart';
 import 'package:bodega_mobile/features/proveedores/proveedor_model.dart';
 import 'package:bodega_mobile/features/compras/compra_model.dart';
 import 'package:bodega_mobile/features/categorias/categoria_model.dart';
+import 'package:bodega_mobile/core/category_helper.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 bool coincideCodigoTest(Producto p, String rawCode) {
   if (rawCode.trim().isEmpty) return false;
@@ -240,6 +242,139 @@ void main() {
       final cat = Categoria.fromJson(json);
       expect(cat.idCategoria, 7);
       expect(cat.nombre, 'Lácteos');
+    });
+  });
+
+  group('CategoryHelper Icon & Theme Mapping Tests', () {
+    test('Correctly maps retail categories to Lucide icons', () {
+      expect(CategoryHelper.getIcon('Bebidas'), LucideIcons.cupSoda);
+      expect(CategoryHelper.getIcon('Gaseosas y Jugos'), LucideIcons.cupSoda);
+      expect(CategoryHelper.getIcon('Snacks y Piqueos'), LucideIcons.cookie);
+      expect(CategoryHelper.getIcon('Abarrotes'), LucideIcons.shoppingBasket);
+      expect(CategoryHelper.getIcon('Limpieza del Hogar'), LucideIcons.sparkles);
+      expect(CategoryHelper.getIcon('Lácteos y Huevos'), LucideIcons.egg);
+      expect(CategoryHelper.getIcon('Golosinas y Dulces'), LucideIcons.candy);
+      expect(CategoryHelper.getIcon('Panadería'), LucideIcons.croissant);
+      expect(CategoryHelper.getIcon('Frutas y Verduras'), LucideIcons.apple);
+      expect(CategoryHelper.getIcon('⭐ Frecuentes'), LucideIcons.flame);
+      expect(CategoryHelper.getIcon('Todos'), LucideIcons.layoutGrid);
+      expect(CategoryHelper.getIcon('Desconocido'), LucideIcons.package2);
+      expect(CategoryHelper.getIcon(null), LucideIcons.package2);
+    });
+
+    test('Returns signature colors in both light and dark themes', () {
+      final lightBebidas = CategoryHelper.getColor('Bebidas', false);
+      final darkBebidas = CategoryHelper.getColor('Bebidas', true);
+      expect(lightBebidas, darkBebidas);
+
+      final nullLight = CategoryHelper.getColor(null, false);
+      final nullDark = CategoryHelper.getColor(null, true);
+      expect(nullLight, isNot(nullDark));
+    });
+  });
+
+  group('Stock Multi-Dimensional Filtering Logic Tests', () {
+    final sampleProducts = [
+      Producto(
+        idProducto: 1,
+        idCategoria: 1,
+        nombreCategoria: 'Bebidas',
+        codigo: 'BEB-01',
+        nombre: 'Inca Kola 500ml',
+        marca: 'Inca Kola',
+        precioVenta: 3.5,
+        stockActual: 4, // Crítico / bajo
+        stockMinimo: 5,
+      ),
+      Producto(
+        idProducto: 2,
+        idCategoria: 1,
+        nombreCategoria: 'Bebidas',
+        codigo: 'BEB-02',
+        nombre: 'Coca Cola 1.5L',
+        marca: 'Coca Cola',
+        precioVenta: 7.0,
+        stockActual: 25, // Óptimo
+        stockMinimo: 5,
+      ),
+      Producto(
+        idProducto: 3,
+        idCategoria: 2,
+        nombreCategoria: 'Snacks',
+        codigo: 'SNK-01',
+        nombre: 'Papas Lays Clásicas',
+        marca: 'Frito-Lay',
+        precioVenta: 2.0,
+        stockActual: 8, // Por agotar (<=10)
+        stockMinimo: 5,
+      ),
+      Producto(
+        idProducto: 4,
+        idCategoria: 3,
+        nombreCategoria: 'Lácteos',
+        codigo: 'LAC-01',
+        nombre: 'Leche Gloria Azul 400g',
+        marca: 'Gloria',
+        precioVenta: 4.2,
+        stockActual: 50, // Óptimo
+        stockMinimo: 10,
+      ),
+    ];
+
+    List<Producto> filtrar({
+      required String query,
+      required String selectedCategoria,
+      required String estadoStock,
+    }) {
+      final q = query.trim().toLowerCase();
+      return sampleProducts.where((p) {
+        if (q.isNotEmpty) {
+          final nombreMatch = p.nombre.toLowerCase().contains(q);
+          final codMatch = p.codigo.toLowerCase().contains(q);
+          final marcaMatch = (p.marca ?? '').toLowerCase().contains(q);
+          final catMatch = (p.nombreCategoria ?? '').toLowerCase().contains(q);
+          if (!nombreMatch && !codMatch && !marcaMatch && !catMatch) return false;
+        }
+
+        if (selectedCategoria != 'Todos') {
+          final cat = p.nombreCategoria?.trim() ?? 'General';
+          if (cat != selectedCategoria) return false;
+        }
+
+        if (estadoStock == 'bajo_stock') {
+          return p.stockActual <= 10;
+        } else if (estadoStock == 'con_stock') {
+          return p.stockActual > 10;
+        }
+        return true;
+      }).toList();
+    }
+
+    test('Filters by Category exclusively', () {
+      final bebidas = filtrar(query: '', selectedCategoria: 'Bebidas', estadoStock: 'todos');
+      expect(bebidas.length, 2);
+
+      final snacks = filtrar(query: '', selectedCategoria: 'Snacks', estadoStock: 'todos');
+      expect(snacks.length, 1);
+      expect(snacks.first.codigo, 'SNK-01');
+    });
+
+    test('Filters simultaneously by Category and Stock Health', () {
+      // Bebidas con bajo stock (<=10) -> Solo BEB-01 (stock 4)
+      final bebidasBajoStock = filtrar(query: '', selectedCategoria: 'Bebidas', estadoStock: 'bajo_stock');
+      expect(bebidasBajoStock.length, 1);
+      expect(bebidasBajoStock.first.codigo, 'BEB-01');
+
+      // Bebidas con stock óptimo (>10) -> Solo BEB-02 (stock 25)
+      final bebidasOptimas = filtrar(query: '', selectedCategoria: 'Bebidas', estadoStock: 'con_stock');
+      expect(bebidasOptimas.length, 1);
+      expect(bebidasOptimas.first.codigo, 'BEB-02');
+    });
+
+    test('Filters by Brand within search query', () {
+      final gloria = filtrar(query: 'gloria', selectedCategoria: 'Todos', estadoStock: 'todos');
+      expect(gloria.length, 1);
+      expect(gloria.first.nombre, 'Leche Gloria Azul 400g');
     });
   });
 }
