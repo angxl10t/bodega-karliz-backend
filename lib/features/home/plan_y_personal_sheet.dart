@@ -87,10 +87,10 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     bool isSubmitting = false;
 
     void generarClaveAleatoria(StateSetter setModalState) {
-      final randomNum = (1000 + (DateTime.now().millisecondsSinceEpoch % 9000)).toString();
-      final claveGenerada = 'CajaYa$randomNum!';
-      passCtrl.text = claveGenerada;
-      confirmPassCtrl.text = claveGenerada;
+      // PIN 100% numérico de 4 dígitos (0-9) para uso ágil en POS
+      final pinGenerado = (1000 + (DateTime.now().millisecondsSinceEpoch % 9000)).toString();
+      passCtrl.text = pinGenerado;
+      confirmPassCtrl.text = pinGenerado;
       setModalState(() {
         obscurePass = false;
         obscureConfirm = false;
@@ -291,7 +291,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Contraseña Inicial *',
+                        'PIN o Contraseña *',
                         style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
                       ),
                       InkWell(
@@ -305,7 +305,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               const Icon(LucideIcons.dices, size: 13, color: AppTheme.brandPrimary),
                               const SizedBox(width: 4),
                               Text(
-                                'Generar PIN/Clave',
+                                'Generar PIN (4 Dígitos)',
                                 style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -324,7 +324,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     obscureText: obscurePass,
                     onChanged: (_) => setModalState(() => modalError = ''),
                     decoration: InputDecoration(
-                      hintText: 'Mínimo 8 caracteres',
+                      hintText: 'PIN numérico de 4 dígitos o clave',
                       prefixIcon: const Icon(LucideIcons.lock, size: 18),
                       suffixIcon: IconButton(
                         icon: Icon(obscurePass ? LucideIcons.eyeOff : LucideIcons.eye, size: 18),
@@ -336,7 +336,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                   // Campo: Confirmar Contraseña
                   Text(
-                    'Confirmar Contraseña *',
+                    'Confirmar PIN o Contraseña *',
                     style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
@@ -345,7 +345,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     obscureText: obscureConfirm,
                     onChanged: (_) => setModalState(() => modalError = ''),
                     decoration: InputDecoration(
-                      hintText: 'Repite la contraseña',
+                      hintText: 'Repite el PIN o contraseña',
                       prefixIcon: const Icon(LucideIcons.checkCheck, size: 18),
                       suffixIcon: IconButton(
                         icon: Icon(obscureConfirm ? LucideIcons.eyeOff : LucideIcons.eye, size: 18),
@@ -400,8 +400,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           setModalState(() => modalError = 'El usuario debe tener al menos 3 caracteres.');
                           return;
                         }
-                        if (p.length < 8) {
-                          setModalState(() => modalError = 'La contraseña debe tener al menos 8 caracteres.');
+                        if (p.length < 4) {
+                          setModalState(() => modalError = 'El PIN o contraseña debe tener al menos 4 dígitos o caracteres.');
                           return;
                         }
                         if (p != cp) {
@@ -493,12 +493,13 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                   Text(modalError, style: const TextStyle(color: Colors.red, fontSize: 12)),
                   const SizedBox(height: 8),
                 ],
-                const Text('Nueva Contraseña (mínimo 8 caracteres):'),
+                const Text('Nuevo PIN o Contraseña (mínimo 4 dígitos):'),
                 const SizedBox(height: 6),
                 TextField(
                   controller: passCtrl,
                   obscureText: obscurePass,
                   decoration: InputDecoration(
+                    hintText: 'PIN de 4 dígitos o contraseña',
                     suffixIcon: IconButton(
                       icon: Icon(obscurePass ? LucideIcons.eyeOff : LucideIcons.eye, size: 18),
                       onPressed: () => setModalState(() => obscurePass = !obscurePass),
@@ -512,8 +513,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
               ElevatedButton(
                 onPressed: () async {
                   final p = passCtrl.text.trim();
-                  if (p.length < 8) {
-                    setModalState(() => modalError = 'Mínimo 8 caracteres.');
+                  if (p.length < 4) {
+                    setModalState(() => modalError = 'Mínimo 4 dígitos.');
                     return;
                   }
                   final messenger = ScaffoldMessenger.of(context);
