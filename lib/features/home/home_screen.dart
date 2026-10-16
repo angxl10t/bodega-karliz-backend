@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<Widget> _screens;
   String _username = 'admin';
   String _userRol = 'ADMIN';
-  String _nombreBodega = 'CajaYa POS';
+  String _nombreBodega = 'Bodega KARLIZ';
   String _plan = 'PRO';
   Timer? _inactivityTimer;
   bool _orientationConfigured = false;
@@ -1207,47 +1207,102 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Flexible(
                         child: Text(
-                          'CajaYa',
+                          _nombreBodega.isNotEmpty ? _nombreBodega : 'Bodega KARLIZ',
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.outfit(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.4,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 7),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2),
                         decoration: BoxDecoration(
-                          color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.2) : AppTheme.surfaceTint,
+                          color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.18) : AppTheme.surfaceTint,
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.4) : AppTheme.borderTint,
+                            color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.45) : AppTheme.borderTint,
+                            width: 1,
                           ),
                         ),
-                        child: Text(
-                          'CLOUD POS',
-                          style: GoogleFonts.outfit(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
-                            color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.accentGreen,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4.5),
+                            Text(
+                              'CLOUD POS',
+                              style: GoogleFonts.outfit(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  Text(
-                    _nombreBodega.isNotEmpty ? _nombreBodega : 'Punto de Venta',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
-                      color: AppTheme.textMuted,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  const SizedBox(height: 1),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Caja #01',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Text(
+                          '•',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'En Línea',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          color: AppTheme.accentGreen,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Text(
+                          '•',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'CajaYa',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10.5,
+                          color: isDark ? const Color(0xFF38BDF8) : AppTheme.brandPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

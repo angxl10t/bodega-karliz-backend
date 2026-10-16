@@ -6,6 +6,7 @@ import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
 import '../productos/nuevo_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
+import '../auth/auth_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -22,6 +23,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final ProductoService _productoService = ProductoService();
   List<Producto> _productos = [];
+  String _nombreBodega = 'Bodega KARLIZ';
   bool _isLoading = true;
 
   @override
@@ -46,9 +48,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _cargarDatos({bool forceRefresh = false}) async {
     setState(() => _isLoading = true);
     final prods = await _productoService.getProductos(forceRefresh: forceRefresh);
+    final nombre = await AuthService().getNombreBodega();
     if (mounted) {
       setState(() {
         _productos = prods;
+        _nombreBodega = nombre;
         _isLoading = false;
       });
     }
@@ -460,7 +464,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFF2DD4BF).withValues(alpha: 0.25),
+                      color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
                       width: 0.8,
                     ),
                   ),
@@ -477,7 +481,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Cloud Sync • En Línea',
+                        'Cloud Sync • Sincronizado en Vivo',
                         style: GoogleFonts.outfit(
                           color: const Color(0xFFE2E8F0),
                           fontSize: 10.5,
@@ -490,17 +494,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Centro de Control CajaYa',
+                  '¡Bienvenido, $_nombreBodega! 👋',
                   style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Gestión unificada de ventas, caja e inventario en tiempo real',
+                  'CajaYa Cloud POS • Ventas, caja e inventario en tiempo real',
                   style: GoogleFonts.plusJakartaSans(
                     color: const Color(0xFF94A3B8),
                     fontSize: 12,
@@ -518,14 +524,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
+                  colors: [AppTheme.brandPrimary, AppTheme.brandDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+                    color: AppTheme.brandPrimary.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
