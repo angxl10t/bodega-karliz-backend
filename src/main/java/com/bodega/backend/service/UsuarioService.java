@@ -16,10 +16,14 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, 
+                          PasswordEncoder passwordEncoder,
+                          com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userSecurityCacheService = userSecurityCacheService;
     }
 
     @Transactional(readOnly = true)
@@ -75,6 +79,7 @@ public class UsuarioService {
 
         usuario.setEstado(nuevoEstado);
         usuarioRepository.save(usuario);
+        userSecurityCacheService.evict(usuario.getUsername());
         return mapToDTO(usuario);
     }
 
@@ -95,6 +100,7 @@ public class UsuarioService {
         usuario.setPassword(passwordEncoder.encode(nuevaPassword.trim()));
         usuario.setFechaCambioClave(OffsetDateTime.now());
         usuarioRepository.save(usuario);
+        userSecurityCacheService.evict(usuario.getUsername());
     }
 
     private UsuarioDTO mapToDTO(Usuario u) {

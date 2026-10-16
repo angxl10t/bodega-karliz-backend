@@ -29,15 +29,18 @@ public class AuthController {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoginRateLimiterService loginRateLimiterService;
+    private final com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, 
                           UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
-                          LoginRateLimiterService loginRateLimiterService) {
+                          LoginRateLimiterService loginRateLimiterService,
+                          com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.loginRateLimiterService = loginRateLimiterService;
+        this.userSecurityCacheService = userSecurityCacheService;
     }
 
     @PostMapping("/login")
@@ -159,6 +162,7 @@ public class AuthController {
         usuario.setPassword(passwordEncoder.encode(dto.getNuevaPassword()));
         usuario.setFechaCambioClave(java.time.OffsetDateTime.now());
         usuarioRepository.save(usuario);
+        userSecurityCacheService.evict(username);
 
         Map<String, String> response = new HashMap<>();
         response.put("mensaje", "Contraseña actualizada exitosamente.");

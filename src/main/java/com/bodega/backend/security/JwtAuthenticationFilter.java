@@ -1,7 +1,5 @@
 package com.bodega.backend.security;
 
-import com.bodega.backend.entity.Usuario;
-import com.bodega.backend.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,12 +19,12 @@ import java.util.Date;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UsuarioRepository usuarioRepository;
+    private final UserSecurityCacheService userSecurityCacheService;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, 
-                                   UsuarioRepository usuarioRepository) {
+                                   UserSecurityCacheService userSecurityCacheService) {
         this.jwtUtil = jwtUtil;
-        this.usuarioRepository = usuarioRepository;
+        this.userSecurityCacheService = userSecurityCacheService;
     }
 
     @Override
@@ -48,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username).orElse(null);
+            UserSecurityProfile usuario = userSecurityCacheService.getSecurityProfile(username).orElse(null);
 
             if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) && jwtUtil.validateToken(jwt, usuario.getUsername())) {
                 // Validación de revocación de sesión: si la contraseña cambió luego de emitir el token, se invalida
