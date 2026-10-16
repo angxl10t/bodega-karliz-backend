@@ -85,8 +85,8 @@ public class UsuarioService {
 
     @Transactional
     public void resetearPassword(Long idUsuario, String nuevaPassword, String adminActual) {
-        if (nuevaPassword == null || nuevaPassword.trim().length() < 8) {
-            throw new RuntimeException("La nueva contraseña debe tener al menos 8 caracteres.");
+        if (nuevaPassword == null || nuevaPassword.trim().length() < 8 || nuevaPassword.trim().length() > 72) {
+            throw new RuntimeException("La nueva contraseña debe tener entre 8 y 72 caracteres.");
         }
 
         Usuario usuario = usuarioRepository.findById(idUsuario)

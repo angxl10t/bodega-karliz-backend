@@ -29,13 +29,16 @@ public class ProductoDTO {
 
     @NotNull(message = "El precio de venta es obligatorio")
     @DecimalMin(value = "0.0", inclusive = false, message = "El precio debe ser mayor a 0")
+    @DecimalMax(value = "999999.99", message = "El precio de venta no puede exceder 999,999.99")
     private BigDecimal precioVenta;
 
     @DecimalMin(value = "0.0", message = "El stock no puede ser negativo")
+    @DecimalMax(value = "999999.999", message = "El stock no puede exceder 999,999.999")
     private BigDecimal stockActual;
 
     @NotNull(message = "El stock mínimo es obligatorio")
     @DecimalMin(value = "0.0", message = "El stock mínimo no puede ser negativo")
+    @DecimalMax(value = "999999.999", message = "El stock mínimo no puede exceder 999,999.999")
     private BigDecimal stockMinimo;
 
     private Boolean controlaVencimiento;

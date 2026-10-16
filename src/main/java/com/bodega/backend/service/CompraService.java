@@ -96,10 +96,10 @@ public class CompraService {
         List<CompraDetalle> detallesGuardados = new ArrayList<>();
         
         for (Long idProd : idsProductosOrdenados) {
-            BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd);
-            BigDecimal precioUnitario = preciosPorProducto.get(idProd);
+            BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
+            BigDecimal precioUnitario = preciosPorProducto.get(idProd).setScale(2, java.math.RoundingMode.HALF_UP);
 
-            if (precioUnitario == null || precioUnitario.compareTo(BigDecimal.ZERO) <= 0) {
+            if (precioUnitario.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new RuntimeException("El precio unitario de compra debe ser mayor a cero.");
             }
 

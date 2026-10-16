@@ -23,6 +23,7 @@ public class CompraDTO {
     private String usuarioRegistro;
 
     @NotEmpty(message = "La compra debe tener al menos un detalle")
+    @Size(max = 100, message = "La compra no puede contener más de 100 productos diferentes")
     @Valid
     private List<CompraDetalleDTO> detalles;
 }

@@ -8,9 +8,10 @@ import lombok.Data;
 public class CambiarPasswordDTO {
 
     @NotBlank(message = "La contraseña actual es obligatoria")
+    @Size(max = 72, message = "La contraseña actual no puede exceder 72 caracteres")
     private String passwordActual;
 
     @NotBlank(message = "La nueva contraseña es obligatoria")
-    @Size(min = 8, message = "La nueva contraseña debe tener al menos 8 caracteres")
+    @Size(min = 8, max = 72, message = "La nueva contraseña debe tener entre 8 y 72 caracteres")
     private String nuevaPassword;
 }

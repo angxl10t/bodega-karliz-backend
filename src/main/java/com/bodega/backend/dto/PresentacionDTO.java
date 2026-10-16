@@ -1,5 +1,6 @@
 package com.bodega.backend.dto;
 
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,6 +23,7 @@ public class PresentacionDTO {
 
     @NotNull(message = "El factor de conversión es obligatorio")
     @DecimalMin(value = "0.001", message = "El factor de conversión debe ser mayor a 0")
+    @DecimalMax(value = "99999.999", message = "El factor de conversión no puede exceder 99,999.999")
     private BigDecimal factorConversion;
 
     private Boolean estado;

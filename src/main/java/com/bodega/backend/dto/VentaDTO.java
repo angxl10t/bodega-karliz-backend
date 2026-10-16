@@ -34,6 +34,7 @@ public class VentaDTO {
     private String motivoAnulacion;
 
     @NotEmpty(message = "La venta debe tener al menos un producto")
+    @Size(max = 100, message = "La venta no puede contener más de 100 productos diferentes")
     @Valid
     private List<VentaDetalleDTO> detalles;
 }

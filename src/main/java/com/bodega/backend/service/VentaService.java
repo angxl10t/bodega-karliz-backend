@@ -78,7 +78,7 @@ public class VentaService {
         Collections.sort(idsProductosOrdenados);
 
         for (Long idProd : idsProductosOrdenados) {
-            BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd);
+            BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
 
             // Bloqueo pesimista exclusivo para evitar Race Conditions / sobreventas simultáneas
             Producto producto = productoRepository.findByIdForUpdate(idProd)
@@ -97,7 +97,7 @@ public class VentaService {
             }
 
             // Seguridad: El precio se extrae directamente de la base de datos con redondeo comercial exacto
-            BigDecimal precioFinal = producto.getPrecioVenta();
+            BigDecimal precioFinal = producto.getPrecioVenta().setScale(2, java.math.RoundingMode.HALF_UP);
             BigDecimal subtotal = cantidadTotal.multiply(precioFinal).setScale(2, java.math.RoundingMode.HALF_UP);
             totalVenta = totalVenta.add(subtotal);
 
@@ -336,7 +336,7 @@ public class VentaService {
 
         // 2. Restaurar stock en inventario con bloqueo pesimista exclusivo (PESSIMISTIC_WRITE) y registrar en Kardex
         for (Long idProd : idsProductosOrdenados) {
-            BigDecimal cantidadRestaurar = cantidadesARestaurar.get(idProd);
+            BigDecimal cantidadRestaurar = cantidadesARestaurar.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
             Producto prod = productoRepository.findByIdForUpdate(idProd)
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado para reponer stock: " + idProd));
 
