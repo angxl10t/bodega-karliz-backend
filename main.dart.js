@@ -51800,7 +51800,7 @@ a2.push(A.U(A.a([A.kH(e,A.U(A.a([A.Q(e,s,B.i,e,e,new A.S(r,e,p,q,e,e,e,B.m),e,18
 a2.push(B.dB)
 s=f.r
 r=s?e:f.gar8()
-a2.push(A.be(A.fv(s?B.a3u:B.a9g,r,e),50,1/0))
+a2.push(A.be(A.fv(s?B.a3u:B.a9f,r,e),50,1/0))
 a2.push(B.bz)
 r=A.t(10)
 s=A.bb(B.ed,a4?B.aY:B.j,e,15)
@@ -53423,7 +53423,7 @@ s=o.at
 r=A.hm(B.mg,n,n,s?n:new A.ayH(a),n,n)
 s=s?n:o.gaiO()
 q=A.dy(n,n,o.Zq(o.Q),n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n)
-j.push(A.U(A.a([r,B.aM,A.fv(o.at?B.a3r:B.a9i,s,q)],i),B.k,B.h2,B.h,0))
+j.push(A.U(A.a([r,B.aM,A.fv(o.at?B.a3r:B.a9h,s,q)],i),B.k,B.h2,B.h,0))
 return A.aSo(n,l,new A.da(B.IW,new A.aE(B.kK,A.a4(j,B.k,B.f,B.E),n),n),n,n,n,n,B.G5,n,new A.aA(k,B.r),n)},
 Zq(a){var s,r,q
 try{s=B.b.aw(A.bV(a,"#",""))
@@ -53877,7 +53877,7 @@ $1(a){var s,r,q=null,p=this.b,o=p?B.aj:B.bo
 o=A.bu(A.Q(q,q,B.i,q,q,new A.S(o,q,q,A.t(10),q,q,q,B.m),q,4,q,q,q,q,40),q,q)
 s=t.p
 r=this.a
-return new A.aE(B.uz,A.a4(A.a([o,B.bz,A.U(A.a([B.t9,B.au,A.ai(A.a4(A.a([A.j("Gu\xeda R\xe1pida CajaYa POS",q,q,q,q,A.ab().$3$color$fontSize$fontWeight(p?B.e:B.z,18,B.v),q,q,q),A.j("Organizaci\xf3n inteligente en 5 m\xf3dulos",q,q,q,q,A.u().$2$color$fontSize(B.u,12),q,q,q)],s),B.y,B.f,B.h),1)],s),B.k,B.f,B.h,0),B.bz,r.wA("Revisa el valor de tu mercader\xeda, alertas de stock por agotarse y accesos directos.",B.l4,p,"1. Inicio (Panel de Control)"),r.wA("Toca productos para armar la canasta, elige Efectivo/Yape/Plin/Tarjeta y cobra al instante.",B.eX,p,"2. POS (Cobrar Venta)"),r.wA("Consulta el total recaudado del d\xeda por m\xe9todo de pago y audita o anula ventas pasadas.",B.ef,p,"3. Caja (Arqueo & Historial)"),r.wA("Sem\xe1foro visual de inventario (\xd3ptimo, Bajo, Cr\xedtico), edici\xf3n de precios y Kardex.",B.eT,p,"4. Stock (Inventario & Kardex)"),r.wA("Ingresa facturas o boletas con m\xfaltiples productos a la vez para abastecer tu almac\xe9n.",B.eV,p,"5. Compras (Proveedores)"),B.aS,A.be(A.fv(B.a9a,new A.aCt(a),q),q,1/0)],s),B.y,B.f,B.E),q)},
+return new A.aE(B.uz,A.a4(A.a([o,B.bz,A.U(A.a([B.t9,B.au,A.ai(A.a4(A.a([A.j("Gu\xeda R\xe1pida CajaYa POS",q,q,q,q,A.ab().$3$color$fontSize$fontWeight(p?B.e:B.z,18,B.v),q,q,q),A.j("Organizaci\xf3n inteligente en 5 m\xf3dulos",q,q,q,q,A.u().$2$color$fontSize(B.u,12),q,q,q)],s),B.y,B.f,B.h),1)],s),B.k,B.f,B.h,0),B.bz,r.wA("Revisa el valor de tu mercader\xeda, alertas de stock por agotarse y accesos directos.",B.l4,p,"1. Inicio (Panel de Control)"),r.wA("Toca productos para armar la canasta, elige Efectivo/Yape/Plin/Tarjeta y cobra al instante.",B.eX,p,"2. POS (Cobrar Venta)"),r.wA("Consulta el total recaudado del d\xeda por m\xe9todo de pago y audita o anula ventas pasadas.",B.ef,p,"3. Caja (Arqueo & Historial)"),r.wA("Sem\xe1foro visual de inventario (\xd3ptimo, Bajo, Cr\xedtico), edici\xf3n de precios y Kardex.",B.eT,p,"4. Stock (Inventario & Kardex)"),r.wA("Ingresa facturas o boletas con m\xfaltiples productos a la vez para abastecer tu almac\xe9n.",B.eV,p,"5. Compras (Proveedores)"),B.aS,A.be(A.fv(B.a99,new A.aCt(a),q),q,1/0)],s),B.y,B.f,B.E),q)},
 $S:171}
 A.aCt.prototype={
 $0(){A.bd(this.a,!1).bi(null)
@@ -53940,7 +53940,7 @@ s=3
 break
 case 4:s=6
 return A.h(A.anW(),$async$$0)
-case 6:if(p.e!=null)p.V(t.q).f.cm(A.dN(null,null,null,null,B.c3,B.x,null,B.a9r,null,B.dO,null,null,null,null,null,null,null,new A.aA(A.t(12),B.r),null,null))
+case 6:if(p.e!=null)p.V(t.q).f.cm(A.dN(null,null,null,null,B.c3,B.x,null,B.a9q,null,B.dO,null,null,null,null,null,null,null,new A.aA(A.t(12),B.r),null,null))
 case 3:return A.n(null,r)}})
 return A.o($async$$0,r)},
 $S:3}
@@ -54256,7 +54256,7 @@ s.r="No se pudo cargar la lista de personal."
 s.f=!1},
 $S:0}
 A.aGN.prototype={
-$1(a){var s="CajaYa"+B.o.k(1000+B.o.b4(Date.now(),9000))+"!"
+$1(a){var s=B.o.k(1000+B.o.b4(Date.now(),9000))
 this.b.sbe(s)
 this.c.sbe(s)
 a.$1(new A.aGO(this.a))
@@ -54297,17 +54297,17 @@ l=p?B.fY:B.vn
 l=A.bb(l,p?B.dh:B.c8,g,13)
 k=p?"Ya tienes a este usuario activo en tu equipo.":"Este usuario existe desactivado. Al guardar se reactivar\xe1."
 B.c.N(s,A.a([B.ae,A.Q(g,A.U(A.a([l,B.aR,A.ai(A.j(k,g,g,g,g,A.u().$3$color$fontSize$fontWeight(p?B.dh:B.c8,11,B.C),g,g,g),1)],a1),B.k,B.f,B.h,0),B.i,g,g,new A.S(o,g,m,n,g,g,g,B.m),g,g,g,B.cK,g,g,g)],a1))}s.push(B.ah)
-s.push(A.U(A.a([A.j("Contrase\xf1a Inicial *",g,g,g,g,A.ab().$2$fontSize$fontWeight(12.5,B.p),g,g,g),A.cp(!1,A.t(6),!0,new A.aE(B.eN,A.U(A.a([B.T9,B.cz,A.j("Generar PIN/Clave",g,g,g,g,A.ab().$3$color$fontSize$fontWeight(B.j,11,B.p),g,g,g)],a1),B.k,B.f,B.E,0),g),g,!0,g,g,g,g,g,g,g,g,g,g,new A.aGD(h.d,a3),g,g,g,g,g,g,g)],a1),B.k,B.ag,B.h,0))
+s.push(A.U(A.a([A.j("PIN o Contrase\xf1a *",g,g,g,g,A.ab().$2$fontSize$fontWeight(12.5,B.p),g,g,g),A.cp(!1,A.t(6),!0,new A.aE(B.eN,A.U(A.a([B.T9,B.cz,A.j("Generar PIN (4 D\xedgitos)",g,g,g,g,A.ab().$3$color$fontSize$fontWeight(B.j,11,B.p),g,g,g)],a1),B.k,B.f,B.E,0),g),g,!0,g,g,g,g,g,g,g,g,g,g,new A.aGD(h.d,a3),g,g,g,g,g,g,g)],a1),B.k,B.ag,B.h,0))
 s.push(B.b5)
 p=h.e
 o=r.c
-s.push(A.dG(g,B.aB,!1,g,!0,B.x,g,A.dR(),p,g,g,g,g,g,2,A.cF(g,g,g,g,g,g,g,g,!0,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,"M\xednimo 8 caracteres",g,g,g,g,g,g,g,g,g,!0,!0,!1,g,B.vX,g,g,g,g,g,g,A.cU(g,g,A.bb(o?B.iW:B.fW,g,g,18),g,g,new A.aGE(r,a3),g,g,g,g),g,g,g,g,g),B.G,!0,g,!0,g,!1,g,B.aA,g,g,g,g,g,g,g,g,1,g,g,o,"\u2022",g,new A.aGF(r,a3),g,g,g,!1,g,g,!1,g,!0,g,B.ar,g,g,g,g,g,g,g,g,g,g,g,g,!0,B.a6,g,B.a2,g,g,g,g))
+s.push(A.dG(g,B.aB,!1,g,!0,B.x,g,A.dR(),p,g,g,g,g,g,2,A.cF(g,g,g,g,g,g,g,g,!0,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,"PIN num\xe9rico de 4 d\xedgitos o clave",g,g,g,g,g,g,g,g,g,!0,!0,!1,g,B.vX,g,g,g,g,g,g,A.cU(g,g,A.bb(o?B.iW:B.fW,g,g,18),g,g,new A.aGE(r,a3),g,g,g,g),g,g,g,g,g),B.G,!0,g,!0,g,!1,g,B.aA,g,g,g,g,g,g,g,g,1,g,g,o,"\u2022",g,new A.aGF(r,a3),g,g,g,!1,g,g,!1,g,!0,g,B.ar,g,g,g,g,g,g,g,g,g,g,g,g,!0,B.a6,g,B.a2,g,g,g,g))
 s.push(B.ah)
-s.push(A.j("Confirmar Contrase\xf1a *",g,g,g,g,A.ab().$2$fontSize$fontWeight(12.5,B.p),g,g,g))
+s.push(A.j("Confirmar PIN o Contrase\xf1a *",g,g,g,g,A.ab().$2$fontSize$fontWeight(12.5,B.p),g,g,g))
 s.push(B.b5)
 o=h.f
 n=r.b
-s.push(A.dG(g,B.aB,!1,g,!0,B.x,g,A.dR(),o,g,g,g,g,g,2,A.cF(g,g,g,g,g,g,g,g,!0,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,"Repite la contrase\xf1a",g,g,g,g,g,g,g,g,g,!0,!0,!1,g,B.l9,g,g,g,g,g,g,A.cU(g,g,A.bb(n?B.iW:B.fW,g,g,18),g,g,new A.aGG(r,a3),g,g,g,g),g,g,g,g,g),B.G,!0,g,!0,g,!1,g,B.aA,g,g,g,g,g,g,g,g,1,g,g,n,"\u2022",g,new A.aGH(r,a3),g,g,g,!1,g,g,!1,g,!0,g,B.ar,g,g,g,g,g,g,g,g,g,g,g,g,!0,B.a6,g,B.a2,g,g,g,g))
+s.push(A.dG(g,B.aB,!1,g,!0,B.x,g,A.dR(),o,g,g,g,g,g,2,A.cF(g,g,g,g,g,g,g,g,!0,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,g,"Repite el PIN o contrase\xf1a",g,g,g,g,g,g,g,g,g,!0,!0,!1,g,B.l9,g,g,g,g,g,g,A.cU(g,g,A.bb(n?B.iW:B.fW,g,g,18),g,g,new A.aGG(r,a3),g,g,g,g),g,g,g,g,g),B.G,!0,g,!0,g,!1,g,B.aA,g,g,g,g,g,g,g,g,1,g,g,n,"\u2022",g,new A.aGH(r,a3),g,g,g,!1,g,g,!1,g,!0,g,B.ar,g,g,g,g,g,g,g,g,g,g,g,g,!0,B.a6,g,B.a2,g,g,g,g))
 s.push(B.ah)
 s.push(A.j("Rol y Nivel de Acceso",g,g,g,g,A.ab().$2$fontSize$fontWeight(12.5,B.p),g,g,g))
 s.push(B.b5)
@@ -54388,7 +54388,7 @@ a=B.b.aw(n.d.a.a)
 a0=B.b.aw(n.e.a.a)
 if(J.cz(b)<3){n.f.$1(new A.aGo(n.a))
 s=1
-break}if(J.cz(a)<8){n.f.$1(new A.aGp(n.a))
+break}if(J.cz(a)<4){n.f.$1(new A.aGp(n.a))
 s=1
 break}if(!J.d(a,a0)){n.f.$1(new A.aGq(n.a))
 s=1
@@ -54429,7 +54429,7 @@ A.aGo.prototype={
 $0(){return this.a.e="El usuario debe tener al menos 3 caracteres."},
 $S:0}
 A.aGp.prototype={
-$0(){return this.a.e="La contrase\xf1a debe tener al menos 8 caracteres."},
+$0(){return this.a.e="El PIN o contrase\xf1a debe tener al menos 4 d\xedgitos o caracteres."},
 $S:0}
 A.aGq.prototype={
 $0(){return this.a.e="Las contrase\xf1as no coinciden. Verif\xedcalas."},
@@ -54452,11 +54452,11 @@ $S:53}
 A.aGV.prototype={
 $2(a,b){var s,r=this,q=null,p=A.J(a).ax.a===B.Z?B.bi:B.e,o=A.t(20),n=r.c,m=A.j("Resetear Clave: "+n.b,q,q,q,q,A.ab().$2$fontSize$fontWeight(16,B.v),q,q,q),l=t.p,k=A.a([],l),j=r.a,i=j.b
 if(i.length!==0)B.c.N(k,A.a([A.j(i,q,q,q,q,B.a8n,q,q,q),B.bA],l))
-k.push(B.a98)
+k.push(B.a9r)
 k.push(B.ae)
 i=r.d
 s=j.a
-k.push(A.dG(q,B.aB,!1,q,!0,B.x,q,A.dR(),i,q,q,q,q,q,2,A.cF(q,q,q,q,q,q,q,q,!0,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,!0,!0,!1,q,q,q,q,q,q,q,q,A.cU(q,q,A.bb(s?B.iW:B.fW,q,q,18),q,q,new A.aGS(j,b),q,q,q,q),q,q,q,q,q),B.G,!0,q,!0,q,!1,q,B.aA,q,q,q,q,q,q,q,q,1,q,q,s,"\u2022",q,q,q,q,q,!1,q,q,!1,q,!0,q,B.ar,q,q,q,q,q,q,q,q,q,q,q,q,!0,B.a6,q,B.a2,q,q,q,q))
+k.push(A.dG(q,B.aB,!1,q,!0,B.x,q,A.dR(),i,q,q,q,q,q,2,A.cF(q,q,q,q,q,q,q,q,!0,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,"PIN de 4 d\xedgitos o contrase\xf1a",q,q,q,q,q,q,q,q,q,!0,!0,!1,q,q,q,q,q,q,q,q,A.cU(q,q,A.bb(s?B.iW:B.fW,q,q,18),q,q,new A.aGS(j,b),q,q,q,q),q,q,q,q,q),B.G,!0,q,!0,q,!1,q,B.aA,q,q,q,q,q,q,q,q,1,q,q,s,"\u2022",q,q,q,q,q,!1,q,q,!1,q,!0,q,B.ar,q,q,q,q,q,q,q,q,q,q,q,q,!0,B.a6,q,B.a2,q,q,q,q))
 k=A.a4(k,B.y,B.f,B.E)
 s=r.e
 return A.jJ(A.a([A.hm(B.mg,q,q,new A.aGT(s),q,q),A.fv(B.a9B,new A.aGU(j,r.b,i,b,a,n,s),q)],l),p,k,q,new A.aA(o,B.r),m)},
@@ -54476,7 +54476,7 @@ A.aGU.prototype={
 $0(){var s=0,r=A.p(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g
 var $async$$0=A.q(function(a,b){if(a===1){o.push(b)
 s=p}for(;;)switch(s){case 0:h=B.b.aw(n.c.a.a)
-if(J.cz(h)<8){n.d.$1(new A.aGP(n.a))
+if(J.cz(h)<4){n.d.$1(new A.aGP(n.a))
 s=1
 break}m=n.e.V(t.q).f
 p=4
@@ -54502,7 +54502,7 @@ case 2:return A.m(o.at(-1),r)}})
 return A.o($async$$0,r)},
 $S:3}
 A.aGP.prototype={
-$0(){return this.a.b="M\xednimo 8 caracteres."},
+$0(){return this.a.b="M\xednimo 4 d\xedgitos."},
 $S:0}
 A.aGQ.prototype={
 $0(){var s=J.ck(this.b)
@@ -57472,10 +57472,10 @@ f=A.dG(q,B.aB,!0,q,!0,B.x,q,A.dR(),g,q,q,q,q,q,2,A.cF(q,new A.ca(4,A.t(16),B.ft)
 s=A.a([],n)
 k=k.x
 if(k>=6)s.push(A.a6Q(q,B.a9s,q,new A.aNV(g),q,q))
-if(k>=12)s.push(A.a6Q(q,B.a9c,q,new A.aNW(g),q,q))
+if(k>=12)s.push(A.a6Q(q,B.a9b,q,new A.aNW(g),q,q))
 if(k>=24)s.push(A.a6Q(q,B.a96,q,new A.aNX(g),q,q))
 k=A.a4(A.a([j,B.b5,h,B.al,f,B.ah,A.kk(s,B.cC,6,6)],n),B.y,B.f,B.E)
-return A.jJ(A.a([A.hm(B.mg,q,q,new A.aNY(a),q,q),A.fv(B.a9d,new A.aNZ(r.a,g,l,r.f,a,i),A.dy(q,q,B.j,q,q,q,q,q,q,B.e,q,q,q,q,new A.aA(A.t(16),B.r),q,q,q,q,q))],n),p,k,q,new A.aA(o,B.r),m)},
+return A.jJ(A.a([A.hm(B.mg,q,q,new A.aNY(a),q,q),A.fv(B.a9c,new A.aNZ(r.a,g,l,r.f,a,i),A.dy(q,q,B.j,q,q,q,q,q,q,B.e,q,q,q,q,new A.aA(A.t(16),B.r),q,q,q,q,q))],n),p,k,q,new A.aA(o,B.r),m)},
 $S:41}
 A.aNV.prototype={
 $0(){this.a.sbe("6")
@@ -57679,7 +57679,7 @@ o=j?B.z:B.cX
 n=A.t(14)
 m=A.aI(j?B.I:B.F,B.n,1)
 s=A.be(A.Q(k,A.fi(new A.GP(r,B.a5R,k),k,B.G,k,k,B.a1),B.i,k,k,new A.S(o,k,m,n,k,k,k,B.m),k,k,k,B.cL,k,k,k),340,s)
-return A.jJ(A.a([A.kd(B.RQ,B.a9m,new A.aOf(r,a),k),A.fv(B.a9k,new A.aOg(l.w),A.dy(k,k,B.j,k,k,k,k,k,k,B.e,k,k,k,k,new A.aA(A.t(20),B.r),k,k,k,k,k))],q),i,s,k,new A.aA(h,B.r),p)},
+return A.jJ(A.a([A.kd(B.RQ,B.a9l,new A.aOf(r,a),k),A.fv(B.a9j,new A.aOg(l.w),A.dy(k,k,B.j,k,k,k,k,k,k,B.e,k,k,k,k,new A.aA(A.t(20),B.r),k,k,k,k,k))],q),i,s,k,new A.aA(h,B.r),p)},
 $S:95}
 A.aOe.prototype={
 $1(a){this.b.$1(new A.aOd(this.a,a))},
@@ -118610,11 +118610,11 @@ B.vM=new A.a8(B.ef,null,null,null,null)
 B.a95=new A.c2("Caja",null,null,null,null,null,null,null,null,null,null)
 B.ZC=new A.pC(B.vM,B.vM,B.a95)
 B.vU=new A.a8(B.eT,null,null,null,null)
-B.a9o=new A.c2("Stock",null,null,null,null,null,null,null,null,null,null)
-B.ZB=new A.pC(B.vU,B.vU,B.a9o)
+B.a9n=new A.c2("Stock",null,null,null,null,null,null,null,null,null,null)
+B.ZB=new A.pC(B.vU,B.vU,B.a9n)
 B.vO=new A.a8(B.eV,null,null,null,null)
-B.a9p=new A.c2("Compras",null,null,null,null,null,null,null,null,null,null)
-B.ZA=new A.pC(B.vO,B.vO,B.a9p)
+B.a9o=new A.c2("Compras",null,null,null,null,null,null,null,null,null,null)
+B.ZA=new A.pC(B.vO,B.vO,B.a9o)
 B.Vy=s([B.Zz,B.Zy,B.ZC,B.ZB,B.ZA],A.aG("K<pC>"))
 B.RL=new A.a8(B.eV,17,null,null,null)
 B.a4n=new A.v1("Nueva Compra en Lote",B.RL,null)
@@ -118645,10 +118645,10 @@ B.abI=new A.oj(8,0.12)
 B.abH=new A.oj(12,0.14)
 B.wj=s([B.abG,B.abL,B.abJ,B.abK,B.abI,B.abH],A.aG("K<oj>"))
 B.wk=s([0,21,51,121,151,191,271,321,360],t.n)
-B.a9n=new A.c2("CAJERO (POS, Ventas y Caja)",null,null,null,null,null,null,null,null,null,null)
-B.O3=new A.fu("CAJERO",B.a9n,B.cS,null,t.b7)
-B.a9f=new A.c2("ADMIN (Acceso Total y Ajustes)",null,null,null,null,null,null,null,null,null,null)
-B.O4=new A.fu("ADMIN",B.a9f,B.cS,null,t.b7)
+B.a9m=new A.c2("CAJERO (POS, Ventas y Caja)",null,null,null,null,null,null,null,null,null,null)
+B.O3=new A.fu("CAJERO",B.a9m,B.cS,null,t.b7)
+B.a9e=new A.c2("ADMIN (Acceso Total y Ajustes)",null,null,null,null,null,null,null,null,null,null)
+B.O4=new A.fu("ADMIN",B.a9e,B.cS,null,t.b7)
 B.VM=s([B.O3,B.O4],A.aG("K<fu<v>>"))
 B.a92=new A.c2("General (Abarrotes)",null,null,null,null,null,null,null,null,null,null)
 B.O5=new A.fu(1,B.a92,B.cS,null,t.kZ)
@@ -119986,8 +119986,8 @@ B.da=new A.au9(1,"down")
 B.St=new A.a8(B.iT,12,B.e,null,null)
 B.cz=new A.bX(4,null,null,null)
 B.a8L=new A.G(!0,B.e,null,null,null,null,9,B.an,null,0.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a9h=new A.c2("1-CLICK",null,B.a8L,null,null,null,null,null,null,null,null)
-B.VX=s([B.St,B.cz,B.a9h],t.p)
+B.a9g=new A.c2("1-CLICK",null,B.a8L,null,null,null,null,null,null,null,null)
+B.VX=s([B.St,B.cz,B.a9g],t.p)
 B.a1g=new A.uC(B.aZ,B.f,B.E,B.k,null,B.da,null,0,B.VX,null)
 B.a1h=new A.Gy(1333)
 B.pW=new A.Gy(2222)
@@ -120283,30 +120283,30 @@ B.a3B=new A.m7(3,"hide")
 B.adu=new A.m7(4,"remove")
 B.a3C=new A.m7(5,"timeout")
 B.a3D=new A.yT(null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a9q=new A.c2("\xa1Texto del ticket copiado al portapapeles!",null,null,null,null,null,null,null,null,null,null)
-B.a3E=new A.fj(B.a9q,B.O,null,null,null,null,null,null,null,null,null,null,null,B.dO,!1,null,null,null,B.x,null)
+B.a9p=new A.c2("\xa1Texto del ticket copiado al portapapeles!",null,null,null,null,null,null,null,null,null,null)
+B.a3E=new A.fj(B.a9p,B.O,null,null,null,null,null,null,null,null,null,null,null,B.dO,!1,null,null,null,B.x,null)
 B.a9z=new A.c2("Agrega al menos un producto a la orden de compra",null,null,null,null,null,null,null,null,null,null)
 B.a3F=new A.fj(B.a9z,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
-B.a9b=new A.c2("PIN de caja configurado con \xe9xito.",null,null,null,null,null,null,null,null,null,null)
-B.a3G=new A.fj(B.a9b,B.O,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
+B.a9a=new A.c2("PIN de caja configurado con \xe9xito.",null,null,null,null,null,null,null,null,null,null)
+B.a3G=new A.fj(B.a9a,B.O,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
 B.a94=new A.c2("El precio de venta debe ser mayor a 0",null,null,null,null,null,null,null,null,null,null)
 B.a3H=new A.fj(B.a94,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
-B.a9j=new A.c2("La personalizaci\xf3n de paleta de colores exclusiva requiere el Plan Minimarket Pro.",null,null,null,null,null,null,null,null,null,null)
-B.a3I=new A.fj(B.a9j,B.j,null,null,null,null,null,null,null,null,null,null,null,B.iD,!1,null,null,null,B.x,null)
+B.a9i=new A.c2("La personalizaci\xf3n de paleta de colores exclusiva requiere el Plan Minimarket Pro.",null,null,null,null,null,null,null,null,null,null)
+B.a3I=new A.fj(B.a9i,B.j,null,null,null,null,null,null,null,null,null,null,null,B.iD,!1,null,null,null,B.x,null)
 B.a9D=new A.c2("Selecciona un proveedor",null,null,null,null,null,null,null,null,null,null)
 B.a3J=new A.fj(B.a9D,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
-B.a9l=new A.c2("Error al dar de baja el producto",null,null,null,null,null,null,null,null,null,null)
-B.a3K=new A.fj(B.a9l,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
-B.a9e=new A.c2("Producto dado de baja con \xe9xito",null,null,null,null,null,null,null,null,null,null)
-B.a3L=new A.fj(B.a9e,B.dh,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
+B.a9k=new A.c2("Error al dar de baja el producto",null,null,null,null,null,null,null,null,null,null)
+B.a3K=new A.fj(B.a9k,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
+B.a9d=new A.c2("Producto dado de baja con \xe9xito",null,null,null,null,null,null,null,null,null,null)
+B.a3L=new A.fj(B.a9d,B.dh,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
 B.a9v=new A.c2("Actualizaci\xf3n descargada. Reinicia la app para aplicar cambios.",null,null,null,null,null,null,null,null,null,null)
 B.a3M=new A.fj(B.a9v,B.O,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
 B.a9y=new A.c2("\u26a0\ufe0f No se pudo determinar el ID del proveedor. Vuelve a seleccionarlo de la lista.",null,null,null,null,null,null,null,null,null,null)
 B.a3N=new A.fj(B.a9y,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
 B.a9E=new A.c2("Ingresa valores v\xe1lidos",null,null,null,null,null,null,null,null,null,null)
 B.a3O=new A.fj(B.a9E,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
-B.a99=new A.c2("El precio debe ser mayor a 0",null,null,null,null,null,null,null,null,null,null)
-B.a3P=new A.fj(B.a99,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
+B.a98=new A.c2("El precio debe ser mayor a 0",null,null,null,null,null,null,null,null,null,null)
+B.a3P=new A.fj(B.a98,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
 B.a9H=new A.c2("La canasta est\xe1 vac\xeda. A\xf1ade productos para cobrar.",null,null,null,null,null,null,null,null,null,null)
 B.a3Q=new A.fj(B.a9H,B.J,null,null,null,null,null,null,null,null,null,null,null,B.aP,!1,null,null,null,B.x,null)
 B.GO=new A.Hi(0,"permissive")
@@ -120708,16 +120708,16 @@ B.a91=new A.f1(B.a6P,B.a5M,B.a6Q,B.a7g,B.a5t,B.a5B,B.a65,B.a7b,B.a6h,B.a7C,B.a4Y
 B.a93=new A.c2("Page Not Found",null,B.mf,null,null,null,null,null,null,null,null)
 B.a96=new A.c2("+24 (Caja)",null,null,null,null,null,null,null,null,null,null)
 B.a97=new A.c2("Ingresar C\xf3digo Manualmente",null,null,null,null,null,null,null,null,null,null)
-B.a98=new A.c2("Nueva Contrase\xf1a (m\xednimo 8 caracteres):",null,null,null,null,null,null,null,null,null,null)
-B.a9a=new A.c2("\xa1Entendido, a trabajar!",null,null,null,null,null,null,null,null,null,null)
-B.a9c=new A.c2("+12 (Docena)",null,null,null,null,null,null,null,null,null,null)
-B.a9d=new A.c2("Aceptar",null,null,null,null,null,null,null,null,null,null)
-B.a9g=new A.c2("INGRESAR AL SISTEMA",null,null,null,null,null,null,null,null,null,null)
-B.a9i=new A.c2("GUARDAR IDENTIDAD",null,null,null,null,null,null,null,null,null,null)
-B.a9k=new A.c2("Cerrar",null,null,null,null,null,null,null,null,null,null)
-B.a9m=new A.c2("Copiar Texto",null,null,null,null,null,null,null,null,null,null)
-B.a9r=new A.c2("Modo Mostrador Horizontal activado",null,null,null,null,null,null,null,null,null,null)
+B.a99=new A.c2("\xa1Entendido, a trabajar!",null,null,null,null,null,null,null,null,null,null)
+B.a9b=new A.c2("+12 (Docena)",null,null,null,null,null,null,null,null,null,null)
+B.a9c=new A.c2("Aceptar",null,null,null,null,null,null,null,null,null,null)
+B.a9f=new A.c2("INGRESAR AL SISTEMA",null,null,null,null,null,null,null,null,null,null)
+B.a9h=new A.c2("GUARDAR IDENTIDAD",null,null,null,null,null,null,null,null,null,null)
+B.a9j=new A.c2("Cerrar",null,null,null,null,null,null,null,null,null,null)
+B.a9l=new A.c2("Copiar Texto",null,null,null,null,null,null,null,null,null,null)
+B.a9q=new A.c2("Modo Mostrador Horizontal activado",null,null,null,null,null,null,null,null,null,null)
 B.mg=new A.c2("Cancelar",null,null,null,null,null,null,null,null,null,null)
+B.a9r=new A.c2("Nuevo PIN o Contrase\xf1a (m\xednimo 4 d\xedgitos):",null,null,null,null,null,null,null,null,null,null)
 B.a9s=new A.c2("+6 (Six-pack)",null,null,null,null,null,null,null,null,null,null)
 B.a9u=new A.c2("Go to home page",null,B.qI,null,null,null,null,null,null,null,null)
 B.a9w=new A.c2("Rotaci\xf3n de pantalla libre activada",null,null,null,null,null,null,null,null,null,null)
