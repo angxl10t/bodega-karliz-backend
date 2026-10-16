@@ -17,6 +17,7 @@ import '../../core/update_service.dart';
 import '../../core/karliz_vectors.dart';
 import '../../core/lock_service.dart';
 import '../../core/widgets/karliz_lock_screen.dart';
+import '../../core/responsive_layout.dart';
 import 'pixel_perfect_navbar.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
@@ -34,6 +35,17 @@ class _HomeScreenState extends State<HomeScreen> {
   String _username = 'admin';
   String _userRol = 'ADMIN';
   Timer? _inactivityTimer;
+  bool _orientationConfigured = false;
+  bool _railCollapsed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_orientationConfigured) {
+      _orientationConfigured = true;
+      ResponsiveLayout.autoConfigureOrientation(context);
+    }
+  }
 
   List<Widget> get _builtScreens {
     return List.generate(_screens.length, (index) {
@@ -1147,6 +1159,57 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          // Botón de alternancia de orientación (Mostrador Horizontal / Rotación libre)
+          if (isWideScreen || ResponsiveLayout.isPhysicalTablet(context))
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Center(
+                child: IconButton.filledTonal(
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                    foregroundColor: ResponsiveLayout.isLandscape(context) ? AppTheme.brandPrimary : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                    padding: const EdgeInsets.all(8),
+                    minimumSize: const Size(36, 36),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  tooltip: ResponsiveLayout.isLandscape(context)
+                      ? 'Modo Mostrador Horizontal activo (Toca para rotación libre)'
+                      : 'Activar Modo Mostrador Horizontal',
+                  icon: Icon(
+                    ResponsiveLayout.isLandscape(context) ? LucideIcons.tablet : LucideIcons.smartphone,
+                    size: 18,
+                  ),
+                  onPressed: () async {
+                    if (ResponsiveLayout.isLandscape(context)) {
+                      await ResponsiveLayout.unlockOrientation();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Rotación de pantalla libre activada'),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    } else {
+                      await ResponsiveLayout.lockLandscape();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Modo Mostrador Horizontal activado'),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ),
+            ),
+
           // Botón Oficial de Perfil & Admin en la esquina superior derecha
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -1243,7 +1306,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   _loadedTabs.add(index);
                 });
               },
-              labelType: NavigationRailLabelType.all,
+              leading: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: IconButton(
+                  tooltip: _railCollapsed ? 'Expandir menú' : 'Compactar menú POS',
+                  icon: Icon(
+                    _railCollapsed ? LucideIcons.panelLeftOpen : LucideIcons.panelLeftClose,
+                    size: 18,
+                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                  ),
+                  onPressed: () => setState(() => _railCollapsed = !_railCollapsed),
+                ),
+              ),
+              labelType: _railCollapsed ? NavigationRailLabelType.none : NavigationRailLabelType.all,
               backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
               indicatorColor: AppTheme.brandPrimary,
               indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

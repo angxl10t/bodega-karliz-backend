@@ -2548,59 +2548,61 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Botón Ticket Térmico
-          SizedBox(
-            height: 38,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.brandPrimary,
-                side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              ),
-              icon: const Icon(LucideIcons.printer, size: 16),
-              label: Text(
-                'TICKET TÉRMICO',
-                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 11),
-              ),
-              onPressed: () {
-                _mostrarTicketTermicoDialog(
-                  items: _carrito,
-                  total: _totalVenta,
-                  metodo: _metodoPago,
-                  pagadoCon: _montoRecibido,
-                  vuelto: _vuelto,
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Botón Confirmar Cobro
-          SizedBox(
-            height: 48,
-            child: ElevatedButton.icon(
-              onPressed: (_isProcesando || _carrito.isEmpty) ? null : _procesarVenta,
-              icon: _isProcesando
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
-                  : const Icon(LucideIcons.checkCheck, size: 18),
-              label: Text(
-                _isProcesando ? 'PROCESANDO...' : 'COBRAR • S/ ${_totalVenta.toStringAsFixed(2)}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
+          // Botones de Acción (Ticket Térmico + Cobro)
+          Row(
+            children: [
+              Tooltip(
+                message: 'Imprimir Ticket Térmico (58 / 80 mm)',
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.brandPrimary,
+                    side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    minimumSize: const Size(48, 48),
+                  ),
+                  onPressed: () {
+                    _mostrarTicketTermicoDialog(
+                      items: _carrito,
+                      total: _totalVenta,
+                      metodo: _metodoPago,
+                      pagadoCon: _montoRecibido,
+                      vuelto: _vuelto,
+                    );
+                  },
+                  child: const Icon(LucideIcons.printer, size: 20),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.brandPrimary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: (_isProcesando || _carrito.isEmpty) ? null : _procesarVenta,
+                    icon: _isProcesando
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Icon(LucideIcons.checkCheck, size: 18),
+                    label: Text(
+                      _isProcesando ? 'PROCESANDO...' : 'COBRAR • S/ ${_totalVenta.toStringAsFixed(2)}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.brandPrimary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
