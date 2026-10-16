@@ -44,8 +44,8 @@ public class UsuarioService {
             throw new RuntimeException("El nombre de usuario '" + normalizedUsername + "' ya está registrado en el sistema.");
         }
 
-        if (dto.getPassword() == null || dto.getPassword().trim().length() < 8) {
-            throw new RuntimeException("La contraseña inicial es obligatoria y debe tener al menos 8 caracteres.");
+        if (dto.getPassword() == null || dto.getPassword().trim().length() < 8 || dto.getPassword().trim().length() > 72) {
+            throw new RuntimeException("La contraseña inicial es obligatoria y debe tener entre 8 y 72 caracteres.");
         }
 
         String normalizedRol = dto.getRol() != null ? dto.getRol().trim().toUpperCase() : "";
