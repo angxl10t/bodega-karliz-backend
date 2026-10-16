@@ -1537,13 +1537,35 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Venta #${v.idVenta}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14.5,
-                          color: isDark ? Colors.white : AppTheme.textDark,
-                        ),
+                      Row(
+                        children: [
+                          Text(
+                            v.etiquetaComprobante,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14.5,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                          if (v.esSunat) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'SUNAT',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.accentGreen,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       Text(
                         fechaStr,

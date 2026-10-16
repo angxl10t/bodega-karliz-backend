@@ -4,6 +4,14 @@ import '../../core/api_client.dart';
 import '../productos/producto_service.dart';
 import 'venta_model.dart';
 
+class RegistroVentaResult {
+  final bool success;
+  final String? errorMessage;
+  final VentaRegistro? venta;
+
+  RegistroVentaResult({required this.success, this.errorMessage, this.venta});
+}
+
 class VentaService {
   final ApiClient _apiClient = ApiClient();
 
@@ -15,25 +23,32 @@ class VentaService {
     ventasRevision.value++;
   }
 
-  /// Registra la venta. Retorna null si fue exitosa, o el mensaje de error si falló.
-  Future<String?> registrarVenta(VentaEnvio venta) async {
+  /// Registra la venta y retorna el resultado detallado con el comprobante generado (Boleta/Factura).
+  Future<RegistroVentaResult> registrarVentaCompleta(VentaEnvio venta) async {
     try {
       final response = await _apiClient.post('/ventas', venta.toJson());
       if (response.statusCode == 201 || response.statusCode == 200) {
         ProductoService.invalidateCache();
         notifyVentasChanged();
-        return null; // Éxito
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return RegistroVentaResult(success: true, venta: VentaRegistro.fromJson(data));
       }
       try {
         final errData = jsonDecode(utf8.decode(response.bodyBytes));
         if (errData is Map && errData.containsKey('error')) {
-          return errData['error'].toString();
+          return RegistroVentaResult(success: false, errorMessage: errData['error'].toString());
         }
       } catch (_) {}
-      return 'Error ${response.statusCode} al procesar la venta en el servidor.';
+      return RegistroVentaResult(success: false, errorMessage: 'Error ${response.statusCode} al procesar la venta en el servidor.');
     } catch (e) {
-      return 'Error de conexión con el servidor. Verifica tu conexión a internet.';
+      return RegistroVentaResult(success: false, errorMessage: 'Error de conexión con el servidor. Verifica tu conexión a internet.');
     }
+  }
+
+  /// Registra la venta. Retorna null si fue exitosa, o el mensaje de error si falló.
+  Future<String?> registrarVenta(VentaEnvio venta) async {
+    final res = await registrarVentaCompleta(venta);
+    return res.success ? null : res.errorMessage;
   }
 
   Future<List<VentaRegistro>> getVentas() async {

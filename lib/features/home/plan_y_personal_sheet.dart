@@ -54,6 +54,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
   final _usuariosService = UsuariosService();
   final _bodegaService = BodegaService();
   List<UsuarioItem> _usuarios = [];
+  List<BodegaInfo> _bodegasRegistradas = [];
   bool _isLoading = true;
   String _error = '';
   BodegaInfo? _bodegaInfo;
@@ -79,13 +80,15 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
       _error = '';
     });
     try {
-      final listFuture = _usuariosService.listarUsuarios();
-      final bodegaFuture = _bodegaService.obtenerMiBodega();
-      final results = await Future.wait([listFuture, bodegaFuture]);
+      final listFuture = _usuariosService.listarUsuarios().catchError((_) => <UsuarioItem>[]);
+      final bodegaFuture = _bodegaService.obtenerMiBodega().catchError((_) => null);
+      final bodegasFuture = _bodegaService.listarTodas().catchError((_) => <BodegaInfo>[]);
+      final results = await Future.wait([listFuture, bodegaFuture, bodegasFuture]);
       if (mounted) {
         setState(() {
           _usuarios = results[0] as List<UsuarioItem>;
           _bodegaInfo = results[1] as BodegaInfo?;
+          _bodegasRegistradas = results[2] as List<BodegaInfo>;
           if (_bodegaInfo != null) {
             _currentPlan = _bodegaInfo!.plan;
           }
@@ -1546,7 +1549,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Suscripción & Personal',
+                            _userRol == 'SUPERADMIN' ? 'Consola Global & Bodegas' : 'Suscripción & Personal',
                             style: GoogleFonts.outfit(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -1554,7 +1557,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             ),
                           ),
                           Text(
-                            widget.nombreBodega,
+                            _userRol == 'SUPERADMIN'
+                                ? 'CajaYa Platform • ${_bodegasRegistradas.length} Bodegas Registradas'
+                                : widget.nombreBodega,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -1581,6 +1586,12 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Directorio de Bodegas para Superadmin
+                    if (_userRol == 'SUPERADMIN' || _bodegasRegistradas.isNotEmpty) ...[
+                      _buildDirectorioBodegasGlobal(isDark, cardBg, borderColor),
+                      const SizedBox(height: 16),
+                    ],
+
                     // Tarjeta de Estado del Plan
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -2114,6 +2125,200 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDirectorioBodegasGlobal(bool isDark, Color cardBg, Color borderColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(LucideIcons.building2, size: 18, color: Color(0xFF8B5CF6)),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Directorio de Bodegas',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        'Consola Global Multi-Inquilino',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: AppTheme.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${_bodegasRegistradas.length} registradas',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF8B5CF6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (_bodegasRegistradas.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No hay bodegas adicionales registradas en el sistema.',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _bodegasRegistradas.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final b = _bodegasRegistradas[index];
+                final isPro = b.plan.toUpperCase() == 'PRO';
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            isPro ? LucideIcons.sparkles : LucideIcons.store,
+                            size: 20,
+                            color: isPro ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    b.nombreComercial,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    isPro ? 'PRO (S/ 100)' : 'BÁSICO (S/ 50)',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: isPro ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Tenant #${b.idBodega} ${b.rucDni != null && b.rucDni!.isNotEmpty ? "• RUC: ${b.rucDni}" : ""} • ${b.direccion ?? "Sin dirección registrada"}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                color: AppTheme.textMuted,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: b.estado ? AppTheme.accentGreen.withValues(alpha: 0.15) : Colors.red.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: b.estado ? AppTheme.accentGreen : Colors.red,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              b.estado ? 'Activa' : 'Inactiva',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: b.estado ? AppTheme.accentGreen : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
       ),
     );
   }

@@ -293,24 +293,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.15),
+                                              color: (_userRol == 'SUPERADMIN'
+                                                      ? const Color(0xFF8B5CF6)
+                                                      : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary))
+                                                  .withValues(alpha: 0.15),
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Icon(
-                                                  _plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.store,
+                                                  _userRol == 'SUPERADMIN'
+                                                      ? LucideIcons.crown
+                                                      : (_plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.store),
                                                   size: 10,
-                                                  color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                                                  color: _userRol == 'SUPERADMIN'
+                                                      ? const Color(0xFF8B5CF6)
+                                                      : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary),
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  _plan == 'PRO' ? 'PLAN PRO' : 'PLAN BODEGA',
+                                                  _userRol == 'SUPERADMIN'
+                                                      ? 'SUPERADMIN'
+                                                      : (_plan == 'PRO' ? 'PLAN PRO' : 'PLAN BODEGA'),
                                                   style: GoogleFonts.outfit(
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w800,
-                                                    color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                                                    color: _userRol == 'SUPERADMIN'
+                                                        ? const Color(0xFF8B5CF6)
+                                                        : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary),
                                                   ),
                                                 ),
                                               ],
@@ -320,18 +331,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        _userRol == 'ADMIN'
-                                            ? 'Administrador General • Acceso Total'
-                                            : 'Operador de Tienda',
+                                        _userRol == 'SUPERADMIN'
+                                            ? 'Superadministrador • Plataforma Global'
+                                            : (_userRol == 'ADMIN'
+                                                ? 'Administrador General • Acceso Total'
+                                                : 'Operador de Tienda'),
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          color: AppTheme.brandPrimary,
+                                          color: _userRol == 'SUPERADMIN' ? const Color(0xFF8B5CF6) : AppTheme.brandPrimary,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        '$_nombreBodega • ${_plan == 'PRO' ? 'Plan Minimarket Pro' : 'Plan Bodega'}',
+                                        _userRol == 'SUPERADMIN'
+                                            ? 'CajaYa Cloud POS • Directorio de Todas las Bodegas'
+                                            : '$_nombreBodega • ${_plan == 'PRO' ? 'Plan Minimarket Pro' : 'Plan Bodega'}',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,

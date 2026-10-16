@@ -75,6 +75,9 @@ class ThermalTicketService {
     String? direccion = 'Av. Principal 123 - Lima',
     String? telefono = 'Tel: 987 654 321',
     String? lemaComercial,
+    String? tipoComprobante,
+    String? serieCorrelativo,
+    String? estadoSunat,
   }) {
     final buffer = StringBuffer();
     final fechaVenta = fecha ?? DateTime.now();
@@ -100,16 +103,35 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Datos del Comprobante
-    final ticketNum = ticketId != null ? '#${ticketId.toString().padLeft(6, '0')}' : 'TICKET DE VENTA';
-    buffer.writeln(twoColumns('COMPROBANTE:', ticketNum, width));
+    final bool esFactura = tipoComprobante == 'FACTURA_ELECTRONICA';
+    final bool esBoleta = tipoComprobante == 'BOLETA_ELECTRONICA';
+    final bool esSunat = esFactura || esBoleta;
+
+    if (esFactura) {
+      buffer.writeln(center('FACTURA ELECTRONICA', width));
+      buffer.writeln(twoColumns('SERIE-CORRELATIVO:', serieCorrelativo ?? 'F001-00000001', width));
+    } else if (esBoleta) {
+      buffer.writeln(center('BOLETA DE VENTA ELECTRONICA', width));
+      buffer.writeln(twoColumns('SERIE-CORRELATIVO:', serieCorrelativo ?? 'B001-00000001', width));
+    } else {
+      final ticketNum = ticketId != null ? '#${ticketId.toString().padLeft(6, '0')}' : 'TICKET DE VENTA';
+      buffer.writeln(twoColumns('COMPROBANTE:', ticketNum, width));
+    }
+
+    if (esSunat) {
+      buffer.writeln(twoColumns('ESTADO SUNAT:', estadoSunat ?? 'ACEPTADO', width));
+    }
+
     buffer.writeln(twoColumns('FECHA:', dateStr, width));
     if (cajero != null && cajero.isNotEmpty) {
       buffer.writeln(twoColumns('CAJERO:', cajero, width));
     }
 
-    final docCli = (clienteDocumento != null && clienteDocumento.isNotEmpty) ? clienteDocumento : '00000000';
+    final docCli = (clienteDocumento != null && clienteDocumento.isNotEmpty)
+        ? clienteDocumento
+        : (esFactura ? 'RUC PENDIENTE' : '00000000');
     buffer.writeln(twoColumns('CLIENTE:', clienteNombre, width));
-    buffer.writeln(twoColumns('DOC:', docCli, width));
+    buffer.writeln(twoColumns(esFactura ? 'RUC:' : 'DOC:', docCli, width));
     buffer.writeln(divider(width, '-'));
 
     // Encabezado de Productos (CANT  DESCRIPCION  TOTAL)
@@ -146,6 +168,12 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '-'));
 
     // Pie de Ticket y Agradecimiento
+    if (esSunat) {
+      buffer.writeln(center('Representacion impresa de la', width));
+      buffer.writeln(center(esFactura ? 'FACTURA ELECTRONICA' : 'BOLETA DE VENTA ELECTRONICA', width));
+      buffer.writeln(center('Autorizado mediante Resolucion SUNAT', width));
+      buffer.writeln(divider(width, '-'));
+    }
     buffer.writeln(center('¡Gracias por su compra!', width));
     buffer.writeln(center('Conserve su comprobante', width));
     buffer.writeln(center('CajaYa Cloud POS', width));
@@ -169,6 +197,9 @@ class ThermalTicketService {
     DateTime? fecha,
     int width = width58mm,
     String nombreComercio = 'CajaYa POS',
+    String? tipoComprobante,
+    String? serieCorrelativo,
+    String? estadoSunat,
   }) {
     final List<int> bytes = [];
 
@@ -199,6 +230,9 @@ class ThermalTicketService {
       fecha: fecha,
       width: width,
       nombreComercio: '', // Ya impreso arriba en grande
+      tipoComprobante: tipoComprobante,
+      serieCorrelativo: serieCorrelativo,
+      estadoSunat: estadoSunat,
     );
 
     // Volver a alineación izquierda (ESC a 0)

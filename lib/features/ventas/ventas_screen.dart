@@ -853,11 +853,11 @@ class _VentasScreenState extends State<VentasScreen> {
       }).toList(),
     );
 
-    final errorMsg = await _ventaService.registrarVenta(venta);
+    final result = await _ventaService.registrarVentaCompleta(venta);
 
     if (mounted) {
       setState(() => _isProcesando = false);
-      if (errorMsg == null) {
+      if (result.success) {
         final totalCobrado = _totalVenta;
         final cambio = _vuelto;
         final pagadoCon = _montoRecibido > 0 ? _montoRecibido : totalCobrado;
@@ -872,6 +872,7 @@ class _VentasScreenState extends State<VentasScreen> {
           metodo: _metodoPago,
           pagadoCon: pagadoCon,
           vuelto: cambio,
+          ventaGenerada: result.venta,
         );
       } else {
         KarlizSoundService.instance.playErrorBeep();
@@ -883,7 +884,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    errorMsg,
+                    result.errorMessage ?? 'Error al registrar la venta.',
                     style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -905,6 +906,7 @@ class _VentasScreenState extends State<VentasScreen> {
     required String metodo,
     required double pagadoCon,
     required double vuelto,
+    VentaRegistro? ventaGenerada,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -937,6 +939,32 @@ class _VentasScreenState extends State<VentasScreen> {
                 color: isDark ? Colors.white : AppTheme.textDark,
               ),
             ),
+            if (ventaGenerada != null && ventaGenerada.esSunat) ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.checkCircle2, size: 14, color: AppTheme.accentGreen),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${ventaGenerada.etiquetaComprobante} • SUNAT ACEPTADO',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.accentGreen,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 4),
             Text(
               'Método: $metodo',

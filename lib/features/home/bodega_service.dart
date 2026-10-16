@@ -92,6 +92,17 @@ class BodegaService {
     return null;
   }
 
+  Future<List<BodegaInfo>> listarTodas() async {
+    try {
+      final response = await _client.get('/bodegas');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data.map((json) => BodegaInfo.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
   Future<BodegaInfo> actualizarConfiguracion({
     required String nombreComercial,
     String? rucDni,

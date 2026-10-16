@@ -86,6 +86,9 @@ class VentaRegistro {
   final DateTime? fechaAnulacion;
   final String? usuarioAnulacion;
   final String? motivoAnulacion;
+  final String? tipoComprobante;
+  final String? serieCorrelativo;
+  final String? estadoSunat;
   final List<VentaDetalleItem> detalles;
 
   VentaRegistro({
@@ -100,10 +103,21 @@ class VentaRegistro {
     this.fechaAnulacion,
     this.usuarioAnulacion,
     this.motivoAnulacion,
+    this.tipoComprobante = 'TICKET',
+    this.serieCorrelativo,
+    this.estadoSunat,
     required this.detalles,
   });
 
   bool get isAnulada => estado.toUpperCase() == 'ANULADA';
+  bool get esFactura => tipoComprobante == 'FACTURA_ELECTRONICA';
+  bool get esBoleta => tipoComprobante == 'BOLETA_ELECTRONICA';
+  bool get esSunat => esFactura || esBoleta;
+  String get etiquetaComprobante {
+    if (esFactura) return 'Factura ${serieCorrelativo ?? "#$idVenta"}';
+    if (esBoleta) return 'Boleta ${serieCorrelativo ?? "#$idVenta"}';
+    return 'Ticket #$idVenta';
+  }
 
   factory VentaRegistro.fromJson(Map<String, dynamic> json) {
     return VentaRegistro(
@@ -118,6 +132,9 @@ class VentaRegistro {
       fechaAnulacion: json['fechaAnulacion'] != null ? DateTime.tryParse(json['fechaAnulacion']) : null,
       usuarioAnulacion: json['usuarioAnulacion'] as String?,
       motivoAnulacion: json['motivoAnulacion'] as String?,
+      tipoComprobante: json['tipoComprobante'] as String? ?? 'TICKET',
+      serieCorrelativo: json['serieCorrelativo'] as String?,
+      estadoSunat: json['estadoSunat'] as String?,
       detalles: (json['detalles'] as List<dynamic>?)
               ?.map((d) => VentaDetalleItem.fromJson(d as Map<String, dynamic>))
               .toList() ??
