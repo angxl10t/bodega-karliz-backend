@@ -62,51 +62,29 @@ class _CajaYaLogoPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final strokePaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * 0.12
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final fillPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
     final w = size.width;
     final h = size.height;
 
-    // Terminal POS / Caja registradora moderna
-    // 1. Pantalla inclinada
-    final screenPath = Path()
-      ..moveTo(w * 0.12, h * 0.15)
-      ..lineTo(w * 0.88, h * 0.15)
-      ..lineTo(w * 0.82, h * 0.65)
-      ..lineTo(w * 0.18, h * 0.65)
+    final fillPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    // Isotipo Oficial Definitivo: "Fluid C-Velocity Swoosh"
+    // Cinta continua donde la "C" fluye y asciende hacia un checkmark dinámico
+    final path = Path()
+      ..moveTo(w * 0.64, h * 0.35)
+      ..cubicTo(w * 0.52, h * 0.21, w * 0.36, h * 0.21, w * 0.26, h * 0.34)
+      ..cubicTo(w * 0.15, h * 0.48, w * 0.15, h * 0.69, w * 0.27, h * 0.82)
+      ..cubicTo(w * 0.38, h * 0.92, w * 0.54, h * 0.89, w * 0.66, h * 0.76)
+      ..cubicTo(w * 0.74, h * 0.66, w * 0.84, h * 0.48, w * 0.90, h * 0.30)
+      ..cubicTo(w * 0.79, h * 0.46, w * 0.68, h * 0.63, w * 0.57, h * 0.71)
+      ..cubicTo(w * 0.47, h * 0.79, w * 0.36, h * 0.76, w * 0.31, h * 0.65)
+      ..cubicTo(w * 0.26, h * 0.54, w * 0.30, h * 0.41, w * 0.42, h * 0.35)
+      ..cubicTo(w * 0.49, h * 0.31, w * 0.57, h * 0.32, w * 0.64, h * 0.35)
       ..close();
-    canvas.drawPath(screenPath, strokePaint);
 
-    // 2. Base de caja con ranura de ticket
-    final basePath = Path()
-      ..moveTo(w * 0.10, h * 0.88)
-      ..lineTo(w * 0.90, h * 0.88);
-    canvas.drawPath(basePath, strokePaint);
-
-    // 3. Rayo / Flecha de velocidad "Ya" (Checkmark dinámico central)
-    final checkPath = Path()
-      ..moveTo(w * 0.32, h * 0.40)
-      ..lineTo(w * 0.46, h * 0.52)
-      ..lineTo(w * 0.70, h * 0.28);
-    canvas.drawPath(checkPath, strokePaint);
-
-    // 4. Ranura frontal de efectivo/tarjeta
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(w * 0.35, h * 0.74, w * 0.30, h * 0.08),
-        Radius.circular(w * 0.04),
-      ),
-      fillPaint,
-    );
+    canvas.drawPath(path, fillPaint);
   }
 
   @override
