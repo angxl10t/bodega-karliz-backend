@@ -31,7 +31,6 @@ public class ProductoDTO {
     @DecimalMin(value = "0.0", inclusive = false, message = "El precio debe ser mayor a 0")
     private BigDecimal precioVenta;
 
-    @NotNull(message = "El stock actual es obligatorio")
     @DecimalMin(value = "0.0", message = "El stock no puede ser negativo")
     private BigDecimal stockActual;
 
