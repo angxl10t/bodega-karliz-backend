@@ -36,16 +36,16 @@ class AppTheme {
   static const Color textDark = Color(0xFF0F172A);
   static const Color textMuted = Color(0xFF64748B);
 
-  // Superficies Modo Oscuro (Executive Obsidian & Deep Slate)
-  static const Color bgDark = Color(0xFF0B0F19); // Obsidian Dark Profundo
-  static const Color cardDark = Color(0xFF111827); // Dark Slate Card (Elevación 1)
-  static const Color cardDarkElevated = Color(0xFF1E293B); // Slate Elevado (Elevación 2)
-  static const Color borderDark = Color(0xFF1F2937); // Borde Nítido Alta Claridad
-  static const Color surfaceTintDark = Color(0xFF1E3A8A); // Contenedor Cobalto Suave Dark
-  static const Color borderTintDark = Color(0xFF1D4ED8); // Borde Cobalto Dark
-  static const Color textDarkPrimary = Color(0xFFF8FAFC); // Blanco Cristalino (98% L)
-  static const Color textDarkSecondary = Color(0xFF94A3B8); // Slate 400 Legible
-  static const Color textDarkMuted = Color(0xFF64748B); // Slate 500
+  // Superficies Modo Oscuro (Warm Titanium & Satin Zinc - Anti-fatiga)
+  static const Color bgDark = Color(0xFF18181B); // Zinc 900 / Warm Titanium Canvas
+  static const Color cardDark = Color(0xFF27272A); // Zinc 800 / Titanium Card (Elevación 1)
+  static const Color cardDarkElevated = Color(0xFF323238); // Zinc Elevado (Elevación 2)
+  static const Color borderDark = Color(0xFF3F3F46); // Zinc 700 / Borde Nítido Cálido
+  static const Color surfaceTintDark = Color(0xFF202633); // Contenedor Cobalto Suave Dark
+  static const Color borderTintDark = Color(0xFF2D3748); // Borde Cobalto Dark
+  static const Color textDarkPrimary = Color(0xFFFAFAFA); // Blanco Perla Cálido (Sin encandilamiento)
+  static const Color textDarkSecondary = Color(0xFFA1A1AA); // Plata / Zinc 400
+  static const Color textDarkMuted = Color(0xFF71717A); // Zinc 500
 
   // ============================================
   // TIPOGRAFÍA DE MARCA UNIFICADA
@@ -293,14 +293,14 @@ class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return const IconThemeData(color: Colors.white, size: 20);
           }
-          return const IconThemeData(color: Color(0xFF7E8B9F), size: 20);
+          return const IconThemeData(color: textDarkSecondary, size: 20);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
           return GoogleFonts.outfit(
             fontSize: 11.5,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-            color: isSelected ? brandLight : const Color(0xFF7E8B9F),
+            color: isSelected ? brandLight : textDarkSecondary,
           );
         }),
       ),

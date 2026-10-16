@@ -408,20 +408,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isDark ? 'Modo Oscuro (Noche)' : 'Modo Claro (Día)',
+                                    isDark ? 'Modo Oscuro (Warm Titanium)' : 'Modo Claro Pro (Porcelana)',
                                     style: GoogleFonts.outfit(
                                       fontSize: 14.5,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                      color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
                                     ),
                                   ),
                                   Text(
                                     isDark
-                                        ? 'Activo • Cambia a paleta luminosa'
-                                        : 'Activo • Cambia a paleta noche',
+                                        ? 'Activo • Titanio satinado anti-fatiga'
+                                        : 'Activo • Máximo contraste para ventas',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
-                                      color: AppTheme.textMuted,
+                                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                                     ),
                                   ),
                                 ],
@@ -1360,6 +1360,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+
+          // Botón rápido de alternancia de tema (Modo Claro Pro <-> Warm Titanium)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Center(
+              child: IconButton.filledTonal(
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                  foregroundColor: isDark ? const Color(0xFFFACC15) : const Color(0xFF475569),
+                  padding: const EdgeInsets.all(8),
+                  minimumSize: const Size(36, 36),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                tooltip: isDark
+                    ? 'Cambiar a Modo Claro Pro (Porcelana)'
+                    : 'Cambiar a Modo Oscuro (Warm Titanium)',
+                icon: Icon(
+                  isDark ? LucideIcons.sun : LucideIcons.moon,
+                  size: 18,
+                ),
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  context.read<ThemeProvider>().toggleTheme();
+                },
+              ),
+            ),
+          ),
 
           // Botón Oficial de Perfil & Admin en la esquina superior derecha
           Padding(

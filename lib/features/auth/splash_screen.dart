@@ -189,7 +189,7 @@ class _SplashScreenState extends State<SplashScreen>
                             fontSize: 13,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.0,
-                            color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+                            color: isDark ? AppTheme.bgDark : Colors.white,
                           ),
                         ),
                       ),

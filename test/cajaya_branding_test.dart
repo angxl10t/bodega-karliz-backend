@@ -27,9 +27,9 @@ void main() {
       expect(AppTheme.brandDark, const Color(0xFF1D4ED8));
       expect(AppTheme.brandLight, const Color(0xFF60A5FA));
       expect(AppTheme.brandInk, const Color(0xFF0B0F19)); // Obsidian Dark
-      expect(AppTheme.bgDark, const Color(0xFF0B0F19));
-      expect(AppTheme.cardDark, const Color(0xFF111827));
-      expect(AppTheme.cardDarkElevated, const Color(0xFF1E293B));
+      expect(AppTheme.bgDark, const Color(0xFF18181B)); // Warm Titanium Zinc 900
+      expect(AppTheme.cardDark, const Color(0xFF27272A)); // Warm Titanium Zinc 800
+      expect(AppTheme.cardDarkElevated, const Color(0xFF323238)); // Warm Titanium Zinc 750
     });
 
     test('ThemeProvider initializes with default Cobalt and updates dynamically', () async {

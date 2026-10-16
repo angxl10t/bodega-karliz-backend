@@ -137,7 +137,7 @@ class CajaYaHeroGraphic extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         gradient: LinearGradient(
           colors: isDark
-              ? [const Color(0xFF111827), const Color(0xFF0F172A)]
+              ? [AppTheme.cardDark, AppTheme.bgDark]
               : [const Color(0xFFF0F7FF), const Color(0xFFE0EFFF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -180,10 +180,10 @@ class CajaYaHeroGraphic extends StatelessWidget {
             height: height * 0.72,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              color: isDark ? AppTheme.cardDarkElevated : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
                 width: 1,
               ),
               boxShadow: [

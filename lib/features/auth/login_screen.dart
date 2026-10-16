@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -88,31 +89,33 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth >= 850;
+        child: Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isDesktop = constraints.maxWidth >= 850;
 
-            if (isDesktop) {
-              return Row(
-                children: [
-                  // ============================================
-                  // PANEL IZQUIERDO: SHOWCASE DE MARCA Y VALOR B2B
-                  // ============================================
-                  Expanded(
-                    flex: 5,
-                    child: Container(
-                      height: double.infinity,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF070B13) : const Color(0xFFF1F5F9),
-                        border: Border(
-                          right: BorderSide(
-                            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                            width: 1,
+                if (isDesktop) {
+                  return Row(
+                    children: [
+                      // ============================================
+                      // PANEL IZQUIERDO: SHOWCASE DE MARCA Y VALOR B2B
+                      // ============================================
+                      Expanded(
+                        flex: 5,
+                        child: Container(
+                          height: double.infinity,
+                          decoration: BoxDecoration(
+                            color: isDark ? AppTheme.cardDark : const Color(0xFFF1F5F9),
+                            border: Border(
+                              right: BorderSide(
+                                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                                width: 1,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
+                          child: Stack(
+                            children: [
                           // Glow ambiental sutil en esquina superior izquierda
                           Positioned(
                             top: -100,
@@ -197,8 +200,43 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           },
         ),
-      ),
-    );
+
+        // Selector manual de tema (Modo Claro Pro <-> Warm Titanium)
+        Positioned(
+          top: 14,
+          right: 16,
+          child: IconButton.filledTonal(
+            style: IconButton.styleFrom(
+              backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+              foregroundColor: isDark ? const Color(0xFFFACC15) : const Color(0xFF475569),
+              padding: const EdgeInsets.all(8),
+              minimumSize: const Size(38, 38),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  width: 1,
+                ),
+              ),
+              elevation: 1,
+            ),
+            tooltip: isDark
+                ? 'Cambiar a Modo Claro Pro (Porcelana)'
+                : 'Cambiar a Modo Oscuro (Warm Titanium)',
+            icon: Icon(
+              isDark ? LucideIcons.sun : LucideIcons.moon,
+              size: 18,
+            ),
+            onPressed: () {
+              HapticFeedback.selectionClick();
+              context.read<ThemeProvider>().toggleTheme();
+            },
+          ),
+        ),
+      ],
+    ),
+  ),
+);
   }
 
   // ============================================
@@ -539,15 +577,15 @@ class _LoginScreenState extends State<LoginScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              color: isDark ? AppTheme.textDarkPrimary : const Color(0xFF0F172A),
             ),
             decoration: InputDecoration(
               filled: true,
-              fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
               hintText: 'admin',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                color: isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8),
               ),
               prefixIcon: Icon(
                 LucideIcons.user,
@@ -557,13 +595,13 @@ class _LoginScreenState extends State<LoginScreen> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -597,15 +635,15 @@ class _LoginScreenState extends State<LoginScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : const Color(0xFF0F172A),
+              color: isDark ? AppTheme.textDarkPrimary : const Color(0xFF0F172A),
             ),
             decoration: InputDecoration(
               filled: true,
-              fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
               hintText: '••••••',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                color: isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8),
               ),
               prefixIcon: Icon(
                 LucideIcons.lock,
@@ -876,15 +914,15 @@ class _LoginScreenState extends State<LoginScreen> {
             TextField(
               controller: ctrl,
               style: GoogleFonts.plusJakartaSans(
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                color: isDark ? AppTheme.textDarkPrimary : const Color(0xFF0F172A),
                 fontSize: 13,
               ),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
                 hintText: ApiConstants.defaultBaseUrl,
                 hintStyle: GoogleFonts.plusJakartaSans(
-                  color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                  color: isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8),
                   fontSize: 13,
                 ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
