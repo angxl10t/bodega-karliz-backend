@@ -38,7 +38,7 @@ class Producto {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson({bool includeStock = true}) {
     return {
       if (idProducto != null) 'idProducto': idProducto,
       'idCategoria': idCategoria ?? 1,
@@ -47,7 +47,7 @@ class Producto {
       'nombre': nombre,
       if (marca != null) 'marca': marca,
       'precioVenta': precioVenta,
-      'stockActual': stockActual,
+      if (includeStock) 'stockActual': stockActual,
       'stockMinimo': stockMinimo,
       'estado': true,
     };

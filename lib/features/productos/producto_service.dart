@@ -79,7 +79,10 @@ class ProductoService {
   Future<({bool ok, String? error})> actualizarProductoConDetalle(Producto producto) async {
     if (producto.idProducto == null) return (ok: false, error: 'ID de producto nulo');
     try {
-      final response = await _apiClient.put('/productos/${producto.idProducto}', producto.toJson());
+      final response = await _apiClient.put(
+        '/productos/${producto.idProducto}',
+        producto.toJson(includeStock: false),
+      );
       if (response.statusCode == 200) {
         invalidateCache();
         return (ok: true, error: null);
