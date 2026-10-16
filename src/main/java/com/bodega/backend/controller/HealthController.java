@@ -60,7 +60,7 @@ public class HealthController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("service", "bodega-karliz-backend");
-        response.put("version", "1.0.7");
+        response.put("version", "1.0.8");
         response.put("tenant_engine", "multitenant_v1");
         response.put("timestamp", Instant.now().toString());
 

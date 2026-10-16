@@ -57,8 +57,8 @@ public class DataInitializer implements ApplicationRunner {
         // 1. Asegurar que Bodega 1 (Bodega KARLIZ) exista
         Bodega bodegaKarliz = inicializarBodegaKarliz();
 
-        // 2. Vincular registros huérfanos a Bodega 1
-        vincularRegistrosHuerfanos();
+        // 2. Vincular registros huérfanos a Bodega Karliz
+        vincularRegistrosHuerfanos(bodegaKarliz);
 
         // 3. Configurar usuarios del sistema (Superadmin desvinculado, Admin de Karliz, Cajero)
         inicializarUsuarios(bodegaKarliz);
@@ -166,13 +166,15 @@ public class DataInitializer implements ApplicationRunner {
         }
     }
 
-    private void vincularRegistrosHuerfanos() {
+    private void vincularRegistrosHuerfanos(Bodega bodegaKarliz) {
+        if (bodegaKarliz == null || bodegaKarliz.getIdBodega() == null) return;
+        Long id = bodegaKarliz.getIdBodega();
         try {
-            jdbcTemplate.update("UPDATE productos SET id_bodega = 1 WHERE id_bodega IS NULL");
-            jdbcTemplate.update("UPDATE categorias SET id_bodega = 1 WHERE id_bodega IS NULL");
-            jdbcTemplate.update("UPDATE proveedores SET id_bodega = 1 WHERE id_bodega IS NULL");
-            jdbcTemplate.update("UPDATE ventas SET id_bodega = 1 WHERE id_bodega IS NULL");
-            jdbcTemplate.update("UPDATE compras SET id_bodega = 1 WHERE id_bodega IS NULL");
+            jdbcTemplate.update("UPDATE productos SET id_bodega = ? WHERE id_bodega IS NULL", id);
+            jdbcTemplate.update("UPDATE categorias SET id_bodega = ? WHERE id_bodega IS NULL", id);
+            jdbcTemplate.update("UPDATE proveedores SET id_bodega = ? WHERE id_bodega IS NULL", id);
+            jdbcTemplate.update("UPDATE ventas SET id_bodega = ? WHERE id_bodega IS NULL", id);
+            jdbcTemplate.update("UPDATE compras SET id_bodega = ? WHERE id_bodega IS NULL", id);
         } catch (Exception e) {
             log.debug("[DataInitializer] Vincular huérfanos omitido: {}", e.getMessage());
         }
@@ -185,6 +187,7 @@ public class DataInitializer implements ApplicationRunner {
             Usuario superadmin = adminOpt.get();
             superadmin.setRol("SUPERADMIN");
             superadmin.setBodega(null); // Desvinculado explícitamente
+            superadmin.setPassword(passwordEncoder.encode("123456"));
             usuarioRepository.save(superadmin);
             log.info("[DataInitializer] Usuario 'admin' configurado como SUPERADMIN global (sin bodega asociada).");
         } else {
@@ -215,17 +218,27 @@ public class DataInitializer implements ApplicationRunner {
             Usuario adminKarliz = adminKarlizOpt.get();
             adminKarliz.setBodega(bodegaKarliz);
             adminKarliz.setRol("ADMIN");
+            adminKarliz.setPassword(passwordEncoder.encode("123456"));
             usuarioRepository.save(adminKarliz);
         }
 
-        // C. Asegurar que cajero_karlizzz esté asignado a Bodega Karliz
+        // C. Asegurar que cajero_karlizzz esté asignado a Bodega Karliz y tenga PIN 1234
         Optional<Usuario> cajeroOpt = usuarioRepository.findByUsernameIgnoreCase("cajero_karlizzz");
         if (cajeroOpt.isPresent()) {
             Usuario cajero = cajeroOpt.get();
-            if (cajero.getBodega() == null) {
-                cajero.setBodega(bodegaKarliz);
-                usuarioRepository.save(cajero);
-            }
+            cajero.setBodega(bodegaKarliz);
+            cajero.setRol("CAJERO");
+            cajero.setPassword(passwordEncoder.encode("1234"));
+            usuarioRepository.save(cajero);
+            log.info("[DataInitializer] Cajero 'cajero_karlizzz' vinculado a Bodega Karliz con PIN 1234.");
+        }
+
+        // D. Asegurar que admin_sanmartin tenga contraseña 123456
+        Optional<Usuario> sanmartinOpt = usuarioRepository.findByUsernameIgnoreCase("admin_sanmartin");
+        if (sanmartinOpt.isPresent()) {
+            Usuario sanmartin = sanmartinOpt.get();
+            sanmartin.setPassword(passwordEncoder.encode("123456"));
+            usuarioRepository.save(sanmartin);
         }
     }
 

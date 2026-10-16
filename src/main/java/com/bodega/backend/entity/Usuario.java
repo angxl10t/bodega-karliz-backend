@@ -29,7 +29,7 @@ public class Usuario {
     @Column(name = "fecha_cambio_clave", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCambioClave;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_bodega")
     private Bodega bodega;
 }
