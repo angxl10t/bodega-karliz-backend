@@ -355,13 +355,20 @@ class _KardexScreenState extends State<KardexScreen> {
               color: badgeColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Text(
-              '$sign${m.cantidad.toStringAsFixed(0)} u.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w900,
-                color: badgeColor,
-              ),
+            child: Builder(
+              builder: (context) {
+                final String cantFormateada = m.cantidad % 1 == 0
+                    ? m.cantidad.toInt().toString()
+                    : m.cantidad.toStringAsFixed(2);
+                return Text(
+                  '$sign$cantFormateada u.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
+                    color: badgeColor,
+                  ),
+                );
+              },
             ),
           ),
         ],

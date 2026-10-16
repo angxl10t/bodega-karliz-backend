@@ -125,7 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               constraints: constraints,
                               title: 'Valor en Mercadería',
                               value: 'S/ ${valorInventario.toStringAsFixed(2)}',
-                              subtitle: '${stockTotalUnidades.toStringAsFixed(0)} unidades valorizadas',
+                              subtitle: '${stockTotalUnidades % 1 == 0 ? stockTotalUnidades.toInt().toString() : stockTotalUnidades.toStringAsFixed(2)} unidades valorizadas',
                               icon: LucideIcons.wallet,
                               accentColor: AppTheme.brandPrimary,
                               isDark: isDark,
@@ -402,7 +402,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
-                                        '${p.stockActual.toInt()} u.',
+                                        '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} u.',
                                         style: GoogleFonts.outfit(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.w800,

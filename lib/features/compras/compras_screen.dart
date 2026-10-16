@@ -96,8 +96,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     return _canastaCompras.fold(0.0, (acc, item) => acc + item.subtotal);
   }
 
-  int get _totalUnidadesCompra {
-    return _canastaCompras.fold(0, (acc, item) => acc + item.cantidad.toInt());
+  num get _totalUnidadesCompra {
+    return _canastaCompras.fold(0.0, (acc, item) => acc + item.cantidad);
+  }
+
+  String get _totalUnidadesCompraFormatted {
+    final t = _totalUnidadesCompra;
+    return t % 1 == 0 ? t.toInt().toString() : t.toStringAsFixed(2);
   }
 
   void _eliminarItemDeCanasta(int index) {
@@ -340,6 +345,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
   void _abrirModalAgregarProductos() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final searchCtrl = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -349,8 +355,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       ),
       backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
       builder: (ctx) {
-        final searchCtrl = TextEditingController();
-        String filtro = '';
+        String filtro = searchCtrl.text;
         return StatefulBuilder(
           builder: (context, setModalState) {
             final f = filtro.toLowerCase();
@@ -557,7 +562,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           },
         );
       },
-    );
+    ).then((_) => searchCtrl.dispose());
   }
 
   void _mostrarDialogoDetalleIngreso(Producto p, [StateSetter? setModalState]) {
@@ -578,8 +583,8 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       context: context,
       builder: (dlgCtx) => StatefulBuilder(
         builder: (context, setDlgState) {
-          final cant = double.tryParse(cantCtrl.text.trim()) ?? 0.0;
-          final costo = double.tryParse(costoCtrl.text.trim()) ?? 0.0;
+          final cant = double.tryParse(cantCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+          final costo = double.tryParse(costoCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
           final subtotal = cant * costo;
 
           return AlertDialog(
@@ -686,8 +691,8 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
                 onPressed: () {
-                  final c = double.tryParse(cantCtrl.text.trim()) ?? 0.0;
-                  final cost = double.tryParse(costoCtrl.text.trim()) ?? 0.0;
+                  final c = double.tryParse(cantCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+                  final cost = double.tryParse(costoCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
 
                   if (c <= 0 || cost < 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -717,9 +722,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   setModalState?.call(() {});
                   Navigator.pop(dlgCtx);
 
+                  final cantFormatted = c % 1 == 0 ? c.toInt().toString() : c.toStringAsFixed(2);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✓ Agregado: ${p.nombre} (${c.toStringAsFixed(0)} u.)'),
+                      content: Text('✓ Agregado: ${p.nombre} ($cantFormatted u.)'),
                       backgroundColor: AppTheme.accentGreen,
                       duration: const Duration(seconds: 1),
                     ),
@@ -734,7 +740,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           );
         },
       ),
-    );
+    ).then((_) {
+      cantCtrl.dispose();
+      costoCtrl.dispose();
+    });
   }
 
   bool yaEnExistencia(Producto p) {
@@ -786,11 +795,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     }
 
     final numeroDoc = _comprobanteController.text.trim().isEmpty ? 'S/C' : _comprobanteController.text.trim();
-    final comprobanteCompleto = '$_tipoComprobante $numeroDoc';
+    final comprobanteCompleto = '$_tipoComprobante $numeroDoc'.trim();
+    final comprobanteFinal = comprobanteCompleto.length > 50 ? comprobanteCompleto.substring(0, 50) : comprobanteCompleto;
 
     final compra = CompraEnvio(
       idProveedor: idProv,
-      comprobante: comprobanteCompleto,
+      comprobante: comprobanteFinal,
       detalles: _canastaCompras.map((item) {
         return CompraDetalleEnvio(
           idProducto: item.idProducto,
@@ -1074,9 +1084,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         Expanded(
                           child: TextField(
                             controller: _comprobanteController,
+                            maxLength: 35,
                             style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
                             decoration: const InputDecoration(
                               labelText: 'N° de Comprobante / Factura',
+                              counterText: '',
                               contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             ),
                           ),
@@ -1118,7 +1130,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Text(
-                              '${_canastaCompras.length} prods. • $_totalUnidadesCompra u.',
+                              '${_canastaCompras.length} prods. • $_totalUnidadesCompraFormatted u.',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w800,
@@ -1351,7 +1363,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                               ),
                             ),
                             Text(
-                              '${_canastaCompras.length} prods. • $_totalUnidadesCompra unid.',
+                              '${_canastaCompras.length} prods. • $_totalUnidadesCompraFormatted unid.',
                               style: GoogleFonts.plusJakartaSans(
                                 color: AppTheme.textMuted,
                                 fontSize: 11,

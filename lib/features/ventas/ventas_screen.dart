@@ -46,6 +46,10 @@ class _VentasScreenState extends State<VentasScreen> {
 
   List<Producto> get _safeDisponibles => _productosDisponibles;
 
+  String _formatStock(double stock) {
+    return stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(2);
+  }
+
   List<String> get _tabletCategorias {
     final list = <String>['⭐ Frecuentes', 'Todos'];
     final uniqueCats = <String>{};
@@ -181,7 +185,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   double get _montoRecibido {
-    final val = double.tryParse(_pagoConController.text.trim());
+    final val = double.tryParse(_pagoConController.text.replaceAll(',', '.').trim());
     return val ?? 0.0;
   }
 
@@ -198,7 +202,7 @@ class _VentasScreenState extends State<VentasScreen> {
       KarlizSoundService.instance.playErrorBeep();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Stock máximo alcanzado para ${p.nombre} (${p.stockActual.toStringAsFixed(0)} u.)'),
+          content: Text('Stock máximo alcanzado para ${p.nombre} (${_formatStock(p.stockActual)} u.)'),
           backgroundColor: AppTheme.alertRed,
           duration: const Duration(seconds: 2),
         ),
@@ -356,7 +360,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                '⚠️ Stock máximo alcanzado para "${productoEncontrado.nombre}" (${productoEncontrado.stockActual.toStringAsFixed(0)} u. disponibles)',
+                '⚠️ Stock máximo alcanzado para "${productoEncontrado.nombre}" (${_formatStock(productoEncontrado.stockActual)} u. disponibles)',
                 style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
               ),
               backgroundColor: AppTheme.alertRed,
@@ -426,8 +430,12 @@ class _VentasScreenState extends State<VentasScreen> {
 
   void _editarCantidadDirecta(int index) {
     final item = _carrito[index];
-    final ctrl = TextEditingController(text: item.cantidad.toInt().toString());
+    final initialQty = item.cantidad % 1 == 0 ? item.cantidad.toInt().toString() : item.cantidad.toStringAsFixed(2);
+    final ctrl = TextEditingController(text: initialQty);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final stockFormatted = item.producto.stockActual % 1 == 0
+        ? item.producto.stockActual.toInt().toString()
+        : item.producto.stockActual.toStringAsFixed(2);
 
     showDialog(
       context: context,
@@ -458,7 +466,7 @@ class _VentasScreenState extends State<VentasScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Stock disponible: ${item.producto.stockActual.toInt()} unidades',
+              'Stock disponible: $stockFormatted unidades',
               style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
             ),
             const SizedBox(height: 14),
@@ -518,7 +526,7 @@ class _VentasScreenState extends State<VentasScreen> {
               if (parsed > item.producto.stockActual) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Stock insuficiente: solo hay ${item.producto.stockActual.toInt()} disponibles.'),
+                    content: Text('Stock insuficiente: solo hay $stockFormatted disponibles.'),
                     backgroundColor: AppTheme.alertRed,
                   ),
                 );
@@ -536,7 +544,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) => ctrl.dispose());
   }
 
   bool _coincideCodigo(Producto p, String rawCode) {
@@ -568,13 +576,13 @@ class _VentasScreenState extends State<VentasScreen> {
 
   void _abrirSelectorProductos() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final searchCtrl = TextEditingController();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        final searchCtrl = TextEditingController();
         String query = '';
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -726,7 +734,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  'Disp: ${p.stockActual.toStringAsFixed(0)} u.  •  Cód: ${p.codigo}',
+                                  'Disp: ${_formatStock(p.stockActual)} u.  •  Cód: ${p.codigo}',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
                                     color: AppTheme.textMuted,
@@ -790,7 +798,7 @@ class _VentasScreenState extends State<VentasScreen> {
           },
         );
       },
-    );
+    ).then((_) => searchCtrl.dispose());
   }
 
   Future<void> _procesarVenta() async {
@@ -1516,7 +1524,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                       ),
                                     ),
                                     Text(
-                                      'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u  •  Disp: ${item.producto.stockActual.toStringAsFixed(0)}',
+                                      'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u  •  Disp: ${_formatStock(item.producto.stockActual)}',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11.5,
                                         color: AppTheme.textMuted,
@@ -2241,7 +2249,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        '${p.stockActual.toInt()} u.',
+                                        '${_formatStock(p.stockActual)} u.',
                                         style: GoogleFonts.outfit(
                                           fontSize: 9.5,
                                           fontWeight: FontWeight.w800,

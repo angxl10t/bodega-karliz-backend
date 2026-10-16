@@ -293,133 +293,137 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   Future<void> _confirmarAnulacion(VentaRegistro venta) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final motivoCtrl = TextEditingController();
-
-    final resultado = await showDialog<({bool confirmar, String motivo})>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.alertRed.withValues(alpha: isDark ? 0.2 : 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(LucideIcons.alertTriangle, color: AppTheme.alertRed, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Anular Venta #${venta.idVenta}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.textDark,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    ({bool confirmar, String motivo})? resultado;
+    try {
+      resultado = await showDialog<({bool confirmar, String motivo})>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
             children: [
-              Text(
-                '¿Estás seguro de que deseas anular esta venta de S/ ${venta.total.toStringAsFixed(2)}?',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : AppTheme.textDark,
-                ),
-              ),
-              const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                  color: AppTheme.alertRed.withValues(alpha: isDark ? 0.2 : 0.12),
+                  shape: BoxShape.circle,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(LucideIcons.refreshCw, size: 14, color: AppTheme.primaryOrange),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Restauración Automática de Stock',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primaryOrange,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Los ${venta.detalles.length} productos serán devueltos inmediatamente al inventario y se registrará la auditoría en el Kardex.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
-                    ),
-                  ],
-                ),
+                child: const Icon(LucideIcons.alertTriangle, color: AppTheme.alertRed, size: 22),
               ),
-              const SizedBox(height: 14),
-              Text(
-                'Motivo o justificación:',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : const Color(0xFF334155),
-                ),
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: motivoCtrl,
-                maxLines: 2,
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
-                decoration: InputDecoration(
-                  hintText: 'Ej. Error en cobro, cliente desistió, duplicado...',
-                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
-                  filled: true,
-                  fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Anular Venta #${venta.idVenta}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
               ),
             ],
           ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¿Estás seguro de que deseas anular esta venta de S/ ${venta.total.toStringAsFixed(2)}?',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white70 : AppTheme.textDark,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(LucideIcons.refreshCw, size: 14, color: AppTheme.primaryOrange),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Restauración Automática de Stock',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Los ${venta.detalles.length} productos serán devueltos inmediatamente al inventario y se registrará la auditoría en el Kardex.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Motivo o justificación:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: motivoCtrl,
+                  maxLines: 2,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    hintText: 'Ej. Error en cobro, cliente desistió, duplicado...',
+                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, (confirmar: false, motivo: '')),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.alertRed,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+              onPressed: () => Navigator.pop(ctx, (confirmar: true, motivo: motivoCtrl.text.trim())),
+              child: Text(
+                'Anular Venta',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, (confirmar: false, motivo: '')),
-            child: Text(
-              'Cancelar',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.alertRed,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            ),
-            onPressed: () => Navigator.pop(ctx, (confirmar: true, motivo: motivoCtrl.text.trim())),
-            child: Text(
-              'Anular Venta',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
+      );
+    } finally {
+      motivoCtrl.dispose();
+    }
 
     if (resultado?.confirmar == true) {
       final res = await _ventaService.anularVentaConDetalle(

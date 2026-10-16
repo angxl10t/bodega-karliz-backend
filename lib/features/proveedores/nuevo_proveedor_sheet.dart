@@ -246,7 +246,10 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                           ),
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) return 'El RUC/DNI es obligatorio';
-                            if (val.trim().length < 8) return 'Mínimo 8 dígitos';
+                            final clean = val.trim();
+                            if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$').hasMatch(clean)) {
+                              return 'Debe ser DNI (8 dígitos) o RUC (11 dígitos)';
+                            }
                             return null;
                           },
                         ),

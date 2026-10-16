@@ -329,7 +329,14 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                             fillColor: inputBg,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
                           ),
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Requerido';
+                            final p = double.tryParse(v.replaceAll(',', '.').trim());
+                            if (p == null) return 'Número inválido';
+                            if (p <= 0) return 'Mayor a 0';
+                            if (p > 9999999.99) return 'Máx: 9,999,999.99';
+                            return null;
+                          },
                         ),
                       ],
                     ),
@@ -454,6 +461,14 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                             fillColor: inputBg,
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
                           ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return null;
+                            final sm = double.tryParse(v.replaceAll(',', '.').trim());
+                            if (sm == null) return 'Número inválido';
+                            if (sm < 0) return 'No puede ser negativo';
+                            if (sm > 9999999.99) return 'Máx: 9,999,999.99';
+                            return null;
+                          },
                         ),
                       ],
                     ),

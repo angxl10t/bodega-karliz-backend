@@ -287,84 +287,88 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
 
   Future<void> _crearNuevaCategoriaDialog() async {
     final ctrl = TextEditingController();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    try {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final result = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
-                borderRadius: BorderRadius.circular(12),
+      final result = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.surfaceTintDark : AppTheme.peachSurface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(LucideIcons.folderPlus, color: AppTheme.primaryOrange, size: 20),
               ),
-              child: const Icon(LucideIcons.folderPlus, color: AppTheme.primaryOrange, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                'Nueva Categoría',
+                style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800),
+              ),
+            ],
+          ),
+          content: TextField(
+            controller: ctrl,
+            autofocus: true,
+            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
+            decoration: InputDecoration(
+              hintText: 'Ej. Lácteos, Snacks, Abarrotes...',
+              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+              filled: true,
+              fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+              ),
             ),
-            const SizedBox(width: 10),
-            Text(
-              'Nueva Categoría',
-              style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Cancelar', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryOrange,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+              onPressed: () {
+                if (ctrl.text.trim().isNotEmpty) {
+                  Navigator.pop(ctx, ctrl.text.trim());
+                }
+              },
+              child: Text('Crear', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
             ),
           ],
         ),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
-          decoration: InputDecoration(
-            hintText: 'Ej. Lácteos, Snacks, Abarrotes...',
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
-            filled: true,
-            fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancelar', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryOrange,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            ),
-            onPressed: () {
-              if (ctrl.text.trim().isNotEmpty) {
-                Navigator.pop(ctx, ctrl.text.trim());
-              }
-            },
-            child: Text('Crear', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (result != null && result.isNotEmpty) {
-      final nueva = await _categoriaService.crearCategoria(result);
-      if (nueva != null && mounted) {
-        setState(() {
-          _categorias.add(nueva);
-          _idCategoriaSeleccionada = nueva.idCategoria;
-          _categoriaModificadaManualmente = true;
-          _categoriaDetectadaAuto = null;
-          _actualizarCodigoSegunCategoria();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Categoría "$result" creada y seleccionada.'),
-            backgroundColor: AppTheme.accentGreen,
-          ),
-        );
+      if (result != null && result.isNotEmpty) {
+        final nueva = await _categoriaService.crearCategoria(result);
+        if (nueva != null && mounted) {
+          setState(() {
+            _categorias.add(nueva);
+            _idCategoriaSeleccionada = nueva.idCategoria;
+            _categoriaModificadaManualmente = true;
+            _categoriaDetectadaAuto = null;
+            _actualizarCodigoSegunCategoria();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Categoría "$result" creada y seleccionada.'),
+              backgroundColor: AppTheme.accentGreen,
+            ),
+          );
+        }
       }
+    } finally {
+      ctrl.dispose();
     }
   }
 
@@ -745,7 +749,14 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                               borderSide: BorderSide(color: borderColor),
                             ),
                           ),
-                          validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty) return 'Requerido';
+                            final p = double.tryParse(val.replaceAll(',', '.').trim());
+                            if (p == null) return 'Número inválido';
+                            if (p <= 0) return 'Mayor a 0';
+                            if (p > 9999999.99) return 'Máx: 9,999,999.99';
+                            return null;
+                          },
                         ),
                       ],
                     ),
@@ -778,7 +789,14 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                               borderSide: BorderSide(color: borderColor),
                             ),
                           ),
-                          validator: (val) => (val == null || val.trim().isEmpty) ? 'Requerido' : null,
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty) return 'Requerido';
+                            final s = double.tryParse(val.replaceAll(',', '.').trim());
+                            if (s == null) return 'Número inválido';
+                            if (s < 0) return 'No puede ser negativo';
+                            if (s > 9999999.99) return 'Máx: 9,999,999.99';
+                            return null;
+                          },
                         ),
                       ],
                     ),
@@ -947,6 +965,14 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                       borderSide: BorderSide(color: borderColor),
                     ),
                   ),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) return null;
+                    final sm = double.tryParse(val.replaceAll(',', '.').trim());
+                    if (sm == null) return 'Número inválido';
+                    if (sm < 0) return 'No puede ser negativo';
+                    if (sm > 9999999.99) return 'Máx: 9,999,999.99';
+                    return null;
+                  },
                 ),
               ],
 

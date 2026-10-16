@@ -795,7 +795,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   const SizedBox(width: 5),
                                   Flexible(
                                     child: Text(
-                                      '${p.stockActual.toInt()} u. ($estadoTexto)',
+                                      '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} u. ($estadoTexto)',
                                       style: GoogleFonts.outfit(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w800,
@@ -999,7 +999,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                           Text('Stock Actual', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 4),
                           Text(
-                            '${p.stockActual.toStringAsFixed(0)} unid.',
+                            '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} unid.',
                             style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w900, color: isDark ? Colors.white : AppTheme.textDark),
                           ),
                         ],
