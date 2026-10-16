@@ -691,31 +691,33 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          // Pill Categoría
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 105),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: catColor.withValues(alpha: isDark ? 0.15 : 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                categoriaNombre.toUpperCase(),
-                                style: GoogleFonts.outfit(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: catColor,
-                                  letterSpacing: 0.3,
+                          // Pill Categoría (Flexible para garantizar ajuste exacto sin desbordar)
+                          Flexible(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 105),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: catColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                child: Text(
+                                  categoriaNombre.toUpperCase(),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: catColor,
+                                    letterSpacing: 0.3,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ),
                           ),
                           if (p.marca != null && p.marca!.isNotEmpty) ...[
                             const SizedBox(width: 6),
-                            Expanded(
+                            Flexible(
                               child: Text(
                                 p.marca!,
                                 style: GoogleFonts.plusJakartaSans(
