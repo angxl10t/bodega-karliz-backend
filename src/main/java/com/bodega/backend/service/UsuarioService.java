@@ -32,6 +32,11 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public List<UsuarioDTO> listarTodos() {
         Usuario admin = obtenerUsuarioEnSesion();
+        if (admin != null && "SUPERADMIN".equalsIgnoreCase(admin.getRol())) {
+            return usuarioRepository.findAllByOrderByRolAscUsernameAsc().stream()
+                    .map(this::mapToDTO)
+                    .collect(Collectors.toList());
+        }
         if (admin != null && admin.getBodega() != null) {
             return usuarioRepository.findByBodega_IdBodegaOrderByRolAscUsernameAsc(admin.getBodega().getIdBodega())
                     .stream()

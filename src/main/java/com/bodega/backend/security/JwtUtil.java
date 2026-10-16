@@ -70,7 +70,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("rol", rol)
-                .claim("idBodega", idBodega != null ? idBodega : 1L)
+                .claim("idBodega", idBodega != null ? idBodega : 0L)
                 .claim("plan", plan != null ? plan : "BASICO")
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 // Expira en 24 horas (recomendado para turnos comerciales completos en POS)

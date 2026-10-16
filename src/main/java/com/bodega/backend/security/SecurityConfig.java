@@ -69,6 +69,14 @@ public class SecurityConfig {
     }
 
     @Bean
+    public org.springframework.security.access.hierarchicalroles.RoleHierarchy roleHierarchy() {
+        return org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl.withDefaultRolePrefix()
+                .role("SUPERADMIN").implies("ADMIN")
+                .role("ADMIN").implies("CAJERO")
+                .build();
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }

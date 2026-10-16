@@ -34,8 +34,16 @@ public class TenantService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
             Optional<UserSecurityProfile> profile = userSecurityCacheService.getSecurityProfile(auth.getName());
-            if (profile.isPresent() && profile.get().getIdBodega() != null) {
-                return profile.get().getIdBodega();
+            if (profile.isPresent()) {
+                if (profile.get().getIdBodega() != null) {
+                    return profile.get().getIdBodega();
+                }
+                if ("SUPERADMIN".equalsIgnoreCase(profile.get().getRol())) {
+                    return bodegaRepository.findAll().stream()
+                            .map(Bodega::getIdBodega)
+                            .findFirst()
+                            .orElse(1L);
+                }
             }
         }
         return 1L; // Fallback por defecto seguro: Tenant 1 (Bodega KARLIZ)
@@ -47,7 +55,8 @@ public class TenantService {
     public Bodega getCurrentBodega() {
         Long idBodega = getCurrentBodegaId();
         return bodegaRepository.findById(idBodega)
-                .orElseGet(() -> bodegaRepository.findById(1L)
+                .orElseGet(() -> bodegaRepository.findAll().stream()
+                        .findFirst()
                         .orElseThrow(() -> new RuntimeException("Bodega no configurada en el sistema")));
     }
 }

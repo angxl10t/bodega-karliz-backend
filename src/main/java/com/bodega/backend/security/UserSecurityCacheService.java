@@ -44,15 +44,19 @@ public class UserSecurityCacheService {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByUsernameIgnoreCase(key);
         if (usuarioOpt.isPresent()) {
             Usuario u = usuarioOpt.get();
-            Long idBodega = (u.getBodega() != null) ? u.getBodega().getIdBodega() : 1L;
+            boolean esSuperAdmin = "SUPERADMIN".equalsIgnoreCase(u.getRol());
+            Long idBodega = (u.getBodega() != null) ? u.getBodega().getIdBodega() : null;
             String nombreBodega = (u.getBodega() != null && u.getBodega().getNombreComercial() != null) 
-                    ? u.getBodega().getNombreComercial() : "Bodega KARLIZ";
+                    ? u.getBodega().getNombreComercial() 
+                    : (esSuperAdmin ? "CajaYa Cloud Platform" : "Bodega KARLIZ");
             String plan = (u.getBodega() != null && u.getBodega().getPlan() != null) 
-                    ? u.getBodega().getPlan() : "PRO";
+                    ? u.getBodega().getPlan() 
+                    : (esSuperAdmin ? "SUPERADMIN" : "PRO");
             String colorPrimario = (u.getBodega() != null && u.getBodega().getColorPrimario() != null)
                     ? u.getBodega().getColorPrimario() : "#2563EB";
             String logoUrl = (u.getBodega() != null) ? u.getBodega().getLogoUrl() : null;
-            String lemaComercial = (u.getBodega() != null) ? u.getBodega().getLemaComercial() : null;
+            String lemaComercial = (u.getBodega() != null) ? u.getBodega().getLemaComercial() 
+                    : (esSuperAdmin ? "Consola Global de Administración de Bodegas" : null);
 
             UserSecurityProfile nuevo = new UserSecurityProfile(
                     u.getUsername(),

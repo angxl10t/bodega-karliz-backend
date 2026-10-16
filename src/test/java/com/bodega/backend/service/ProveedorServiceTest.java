@@ -21,6 +21,9 @@ public class ProveedorServiceTest {
     @Mock
     private ProveedorRepository proveedorRepository;
 
+    @Mock
+    private TenantService tenantService;
+
     @InjectMocks
     private ProveedorService proveedorService;
 
@@ -38,7 +41,8 @@ public class ProveedorServiceTest {
         mockGuardado.setRazonSocial("Distribuidora Gloria S.A.");
         mockGuardado.setEstado(true);
 
-        when(proveedorRepository.findByRuc("20601234567")).thenReturn(Optional.empty());
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(proveedorRepository.findByBodega_IdBodegaAndRuc(1L, "20601234567")).thenReturn(Optional.empty());
         when(proveedorRepository.save(any(Proveedor.class))).thenReturn(mockGuardado);
 
         ProveedorDTO resultado = proveedorService.crear(dto);
@@ -61,7 +65,8 @@ public class ProveedorServiceTest {
         mockGuardado.setRazonSocial("Juan Perez Distribuidor");
         mockGuardado.setEstado(true);
 
-        when(proveedorRepository.findByRuc("45678901")).thenReturn(Optional.empty());
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(proveedorRepository.findByBodega_IdBodegaAndRuc(1L, "45678901")).thenReturn(Optional.empty());
         when(proveedorRepository.save(any(Proveedor.class))).thenReturn(mockGuardado);
 
         ProveedorDTO resultado = proveedorService.crear(dto);
@@ -92,10 +97,11 @@ public class ProveedorServiceTest {
         existente.setRuc("20601234567");
         existente.setEstado(true);
 
-        when(proveedorRepository.findByRuc("20601234567")).thenReturn(Optional.of(existente));
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(proveedorRepository.findByBodega_IdBodegaAndRuc(1L, "20601234567")).thenReturn(Optional.of(existente));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> proveedorService.crear(dto));
-        assertTrue(ex.getMessage().contains("Ya existe un proveedor activo"));
+        assertTrue(ex.getMessage().contains("Ya existe un proveedor activo registrado con el RUC"));
         verify(proveedorRepository, never()).save(any(Proveedor.class));
     }
 
@@ -106,7 +112,8 @@ public class ProveedorServiceTest {
         proveedor.setRuc("20123456789");
         proveedor.setEstado(true);
 
-        when(proveedorRepository.findById(5L)).thenReturn(Optional.of(proveedor));
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(proveedorRepository.findByIdProveedorAndBodega_IdBodega(5L, 1L)).thenReturn(Optional.of(proveedor));
 
         proveedorService.desactivar(5L);
 

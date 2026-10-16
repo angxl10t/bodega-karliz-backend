@@ -23,6 +23,18 @@ public class BodegaController {
         return ResponseEntity.ok(bodegaService.obtenerMiBodega());
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<java.util.List<BodegaDTO>> listarTodas() {
+        return ResponseEntity.ok(bodegaService.listarTodas());
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BodegaDTO> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(bodegaService.obtenerPorId(id));
+    }
+
     @PutMapping("/configuracion")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BodegaDTO> actualizarConfiguracion(@Valid @RequestBody ActualizarBodegaDTO dto) {

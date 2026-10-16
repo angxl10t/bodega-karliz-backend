@@ -82,11 +82,15 @@ public class AuthController {
         // 4. Genera el JWT con claims de Bodega
         Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        Long idBodega = (usuario.getBodega() != null) ? usuario.getBodega().getIdBodega() : 1L;
+        boolean esSuperAdmin = "SUPERADMIN".equalsIgnoreCase(usuario.getRol());
+
+        Long idBodega = (usuario.getBodega() != null) ? usuario.getBodega().getIdBodega() : null;
         String nombreBodega = (usuario.getBodega() != null && usuario.getBodega().getNombreComercial() != null) 
-                ? usuario.getBodega().getNombreComercial() : "Bodega KARLIZ";
+                ? usuario.getBodega().getNombreComercial() 
+                : (esSuperAdmin ? "CajaYa Cloud Platform" : "Bodega KARLIZ");
         String plan = (usuario.getBodega() != null && usuario.getBodega().getPlan() != null) 
-                ? usuario.getBodega().getPlan() : "PRO";
+                ? usuario.getBodega().getPlan() 
+                : (esSuperAdmin ? "SUPERADMIN" : "PRO");
 
         String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol(), idBodega, plan);
 
@@ -94,7 +98,8 @@ public class AuthController {
         Map<String, String> response = new HashMap<>();
         response.put("token", jwt);
         response.put("rol", usuario.getRol());
-        response.put("idBodega", idBodega.toString());
+        response.put("esSuperAdmin", String.valueOf(esSuperAdmin));
+        response.put("idBodega", idBodega != null ? idBodega.toString() : "");
         response.put("nombreBodega", nombreBodega);
         response.put("plan", plan);
         if (usuario.getBodega() != null) {
@@ -106,7 +111,7 @@ public class AuthController {
             response.put("logoUrl", usuario.getBodega().getLogoUrl() != null ? usuario.getBodega().getLogoUrl() : "");
         } else {
             response.put("colorPrimario", "#2563EB");
-            response.put("lemaComercial", "");
+            response.put("lemaComercial", esSuperAdmin ? "Consola Global de Administración de Bodegas" : "");
             response.put("logoUrl", "");
         }
         return ResponseEntity.ok(response);

@@ -55,7 +55,9 @@ ALTER TABLE ventas ADD COLUMN IF NOT EXISTS serie_correlativo VARCHAR(30);
 ALTER TABLE ventas ADD COLUMN IF NOT EXISTS estado_sunat VARCHAR(30);
 
 -- 4. Asignación retroactiva de todos los datos existentes a la Bodega #1 (Zero Data Loss)
-UPDATE usuarios SET id_bodega = 1 WHERE id_bodega IS NULL;
+-- El superadministrador 'admin' queda global (sin bodega asociada)
+UPDATE usuarios SET id_bodega = 1 WHERE id_bodega IS NULL AND LOWER(username) != 'admin';
+UPDATE usuarios SET rol = 'SUPERADMIN', id_bodega = NULL WHERE LOWER(username) = 'admin';
 UPDATE productos SET id_bodega = 1 WHERE id_bodega IS NULL;
 UPDATE categorias SET id_bodega = 1 WHERE id_bodega IS NULL;
 UPDATE proveedores SET id_bodega = 1 WHERE id_bodega IS NULL;

@@ -29,6 +29,21 @@ public class BodegaService {
         return mapToDTO(bodega);
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<BodegaDTO> listarTodas() {
+        return bodegaRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "idBodega"))
+                .stream()
+                .map(this::mapToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public BodegaDTO obtenerPorId(Long idBodega) {
+        Bodega b = bodegaRepository.findById(idBodega)
+                .orElseThrow(() -> new RuntimeException("Bodega con ID " + idBodega + " no encontrada"));
+        return mapToDTO(b);
+    }
+
     @Transactional
     public BodegaDTO actualizarConfiguracion(ActualizarBodegaDTO dto) {
         Bodega bodega = tenantService.getCurrentBodega();
