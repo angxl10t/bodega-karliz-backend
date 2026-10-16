@@ -5,13 +5,19 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="CajaYa POS - Punto de Venta & Control de Inventario en la Nube">
-  <meta name="theme-color" content="#0B0F19">
+  <meta name="description" content="CajaYa POS - Punto de Venta & Control de Inventario">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#090D16" media="(prefers-color-scheme: dark)">
   
   <!-- Directivas de Seguridad Web (Content Security Policy & Anti-Clickjacking) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.gstatic.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://bodega-karliz-backend.onrender.com http://localhost:* http://127.0.0.1:* https://*.onrender.com https://fonts.googleapis.com https://fonts.gstatic.com https://www.gstatic.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&display=swap" rel="stylesheet">
 
   <!-- iOS meta tags & icons (PWA Add to Home Screen) -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -31,8 +37,24 @@
     * {
       box-sizing: border-box;
     }
+    :root {
+      --bg-color: #FFFFFF;
+      --wordmark-grad: linear-gradient(135deg, #1D4ED8 0%, #2563EB 55%, #06B6D4 100%);
+      --pos-bg: linear-gradient(135deg, #2563EB, #1D4ED8);
+      --pos-color: #FFFFFF;
+      --pos-shadow: rgba(37, 99, 235, 0.35);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #090D16;
+        --wordmark-grad: linear-gradient(135deg, #60A5FA 0%, #38BDF8 60%, #BAE6FD 100%);
+        --pos-bg: linear-gradient(135deg, #38BDF8, #2563EB);
+        --pos-color: #090D16;
+        --pos-shadow: rgba(56, 189, 248, 0.4);
+      }
+    }
     html, body {
-      background-color: #090D16;
+      background-color: var(--bg-color);
       margin: 0;
       padding: 0;
       width: 100%;
@@ -44,123 +66,76 @@
       touch-action: manipulation;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     }
     #loading-container {
-      position: relative;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       width: 100vw;
-      color: white;
-      text-align: center;
-      background: radial-gradient(circle at 50% 45%, rgba(37, 99, 235, 0.22) 0%, rgba(11, 15, 25, 0.95) 60%, #0B0F19 100%);
+      background-color: var(--bg-color);
     }
-    .logo-wrapper {
-      position: relative;
-      margin-bottom: 24px;
-      animation: float 2.4s ease-in-out infinite;
-    }
-    .loading-logo {
-      width: 94px;
-      height: 94px;
-      border-radius: 28px;
-      box-shadow: 0 14px 35px rgba(37, 99, 235, 0.38), 0 2px 10px rgba(0, 0, 0, 0.4);
-      display: block;
-      border: 1.5px solid rgba(96, 165, 250, 0.35);
-    }
-    .loading-title {
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: 9px;
-      margin: 0 0 10px 0;
-      color: #FFFFFF;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-    .loading-badge {
+    .brand-mark {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 5px 14px;
-      background: #131A29;
-      border: 1px solid #1E293B;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 3.5px;
-      color: #E2E8F0;
-      margin-bottom: 48px;
+      gap: 10px;
+      animation: rappiEntrance 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards,
+                 rappiBreathe 2.4s ease-in-out infinite 0.7s;
+      transform-origin: center center;
     }
-    .loading-badge .dot {
-      width: 5px;
-      height: 5px;
-      background-color: #60A5FA;
-      border-radius: 50%;
-    }
-    .progress-bar-container {
-      width: 160px;
-      height: 4px;
-      background: #1E293B;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-      margin-bottom: 14px;
-    }
-    .progress-bar-fill {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 45%;
-      background: linear-gradient(90deg, #2563EB, #60A5FA);
-      border-radius: 10px;
-      animation: progress-flow 1.5s ease-in-out infinite;
-    }
-    .loading-sub {
-      font-size: 12px;
-      color: #94A3B8;
-      font-weight: 500;
-      letter-spacing: 0.2px;
+    .wordmark {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: -1.4px;
+      line-height: 1;
+      background: var(--wordmark-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       margin: 0;
     }
-    .loading-footer {
-      position: absolute;
-      bottom: 24px;
-      font-size: 10px;
-      font-weight: 700;
-      color: #475569;
-      letter-spacing: 1.5px;
+    .pos-pill {
+      display: inline-block;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.0px;
+      line-height: 1;
+      padding: 5px 9px;
+      border-radius: 8px;
+      background: var(--pos-bg);
+      color: var(--pos-color);
+      box-shadow: 0 4px 12px var(--pos-shadow);
+      margin-bottom: 2px;
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50% { transform: translateY(-4px) scale(1.02); }
+    @keyframes rappiEntrance {
+      0% {
+        opacity: 0;
+        transform: scale(0.85);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
-    @keyframes progress-flow {
-      0% { left: -45%; }
-      100% { left: 100%; }
+    @keyframes rappiBreathe {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.02);
+      }
     }
   </style>
 </head>
 <body>
   <div id="loading-container">
-    <div class="logo-wrapper">
-      <img src="favicon.png" alt="CajaYa Cloud POS" class="loading-logo" />
+    <div class="brand-mark">
+      <span class="wordmark">CajaYa</span>
+      <span class="pos-pill">POS</span>
     </div>
-    <h1 class="loading-title">C A J A Y A</h1>
-    <div class="loading-badge">
-      <span class="dot"></span>
-      <span>CLOUD POS</span>
-      <span class="dot"></span>
-    </div>
-    <div class="progress-bar-container">
-      <div class="progress-bar-fill"></div>
-    </div>
-    <p class="loading-sub">Iniciando sistema en la nube...</p>
-    <div class="loading-footer">SISTEMA EN LA NUBE • TIEMPO REAL</div>
   </div>
 
   <script src="flutter_bootstrap.js" async></script>

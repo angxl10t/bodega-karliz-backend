@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'auth_service.dart';
-import '../../core/cajaya_vectors.dart';
 import '../../core/theme.dart';
 
+/// Pantalla de bienvenida (Splash Screen) profesional inspirada en el minimalismo
+/// de alta gama de Rappi: fondo prístino, tipografía de marca protagónica con gradiente
+/// vibrante y micro-animación fluida sin distractores ni barras de carga toscas.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,19 +29,22 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1400),
     );
 
+    // Entrada suave de opacidad
     _fadeAnim = CurvedAnimation(
       parent: _animController,
-      curve: const Interval(0.0, 0.65, curve: Curves.easeOutCubic),
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
     );
 
-    _scaleAnim = Tween<double>(begin: 0.88, end: 1.0).animate(
+    // Entrada con rebote sutil y natural
+    _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
       ),
     );
 
-    _pulseAnim = Tween<double>(begin: 0.98, end: 1.03).animate(
+    // Respiración orgánica suave en bucle
+    _pulseAnim = Tween<double>(begin: 0.985, end: 1.015).animate(
       CurvedAnimation(
         parent: _animController,
         curve: const Interval(0.7, 1.0, curve: Curves.easeInOutSine),
@@ -51,7 +56,8 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateNext() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+    // Breve tiempo de apreciación de marca (1.6s) para una experiencia rápida y fluida
+    await Future.delayed(const Duration(milliseconds: 1600));
     if (!mounted) return;
 
     final isLoggedIn = await AuthService().isLoggedIn();
@@ -72,158 +78,123 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF090D16), // Midnight Obsidian Slate
+      backgroundColor: isDark ? AppTheme.bgDark : Colors.white,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Resplandor Ambiental de Fondo (Ambient Glow)
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.35 - 120,
-            left: MediaQuery.of(context).size.width * 0.5 - 120,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppTheme.brandPrimary.withValues(alpha: 0.28),
-                    AppTheme.brandLight.withValues(alpha: 0.08),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.55, 1.0],
+          // 1. Resplandor Ambiental únicamente en modo oscuro
+          if (isDark)
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.5 - 130,
+              left: MediaQuery.of(context).size.width * 0.5 - 130,
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.brandPrimary.withValues(alpha: 0.22),
+                      const Color(0xFF06B6D4).withValues(alpha: 0.08),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // 2. Contenido Central
+          // 2. Logotipo Central Protagónico (Estilo Rappi Minimalista)
           Center(
             child: FadeTransition(
               opacity: _fadeAnim,
               child: ScaleTransition(
                 scale: _scaleAnim,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Badge con Logotipo Elevado y Resplandor
-                    AnimatedBuilder(
-                      animation: _pulseAnim,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _pulseAnim.value,
-                          child: child,
-                        );
-                      },
-                      child: Container(
-                        width: 92,
-                        height: 92,
-                        decoration: BoxDecoration(
-                          color: AppTheme.cardDark,
-                          borderRadius: BorderRadius.circular(28),
-                          border: Border.all(
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.45),
-                            width: 1.6,
+                child: AnimatedBuilder(
+                  animation: _pulseAnim,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _animController.value >= 0.7 ? _pulseAnim.value : 1.0,
+                      child: child,
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Palabra "CajaYa" con Gradiente Exclusivo
+                      ShaderMask(
+                        blendMode: BlendMode.srcIn,
+                        shaderCallback: (bounds) {
+                          if (isDark) {
+                            return const LinearGradient(
+                              colors: [
+                                Color(0xFF60A5FA), // Light Sky Blue
+                                Color(0xFF38BDF8), // Electric Cyan
+                                Color(0xFFBAE6FD), // Diamond Highlight
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ).createShader(bounds);
+                          }
+                          return const LinearGradient(
+                            colors: [
+                              Color(0xFF1D4ED8), // Deep Cobalt
+                              Color(0xFF2563EB), // Electric Cobalt
+                              Color(0xFF06B6D4), // Cyan Glow
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds);
+                        },
+                        child: Text(
+                          'CajaYa',
+                          style: GoogleFonts.outfit(
+                            fontSize: 52,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -1.2,
+                            color: Colors.white,
                           ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Insignia "POS" Elegante
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark
+                                ? const [Color(0xFF38BDF8), Color(0xFF2563EB)]
+                                : const [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.brandPrimary.withValues(alpha: 0.35),
-                              blurRadius: 32,
-                              offset: const Offset(0, 8),
+                              color: (isDark ? const Color(0xFF38BDF8) : AppTheme.brandPrimary)
+                                  .withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: CajaYaLogoMark(size: 52),
+                        child: Text(
+                          'POS',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            color: isDark ? const Color(0xFF0B0F19) : Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Marca CajaYa
-                    Text(
-                      'CajaYa',
-                      style: GoogleFonts.outfit(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Badge Subtítulo
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.brandPrimary.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: AppTheme.brandPrimary.withValues(alpha: 0.4),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        'CLOUD POS',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2,
-                          color: AppTheme.brandLight,
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 48),
-
-                    // Barra de Carga Sleek Cobalt
-                    Container(
-                      width: 160,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: const LinearProgressIndicator(
-                          backgroundColor: Colors.transparent,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.brandPrimary),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Leyenda de Estado
-                    Text(
-                      'Iniciando punto de venta seguro...',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF94A3B8),
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // 3. Footer Sutil
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 24,
-            child: Center(
-              child: Text(
-                'PLATAFORMA PUNTO DE VENTA • ALTA VELOCIDAD',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF475569),
-                  letterSpacing: 1.5,
+                    ],
+                  ),
                 ),
               ),
             ),
