@@ -677,7 +677,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  isPro ? 'S/ 59 /mes' : 'S/ 29 /mes',
+                                  isPro ? 'S/ 100 /mes' : 'S/ 50 /mes',
                                   style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w800,
@@ -690,8 +690,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           const SizedBox(height: 8),
                           Text(
                             isPro
-                                ? '✓ Cajeros y administradores ilimitados con PIN.\n✓ Control de turnos y sincronización en tiempo real.\n✓ Almacén y Kardex protegidos contra fraudes.'
-                                : '✓ 1 Usuario Administrador incluido.\n✓ Catálogo, POS rápido y Caja en la nube.',
+                                ? '✓ Cajeros y administradores ilimitados con PIN.\n✓ Control de turnos y sincronización en tiempo real.\n✓ Almacén y Kardex protegidos contra fraudes.\n✓ Personalización exclusiva de colores y logo en tickets.'
+                                : '✓ 1 Administrador + hasta 2 Cajeros activos con PIN.\n✓ Punto de Venta rápido, Control de Stock y Caja diaria.\n✓ Emisión de tickets digitales y reportes de ventas.',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               color: Colors.white.withValues(alpha: 0.9),
@@ -786,7 +786,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'El Plan Bodega incluye 1 usuario único. Con Plan Pro puedes habilitar cajeros para atender turnos con su propio PIN de seguridad.',
+                              'El Plan Bodega (S/ 50 /mes) incluye 1 Admin + hasta 2 Cajeros activos. Para turnos y cajeros ilimitados con PIN, Kardex antifraude y colores de marca propia, pasa a Plan Minimarket Pro (S/ 100 /mes).',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11.5,
                                 color: AppTheme.textMuted,

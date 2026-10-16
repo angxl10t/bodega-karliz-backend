@@ -593,8 +593,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     Text(
                                       _plan == 'PRO'
-                                          ? 'Cajeros con PIN, turnos y cuota ilimitada'
-                                          : 'Plan Bodega (1 Admin) • Pasa a Pro para cajeros',
+                                          ? 'Plan Pro (S/ 100/mes) • Turnos, cajeros ilimitados y marca'
+                                          : 'Plan Bodega (S/ 50/mes) • Hasta 2 cajeros y POS rápido',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
                                         color: AppTheme.textMuted,

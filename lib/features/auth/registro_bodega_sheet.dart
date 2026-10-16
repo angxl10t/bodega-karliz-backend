@@ -425,9 +425,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                             child: _buildPlanOption(
                               id: 'BASICO',
                               title: 'Plan Bodega',
-                              price: 'S/ 29 /mes',
-                              badge: '1 Administrador',
-                              features: 'POS rápido, Stock, Caja',
+                              price: 'S/ 50 /mes',
+                              badge: 'Admin + 2 Cajeros',
+                              features: 'POS rápido, Stock, Caja y Tickets',
                               isDark: isDark,
                             ),
                           ),
@@ -435,10 +435,10 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           Expanded(
                             child: _buildPlanOption(
                               id: 'PRO',
-                              title: 'Plan Minimarket',
-                              price: 'S/ 59 /mes',
-                              badge: 'Admin + Cajeros PIN',
-                              features: 'Turnos, Multi-cajero, Métricas',
+                              title: 'Plan Minimarket Pro',
+                              price: 'S/ 100 /mes',
+                              badge: 'Cajeros Ilimitados',
+                              features: 'Turnos, Kardex antifraude, Marca propia',
                               isPopular: true,
                               isDark: isDark,
                             ),
