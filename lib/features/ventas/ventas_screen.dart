@@ -8,7 +8,9 @@ import 'venta_service.dart';
 import 'caja_ventas_screen.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/karliz_sound_service.dart';
+import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
+import 'package:flutter/services.dart';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -826,7 +828,33 @@ class _VentasScreenState extends State<VentasScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.brandPrimary,
+                  side: const BorderSide(color: AppTheme.brandPrimary, width: 1.4),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                ),
+                icon: const Icon(LucideIcons.printer, size: 18),
+                label: Text(
+                  'TICKET TÉRMICO (58 / 80 MM)',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 12),
+                ),
+                onPressed: () {
+                  _mostrarTicketTermicoDialog(
+                    items: items,
+                    total: total,
+                    metodo: metodo,
+                    pagadoCon: pagadoCon,
+                    vuelto: vuelto,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -845,6 +873,124 @@ class _VentasScreenState extends State<VentasScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _mostrarTicketTermicoDialog({
+    required List<CartItem> items,
+    required double total,
+    required String metodo,
+    required double pagadoCon,
+    required double vuelto,
+  }) {
+    final ticketItems = items.map((it) {
+      return TicketItem(
+        nombre: it.producto.nombre,
+        cantidad: it.cantidad,
+        precioUnitario: it.producto.precioVenta,
+        subtotal: it.subtotal,
+      );
+    }).toList();
+
+    int selectedWidth = ThermalTicketService.width58mm;
+
+    showDialog(
+      context: context,
+      builder: (dlgCtx) => StatefulBuilder(
+        builder: (context, setDlgState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final receiptText = ThermalTicketService.generateReceiptText(
+            ticketId: null,
+            clienteNombre: _clienteNombreController.text.trim().isEmpty ? 'Público General' : _clienteNombreController.text.trim(),
+            clienteDocumento: _clienteDocController.text.trim().isEmpty ? null : _clienteDocController.text.trim(),
+            metodoPago: metodo,
+            items: ticketItems,
+            total: total,
+            pagadoCon: pagadoCon,
+            vuelto: vuelto,
+            width: selectedWidth,
+          );
+
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Row(
+              children: [
+                const Icon(LucideIcons.printer, color: AppTheme.brandPrimary, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Ticket Térmico POS',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                  ),
+                ),
+                SegmentedButton<int>(
+                  segments: const [
+                    ButtonSegment(value: ThermalTicketService.width58mm, label: Text('58mm')),
+                    ButtonSegment(value: ThermalTicketService.width80mm, label: Text('80mm')),
+                  ],
+                  selected: {selectedWidth},
+                  onSelectionChanged: (val) {
+                    setDlgState(() => selectedWidth = val.first);
+                  },
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: selectedWidth == ThermalTicketService.width58mm ? 320 : 420,
+              height: 340,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                ),
+                child: SingleChildScrollView(
+                  child: SelectableText(
+                    receiptText,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11.5,
+                      height: 1.25,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton.icon(
+                icon: const Icon(LucideIcons.copy, size: 16),
+                label: const Text('Copiar Texto'),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: receiptText));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('¡Texto del ticket copiado al portapapeles!'),
+                      backgroundColor: AppTheme.accentGreen,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                onPressed: () => Navigator.pop(dlgCtx),
+                child: const Text('Cerrar'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
