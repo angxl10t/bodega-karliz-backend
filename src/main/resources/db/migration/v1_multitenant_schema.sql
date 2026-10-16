@@ -36,11 +36,19 @@ UPDATE bodegas SET color_primario = '#2563EB' WHERE color_primario IS NULL;
 
 -- 2. Asegurar que Bodega KARLIZ exista con id_bodega = 1 y Plan PRO
 INSERT INTO bodegas (id_bodega, nombre_comercial, ruc_dni, direccion, telefono, plan, color_primario, lema_comercial, estado)
+OVERRIDING SYSTEM VALUE
 VALUES (1, 'Bodega KARLIZ', '10712345678', 'Av. Principal 123', '987654321', 'PRO', '#2563EB', 'Atención cálida, rápida y surtido completo', TRUE)
 ON CONFLICT (id_bodega) DO NOTHING;
 
 -- Ajustar la secuencia si es necesario
-SELECT setval(pg_get_serial_sequence('bodegas', 'id_bodega'), COALESCE(MAX(id_bodega), 1)) FROM bodegas;
+DO $$
+BEGIN
+    IF pg_get_serial_sequence('bodegas', 'id_bodega') IS NOT NULL THEN
+        PERFORM setval(pg_get_serial_sequence('bodegas', 'id_bodega'), GREATEST((SELECT COALESCE(MAX(id_bodega), 1) FROM bodegas), 1));
+    END IF;
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
 
 -- 3. Vincular columna id_bodega en todas las tablas transaccionales
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS id_bodega BIGINT REFERENCES bodegas(id_bodega);

@@ -15,14 +15,44 @@ import java.util.Map;
 public class HealthController {
 
     private final UsuarioRepository usuarioRepository;
+    private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
 
     // Caché en memoria para proteger el pool HikariCP frente a ráfagas de pings o ataques DoS
     private volatile long lastDbCheckTime = 0;
     private volatile String cachedDbStatus = "CONNECTED";
     private static final long DB_CHECK_INTERVAL_MS = 60000; // Máximo 1 consulta a la BD cada 60 segundos
 
-    public HealthController(UsuarioRepository usuarioRepository) {
+    public HealthController(UsuarioRepository usuarioRepository,
+                            com.bodega.backend.repository.BodegaRepository bodegaRepository) {
         this.usuarioRepository = usuarioRepository;
+        this.bodegaRepository = bodegaRepository;
+    }
+
+    @GetMapping("/diagnostico")
+    public ResponseEntity<Map<String, Object>> diagnostico() {
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("version", "1.0.8");
+        try {
+            resp.put("bodegas", bodegaRepository.findAll().stream().map(b -> Map.of(
+                "idBodega", b.getIdBodega(),
+                "nombreComercial", b.getNombreComercial(),
+                "plan", b.getPlan() != null ? b.getPlan() : "BASICO",
+                "estado", b.getEstado()
+            )).toList());
+        } catch (Exception e) {
+            resp.put("error_bodegas", e.getMessage());
+        }
+        try {
+            resp.put("usuarios", usuarioRepository.findAll().stream().map(u -> Map.of(
+                "idUsuario", u.getIdUsuario(),
+                "username", u.getUsername(),
+                "rol", u.getRol(),
+                "idBodega", u.getBodega() != null ? u.getBodega().getIdBodega() : "NULL"
+            )).toList());
+        } catch (Exception e) {
+            resp.put("error_usuarios", e.getMessage());
+        }
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping

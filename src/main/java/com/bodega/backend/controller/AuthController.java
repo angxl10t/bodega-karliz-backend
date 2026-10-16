@@ -84,13 +84,23 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         boolean esSuperAdmin = "SUPERADMIN".equalsIgnoreCase(usuario.getRol());
 
-        Long idBodega = (usuario.getBodega() != null) ? usuario.getBodega().getIdBodega() : null;
-        String nombreBodega = (usuario.getBodega() != null && usuario.getBodega().getNombreComercial() != null) 
-                ? usuario.getBodega().getNombreComercial() 
-                : (esSuperAdmin ? "CajaYa Cloud Platform" : "Bodega KARLIZ");
-        String plan = (usuario.getBodega() != null && usuario.getBodega().getPlan() != null) 
-                ? usuario.getBodega().getPlan() 
-                : (esSuperAdmin ? "SUPERADMIN" : "PRO");
+        Long idBodega;
+        String nombreBodega;
+        String plan;
+
+        if (esSuperAdmin) {
+            idBodega = null;
+            nombreBodega = "CajaYa Cloud Platform";
+            plan = "SUPERADMIN";
+        } else {
+            idBodega = (usuario.getBodega() != null) ? usuario.getBodega().getIdBodega() : 1L;
+            nombreBodega = (usuario.getBodega() != null && usuario.getBodega().getNombreComercial() != null) 
+                    ? usuario.getBodega().getNombreComercial() 
+                    : "Bodega KARLIZ";
+            plan = (usuario.getBodega() != null && usuario.getBodega().getPlan() != null) 
+                    ? usuario.getBodega().getPlan() 
+                    : "PRO";
+        }
 
         String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol(), idBodega, plan);
 
@@ -102,7 +112,7 @@ public class AuthController {
         response.put("idBodega", idBodega != null ? idBodega.toString() : "");
         response.put("nombreBodega", nombreBodega);
         response.put("plan", plan);
-        if (usuario.getBodega() != null) {
+        if (!esSuperAdmin && usuario.getBodega() != null) {
             response.put("ruc", usuario.getBodega().getRucDni() != null ? usuario.getBodega().getRucDni() : "");
             response.put("direccion", usuario.getBodega().getDireccion() != null ? usuario.getBodega().getDireccion() : "");
             response.put("telefono", usuario.getBodega().getTelefono() != null ? usuario.getBodega().getTelefono() : "");
@@ -110,8 +120,8 @@ public class AuthController {
             response.put("lemaComercial", usuario.getBodega().getLemaComercial() != null ? usuario.getBodega().getLemaComercial() : "");
             response.put("logoUrl", usuario.getBodega().getLogoUrl() != null ? usuario.getBodega().getLogoUrl() : "");
         } else {
-            response.put("colorPrimario", "#2563EB");
-            response.put("lemaComercial", esSuperAdmin ? "Consola Global de Administración de Bodegas" : "");
+            response.put("colorPrimario", "#8B5CF6");
+            response.put("lemaComercial", "Consola Global de Administración de Bodegas");
             response.put("logoUrl", "");
         }
         return ResponseEntity.ok(response);

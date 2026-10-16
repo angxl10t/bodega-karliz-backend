@@ -48,61 +48,105 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
-        try {
-            log.info("[DataInitializer] Verificando e inicializando estructura multi-tenant y usuarios...");
+        log.info("[DataInitializer] Verificando e inicializando estructura multi-tenant y usuarios...");
 
-            // 1. Asegurar que Bodega 1 (Bodega KARLIZ) exista
-            Bodega bodegaKarliz = inicializarBodegaKarliz();
+        // 0. Asegurar columnas de la tabla bodegas para prevenir errores de mapeo JPA
+        asegurarColumnasBodegas();
 
-            // 2. Vincular registros huérfanos a Bodega 1
-            vincularRegistrosHuerfanos();
+        // 1. Asegurar que Bodega 1 (Bodega KARLIZ) exista
+        Bodega bodegaKarliz = inicializarBodegaKarliz();
 
-            // 3. Configurar usuarios del sistema (Superadmin desvinculado, Admin de Karliz, Cajero)
-            inicializarUsuarios(bodegaKarliz);
+        // 2. Vincular registros huérfanos a Bodega 1
+        vincularRegistrosHuerfanos();
 
-            // 4. Sembrar categorías maestras si Bodega 1 no tiene ninguna
-            inicializarCategoriasYProductos(bodegaKarliz);
+        // 3. Configurar usuarios del sistema (Superadmin desvinculado, Admin de Karliz, Cajero)
+        inicializarUsuarios(bodegaKarliz);
 
-            log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
-        } catch (Exception e) {
-            log.error("[DataInitializer] Advertencia al inicializar datos: {}", e.getMessage(), e);
+        // 4. Sembrar categorías maestras si Bodega 1 no tiene ninguna
+        inicializarCategoriasYProductos(bodegaKarliz);
+
+        log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
+    }
+
+    private void asegurarColumnasBodegas() {
+        String[] alterStatements = {
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS color_primario VARCHAR(20) DEFAULT '#2563EB'",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS lema_comercial VARCHAR(255)",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS facturacion_sunat_activa BOOLEAN DEFAULT FALSE",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_proveedor VARCHAR(50) DEFAULT 'SUNAT_DIRECTO_GRATUITO'",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_ruc_emisor VARCHAR(11)",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_usuario_sol VARCHAR(50)",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_token_api VARCHAR(255)",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS serie_boleta VARCHAR(10) DEFAULT 'B001'",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS serie_factura VARCHAR(10) DEFAULT 'F001'",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS ultimo_correlativo_boleta BIGINT DEFAULT 0",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS ultimo_correlativo_factura BIGINT DEFAULT 0"
+        };
+        for (String sql : alterStatements) {
+            try {
+                jdbcTemplate.execute(sql);
+            } catch (Exception e) {
+                log.debug("[DataInitializer] Alter column omitido o ya existente: {}", e.getMessage());
+            }
         }
     }
 
     private Bodega inicializarBodegaKarliz() {
-        Optional<Bodega> bodegaOpt = bodegaRepository.findById(1L);
-        if (bodegaOpt.isPresent()) {
-            Bodega b = bodegaOpt.get();
-            if (b.getNombreComercial() == null || b.getNombreComercial().isBlank()) {
-                b.setNombreComercial("Bodega KARLIZ");
+        try {
+            Optional<Bodega> bodegaOpt = bodegaRepository.findById(1L);
+            if (bodegaOpt.isPresent()) {
+                Bodega b = bodegaOpt.get();
+                if (b.getNombreComercial() == null || b.getNombreComercial().isBlank()) {
+                    b.setNombreComercial("Bodega KARLIZ");
+                }
+                if (b.getPlan() == null) {
+                    b.setPlan("PRO");
+                }
+                return bodegaRepository.save(b);
             }
-            if (b.getPlan() == null) {
-                b.setPlan("PRO");
-            }
-            return bodegaRepository.save(b);
-        }
-
-        Optional<Bodega> bodegaPorNombre = bodegaRepository.findAll().stream()
-                .filter(b -> "Bodega KARLIZ".equalsIgnoreCase(b.getNombreComercial()))
-                .findFirst();
-
-        if (bodegaPorNombre.isPresent()) {
-            return bodegaPorNombre.get();
+        } catch (Exception e) {
+            log.warn("[DataInitializer] Búsqueda por ID falló: {}", e.getMessage());
         }
 
         try {
-            jdbcTemplate.update(
+            Optional<Bodega> bodegaPorNombre = bodegaRepository.findAll().stream()
+                    .filter(b -> "Bodega KARLIZ".equalsIgnoreCase(b.getNombreComercial()))
+                    .findFirst();
+
+            if (bodegaPorNombre.isPresent()) {
+                return bodegaPorNombre.get();
+            }
+        } catch (Exception e) {
+            log.warn("[DataInitializer] Búsqueda por nombre falló: {}", e.getMessage());
+        }
+
+        // Intento 1: Inserción directa con OVERRIDING SYSTEM VALUE para PostgreSQL IDENTITY
+        try {
+            jdbcTemplate.execute(
                     "INSERT INTO bodegas (id_bodega, nombre_comercial, ruc_dni, direccion, telefono, plan, color_primario, lema_comercial, estado) " +
+                    "OVERRIDING SYSTEM VALUE " +
                     "VALUES (1, 'Bodega KARLIZ', '10712345678', 'Av. Principal 123', '987654321', 'PRO', '#2563EB', 'Atención cálida, rápida y surtido completo', TRUE) " +
                     "ON CONFLICT (id_bodega) DO UPDATE SET nombre_comercial = 'Bodega KARLIZ', plan = 'PRO'"
             );
+        } catch (Exception ex1) {
+            log.warn("[DataInitializer] Inserción OVERRIDING falló, intentando estándar: {}", ex1.getMessage());
             try {
                 jdbcTemplate.execute(
-                        "SELECT setval(pg_get_serial_sequence('bodegas', 'id_bodega'), GREATEST((SELECT COALESCE(MAX(id_bodega), 1) FROM bodegas), 1))"
+                        "INSERT INTO bodegas (id_bodega, nombre_comercial, ruc_dni, direccion, telefono, plan, color_primario, lema_comercial, estado) " +
+                        "VALUES (1, 'Bodega KARLIZ', '10712345678', 'Av. Principal 123', '987654321', 'PRO', '#2563EB', 'Atención cálida, rápida y surtido completo', TRUE) " +
+                        "ON CONFLICT DO NOTHING"
                 );
-            } catch (Exception ignored) {}
+            } catch (Exception ex2) {
+                log.warn("[DataInitializer] Inserción estándar falló: {}", ex2.getMessage());
+            }
+        }
+
+        try {
+            jdbcTemplate.execute("SELECT setval(pg_get_serial_sequence('bodegas', 'id_bodega'), GREATEST((SELECT COALESCE(MAX(id_bodega), 1) FROM bodegas), 1))");
+        } catch (Exception ignored) {}
+
+        try {
             return bodegaRepository.findById(1L).orElseGet(() -> {
                 Bodega fallback = new Bodega();
                 fallback.setNombreComercial("Bodega KARLIZ");
@@ -112,17 +156,13 @@ public class DataInitializer implements ApplicationRunner {
                 return bodegaRepository.save(fallback);
             });
         } catch (Exception ex) {
-            log.warn("[DataInitializer] Inserción JDBC falló, creando vía JPA: {}", ex.getMessage());
-            Bodega nueva = new Bodega();
-            nueva.setNombreComercial("Bodega KARLIZ");
-            nueva.setRucDni("10712345678");
-            nueva.setDireccion("Av. Principal 123");
-            nueva.setTelefono("987654321");
-            nueva.setPlan("PRO");
-            nueva.setColorPrimario("#2563EB");
-            nueva.setLemaComercial("Atención cálida, rápida y surtido completo");
-            nueva.setEstado(true);
-            return bodegaRepository.save(nueva);
+            log.warn("[DataInitializer] Creación fallback JPA: {}", ex.getMessage());
+            Bodega fallback = new Bodega();
+            fallback.setNombreComercial("Bodega KARLIZ");
+            fallback.setPlan("PRO");
+            fallback.setColorPrimario("#2563EB");
+            fallback.setEstado(true);
+            return bodegaRepository.save(fallback);
         }
     }
 

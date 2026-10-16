@@ -24,33 +24,33 @@ public class BodegaController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<java.util.List<BodegaDTO>> listarTodas() {
         return ResponseEntity.ok(bodegaService.listarTodas());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<BodegaDTO> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(bodegaService.obtenerPorId(id));
     }
 
     @PutMapping("/configuracion")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<BodegaDTO> actualizarConfiguracion(@Valid @RequestBody ActualizarBodegaDTO dto) {
         BodegaDTO actualizada = bodegaService.actualizarConfiguracion(dto);
         return ResponseEntity.ok(actualizada);
     }
 
     @PostMapping("/pago-yape")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<BodegaDTO> registrarPagoYape(@Valid @RequestBody com.bodega.backend.dto.PagoYapeDTO dto) {
         BodegaDTO actualizada = bodegaService.registrarPagoYape(dto);
         return ResponseEntity.ok(actualizada);
     }
 
     @PutMapping("/configuracion-sunat")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<BodegaDTO> actualizarConfiguracionSunat(@Valid @RequestBody com.bodega.backend.dto.ConfiguracionSunatDTO dto) {
         BodegaDTO actualizada = bodegaService.actualizarConfiguracionSunat(dto);
         return ResponseEntity.ok(actualizada);

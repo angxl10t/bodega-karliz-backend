@@ -77,6 +77,15 @@ public class SecurityConfig {
     }
 
     @Bean
+    public static org.springframework.security.access.expression.method.MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+            org.springframework.security.access.hierarchicalroles.RoleHierarchy roleHierarchy) {
+        org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler handler =
+                new org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler();
+        handler.setRoleHierarchy(roleHierarchy);
+        return handler;
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }

@@ -8,11 +8,16 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // Atrapa reglas de negocio controladas y previene fuga de errores internos de BD
     @ExceptionHandler(RuntimeException.class)
@@ -89,11 +94,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // Captura universal de cualquier error inesperado no controlado para evitar fuga de trazas o stack traces
+    // Captura universal de cualquier error inesperado no controlado
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
+        log.error("[GlobalExceptionHandler] Error no controlado: {}", ex.getMessage(), ex);
         Map<String, String> error = new HashMap<>();
         error.put("error", "Error interno al procesar la solicitud en el servidor.");
+        error.put("detalle", ex.getClass().getSimpleName() + ": " + ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
