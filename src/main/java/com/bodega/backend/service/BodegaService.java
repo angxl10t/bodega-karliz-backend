@@ -72,6 +72,90 @@ public class BodegaService {
         return mapToDTO(guardada);
     }
 
+    /**
+     * Solución 1: Renovación Directa de Suscripción vía Yape / Plin (0% Comisiones)
+     */
+    @Transactional
+    public BodegaDTO registrarPagoYape(com.bodega.backend.dto.PagoYapeDTO dto) {
+        Bodega bodega = tenantService.getCurrentBodega();
+
+        // Validar coherencia de montos oficiales
+        String planSolicitado = dto.getPlan().trim().toUpperCase();
+        java.math.BigDecimal montoEsperado = "PRO".equals(planSolicitado) 
+                ? new java.math.BigDecimal("100.00") 
+                : new java.math.BigDecimal("50.00");
+
+        if (dto.getMonto().compareTo(montoEsperado) < 0) {
+            throw new RuntimeException("El monto enviado (S/ " + dto.getMonto() + 
+                    ") es inferior a la tarifa oficial del Plan " + planSolicitado + " (S/ " + montoEsperado + ").");
+        }
+
+        // Extensión acumulativa: Si el plan aún está vigente, suma 30 días al vencimiento actual; si no, 30 días desde hoy
+        java.time.OffsetDateTime baseTime = (bodega.getFechaVencimientoPlan() != null && bodega.getFechaVencimientoPlan().isAfter(java.time.OffsetDateTime.now()))
+                ? bodega.getFechaVencimientoPlan()
+                : java.time.OffsetDateTime.now();
+
+        bodega.setFechaVencimientoPlan(baseTime.plusDays(30));
+        bodega.setPlan(planSolicitado);
+        bodega.setEstado(true);
+
+        Bodega guardada = bodegaRepository.save(bodega);
+        userSecurityCacheService.evictAll();
+
+        return mapToDTO(guardada);
+    }
+
+    /**
+     * Solución 2: Activación y Configuración del Módulo SUNAT
+     * REGLA DE SEGURIDAD ESTRICTA: Solo el Administrador de la bodega puede activar,
+     * desactivar o configurar credenciales de facturación. Los cajeros tienen acceso denegado.
+     */
+    @Transactional
+    public BodegaDTO actualizarConfiguracionSunat(com.bodega.backend.dto.ConfiguracionSunatDTO dto) {
+        // Validación de Rol en Contexto de Seguridad
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean esAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!esAdmin) {
+            throw new RuntimeException("Acceso Denegado: Solo el Administrador de la bodega puede activar o modificar la Facturación Electrónica SUNAT. Los cajeros no tienen permisos para alterar este módulo.");
+        }
+
+        Bodega bodega = tenantService.getCurrentBodega();
+
+        if (dto.getFacturacionSunatActiva() != null) {
+            bodega.setFacturacionSunatActiva(dto.getFacturacionSunatActiva());
+        }
+
+        if (dto.getSunatProveedor() != null && !dto.getSunatProveedor().isBlank()) {
+            bodega.setSunatProveedor(dto.getSunatProveedor().trim());
+        }
+
+        if (dto.getSunatRucEmisor() != null) {
+            bodega.setSunatRucEmisor(dto.getSunatRucEmisor().isBlank() ? null : dto.getSunatRucEmisor().trim());
+        }
+
+        if (dto.getSunatUsuarioSol() != null) {
+            bodega.setSunatUsuarioSol(dto.getSunatUsuarioSol().isBlank() ? null : dto.getSunatUsuarioSol().trim());
+        }
+
+        if (dto.getSunatTokenApi() != null && !dto.getSunatTokenApi().isBlank()) {
+            bodega.setSunatTokenApi(dto.getSunatTokenApi().trim());
+        }
+
+        if (dto.getSerieBoleta() != null && !dto.getSerieBoleta().isBlank()) {
+            bodega.setSerieBoleta(dto.getSerieBoleta().trim().toUpperCase());
+        }
+
+        if (dto.getSerieFactura() != null && !dto.getSerieFactura().isBlank()) {
+            bodega.setSerieFactura(dto.getSerieFactura().trim().toUpperCase());
+        }
+
+        Bodega guardada = bodegaRepository.save(bodega);
+        userSecurityCacheService.evictAll();
+
+        return mapToDTO(guardada);
+    }
+
     private BodegaDTO mapToDTO(Bodega b) {
         BodegaDTO dto = new BodegaDTO();
         dto.setIdBodega(b.getIdBodega());
@@ -86,6 +170,16 @@ public class BodegaService {
         dto.setEstado(b.getEstado());
         dto.setFechaRegistro(b.getFechaRegistro());
         dto.setFechaVencimientoPlan(b.getFechaVencimientoPlan());
+
+        // Campos Módulo SUNAT
+        dto.setFacturacionSunatActiva(Boolean.TRUE.equals(b.getFacturacionSunatActiva()));
+        dto.setSunatProveedor(b.getSunatProveedor());
+        dto.setSunatRucEmisor(b.getSunatRucEmisor());
+        dto.setSunatUsuarioSol(b.getSunatUsuarioSol());
+        dto.setSerieBoleta(b.getSerieBoleta());
+        dto.setSerieFactura(b.getSerieFactura());
+        dto.setUltimoCorrelativoBoleta(b.getUltimoCorrelativoBoleta());
+        dto.setUltimoCorrelativoFactura(b.getUltimoCorrelativoFactura());
         return dto;
     }
 }

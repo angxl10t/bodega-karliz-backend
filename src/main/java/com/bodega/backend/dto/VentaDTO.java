@@ -33,6 +33,11 @@ public class VentaDTO {
     private String usuarioAnulacion;
     private String motivoAnulacion;
 
+    // Facturación y Comprobantes SUNAT
+    private String tipoComprobante;
+    private String serieCorrelativo;
+    private String estadoSunat;
+
     @NotEmpty(message = "La venta debe tener al menos un producto")
     @Size(max = 100, message = "La venta no puede contener más de 100 productos diferentes")
     @Valid

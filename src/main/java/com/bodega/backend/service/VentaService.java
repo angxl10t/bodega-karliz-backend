@@ -28,25 +28,29 @@ public class VentaService {
     private final ProductoRepository productoRepository;
     private final MovimientoInventarioRepository movimientoInventarioRepository;
     private final TenantService tenantService;
+    private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
 
     public VentaService(VentaRepository ventaRepository,
                         VentaDetalleRepository ventaDetalleRepository,
                         ProductoRepository productoRepository,
                         MovimientoInventarioRepository movimientoInventarioRepository,
-                        TenantService tenantService) {
+                        TenantService tenantService,
+                        com.bodega.backend.repository.BodegaRepository bodegaRepository) {
         this.ventaRepository = ventaRepository;
         this.ventaDetalleRepository = ventaDetalleRepository;
         this.productoRepository = productoRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.tenantService = tenantService;
+        this.bodegaRepository = bodegaRepository;
     }
 
     @Transactional
     public VentaDTO registrarVenta(VentaDTO dto) {
         Long idBodega = tenantService.getCurrentBodegaId();
 
+        Bodega bodega = tenantService.getCurrentBodega();
         Venta venta = new Venta();
-        venta.setBodega(tenantService.getCurrentBodega());
+        venta.setBodega(bodega);
         String docCliente = sanitizarTextoImpresion(dto.getClienteDocumento(), 20, null);
         String nomCliente = sanitizarTextoImpresion(dto.getClienteNombre(), 150, "Público General");
 
@@ -135,6 +139,32 @@ public class VentaService {
         }
 
         venta.setTotal(totalVenta);
+
+        // Módulo SUNAT: Si la bodega tiene la facturación electrónica activa, generar correlativo y comprobante
+        if (bodega != null && Boolean.TRUE.equals(bodega.getFacturacionSunatActiva())) {
+            boolean esRuc = docCliente != null && docCliente.trim().length() == 11;
+            String tipo = esRuc ? "FACTURA_ELECTRONICA" : "BOLETA_ELECTRONICA";
+            String serie = esRuc ? (bodega.getSerieFactura() != null ? bodega.getSerieFactura() : "F001")
+                                 : (bodega.getSerieBoleta() != null ? bodega.getSerieBoleta() : "B001");
+            long correlativo = esRuc 
+                    ? (bodega.getUltimoCorrelativoFactura() != null ? bodega.getUltimoCorrelativoFactura() + 1 : 1L)
+                    : (bodega.getUltimoCorrelativoBoleta() != null ? bodega.getUltimoCorrelativoBoleta() + 1 : 1L);
+
+            if (esRuc) {
+                bodega.setUltimoCorrelativoFactura(correlativo);
+            } else {
+                bodega.setUltimoCorrelativoBoleta(correlativo);
+            }
+            bodegaRepository.save(bodega);
+
+            venta.setTipoComprobante(tipo);
+            venta.setSerieCorrelativo(String.format("%s-%08d", serie, correlativo));
+            venta.setEstadoSunat("ACEPTADO");
+        } else {
+            venta.setTipoComprobante("TICKET");
+            venta.setEstadoSunat(null);
+        }
+
         Venta cabeceraGuardada = ventaRepository.save(venta);
 
         for (VentaDetalle det : detallesGuardados) {
@@ -401,6 +431,11 @@ public class VentaService {
         dto.setFechaAnulacion(venta.getFechaAnulacion());
         dto.setUsuarioAnulacion(venta.getUsuarioAnulacion());
         dto.setMotivoAnulacion(venta.getMotivoAnulacion());
+
+        // Comprobantes SUNAT
+        dto.setTipoComprobante(venta.getTipoComprobante() != null ? venta.getTipoComprobante() : "TICKET");
+        dto.setSerieCorrelativo(venta.getSerieCorrelativo());
+        dto.setEstadoSunat(venta.getEstadoSunat());
 
         dto.setDetalles(detalles.stream().map(d -> {
             VentaDetalleDTO detDto = new VentaDetalleDTO();

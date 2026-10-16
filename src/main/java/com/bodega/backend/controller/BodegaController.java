@@ -29,4 +29,18 @@ public class BodegaController {
         BodegaDTO actualizada = bodegaService.actualizarConfiguracion(dto);
         return ResponseEntity.ok(actualizada);
     }
+
+    @PostMapping("/pago-yape")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BodegaDTO> registrarPagoYape(@Valid @RequestBody com.bodega.backend.dto.PagoYapeDTO dto) {
+        BodegaDTO actualizada = bodegaService.registrarPagoYape(dto);
+        return ResponseEntity.ok(actualizada);
+    }
+
+    @PutMapping("/configuracion-sunat")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BodegaDTO> actualizarConfiguracionSunat(@Valid @RequestBody com.bodega.backend.dto.ConfiguracionSunatDTO dto) {
+        BodegaDTO actualizada = bodegaService.actualizarConfiguracionSunat(dto);
+        return ResponseEntity.ok(actualizada);
+    }
 }

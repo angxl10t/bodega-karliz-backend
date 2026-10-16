@@ -17,4 +17,14 @@ public class BodegaDTO {
     private Boolean estado;
     private OffsetDateTime fechaRegistro;
     private OffsetDateTime fechaVencimientoPlan;
+
+    // Configuración Facturación Electrónica SUNAT
+    private Boolean facturacionSunatActiva;
+    private String sunatProveedor;
+    private String sunatRucEmisor;
+    private String sunatUsuarioSol;
+    private String serieBoleta;
+    private String serieFactura;
+    private Long ultimoCorrelativoBoleta;
+    private Long ultimoCorrelativoFactura;
 }

@@ -51,6 +51,16 @@ public class Venta {
     @Column(name = "motivo_anulacion", length = 255)
     private String motivoAnulacion;
 
+    // Facturación y Comprobantes (TICKET, BOLETA_ELECTRONICA, FACTURA_ELECTRONICA)
+    @Column(name = "tipo_comprobante", length = 30)
+    private String tipoComprobante = "TICKET";
+
+    @Column(name = "serie_correlativo", length = 30)
+    private String serieCorrelativo;
+
+    @Column(name = "estado_sunat", length = 30)
+    private String estadoSunat;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_bodega")
     private Bodega bodega;

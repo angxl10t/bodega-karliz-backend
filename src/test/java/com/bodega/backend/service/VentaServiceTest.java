@@ -43,6 +43,12 @@ public class VentaServiceTest {
     @Mock
     private MovimientoInventarioRepository movimientoInventarioRepository;
 
+    @Mock
+    private TenantService tenantService;
+
+    @Mock
+    private com.bodega.backend.repository.BodegaRepository bodegaRepository;
+
     @InjectMocks
     private VentaService ventaService;
 
@@ -52,6 +58,7 @@ public class VentaServiceTest {
         var auth = new UsernamePasswordAuthenticationToken(
                 "admin", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
         SecurityContextHolder.getContext().setAuthentication(auth);
+        lenient().when(tenantService.getCurrentBodegaId()).thenReturn(1L);
     }
 
     @AfterEach
@@ -67,7 +74,7 @@ public class VentaServiceTest {
         SecurityContextHolder.getContext().setAuthentication(authCajero);
 
         assertThrows(AccessDeniedException.class, () -> ventaService.anularVenta(1L, "Error de tipeo"));
-        verify(ventaRepository, never()).findByIdForUpdate(any());
+        verify(ventaRepository, never()).findByIdForUpdateAndBodega(any(), any());
     }
 
     @Test
@@ -76,11 +83,11 @@ public class VentaServiceTest {
         venta.setIdVenta(1L);
         venta.setEstado("ANULADA");
 
-        when(ventaRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(venta));
+        when(ventaRepository.findByIdForUpdateAndBodega(1L, 1L)).thenReturn(Optional.of(venta));
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> ventaService.anularVenta(1L, "Intento doble"));
         assertTrue(ex.getMessage().contains("ya se encuentra anulada"));
-        verify(productoRepository, never()).findByIdForUpdate(any());
+        verify(productoRepository, never()).findByIdForUpdateAndBodega(any(), any());
     }
 
     @Test
@@ -100,9 +107,9 @@ public class VentaServiceTest {
         det.setProducto(prod);
         det.setCantidad(new BigDecimal("3.000"));
 
-        when(ventaRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(venta));
+        when(ventaRepository.findByIdForUpdateAndBodega(1L, 1L)).thenReturn(Optional.of(venta));
         when(ventaDetalleRepository.findByVenta(venta)).thenReturn(List.of(det));
-        when(productoRepository.findByIdForUpdate(10L)).thenReturn(Optional.of(prod));
+        when(productoRepository.findByIdForUpdateAndBodega(10L, 1L)).thenReturn(Optional.of(prod));
 
         ventaService.anularVenta(1L, "Cliente canceló pedido");
 

@@ -23,6 +23,15 @@ CREATE TABLE IF NOT EXISTS bodegas (
 -- Asegurar columnas si la tabla ya existía previamente
 ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS color_primario VARCHAR(20) DEFAULT '#2563EB';
 ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS lema_comercial VARCHAR(255);
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS facturacion_sunat_activa BOOLEAN DEFAULT FALSE;
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_proveedor VARCHAR(50) DEFAULT 'SUNAT_DIRECTO_GRATUITO';
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_ruc_emisor VARCHAR(11);
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_usuario_sol VARCHAR(50);
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS sunat_token_api VARCHAR(255);
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS serie_boleta VARCHAR(10) DEFAULT 'B001';
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS serie_factura VARCHAR(10) DEFAULT 'F001';
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS ultimo_correlativo_boleta BIGINT DEFAULT 0;
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS ultimo_correlativo_factura BIGINT DEFAULT 0;
 UPDATE bodegas SET color_primario = '#2563EB' WHERE color_primario IS NULL;
 
 -- 2. Asegurar que Bodega KARLIZ exista con id_bodega = 1 y Plan PRO
@@ -40,6 +49,10 @@ ALTER TABLE categorias ADD COLUMN IF NOT EXISTS id_bodega BIGINT REFERENCES bode
 ALTER TABLE proveedores ADD COLUMN IF NOT EXISTS id_bodega BIGINT REFERENCES bodegas(id_bodega);
 ALTER TABLE ventas ADD COLUMN IF NOT EXISTS id_bodega BIGINT REFERENCES bodegas(id_bodega);
 ALTER TABLE compras ADD COLUMN IF NOT EXISTS id_bodega BIGINT REFERENCES bodegas(id_bodega);
+
+ALTER TABLE ventas ADD COLUMN IF NOT EXISTS tipo_comprobante VARCHAR(30) DEFAULT 'TICKET';
+ALTER TABLE ventas ADD COLUMN IF NOT EXISTS serie_correlativo VARCHAR(30);
+ALTER TABLE ventas ADD COLUMN IF NOT EXISTS estado_sunat VARCHAR(30);
 
 -- 4. Asignación retroactiva de todos los datos existentes a la Bodega #1 (Zero Data Loss)
 UPDATE usuarios SET id_bodega = 1 WHERE id_bodega IS NULL;
