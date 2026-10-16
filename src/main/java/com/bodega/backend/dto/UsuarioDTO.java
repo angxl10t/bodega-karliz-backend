@@ -20,7 +20,7 @@ public class UsuarioDTO {
 
     // Solo se recibe en peticiones (creación o reseteo). Jamás se expone en respuestas JSON hacia el frontend.
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @Size(min = 8, max = 72, message = "La contraseña debe tener entre 8 y 72 caracteres")
+    @Size(min = 4, max = 72, message = "La contraseña o PIN debe tener entre 4 y 72 caracteres")
     private String password;
 
     @NotBlank(message = "El rol es obligatorio")
