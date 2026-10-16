@@ -51974,7 +51974,7 @@ n.push(A.e_(!1,j.y,A.cF(i,i,i,i,i,i,i,i,!0,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i,i
 n.push(B.dB)
 n.push(A.j("Selecciona tu Plan Inicial",i,i,i,i,A.ab().$3$color$fontSize$fontWeight(h?B.e:B.z,14,B.v),i,i,i))
 n.push(B.bA)
-n.push(A.U(A.a([A.ai(j.ahc("1 Administrador","POS r\xe1pido, Stock, Caja","BASICO",h,"S/ 29 /mes","Plan Bodega"),1),B.au,A.ai(j.UG("Admin + Cajeros PIN","Turnos, Multi-cajero, M\xe9tricas","PRO",h,!0,"S/ 59 /mes","Plan Minimarket"),1)],o),B.k,B.f,B.h,0))
+n.push(A.U(A.a([A.ai(j.ahc("Admin + 2 Cajeros","POS r\xe1pido, Stock, Caja y Tickets","BASICO",h,"S/ 50 /mes","Plan Bodega"),1),B.au,A.ai(j.UG("Cajeros Ilimitados","Turnos, Kardex antifraude, Marca propia","PRO",h,!0,"S/ 100 /mes","Plan Minimarket Pro"),1)],o),B.k,B.f,B.h,0))
 n.push(B.dC)
 m=j.as?i:j.gaww()
 l=A.dy(i,i,B.j,i,i,i,i,i,i,i,i,i,i,i,new A.aA(A.t(16),B.r),i,i,i,i,i)
@@ -53798,7 +53798,7 @@ g=A.t(6)
 f=n.y==="PRO"
 e=f?"PRO":"B\xc1SICO"
 i=A.U(A.a([i,B.a8,A.Q(c,A.j(e,c,c,c,c,A.ab().$3$color$fontSize$fontWeight(f?B.O:B.j,9.5,B.v),c,c,c),B.i,c,c,new A.S(h,c,c,g,c,c,c,B.m),c,c,c,B.eN,c,c,c)],r),B.k,B.f,B.h,0)
-h=n.y==="PRO"?"Cajeros con PIN, turnos y cuota ilimitada":"Plan Bodega (1 Admin) \u2022 Pasa a Pro para cajeros"
+h=n.y==="PRO"?"Plan Pro (S/ 100/mes) \u2022 Turnos, cajeros ilimitados y marca":"Plan Bodega (S/ 50/mes) \u2022 Hasta 2 cajeros y POS r\xe1pido"
 h=A.ai(A.a4(A.a([i,A.j(h,c,c,c,c,A.u().$2$color$fontSize(B.u,11),c,c,c)],r),B.y,B.f,B.h),1)
 m=A.cp(!1,m,!0,A.Q(c,A.U(A.a([j,B.au,h,A.bb(B.ee,b?B.fE:B.u,c,18)],r),B.k,B.f,B.h,0),B.i,c,c,new A.S(a,c,k,l,c,c,c,B.m),c,c,c,B.iG,c,c,c),c,!0,c,c,c,c,c,c,c,c,c,c,new A.aCA(n,q,a6),c,c,c,c,c,c,c)
 l=A.t(18)
@@ -54220,9 +54220,9 @@ o=f?"PLAN MINIMARKET PRO":"PLAN BODEGA B\xc1SICO"
 o=A.j(o,j,j,j,j,A.ab().$4$color$fontSize$fontWeight$letterSpacing(B.e,15,B.an,0.5),j,j,j)
 n=B.e.R(0.2)
 m=A.t(8)
-l=f?"S/ 59 /mes":"S/ 29 /mes"
+l=f?"S/ 100 /mes":"S/ 50 /mes"
 m=A.U(A.a([o,A.Q(j,A.j(l,j,j,j,j,A.ab().$3$color$fontSize$fontWeight(B.e,12,B.v),j,j,j),B.i,j,j,new A.S(n,j,j,m,j,j,j,B.m),j,j,j,B.uH,j,j,j)],r),B.k,B.ag,B.h,0)
-o=f?"\u2713 Cajeros y administradores ilimitados con PIN.\n\u2713 Control de turnos y sincronizaci\xf3n en tiempo real.\n\u2713 Almac\xe9n y Kardex protegidos contra fraudes.":"\u2713 1 Usuario Administrador incluido.\n\u2713 Cat\xe1logo, POS r\xe1pido y Caja en la nube."
+o=f?"\u2713 Cajeros y administradores ilimitados con PIN.\n\u2713 Control de turnos y sincronizaci\xf3n en tiempo real.\n\u2713 Almac\xe9n y Kardex protegidos contra fraudes.\n\u2713 Personalizaci\xf3n exclusiva de colores y logo en tickets.":"\u2713 1 Administrador + hasta 2 Cajeros activos con PIN.\n\u2713 Punto de Venta r\xe1pido, Control de Stock y Caja diaria.\n\u2713 Emisi\xf3n de tickets digitales y reportes de ventas."
 q=A.Q(j,A.a4(A.a([m,B.bA,A.j(o,j,j,j,j,A.u().$3$color$fontSize$height(B.e.R(0.9),11.5,1.4),j,j,j)],r),B.y,B.f,B.h),B.i,j,j,new A.S(j,j,j,p,c,new A.fd(B.bQ,B.cT,B.bB,q,j,j),j,B.m),j,j,j,B.ca,j,j,j)
 c=A.t(16)
 p=i?B.bi:B.aI
@@ -54233,7 +54233,7 @@ c=A.a([q,B.aS,A.cp(!1,c,!0,A.Q(j,A.U(A.a([m,B.au,A.ai(A.a4(A.a([A.j("Identidad &
 if(!f){q=B.j.R(0.08)
 p=A.t(18)
 o=A.aI(B.j.R(0.3),B.n,1)
-B.c.N(c,A.a([A.Q(j,A.a4(A.a([A.U(A.a([B.p7,B.a8,A.j("\xbfNecesitas cajeros o empleados?",j,j,j,j,A.ab().$3$color$fontSize$fontWeight(i?B.e:B.z,14.5,B.v),j,j,j)],r),B.k,B.f,B.h,0),B.ae,A.j("El Plan Bodega incluye 1 usuario \xfanico. Con Plan Pro puedes habilitar cajeros para atender turnos con su propio PIN de seguridad.",j,j,j,j,A.u().$2$color$fontSize(B.u,11.5),j,j,j)],r),B.y,B.f,B.h),B.i,j,j,new A.S(q,j,o,p,j,j,j,B.m),j,j,j,B.ca,j,j,j),B.aS],r))}q=J.cz(k.e)
+B.c.N(c,A.a([A.Q(j,A.a4(A.a([A.U(A.a([B.p7,B.a8,A.j("\xbfNecesitas cajeros o empleados?",j,j,j,j,A.ab().$3$color$fontSize$fontWeight(i?B.e:B.z,14.5,B.v),j,j,j)],r),B.k,B.f,B.h,0),B.ae,A.j("El Plan Bodega (S/ 50 /mes) incluye 1 Admin + hasta 2 Cajeros activos. Para turnos y cajeros ilimitados con PIN, Kardex antifraude y colores de marca propia, pasa a Plan Minimarket Pro (S/ 100 /mes).",j,j,j,j,A.u().$2$color$fontSize(B.u,11.5),j,j,j)],r),B.y,B.f,B.h),B.i,j,j,new A.S(q,j,o,p,j,j,j,B.m),j,j,j,B.ca,j,j,j),B.aS],r))}q=J.cz(k.e)
 c.push(A.U(A.a([A.j("Personal Registrado ("+q+")",j,j,j,j,A.ab().$3$color$fontSize$fontWeight(i?B.e:B.z,15,B.v),j,j,j),A.kd(B.SS,B.a9x,k.gafR(),j)],r),B.k,B.ag,B.h,0))
 c.push(B.bA)
 if(k.f)c.push(B.Lj)
