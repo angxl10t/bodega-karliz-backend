@@ -3,19 +3,25 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'usuarios_service.dart';
+import 'bodega_service.dart';
 import 'configuracion_marca_modal.dart';
+import '../auth/auth_service.dart';
 import '../../core/theme.dart';
 
 class PlanYPersonalSheet extends StatefulWidget {
   final String nombreBodega;
   final String plan;
   final String currentUsername;
+  final String? userRol;
+  final VoidCallback? onPlanUpdated;
 
   const PlanYPersonalSheet({
     super.key,
     required this.nombreBodega,
     required this.plan,
     required this.currentUsername,
+    this.userRol,
+    this.onPlanUpdated,
   });
 
   static Future<void> show(
@@ -23,6 +29,8 @@ class PlanYPersonalSheet extends StatefulWidget {
     required String nombreBodega,
     required String plan,
     required String currentUsername,
+    String? userRol,
+    VoidCallback? onPlanUpdated,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -32,6 +40,8 @@ class PlanYPersonalSheet extends StatefulWidget {
         nombreBodega: nombreBodega,
         plan: plan,
         currentUsername: currentUsername,
+        userRol: userRol,
+        onPlanUpdated: onPlanUpdated,
       ),
     );
   }
@@ -42,37 +52,65 @@ class PlanYPersonalSheet extends StatefulWidget {
 
 class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
   final _usuariosService = UsuariosService();
+  final _bodegaService = BodegaService();
   List<UsuarioItem> _usuarios = [];
   bool _isLoading = true;
   String _error = '';
+  BodegaInfo? _bodegaInfo;
+  late String _currentPlan;
+  late String _userRol;
 
   @override
   void initState() {
     super.initState();
-    _cargarUsuarios();
+    _currentPlan = widget.plan;
+    _userRol = widget.userRol ?? 'ADMIN';
+    if (widget.userRol == null) {
+      AuthService().getUserRole().then((r) {
+        if (mounted) setState(() => _userRol = r);
+      });
+    }
+    _cargarDatos();
   }
 
-  Future<void> _cargarUsuarios() async {
+  Future<void> _cargarDatos() async {
     setState(() {
       _isLoading = true;
       _error = '';
     });
     try {
-      final list = await _usuariosService.listarUsuarios();
+      final listFuture = _usuariosService.listarUsuarios();
+      final bodegaFuture = _bodegaService.obtenerMiBodega();
+      final results = await Future.wait([listFuture, bodegaFuture]);
       if (mounted) {
         setState(() {
-          _usuarios = list;
+          _usuarios = results[0] as List<UsuarioItem>;
+          _bodegaInfo = results[1] as BodegaInfo?;
+          if (_bodegaInfo != null) {
+            _currentPlan = _bodegaInfo!.plan;
+          }
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'No se pudo cargar la lista de personal.';
+          _error = 'No se pudo cargar la información.';
           _isLoading = false;
         });
       }
     }
+  }
+
+  Future<void> _cargarUsuarios() async {
+    try {
+      final list = await _usuariosService.listarUsuarios();
+      if (mounted) {
+        setState(() {
+          _usuarios = list;
+        });
+      }
+    } catch (_) {}
   }
 
   void _abrirCrearUsuarioModal() {
@@ -537,12 +575,920 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     );
   }
 
+  String _formatearFecha(String isoDate) {
+    try {
+      final dt = DateTime.parse(isoDate);
+      final meses = [
+        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'
+      ];
+      return '${dt.day} de ${meses[dt.month - 1]} ${dt.year}';
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
+  Widget _buildFinderPattern(Color color) {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        border: Border.all(color: color, width: 3.5),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Center(
+        child: Container(
+          width: 18,
+          height: 18,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQrSimulado(Color brandColor) {
+    return Container(
+      width: 150,
+      height: 150,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: brandColor.withValues(alpha: 0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(color: brandColor.withValues(alpha: 0.25), width: 1.5),
+      ),
+      child: Stack(
+        children: [
+          Positioned(top: 0, left: 0, child: _buildFinderPattern(brandColor)),
+          Positioned(top: 0, right: 0, child: _buildFinderPattern(brandColor)),
+          Positioned(bottom: 0, left: 0, child: _buildFinderPattern(brandColor)),
+          Center(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: brandColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: brandColor.withValues(alpha: 0.35),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Icon(LucideIcons.qrCode, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _abrirModalPagoYape(BuildContext context) {
+    final codOperacionCtrl = TextEditingController();
+    String planSeleccionado = (_currentPlan.toUpperCase() == 'PRO') ? 'PRO' : 'BASICO';
+    String billetera = 'YAPE';
+    bool isSubmitting = false;
+    String modalError = '';
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isSubmitting,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+          final double monto = planSeleccionado == 'PRO' ? 100.0 : 50.0;
+          final Color walletPrimary = billetera == 'YAPE'
+              ? const Color(0xFF732283)
+              : const Color(0xFF0084FF);
+
+          return Dialog(
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: walletPrimary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(LucideIcons.qrCode, color: walletPrimary, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Pago Directo Yape / Plin',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                '0% Comisiones • Renovación Inmediata',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.accentGreen,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.x, size: 20),
+                          onPressed: isSubmitting ? null : () => Navigator.pop(dialogCtx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    Text(
+                      'SELECCIONA EL PLAN A SUSCRIBIR:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textMuted,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setModalState(() => planSeleccionado = 'BASICO'),
+                            borderRadius: BorderRadius.circular(14),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                              decoration: BoxDecoration(
+                                color: planSeleccionado == 'BASICO'
+                                    ? AppTheme.brandPrimary.withValues(alpha: 0.12)
+                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: planSeleccionado == 'BASICO'
+                                      ? AppTheme.brandPrimary
+                                      : Colors.transparent,
+                                  width: 1.8,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Plan Bodega',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'S/ 50.00 /mes',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppTheme.brandPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '1 Admin + 2 Cajeros',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () => setModalState(() => planSeleccionado = 'PRO'),
+                            borderRadius: BorderRadius.circular(14),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                              decoration: BoxDecoration(
+                                color: planSeleccionado == 'PRO'
+                                    ? AppTheme.accentGreen.withValues(alpha: 0.12)
+                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: planSeleccionado == 'PRO'
+                                      ? AppTheme.accentGreen
+                                      : Colors.transparent,
+                                  width: 1.8,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Plan PRO',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(LucideIcons.sparkles, size: 12, color: AppTheme.accentGreen),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'S/ 100.00 /mes',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppTheme.accentGreen,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Cajeros Ilimitados',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => setModalState(() => billetera = 'YAPE'),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: billetera == 'YAPE'
+                                      ? const Color(0xFF732283)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'YAPE',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: billetera == 'YAPE'
+                                          ? Colors.white
+                                          : (isDark ? Colors.white60 : AppTheme.textDark),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => setModalState(() => billetera = 'PLIN'),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: billetera == 'PLIN'
+                                      ? const Color(0xFF0084FF)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'PLIN',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: billetera == 'PLIN'
+                                          ? Colors.white
+                                          : (isDark ? Colors.white60 : AppTheme.textDark),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: walletPrimary.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: walletPrimary.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildQrSimulado(walletPrimary),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Número: ',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: AppTheme.textMuted,
+                                ),
+                              ),
+                              Text(
+                                '987 654 321',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: walletPrimary,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              InkWell(
+                                onTap: () {
+                                  Clipboard.setData(const ClipboardData(text: '987654321'));
+                                  HapticFeedback.lightImpact();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Número 987 654 321 copiado al portapapeles.'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(6),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4),
+                                  child: Icon(LucideIcons.copy, size: 16, color: walletPrimary),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Titular: CajaYa Cloud POS S.A.C.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: walletPrimary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Monto exacto: S/ ${monto.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: walletPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    if (modalError.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.alertRed.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          modalError,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.alertRed, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+
+                    TextFormField(
+                      controller: codOperacionCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: 'Código de Operación ($billetera)',
+                        hintText: 'Ej: 849201 (6 a 8 dígitos)',
+                        prefixIcon: const Icon(LucideIcons.receiptText, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        helperText: 'Consúltalo en la constancia de tu app $billetera',
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: walletPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 0,
+                      ),
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                              final cod = codOperacionCtrl.text.trim();
+                              if (cod.length < 4) {
+                                setModalState(() => modalError = 'Ingresa un código de operación válido (mín. 4 dígitos).');
+                                return;
+                              }
+
+                              final messenger = ScaffoldMessenger.of(context);
+                              setModalState(() {
+                                isSubmitting = true;
+                                modalError = '';
+                              });
+
+                              try {
+                                final info = await _bodegaService.registrarPagoYape(
+                                  codigoOperacion: cod,
+                                  plan: planSeleccionado,
+                                  monto: monto,
+                                  billetera: billetera,
+                                );
+
+                                if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+
+                                if (mounted) {
+                                  setState(() {
+                                    _bodegaInfo = info;
+                                    _currentPlan = info.plan;
+                                  });
+                                  widget.onPlanUpdated?.call();
+
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: AppTheme.accentGreen,
+                                      content: Text(
+                                        '🎉 ¡Suscripción actualizada exitosamente con $billetera! Tu plan $planSeleccionado está activo por 30 días adicionales.',
+                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                setModalState(() {
+                                  isSubmitting = false;
+                                  modalError = e.toString().replaceAll('Exception: ', '');
+                                });
+                              }
+                            },
+                      child: isSubmitting
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                            )
+                          : Text(
+                              'CONFIRMAR Y ACTIVAR SUSCRIPCIÓN',
+                              style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _abrirModalConfiguracionSunat({bool? activarDirecto}) {
+    if (_userRol == 'CAJERO') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Acceso denegado: Solo el Administrador de la bodega puede configurar la Facturación SUNAT.'),
+          backgroundColor: AppTheme.alertRed,
+        ),
+      );
+      return;
+    }
+
+    bool activa = activarDirecto ?? (_bodegaInfo?.facturacionSunatActiva ?? false);
+    String proveedor = _bodegaInfo?.sunatProveedor ?? 'API Facturador SUNAT Gratuito';
+    final rucCtrl = TextEditingController(text: _bodegaInfo?.sunatRucEmisor ?? _bodegaInfo?.rucDni ?? '');
+    final serieBoletaCtrl = TextEditingController(text: _bodegaInfo?.serieBoleta ?? 'B001');
+    final serieFacturaCtrl = TextEditingController(text: _bodegaInfo?.serieFactura ?? 'F001');
+    bool isSaving = false;
+    String modalError = '';
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isSaving,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+
+          return Dialog(
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(LucideIcons.landmark, color: AppTheme.brandPrimary, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Módulo Facturación SUNAT',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                'Proveedor Gratuito • Envío Directo',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.accentGreen,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.x, size: 20),
+                          onPressed: isSaving ? null : () => Navigator.pop(dialogCtx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: activa
+                            ? AppTheme.accentGreen.withValues(alpha: 0.1)
+                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: activa ? AppTheme.accentGreen : Colors.transparent,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  activa ? 'Facturación SUNAT ACTIVADA' : 'Facturación SUNAT DESACTIVADA',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: activa
+                                        ? AppTheme.accentGreen
+                                        : (isDark ? Colors.white : AppTheme.textDark),
+                                  ),
+                                ),
+                                Text(
+                                  activa
+                                      ? 'Las ventas generarán Boletas y Facturas electrónicas oficiales.'
+                                      : 'Las ventas generarán únicamente Tickets de control interno.',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: activa,
+                            activeThumbColor: AppTheme.accentGreen,
+                            onChanged: (val) => setModalState(() => activa = val),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    Text(
+                      'PROVEEDOR DE FACTURACIÓN ELECTRÓNICA:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textMuted,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: () => setModalState(() => proveedor = 'API Facturador SUNAT Gratuito'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: proveedor == 'API Facturador SUNAT Gratuito'
+                              ? AppTheme.brandPrimary.withValues(alpha: 0.1)
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: proveedor == 'API Facturador SUNAT Gratuito'
+                                ? AppTheme.brandPrimary
+                                : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              proveedor == 'API Facturador SUNAT Gratuito'
+                                  ? LucideIcons.checkCircle2
+                                  : LucideIcons.circle,
+                              size: 16,
+                              color: AppTheme.brandPrimary,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'API Facturador SUNAT Gratuito',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    '0% comisión por comprobante • Homologación directa',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10.5,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'GRATIS',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.accentGreen,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    if (modalError.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.alertRed.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          modalError,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.alertRed, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+
+                    TextFormField(
+                      controller: rucCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(11),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'RUC del Emisor (11 dígitos)',
+                        hintText: 'Ej: 20601234567 o 10456789012',
+                        prefixIcon: const Icon(LucideIcons.building2, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: serieBoletaCtrl,
+                            textCapitalization: TextCapitalization.characters,
+                            inputFormatters: [LengthLimitingTextInputFormatter(4)],
+                            decoration: InputDecoration(
+                              labelText: 'Serie Boleta',
+                              hintText: 'B001',
+                              prefixIcon: const Icon(LucideIcons.fileText, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: serieFacturaCtrl,
+                            textCapitalization: TextCapitalization.characters,
+                            inputFormatters: [LengthLimitingTextInputFormatter(4)],
+                            decoration: InputDecoration(
+                              labelText: 'Serie Factura',
+                              hintText: 'F001',
+                              prefixIcon: const Icon(LucideIcons.fileText, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.shieldCheck, size: 18, color: AppTheme.brandPrimary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Solo tú como Administrador puedes activar o desactivar este módulo. Tus cajeros no tendrán acceso para modificar la facturación.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? AppTheme.brandLight : AppTheme.brandDark,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.brandPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 0,
+                      ),
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              final ruc = rucCtrl.text.trim();
+                              if (activa && (ruc.length != 11)) {
+                                setModalState(() => modalError = 'Para activar SUNAT ingresa un RUC válido de 11 dígitos.');
+                                return;
+                              }
+
+                              final messenger = ScaffoldMessenger.of(context);
+                              setModalState(() {
+                                isSaving = true;
+                                modalError = '';
+                              });
+
+                              try {
+                                final info = await _bodegaService.actualizarConfiguracionSunat(
+                                  activa: activa,
+                                  proveedor: proveedor,
+                                  rucEmisor: ruc,
+                                  serieBoleta: serieBoletaCtrl.text.trim().isEmpty ? 'B001' : serieBoletaCtrl.text.trim(),
+                                  serieFactura: serieFacturaCtrl.text.trim().isEmpty ? 'F001' : serieFacturaCtrl.text.trim(),
+                                );
+
+                                if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+
+                                if (mounted) {
+                                  setState(() {
+                                    _bodegaInfo = info;
+                                  });
+                                  widget.onPlanUpdated?.call();
+
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: AppTheme.accentGreen,
+                                      content: Text(
+                                        activa
+                                            ? '✅ Facturación SUNAT activada exitosamente con proveedor gratuito.'
+                                            : 'ℹ️ Facturación SUNAT desactivada. Ventas volverán a emitirse como tickets.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                setModalState(() {
+                                  isSaving = false;
+                                  modalError = e.toString().replaceAll('Exception: ', '');
+                                });
+                              }
+                            },
+                      child: isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                            )
+                          : Text(
+                              'GUARDAR CONFIGURACIÓN SUNAT',
+                              style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC);
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
-    final isPro = widget.plan.toUpperCase() == 'PRO';
+    final isPro = _currentPlan.toUpperCase() == 'PRO';
 
     return Container(
       constraints: BoxConstraints(
@@ -690,12 +1636,50 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           const SizedBox(height: 8),
                           Text(
                             isPro
-                                ? '✓ Cajeros y administradores ilimitados con PIN.\n✓ Control de turnos y sincronización en tiempo real.\n✓ Almacén y Kardex protegidos contra fraudes.\n✓ Personalización exclusiva de colores y logo en tickets.'
+                                ? '✓ Cajeros y administradores ilimitados con PIN.\n✓ Control de turnos y sincronización en tiempo real.\n✓ Almacén y Kardex protegidos contra fraudes.\n✓ Personalización de colores y logo en tickets.\n✓ Envío automático a SUNAT disponible.'
                                 : '✓ 1 Administrador + hasta 2 Cajeros activos con PIN.\n✓ Punto de Venta rápido, Control de Stock y Caja diaria.\n✓ Emisión de tickets digitales y reportes de ventas.',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               color: Colors.white.withValues(alpha: 0.9),
                               height: 1.4,
+                            ),
+                          ),
+                          if (_bodegaInfo?.fechaVencimientoPlan != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(LucideIcons.calendarCheck, size: 13, color: Colors.white.withValues(alpha: 0.85)),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Vigente hasta el ${_formatearFecha(_bodegaInfo!.fechaVencimientoPlan!)}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white.withValues(alpha: 0.95),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: isPro ? const Color(0xFF0F766E) : const Color(0xFF1E293B),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                              ),
+                              onPressed: () => _abrirModalPagoYape(context),
+                              icon: const Icon(LucideIcons.qrCode, size: 18),
+                              label: Text(
+                                isPro
+                                    ? 'Renovar Plan Pro con Yape / Plin (S/ 100)'
+                                    : 'Pagar / Mejorar con Yape / Plin (S/ 50 o S/ 100)',
+                                style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w800),
+                              ),
                             ),
                           ),
                         ],
@@ -752,6 +1736,193 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             const Icon(LucideIcons.chevronRight, size: 18, color: AppTheme.textMuted),
                           ],
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // MÓDULO FACTURACIÓN ELECTRÓNICA SUNAT (Solución 2)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: (_bodegaInfo?.facturacionSunatActiva == true)
+                              ? AppTheme.accentGreen.withValues(alpha: 0.5)
+                              : borderColor,
+                          width: (_bodegaInfo?.facturacionSunatActiva == true) ? 1.5 : 1.0,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: (_bodegaInfo?.facturacionSunatActiva == true
+                                          ? AppTheme.accentGreen
+                                          : const Color(0xFF64748B))
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  LucideIcons.landmark,
+                                  color: _bodegaInfo?.facturacionSunatActiva == true
+                                      ? AppTheme.accentGreen
+                                      : const Color(0xFF64748B),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Facturación SUNAT',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            'GRATUITO',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppTheme.accentGreen,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      _bodegaInfo?.facturacionSunatActiva == true
+                                          ? 'Envío automático activo • Boletas B001 & Facturas F001'
+                                          : 'Emisión en modo interno (Tickets sin validez tributaria)',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: _bodegaInfo?.facturacionSunatActiva == true
+                                            ? AppTheme.accentGreen
+                                            : AppTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_userRol == 'CAJERO') ...[
+                                Tooltip(
+                                  message: 'Solo el Administrador puede activar o desactivar la Facturación SUNAT',
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(LucideIcons.lock, size: 13, color: Color(0xFFD97706)),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'BLOQUEADO',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFFD97706),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ] else ...[
+                                Switch(
+                                  value: _bodegaInfo?.facturacionSunatActiva ?? false,
+                                  activeThumbColor: AppTheme.accentGreen,
+                                  onChanged: (val) {
+                                    _abrirModalConfiguracionSunat(activarDirecto: val);
+                                  },
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (_userRol == 'CAJERO') ...[
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.25)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(LucideIcons.shieldAlert, size: 16, color: Color(0xFFD97706)),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Protegido por el Administrador: Los cajeros no pueden activar ni desactivar el envío de ventas a SUNAT.',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ] else ...[
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Proveedor: ${_bodegaInfo?.sunatProveedor ?? "API Facturador SUNAT Gratuito"}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () => _abrirModalConfiguracionSunat(),
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(LucideIcons.slidersHorizontal, size: 12, color: AppTheme.brandPrimary),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Configurar SUNAT',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppTheme.brandPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),

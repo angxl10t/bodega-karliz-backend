@@ -280,6 +280,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 nombreBodega: _nombreBodega,
                                 plan: _plan,
                                 currentUsername: _username,
+                                userRol: _userRol,
+                                onPlanUpdated: () => _cargarDatos(forceRefresh: true),
                               ),
                             ),
                           ],
@@ -620,6 +622,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     nombreBodega: _nombreBodega,
                     plan: _plan,
                     currentUsername: _username,
+                    userRol: _userRol,
+                    onPlanUpdated: () => _cargarDatos(forceRefresh: true),
                   );
                 },
                 borderRadius: BorderRadius.circular(15),

@@ -534,6 +534,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             nombreBodega: _nombreBodega,
                             plan: _plan,
                             currentUsername: _username,
+                            userRol: _userRol,
+                            onPlanUpdated: () => _cargarDatosUsuario(),
                           );
                         },
                         borderRadius: BorderRadius.circular(18),
