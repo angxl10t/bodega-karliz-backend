@@ -6,8 +6,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="CajaYa POS - Punto de Venta & Control de Inventario">
-  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#090D16" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#FFFFFF">
   
   <!-- Directivas de Seguridad Web (Content Security Policy & Anti-Clickjacking) -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.gstatic.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://bodega-karliz-backend.onrender.com http://localhost:* http://127.0.0.1:* https://*.onrender.com https://fonts.googleapis.com https://fonts.gstatic.com https://www.gstatic.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self';">
@@ -22,7 +21,7 @@
   <!-- iOS meta tags & icons (PWA Add to Home Screen) -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CajaYa POS">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
@@ -43,15 +42,6 @@
       --pos-bg: linear-gradient(135deg, #2563EB, #1D4ED8);
       --pos-color: #FFFFFF;
       --pos-shadow: rgba(37, 99, 235, 0.35);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg-color: #090D16;
-        --wordmark-grad: linear-gradient(135deg, #60A5FA 0%, #38BDF8 60%, #BAE6FD 100%);
-        --pos-bg: linear-gradient(135deg, #38BDF8, #2563EB);
-        --pos-color: #090D16;
-        --pos-shadow: rgba(56, 189, 248, 0.4);
-      }
     }
     html, body {
       background-color: var(--bg-color);
