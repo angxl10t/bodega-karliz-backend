@@ -666,60 +666,57 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       ),
                       const SizedBox(height: 6),
 
+                      // Fila 2: Categoría + SKU / Marca
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Badges: Categoría + SKU / Marca
-                          Flexible(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Pill Categoría
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                                  decoration: BoxDecoration(
-                                    color: catColor.withValues(alpha: isDark ? 0.15 : 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    categoriaNombre.toUpperCase(),
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: catColor,
-                                      letterSpacing: 0.4,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 115),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: catColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                categoriaNombre.toUpperCase(),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: catColor,
+                                  letterSpacing: 0.3,
                                 ),
-                                const SizedBox(width: 6),
-                                // SKU / Marca
-                                Flexible(
-                                  child: Text(
-                                    p.marca != null && p.marca!.isNotEmpty
-                                        ? '${p.marca!} • ${p.codigo}'
-                                        : p.codigo,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textMuted,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              p.marca != null && p.marca!.isNotEmpty
+                                  ? '${p.marca!} • ${p.codigo}'
+                                  : p.codigo,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textMuted,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
 
-                          // Indicador de Stock con píldora moderna
+                      // Fila 3: Indicador de Stock con píldora moderna
+                      Row(
+                        children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                             decoration: BoxDecoration(
                               color: badgeColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: badgeColor.withValues(alpha: isDark ? 0.35 : 0.2),
                                 width: 0.8,
@@ -740,7 +737,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 Text(
                                   '${p.stockActual.toInt()} u. ($estadoTexto)',
                                   style: GoogleFonts.outfit(
-                                    fontSize: 11,
+                                    fontSize: 10.5,
                                     fontWeight: FontWeight.w800,
                                     color: badgeColor,
                                   ),
@@ -826,23 +823,28 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         const SizedBox(height: 3),
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: catColor.withValues(alpha: isDark ? 0.18 : 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                categoriaNombre.toUpperCase(),
-                                style: GoogleFonts.outfit(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: catColor,
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 120),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: catColor.withValues(alpha: isDark ? 0.18 : 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  categoriaNombre.toUpperCase(),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: catColor,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 6),
-                            Flexible(
+                            Expanded(
                               child: Text(
                                 'SKU: ${p.codigo}${p.marca != null && p.marca!.isNotEmpty ? " • Marca: ${p.marca}" : ""}',
                                 style: GoogleFonts.plusJakartaSans(
