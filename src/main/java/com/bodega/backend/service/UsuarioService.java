@@ -59,8 +59,8 @@ public class UsuarioService {
             throw new RuntimeException("El nombre de usuario solo puede contener letras, números, puntos (.), guiones (-) y guiones bajos (_), sin espacios ni acentos.");
         }
 
-        if (dto.getPassword() == null || dto.getPassword().trim().length() < 8 || dto.getPassword().trim().length() > 72) {
-            throw new RuntimeException("La contraseña inicial es obligatoria y debe tener entre 8 y 72 caracteres.");
+        if (dto.getPassword() == null || dto.getPassword().trim().length() < 4 || dto.getPassword().trim().length() > 72) {
+            throw new RuntimeException("La contraseña inicial o PIN es obligatoria y debe tener entre 4 y 72 caracteres.");
         }
 
         String normalizedRol = dto.getRol() != null ? dto.getRol().trim().toUpperCase() : "";

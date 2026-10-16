@@ -164,4 +164,45 @@ public class UsuarioServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.crearUsuario(dto));
         assertTrue(ex.getMessage().contains("solo puede contener letras, números"));
     }
+
+    @Test
+    void testCrearCajero_ConPinDe4Digitos_Exitoso() {
+        UsuarioDTO dto = new UsuarioDTO();
+        dto.setUsername("cajero_pin");
+        dto.setPassword("1234");
+        dto.setRol("CAJERO");
+
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega1));
+        when(usuarioRepository.findByUsernameIgnoreCase("cajero_pin")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("1234")).thenReturn("encodedPin1234");
+
+        Usuario guardado = new Usuario();
+        guardado.setIdUsuario(20L);
+        guardado.setUsername("cajero_pin");
+        guardado.setPassword("encodedPin1234");
+        guardado.setRol("CAJERO");
+        guardado.setEstado(true);
+        guardado.setBodega(bodega1);
+
+        when(usuarioRepository.save(any(Usuario.class))).thenReturn(guardado);
+
+        UsuarioDTO resultado = usuarioService.crearUsuario(dto);
+
+        assertNotNull(resultado);
+        assertEquals("cajero_pin", resultado.getUsername());
+        assertEquals("CAJERO", resultado.getRol());
+        verify(passwordEncoder, times(1)).encode("1234");
+    }
+
+    @Test
+    void testCrearCajero_ConClaveMenorA4Digitos_LanzaError() {
+        UsuarioDTO dto = new UsuarioDTO();
+        dto.setUsername("cajero_corto");
+        dto.setPassword("123"); // 3 dígitos < 4
+        dto.setRol("CAJERO");
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.crearUsuario(dto));
+        assertTrue(ex.getMessage().contains("entre 4 y 72 caracteres"));
+        verify(usuarioRepository, never()).save(any());
+    }
 }

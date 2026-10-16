@@ -71,6 +71,14 @@ public class ProductoService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public ProductoDTO obtenerPorId(Long id) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Producto producto = productoRepository.findByIdProductoAndBodega_IdBodega(id, idBodega)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + id));
+        return mapToDTO(producto);
+    }
+
     public String getPrefixForCategoria(String nombre) {
         if (nombre == null) return "PROD";
         String clean = nombre.trim().toLowerCase();

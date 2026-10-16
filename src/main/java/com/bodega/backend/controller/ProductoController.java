@@ -31,6 +31,12 @@ public class ProductoController {
         return ResponseEntity.ok(java.util.Map.of("codigo", codigo));
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO')")
+    public ResponseEntity<ProductoDTO> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(productoService.obtenerPorId(id));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductoDTO> crear(@Valid @RequestBody ProductoDTO dto) {
