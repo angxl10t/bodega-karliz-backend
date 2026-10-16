@@ -7,6 +7,7 @@ import '../productos/producto_service.dart';
 import '../productos/nuevo_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
 import '../auth/auth_service.dart';
+import '../home/plan_y_personal_sheet.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -266,6 +267,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               color: AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Personal & Cajeros',
+                              subtitle: 'Turnos & Accesos',
+                              icon: LucideIcons.users,
+                              color: const Color(0xFF6366F1),
+                              isDark: isDark,
+                              onTap: () => PlanYPersonalSheet.show(
+                                context,
+                                nombreBodega: _nombreBodega,
+                                plan: _plan,
+                                currentUsername: _username,
+                              ),
                             ),
                           ],
                         );
@@ -598,32 +613,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Fila Principal: Avatar de Usuario + Saludo y Rol Ampliados
           Row(
             children: [
-              // Avatar con inicial y gradiente
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.brandPrimary, Color(0xFF0EA5E9)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.35),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+              InkWell(
+                onTap: () {
+                  PlanYPersonalSheet.show(
+                    context,
+                    nombreBodega: _nombreBodega,
+                    plan: _plan,
+                    currentUsername: _username,
+                  );
+                },
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.brandPrimary, Color(0xFF0EA5E9)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    initial,
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      initial,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'usuarios_service.dart';
@@ -77,28 +78,74 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
   void _abrirCrearUsuarioModal() {
     final userCtrl = TextEditingController();
     final passCtrl = TextEditingController();
+    final confirmPassCtrl = TextEditingController();
     String rolSeleccionado = 'CAJERO';
     bool obscurePass = true;
+    bool obscureConfirm = true;
     String modalError = '';
+    String sugerenciaDetectada = '';
+    bool isSubmitting = false;
+
+    void generarClaveAleatoria(StateSetter setModalState) {
+      final randomNum = (1000 + (DateTime.now().millisecondsSinceEpoch % 9000)).toString();
+      final claveGenerada = 'CajaYa$randomNum!';
+      passCtrl.text = claveGenerada;
+      confirmPassCtrl.text = claveGenerada;
+      setModalState(() {
+        obscurePass = false;
+        obscureConfirm = false;
+        modalError = '';
+      });
+      HapticFeedback.lightImpact();
+    }
 
     showDialog(
       context: context,
+      barrierDismissible: !isSubmitting,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
+          final currentInput = userCtrl.text.trim().toLowerCase();
+
+          // Detección local en tiempo real de duplicados en la misma bodega
+          final matchingLocalUser = currentInput.isEmpty
+              ? null
+              : _usuarios.where((x) => x.username.equalsIgnoreCase(currentInput)).firstOrNull;
+
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: Row(
               children: [
-                const Icon(LucideIcons.userPlus, color: AppTheme.brandPrimary, size: 22),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(LucideIcons.userPlus, color: AppTheme.brandPrimary, size: 20),
+                ),
                 const SizedBox(width: 10),
-                Text(
-                  'Nuevo Empleado / Cajero',
-                  style: GoogleFonts.outfit(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppTheme.textDark,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Nuevo Cajero / Personal',
+                        style: GoogleFonts.outfit(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        'Acceso POS y registro de ventas',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: AppTheme.textMuted,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -108,40 +155,177 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Alerta de Error del Servidor
                   if (modalError.isNotEmpty) ...[
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: AppTheme.alertRed.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
                       ),
-                      child: Text(
-                        modalError,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.alertRed),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(LucideIcons.alertCircle, size: 14, color: AppTheme.alertRed),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  modalError,
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.alertRed, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Sugerencia interactiva con 1 clic
+                          if (sugerenciaDetectada.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            InkWell(
+                              onTap: () {
+                                userCtrl.text = sugerenciaDetectada;
+                                setModalState(() {
+                                  modalError = '';
+                                  sugerenciaDetectada = '';
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.4)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(LucideIcons.sparkles, size: 13, color: AppTheme.brandPrimary),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Usar sugerencia: "$sugerenciaDetectada"',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                   ],
+
+                  // Campo: Nombre de Usuario
                   Text(
-                    'Nombre de Usuario *',
+                    'Usuario de Acceso *',
                     style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   TextField(
                     controller: userCtrl,
-                    decoration: const InputDecoration(hintText: 'Ej. cajero_tarde'),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9._-]')),
+                    ],
+                    onChanged: (_) => setModalState(() {
+                      modalError = '';
+                      sugerenciaDetectada = '';
+                    }),
+                    decoration: const InputDecoration(
+                      hintText: 'Ej. cajero_tarde o ana_pos',
+                      prefixIcon: Icon(LucideIcons.user, size: 18),
+                      helperText: 'Sin espacios ni tildes (a-z, 0-9, _, .)',
+                    ),
                   ),
+
+                  // Aviso en tiempo real de duplicado local en la misma bodega
+                  if (matchingLocalUser != null) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: matchingLocalUser.estado
+                            ? const Color(0xFFF59E0B).withValues(alpha: 0.12)
+                            : const Color(0xFF38BDF8).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: matchingLocalUser.estado
+                              ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
+                              : const Color(0xFF38BDF8).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            matchingLocalUser.estado ? LucideIcons.alertTriangle : LucideIcons.info,
+                            size: 13,
+                            color: matchingLocalUser.estado ? const Color(0xFFF59E0B) : const Color(0xFF38BDF8),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              matchingLocalUser.estado
+                                  ? 'Ya tienes a este usuario activo en tu equipo.'
+                                  : 'Este usuario existe desactivado. Al guardar se reactivará.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: matchingLocalUser.estado ? const Color(0xFFF59E0B) : const Color(0xFF38BDF8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
-                  Text(
-                    'Contraseña Inicial (mínimo 8 caracteres) *',
-                    style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
+
+                  // Campo: Contraseña Inicial + Generador Aleatorio
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Contraseña Inicial *',
+                        style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
+                      ),
+                      InkWell(
+                        onTap: () => generarClaveAleatoria(setModalState),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.dices, size: 13, color: AppTheme.brandPrimary),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Generar PIN/Clave',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.brandPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   TextField(
                     controller: passCtrl,
                     obscureText: obscurePass,
+                    onChanged: (_) => setModalState(() => modalError = ''),
                     decoration: InputDecoration(
-                      hintText: 'Contraseña temporal',
+                      hintText: 'Mínimo 8 caracteres',
+                      prefixIcon: const Icon(LucideIcons.lock, size: 18),
                       suffixIcon: IconButton(
                         icon: Icon(obscurePass ? LucideIcons.eyeOff : LucideIcons.eye, size: 18),
                         onPressed: () => setModalState(() => obscurePass = !obscurePass),
@@ -149,16 +333,48 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     ),
                   ),
                   const SizedBox(height: 12),
+
+                  // Campo: Confirmar Contraseña
                   Text(
-                    'Rol asignado',
+                    'Confirmar Contraseña *',
+                    style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: confirmPassCtrl,
+                    obscureText: obscureConfirm,
+                    onChanged: (_) => setModalState(() => modalError = ''),
+                    decoration: InputDecoration(
+                      hintText: 'Repite la contraseña',
+                      prefixIcon: const Icon(LucideIcons.checkCheck, size: 18),
+                      suffixIcon: IconButton(
+                        icon: Icon(obscureConfirm ? LucideIcons.eyeOff : LucideIcons.eye, size: 18),
+                        onPressed: () => setModalState(() => obscureConfirm = !obscureConfirm),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Selector de Rol
+                  Text(
+                    'Rol y Nivel de Acceso',
                     style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     initialValue: rolSeleccionado,
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(LucideIcons.shield, size: 18),
+                    ),
                     items: const [
-                      DropdownMenuItem(value: 'CAJERO', child: Text('CAJERO (Cobros, Caja y Stock)')),
-                      DropdownMenuItem(value: 'ADMIN', child: Text('ADMIN (Acceso Total)')),
+                      DropdownMenuItem(
+                        value: 'CAJERO',
+                        child: Text('CAJERO (POS, Ventas y Caja)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'ADMIN',
+                        child: Text('ADMIN (Acceso Total y Ajustes)'),
+                      ),
                     ],
                     onChanged: (val) {
                       if (val != null) setModalState(() => rolSeleccionado = val);
@@ -169,43 +385,81 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(ctx),
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
                 child: const Text('Cancelar'),
               ),
               ElevatedButton(
-                onPressed: () async {
-                  final u = userCtrl.text.trim();
-                  final p = passCtrl.text.trim();
-                  if (u.length < 3) {
-                    setModalState(() => modalError = 'Usuario debe tener al menos 3 caracteres.');
-                    return;
-                  }
-                  if (p.length < 8) {
-                    setModalState(() => modalError = 'Contraseña debe tener al menos 8 caracteres.');
-                    return;
-                  }
-                  final messenger = ScaffoldMessenger.of(context);
-                  try {
-                    await _usuariosService.crearUsuario(
-                      username: u,
-                      password: p,
-                      rol: rolSeleccionado,
-                    );
-                    if (ctx.mounted) Navigator.pop(ctx);
-                    _cargarUsuarios();
-                    messenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Personal registrado exitosamente.'),
-                        backgroundColor: AppTheme.accentGreen,
+                onPressed: isSubmitting || (matchingLocalUser != null && matchingLocalUser.estado)
+                    ? null
+                    : () async {
+                        final u = userCtrl.text.trim().toLowerCase();
+                        final p = passCtrl.text.trim();
+                        final cp = confirmPassCtrl.text.trim();
+
+                        if (u.length < 3) {
+                          setModalState(() => modalError = 'El usuario debe tener al menos 3 caracteres.');
+                          return;
+                        }
+                        if (p.length < 8) {
+                          setModalState(() => modalError = 'La contraseña debe tener al menos 8 caracteres.');
+                          return;
+                        }
+                        if (p != cp) {
+                          setModalState(() => modalError = 'Las contraseñas no coinciden. Verifícalas.');
+                          return;
+                        }
+
+                        setModalState(() {
+                          isSubmitting = true;
+                          modalError = '';
+                        });
+
+                        final messenger = ScaffoldMessenger.of(context);
+                        try {
+                          await _usuariosService.crearUsuario(
+                            username: u,
+                            password: p,
+                            rol: rolSeleccionado,
+                          );
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          _cargarUsuarios();
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                matchingLocalUser != null
+                                    ? 'Cajero $u reactivado exitosamente.'
+                                    : 'Cajero $u creado y habilitado exitosamente.',
+                              ),
+                              backgroundColor: AppTheme.accentGreen,
+                            ),
+                          );
+                        } catch (e) {
+                          final rawMsg = e.toString().replaceAll('Exception: ', '');
+                          // Extraer sugerencia si el backend proporcionó una
+                          String encontrada = '';
+                          final match = RegExp(r"'([^']+)'").allMatches(rawMsg);
+                          if (rawMsg.contains('sugerimos') && match.isNotEmpty) {
+                            encontrada = match.last.group(1) ?? '';
+                          }
+
+                          setModalState(() {
+                            isSubmitting = false;
+                            modalError = rawMsg;
+                            sugerenciaDetectada = encontrada;
+                          });
+                        }
+                      },
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(
+                        matchingLocalUser != null && !matchingLocalUser.estado
+                            ? 'REACTIVAR CAJERO'
+                            : 'CREAR CAJERO',
                       ),
-                    );
-                  } catch (e) {
-                    setModalState(() {
-                      modalError = e.toString().replaceAll('Exception: ', '');
-                    });
-                  }
-                },
-                child: const Text('CREAR USUARIO'),
               ),
             ],
           );
@@ -555,12 +809,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
-                        if (isPro)
-                          TextButton.icon(
-                            onPressed: _abrirCrearUsuarioModal,
-                            icon: const Icon(LucideIcons.plus, size: 16),
-                            label: const Text('Agregar'),
-                          ),
+                        TextButton.icon(
+                          onPressed: _abrirCrearUsuarioModal,
+                          icon: const Icon(LucideIcons.userPlus, size: 16),
+                          label: const Text('Agregar Cajero'),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
