@@ -1,0 +1,65 @@
+class Producto {
+  final int? idProducto;
+  final int? idCategoria;
+  final String? nombreCategoria;
+  final String codigo;
+  final String? codigoBarras;
+  final String nombre;
+  final String? marca;
+  final double precioVenta;
+  final double stockActual;
+  final double stockMinimo;
+
+  Producto({
+    this.idProducto,
+    this.idCategoria,
+    this.nombreCategoria,
+    required this.codigo,
+    this.codigoBarras,
+    required this.nombre,
+    this.marca,
+    required this.precioVenta,
+    required this.stockActual,
+    this.stockMinimo = 5.0,
+  });
+
+  factory Producto.fromJson(Map<String, dynamic> json) {
+    return Producto(
+      idProducto: (json['idProducto'] as num?)?.toInt(),
+      idCategoria: (json['idCategoria'] as num?)?.toInt(),
+      nombreCategoria: json['nombreCategoria'] as String?,
+      codigo: json['codigo'] as String? ?? '',
+      codigoBarras: json['codigoBarras'] as String?,
+      nombre: json['nombre'] as String? ?? '',
+      marca: json['marca'] as String?,
+      precioVenta: (json['precioVenta'] as num?)?.toDouble() ?? 0.0,
+      stockActual: (json['stockActual'] as num?)?.toDouble() ?? 0.0,
+      stockMinimo: (json['stockMinimo'] as num?)?.toDouble() ?? 5.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (idProducto != null) 'idProducto': idProducto,
+      'idCategoria': idCategoria ?? 1,
+      'codigo': codigo,
+      if (codigoBarras != null) 'codigoBarras': codigoBarras,
+      'nombre': nombre,
+      if (marca != null) 'marca': marca,
+      'precioVenta': precioVenta,
+      'stockActual': stockActual,
+      'stockMinimo': stockMinimo,
+      'estado': true,
+    };
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Producto &&
+          runtimeType == other.runtimeType &&
+          idProducto == other.idProducto;
+
+  @override
+  int get hashCode => idProducto.hashCode;
+}

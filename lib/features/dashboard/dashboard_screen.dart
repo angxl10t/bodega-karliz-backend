@@ -1,0 +1,678 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../core/theme.dart';
+import '../productos/producto_model.dart';
+import '../productos/producto_service.dart';
+import '../productos/nuevo_producto_sheet.dart';
+import '../movimientos/kardex_screen.dart';
+
+class DashboardScreen extends StatefulWidget {
+  final Function(int tabIndex) onNavigateTab;
+
+  const DashboardScreen({
+    super.key,
+    required this.onNavigateTab,
+  });
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final ProductoService _productoService = ProductoService();
+  List<Producto> _productos = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
+    _cargarDatos();
+  }
+
+  @override
+  void dispose() {
+    ProductoService.productosRevision.removeListener(_onProductosRevisionChanged);
+    super.dispose();
+  }
+
+  void _onProductosRevisionChanged() {
+    if (mounted) {
+      _cargarDatos(forceRefresh: true);
+    }
+  }
+
+  Future<void> _cargarDatos({bool forceRefresh = false}) async {
+    setState(() => _isLoading = true);
+    final prods = await _productoService.getProductos(forceRefresh: forceRefresh);
+    if (mounted) {
+      setState(() {
+        _productos = prods;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Métricas calculadas en tiempo real
+    final int totalProductos = _productos.length;
+    final double stockTotalUnidades = _productos.fold(0.0, (acc, p) => acc + p.stockActual);
+    final double valorInventario = _productos.fold(0.0, (acc, p) => acc + (p.stockActual * p.precioVenta));
+    final List<Producto> productosCriticos = _productos.where((p) => p.stockActual <= 5).toList();
+    final List<Producto> productosBajos = _productos.where((p) => p.stockActual > 5 && p.stockActual <= 10).toList();
+    final int totalAlertas = productosCriticos.length + productosBajos.length;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: RefreshIndicator(
+        onRefresh: () => _cargarDatos(forceRefresh: true),
+        color: AppTheme.brandPrimary,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
+            : SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Banner Ejecutivo Rebrandeado KARLIZ
+                    _buildGreetingBanner(isDark),
+                    const SizedBox(height: 14),
+
+                    // Banner Didáctico de Orientación
+                    const DidacticBanner(
+                      title: 'Consejo del Turno',
+                      description: 'Gestiona tu turno desde las 5 pestañas inferiores: cobra en POS, cuadra en Caja, y repón desde Stock o Compras.',
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Título de Métricas
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Métricas Clave del Negocio',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        Text(
+                          'Actualizado hoy',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: AppTheme.textMuted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Cuadrícula de KPIs Responsiva
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _buildMetricTile(
+                              constraints: constraints,
+                              title: 'Valor en Mercadería',
+                              value: 'S/ ${valorInventario.toStringAsFixed(2)}',
+                              subtitle: '${stockTotalUnidades.toStringAsFixed(0)} unidades valorizadas',
+                              icon: LucideIcons.wallet,
+                              accentColor: AppTheme.brandPrimary,
+                              isDark: isDark,
+                            ),
+                            _buildMetricTile(
+                              constraints: constraints,
+                              title: 'Catálogo Activo',
+                              value: '$totalProductos Items',
+                              subtitle: 'Productos registrados',
+                              icon: LucideIcons.boxes,
+                              accentColor: AppTheme.infoIndigo,
+                              isDark: isDark,
+                            ),
+                            _buildMetricTile(
+                              constraints: constraints,
+                              title: 'Stock Crítico (≤ 5 u.)',
+                              value: '${productosCriticos.length}',
+                              subtitle: productosCriticos.isNotEmpty ? 'Requiere pedido urgente' : 'Sin faltantes',
+                              icon: LucideIcons.alertCircle,
+                              accentColor: AppTheme.alertRed,
+                              isDark: isDark,
+                            ),
+                            _buildMetricTile(
+                              constraints: constraints,
+                              title: 'Stock Bajo (6-10 u.)',
+                              value: '${productosBajos.length}',
+                              subtitle: 'Próximos a reponer',
+                              icon: LucideIcons.clock,
+                              accentColor: AppTheme.warningAmber,
+                              isDark: isDark,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Accesos Rápidos Inteligentes
+                    Text(
+                      'Operaciones Principales',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+                        _buildQuickActionBtn(
+                          title: 'Cobrar en POS',
+                          subtitle: 'Terminal de Venta',
+                          icon: LucideIcons.shoppingBag,
+                          color: AppTheme.brandPrimary,
+                          isDark: isDark,
+                          onTap: () => widget.onNavigateTab(1), // Tab POS
+                        ),
+                        const SizedBox(width: 10),
+                        _buildQuickActionBtn(
+                          title: 'Arqueo de Caja',
+                          subtitle: 'Corte & Historial',
+                          icon: LucideIcons.banknote,
+                          color: AppTheme.accentGreen,
+                          isDark: isDark,
+                          onTap: () => widget.onNavigateTab(2), // Tab Caja
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _buildQuickActionBtn(
+                          title: 'Ver Inventario',
+                          subtitle: 'Stock & Filtros',
+                          icon: LucideIcons.boxes,
+                          color: AppTheme.infoIndigo,
+                          isDark: isDark,
+                          onTap: () => widget.onNavigateTab(3), // Tab Stock
+                        ),
+                        const SizedBox(width: 10),
+                        _buildQuickActionBtn(
+                          title: 'Compras & Lotes',
+                          subtitle: 'Ingreso Proveedores',
+                          icon: LucideIcons.truck,
+                          color: const Color(0xFF0284C7),
+                          isDark: isDark,
+                          onTap: () => widget.onNavigateTab(4), // Tab Compras
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _buildQuickActionBtn(
+                          title: 'Kardex Auditoría',
+                          subtitle: 'Historial de Movimientos',
+                          icon: LucideIcons.fileSpreadsheet,
+                          color: const Color(0xFF0D9488),
+                          isDark: isDark,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const KardexScreen()),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        _buildQuickActionBtn(
+                          title: '+ Nuevo Producto',
+                          subtitle: 'Crear en Catálogo',
+                          icon: LucideIcons.plusCircle,
+                          color: AppTheme.brandPrimary,
+                          isDark: isDark,
+                          onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 26),
+
+                    // Alertas de Reposición
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Alertas de Reposición',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        if (totalAlertas > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.alertRed.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '$totalAlertas productos por agotar',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.alertRed,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    if (productosCriticos.isEmpty && productosBajos.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.cardDark : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark ? AppTheme.borderDark : const Color(0xFFD1FAE5),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFD1FAE5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(LucideIcons.checkCircle, color: AppTheme.accentGreen, size: 22),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '¡Inventario en Estado Óptimo!',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Todos los productos tienen existencias saludables.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: [...productosCriticos, ...productosBajos].take(4).length,
+                        itemBuilder: (context, idx) {
+                          final p = [...productosCriticos, ...productosBajos][idx];
+                          final isCritico = p.stockActual <= 5;
+                          final color = isCritico ? AppTheme.alertRed : AppTheme.warningAmber;
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppTheme.cardDark : Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: color.withValues(alpha: 0.12),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isCritico ? LucideIcons.alertCircle : LucideIcons.alertTriangle,
+                                    color: color,
+                                    size: 17,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        p.nombre,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        'Código: ${p.codigo}',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          color: AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: color.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${p.stockActual.toInt()} u.',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: color,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildGreetingBanner(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [AppTheme.cardDarkElevated, AppTheme.cardDark]
+              : [AppTheme.brandInk, const Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFF334155),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFF2DD4BF).withValues(alpha: 0.25),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: AppTheme.accentGreen,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Cloud Sync • En Línea',
+                        style: GoogleFonts.outfit(
+                          color: const Color(0xFFE2E8F0),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Centro de Control KARLIZ',
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Gestión unificada de ventas, caja e inventario en tiempo real',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: const Color(0xFF94A3B8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          InkWell(
+            onTap: () => widget.onNavigateTab(1),
+            borderRadius: BorderRadius.circular(18),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(LucideIcons.shoppingBag, color: Colors.white, size: 22),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Ir a POS',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricTile({
+    required BoxConstraints constraints,
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color accentColor,
+    required bool isDark,
+  }) {
+    final double cardWidth = constraints.maxWidth > 520
+        ? (constraints.maxWidth - 10) / 2
+        : constraints.maxWidth;
+
+    return Container(
+      width: cardWidth,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: isDark ? 0.2 : 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: accentColor, size: 21),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  value,
+                  style: GoogleFonts.outfit(
+                    fontSize: 17.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: accentColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionBtn({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: Material(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: color, size: 18),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: AppTheme.textMuted,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

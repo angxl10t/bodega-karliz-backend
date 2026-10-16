@@ -1,0 +1,8 @@
+# Plantilla de Configuración de Firma para Producción Android
+# Copie este archivo como 'key.properties' en esta misma carpeta (android/)
+# NUNCA suba su archivo 'key.properties' ni su almacén '*.keystore' / '*.jks' a repositorios públicos git.
+
+keyAlias=karliz_release_key
+keyPassword=TU_CONTRASEÑA_DE_CLAVE_AQUI
+storeFile=../karliz_release.keystore
+storePassword=TU_CONTRASEÑA_DEL_KEYSTORE_AQUI
