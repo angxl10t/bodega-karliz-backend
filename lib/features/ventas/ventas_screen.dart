@@ -33,7 +33,12 @@ class _VentasScreenState extends State<VentasScreen> {
   final _pagoConController = TextEditingController();
   final _tabletSearchCtrl = TextEditingController();
   String _tabletSearchQuery = '';
-  String? _tabletSelectedCategoria = 'Todos';
+  String? _tabletSelectedCategoria = '⭐ Frecuentes';
+
+  final FocusNode _screenFocusNode = FocusNode();
+  final FocusNode _tabletSearchFocusNode = FocusNode();
+  final StringBuffer _hwScanBuffer = StringBuffer();
+  DateTime _lastHwKeyTime = DateTime.now();
 
   bool _isLoading = true;
   bool _isProcesando = false;
@@ -41,17 +46,35 @@ class _VentasScreenState extends State<VentasScreen> {
   List<Producto> get _safeDisponibles => _productosDisponibles;
 
   List<String> get _tabletCategorias {
-    final set = <String>{'Todos'};
+    final list = <String>['⭐ Frecuentes', 'Todos'];
+    final uniqueCats = <String>{};
     for (final p in _safeDisponibles) {
       final cat = p.nombreCategoria?.trim();
       if (cat != null && cat.isNotEmpty) {
-        set.add(cat);
+        uniqueCats.add(cat);
       }
     }
-    return set.toList();
+    list.addAll(uniqueCats);
+    return list;
   }
 
   List<Producto> get _filteredTabletProductos {
+    if (_tabletSelectedCategoria == '⭐ Frecuentes') {
+      final copy = List<Producto>.from(_safeDisponibles);
+      copy.sort((a, b) => b.stockActual.compareTo(a.stockActual));
+      final frecuentes = copy.take(16).toList();
+      if (_tabletSearchQuery.isNotEmpty) {
+        final q = _tabletSearchQuery.toLowerCase().trim();
+        return frecuentes.where((p) =>
+            p.nombre.toLowerCase().contains(q) ||
+            _coincideCodigo(p, q) ||
+            (p.codigoBarras ?? '').toLowerCase().contains(q) ||
+            (p.marca ?? '').toLowerCase().contains(q)
+        ).toList();
+      }
+      return frecuentes;
+    }
+
     return _safeDisponibles.where((p) {
       if (_tabletSelectedCategoria != null && _tabletSelectedCategoria != 'Todos') {
         final cat = p.nombreCategoria?.trim() ?? 'General';
@@ -69,6 +92,39 @@ class _VentasScreenState extends State<VentasScreen> {
     }).toList();
   }
 
+  void _handleHardwareKey(KeyEvent event) {
+    if (event is! KeyDownEvent) return;
+
+    // Si el usuario está escribiendo en campos de texto editables (nombre/DNI/pago), no interceptar
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    if (primaryFocus != null && primaryFocus.context != null) {
+      final widget = primaryFocus.context!.widget;
+      if (widget is EditableText && primaryFocus != _tabletSearchFocusNode) {
+        return;
+      }
+    }
+
+    final now = DateTime.now();
+    if (now.difference(_lastHwKeyTime).inMilliseconds > 120) {
+      _hwScanBuffer.clear();
+    }
+    _lastHwKeyTime = now;
+
+    if (event.logicalKey == LogicalKeyboardKey.enter || event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+      final code = _hwScanBuffer.toString().trim();
+      _hwScanBuffer.clear();
+      if (code.isNotEmpty) {
+        if (_tabletSearchCtrl.text.trim() == code) {
+          _tabletSearchCtrl.clear();
+          setState(() => _tabletSearchQuery = '');
+        }
+        _procesarCodigoEscaneado(code);
+      }
+    } else if (event.character != null && event.character!.isNotEmpty) {
+      _hwScanBuffer.write(event.character);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +139,8 @@ class _VentasScreenState extends State<VentasScreen> {
     _clienteDocController.dispose();
     _pagoConController.dispose();
     _tabletSearchCtrl.dispose();
+    _tabletSearchFocusNode.dispose();
+    _screenFocusNode.dispose();
     super.dispose();
   }
 
@@ -210,10 +268,14 @@ class _VentasScreenState extends State<VentasScreen> {
       title: 'Lector de Cobro POS',
       subtitle: 'Enfoque el código del producto para agregarlo',
     );
+    if (scannedCode != null && scannedCode.trim().isNotEmpty) {
+      await _procesarCodigoEscaneado(scannedCode);
+    }
+  }
 
-    if (scannedCode == null || scannedCode.trim().isEmpty) return;
-
-    final codeClean = scannedCode.trim();
+  Future<void> _procesarCodigoEscaneado(String rawCode) async {
+    final codeClean = rawCode.trim();
+    if (codeClean.isEmpty) return;
 
     // 1. Buscar entre los productos en memoria del POS
     Producto? productoEncontrado;
@@ -225,7 +287,6 @@ class _VentasScreenState extends State<VentasScreen> {
     }
 
     // 2. Si no estaba en _safeDisponibles, consultar al servidor con forceRefresh
-    // para encontrar productos recién registrados en otra pestaña o con stock actualizado
     if (productoEncontrado == null) {
       final productosFrescos = await _productoService.getProductos(forceRefresh: true);
       if (mounted) {
@@ -337,7 +398,7 @@ class _VentasScreenState extends State<VentasScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '⚠️ Código "$scannedCode" no encontrado en el inventario',
+                  '⚠️ Código "$codeClean" no encontrado en el inventario',
                   style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -350,6 +411,121 @@ class _VentasScreenState extends State<VentasScreen> {
         ),
       );
     }
+  }
+
+  void _editarCantidadDirecta(int index) {
+    final item = _carrito[index];
+    final ctrl = TextEditingController(text: item.cantidad.toInt().toString());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (dlgCtx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(LucideIcons.hash, color: AppTheme.brandPrimary, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Modificar Cantidad',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item.producto.nombre,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Stock disponible: ${item.producto.stockActual.toInt()} unidades',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: ctrl,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.brandPrimary),
+              decoration: InputDecoration(
+                labelText: 'Cantidad a vender',
+                suffixText: 'unidades',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                if (item.producto.stockActual >= 6)
+                  ActionChip(
+                    label: const Text('+6 (Six-pack)'),
+                    onPressed: () => ctrl.text = '6',
+                  ),
+                if (item.producto.stockActual >= 12)
+                  ActionChip(
+                    label: const Text('+12 (Docena)'),
+                    onPressed: () => ctrl.text = '12',
+                  ),
+                if (item.producto.stockActual >= 24)
+                  ActionChip(
+                    label: const Text('+24 (Caja)'),
+                    onPressed: () => ctrl.text = '24',
+                  ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dlgCtx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.brandPrimary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            onPressed: () {
+              final parsed = double.tryParse(ctrl.text.trim().replaceAll(',', '.')) ?? item.cantidad;
+              if (parsed <= 0) {
+                _eliminarDelCarrito(index);
+                Navigator.pop(dlgCtx);
+                return;
+              }
+              if (parsed > item.producto.stockActual) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Stock insuficiente: solo hay ${item.producto.stockActual.toInt()} disponibles.'),
+                    backgroundColor: AppTheme.alertRed,
+                  ),
+                );
+                return;
+              }
+              setState(() {
+                item.cantidad = parsed;
+                if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
+                  _pagoConController.text = _totalVenta.toStringAsFixed(2);
+                }
+              });
+              Navigator.pop(dlgCtx);
+            },
+            child: const Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _coincideCodigo(Producto p, String rawCode) {
@@ -1040,13 +1216,18 @@ class _VentasScreenState extends State<VentasScreen> {
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
     final labelColor = isDark ? Colors.white : AppTheme.textDark;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth >= ResponsiveLayout.mobileBreakpoint) {
-          return _buildTabletLayout(isDark, cardBg, borderColor, labelColor);
-        }
-        return _buildMobileLayout(isDark, cardBg, borderColor, labelColor);
-      },
+    return KeyboardListener(
+      focusNode: _screenFocusNode,
+      autofocus: true,
+      onKeyEvent: _handleHardwareKey,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= ResponsiveLayout.mobileBreakpoint) {
+            return _buildTabletLayout(isDark, cardBg, borderColor, labelColor);
+          }
+          return _buildMobileLayout(isDark, cardBg, borderColor, labelColor);
+        },
+      ),
     );
   }
 
@@ -1183,6 +1364,19 @@ class _VentasScreenState extends State<VentasScreen> {
                         ),
                       ),
                     ),
+                    if (_clienteNombreController.text.trim() != 'Público General' || _clienteDocController.text.trim() != '00000000')
+                      IconButton(
+                        icon: const Icon(LucideIcons.rotateCcw, size: 16),
+                        tooltip: 'Restaurar Público General',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                        onPressed: () {
+                          setState(() {
+                            _clienteNombreController.text = 'Público General';
+                            _clienteDocController.text = '00000000';
+                          });
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -1333,15 +1527,24 @@ class _VentasScreenState extends State<VentasScreen> {
                                     icon: const Icon(LucideIcons.minus, size: 14),
                                     onPressed: () => _decrementarCantidad(idx),
                                   ),
-                                  Container(
-                                    constraints: const BoxConstraints(minWidth: 32),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      item.cantidad.toStringAsFixed(0),
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                        color: labelColor,
+                                  InkWell(
+                                    borderRadius: BorderRadius.circular(8),
+                                    onTap: () => _editarCantidadDirecta(idx),
+                                    child: Container(
+                                      constraints: const BoxConstraints(minWidth: 36, minHeight: 28),
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: isDark ? AppTheme.cardDarkElevated.withValues(alpha: 0.5) : const Color(0xFFF1F5F9).withValues(alpha: 0.5),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        item.cantidad.toStringAsFixed(0),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w800,
+                                          color: labelColor,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -1726,6 +1929,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   ),
                   child: TextField(
                     controller: _tabletSearchCtrl,
+                    focusNode: _tabletSearchFocusNode,
                     onChanged: (val) {
                       setState(() => _tabletSearchQuery = val);
                     },
@@ -1868,6 +2072,17 @@ class _VentasScreenState extends State<VentasScreen> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(18),
                           onTap: () => _agregarAlCarrito(p),
+                          onLongPress: () {
+                            if (cartIdx != -1) {
+                              _editarCantidadDirecta(cartIdx);
+                            } else {
+                              _agregarAlCarrito(p);
+                              final newIdx = _carrito.indexWhere((it) => it.producto.idProducto == p.idProducto);
+                              if (newIdx != -1) {
+                                _editarCantidadDirecta(newIdx);
+                              }
+                            }
+                          },
                           child: Ink(
                             decoration: BoxDecoration(
                               color: isDark
@@ -2081,6 +2296,19 @@ class _VentasScreenState extends State<VentasScreen> {
                     ),
                   ),
                 ),
+                if (_clienteNombreController.text.trim() != 'Público General' || _clienteDocController.text.trim() != '00000000')
+                  IconButton(
+                    icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                    tooltip: 'Restaurar Público General',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                    onPressed: () {
+                      setState(() {
+                        _clienteNombreController.text = 'Público General';
+                        _clienteDocController.text = '00000000';
+                      });
+                    },
+                  ),
               ],
             ),
           ),
@@ -2153,15 +2381,24 @@ class _VentasScreenState extends State<VentasScreen> {
                                 icon: const Icon(LucideIcons.minus, size: 12),
                                 onPressed: () => _decrementarCantidad(idx),
                               ),
-                              Container(
-                                constraints: const BoxConstraints(minWidth: 26),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  item.cantidad.toStringAsFixed(0),
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                    color: labelColor,
+                              InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () => _editarCantidadDirecta(idx),
+                                child: Container(
+                                  constraints: const BoxConstraints(minWidth: 30, minHeight: 26),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? AppTheme.cardDarkElevated.withValues(alpha: 0.5) : const Color(0xFFF1F5F9).withValues(alpha: 0.5),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    item.cantidad.toStringAsFixed(0),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: labelColor,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -2221,6 +2458,18 @@ class _VentasScreenState extends State<VentasScreen> {
           // Si es Efectivo: calculadora rápida
           if (_metodoPago == 'Efectivo') ...[
             const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _buildDenomChip('Exacto', _totalVenta, isDark),
+                if (_totalVenta <= 10) _buildDenomChip('S/ 10', 10.0, isDark),
+                if (_totalVenta <= 20) _buildDenomChip('S/ 20', 20.0, isDark),
+                if (_totalVenta <= 50) _buildDenomChip('S/ 50', 50.0, isDark),
+                if (_totalVenta <= 100) _buildDenomChip('S/ 100', 100.0, isDark),
+              ],
+            ),
+            const SizedBox(height: 6),
             Row(
               children: [
                 Expanded(
@@ -2379,32 +2628,41 @@ class _VentasScreenState extends State<VentasScreen> {
 
   Widget _buildPaymentChip(String metodo, IconData icon, bool isDark) {
     final bool isSelected = _metodoPago == metodo;
+    Color methodColor;
+    switch (metodo) {
+      case 'Yape':
+        methodColor = const Color(0xFF742284);
+        break;
+      case 'Plin':
+        methodColor = const Color(0xFF0891B2);
+        break;
+      case 'Tarjeta':
+        methodColor = const Color(0xFF2563EB);
+        break;
+      case 'Efectivo':
+      default:
+        methodColor = AppTheme.brandPrimary;
+        break;
+    }
+
     return ChoiceChip(
       avatar: Icon(
         icon,
         size: 16,
-        color: isSelected
-            ? AppTheme.primaryOrange
-            : (isDark ? Colors.white60 : const Color(0xFF64748B)),
+        color: isSelected ? Colors.white : (isDark ? Colors.white70 : methodColor),
       ),
       label: Text(metodo),
       selected: isSelected,
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 12,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected
-            ? AppTheme.primaryOrange
-            : (isDark ? Colors.white70 : const Color(0xFF475569)),
+        color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
       ),
-      selectedColor: isDark
-          ? AppTheme.primaryOrange.withValues(alpha: 0.2)
-          : AppTheme.peachSurface,
+      selectedColor: methodColor,
       backgroundColor: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
       side: BorderSide(
-        color: isSelected
-            ? AppTheme.primaryOrange
-            : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
-        width: 1.2,
+        color: isSelected ? methodColor : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+        width: isSelected ? 1.4 : 1.0,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       onSelected: (_) {
