@@ -88,430 +88,79 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= 850;
+
+            if (isDesktop) {
+              return Row(
                 children: [
                   // ============================================
-                  // CABECERA REBRANDEADA: LOGO & MARCA
+                  // PANEL IZQUIERDO: SHOWCASE DE MARCA Y VALOR B2B
                   // ============================================
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CajaYaLogoMark(size: 38),
-                      const SizedBox(width: 10),
-                      Text(
-                        'CajaYa',
-                        style: GoogleFonts.outfit(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.3,
-                          color: isDark ? Colors.white : AppTheme.brandInk,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.brandPrimary.withValues(alpha: 0.2)
-                              : AppTheme.surfaceTint,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.brandPrimary.withValues(alpha: 0.4)
-                                : AppTheme.borderTint,
-                          ),
-                        ),
-                        child: Text(
-                          'CLOUD POS',
-                          style: GoogleFonts.outfit(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                            letterSpacing: 0.6,
+                  Expanded(
+                    flex: 5,
+                    child: Container(
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF070B13) : const Color(0xFFF1F5F9),
+                        border: Border(
+                          right: BorderSide(
+                            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                            width: 1,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // Gráfico Hero B2B: Punto de Venta en la Nube
-                  const CajaYaHeroGraphic(width: 320, height: 160),
-
-                  const SizedBox(height: 20),
-
-                  // ============================================
-                  // TARJETA ELEVADA DE LOGIN
-                  // ============================================
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: isDark ? AppTheme.cardDark : Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.03),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bienvenido a tu Punto de Venta',
-                          style: GoogleFonts.outfit(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.brandInk,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Control de Inventario, Ventas & Caja en Tiempo Real',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            color: AppTheme.textMuted,
-                          ),
-                        ),
-
-                        if (_sessionExpiredNotice) ...[
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade50.withValues(alpha: isDark ? 0.15 : 1.0),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: Colors.amber.shade600.withValues(alpha: 0.4)),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(LucideIcons.shieldAlert, size: 20, color: Colors.amber.shade700),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'Tu sesión o turno expiró por seguridad. Ingresa tus credenciales para continuar.',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark ? Colors.amber.shade200 : Colors.amber.shade900,
-                                    ),
-                                  ),
+                      child: Stack(
+                        children: [
+                          // Glow ambiental sutil en esquina superior izquierda
+                          Positioned(
+                            top: -100,
+                            left: -100,
+                            child: Container(
+                              width: 360,
+                              height: 360,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    AppTheme.brandPrimary.withValues(alpha: isDark ? 0.22 : 0.12),
+                                    Colors.transparent,
+                                  ],
                                 ),
-                              ],
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 480),
+                                child: _buildBrandShowcase(context, isDark),
+                              ),
                             ),
                           ),
                         ],
-
-                        const SizedBox(height: 20),
-
-                        // Campo 1: Usuario
-                        Text(
-                          'USUARIO / OPERADOR',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: isDark ? Colors.white70 : AppTheme.textMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _usernameController,
-                          cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          ),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                            hintText: 'admin',
-                            hintStyle: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                            ),
-                            prefixIcon: Icon(
-                              LucideIcons.user,
-                              size: 18,
-                              color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                                width: 1.8,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-
-                        const SizedBox(height: 14),
-
-                        // Campo 2: Contraseña
-                        Text(
-                          'CONTRASEÑA',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
-                            color: isDark ? Colors.white70 : AppTheme.textMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
-                          ),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                            hintText: '••••••',
-                            hintStyle: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
-                            ),
-                            prefixIcon: Icon(
-                              LucideIcons.lock,
-                              size: 18,
-                              color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
-                                size: 18,
-                                color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                              ),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                                width: 1.8,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          ),
-                        ),
-
-                        // Error Banner
-                        if (_errorMessage.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: AppTheme.alertRed.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(LucideIcons.alertCircle, color: AppTheme.alertRed, size: 16),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _errorMessage,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      color: AppTheme.alertRed,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 14),
-
-                        // Mantener sesión
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => setState(() => _keepMeSignedIn = !_keepMeSignedIn),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 18,
-                                    height: 18,
-                                    decoration: BoxDecoration(
-                                      color: _keepMeSignedIn ? AppTheme.brandPrimary : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                        color: _keepMeSignedIn ? AppTheme.brandPrimary : const Color(0xFFCBD5E1),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: _keepMeSignedIn
-                                        ? const Icon(Icons.check, size: 13, color: Colors.white)
-                                        : null,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Recordar dispositivo',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      color: const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Botón Ingresar
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _login,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    ),
-                                  )
-                                : const Text('INGRESAR AL SISTEMA'),
-                          ),
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        // Opción de Registro para Nuevas Bodegas (SaaS Onboarding)
-                        Center(
-                          child: InkWell(
-                            onTap: () => RegistroBodegaSheet.show(context),
-                            borderRadius: BorderRadius.circular(10),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    LucideIcons.store,
-                                    size: 15,
-                                    color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    '¿Tienes un negocio? ',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                  Text(
-                                    'Registra tu bodega gratis',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 16),
-
-                  // Conexión Cloud (Protegido: Mantener presionado para configuración técnica)
-                  Center(
-                    child: Tooltip(
-                      message: 'Mantén presionado para configuración técnica avanzada',
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onLongPress: _solicitarClaveParaServidor,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDark : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                            ),
-                          ),
-                          child: Row(
+                  // ============================================
+                  // PANEL DERECHO: FORMULARIO DE ACCESO Y ACCIONES
+                  // ============================================
+                  Expanded(
+                    flex: 5,
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 440),
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: AppTheme.accentGreen,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'En la nube: Render Live',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11,
-                                  color: AppTheme.textMuted,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(LucideIcons.settings, size: 12, color: AppTheme.textMuted),
+                              _buildLoginForm(context, isDark, isDesktop: true),
+                              const SizedBox(height: 18),
+                              _buildCloudConnectionBadge(context, isDark),
                             ],
                           ),
                         ),
@@ -519,7 +168,658 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ],
+              );
+            }
+
+            // ============================================
+            // VISTA MÓVIL / PANTALLAS ANGOSTAS (< 850)
+            // ============================================
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      _buildMobileBrandHeader(context, isDark),
+                      const SizedBox(height: 18),
+                      const CajaYaHeroGraphic(width: 320, height: 160),
+                      const SizedBox(height: 20),
+                      _buildLoginForm(context, isDark, isDesktop: false),
+                      const SizedBox(height: 16),
+                      _buildCloudConnectionBadge(context, isDark),
+                    ],
+                  ),
+                ),
               ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // ============================================
+  // BRAND SHOWCASE PARA PANTALLAS GRANDES (DESKTOP)
+  // ============================================
+  Widget _buildBrandShowcase(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Brand Mark + Cloud POS Pill
+        Row(
+          children: [
+            const CajaYaLogoMark(size: 42),
+            const SizedBox(width: 12),
+            Text(
+              'CajaYa',
+              style: GoogleFonts.outfit(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.4,
+                color: isDark ? Colors.white : AppTheme.brandInk,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppTheme.brandPrimary.withValues(alpha: 0.2)
+                    : AppTheme.surfaceTint,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDark
+                      ? AppTheme.brandPrimary.withValues(alpha: 0.4)
+                      : AppTheme.borderTint,
+                ),
+              ),
+              child: Text(
+                'CLOUD POS',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 26),
+
+        // Titular de impacto
+        Text(
+          'El Punto de Venta más rápido para tu negocio',
+          style: GoogleFonts.outfit(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            height: 1.25,
+            color: isDark ? Colors.white : AppTheme.brandInk,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Control total de inventario, ventas multi-cajero, arqueos de caja y emisión de tickets en tiempo real.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            height: 1.5,
+            color: isDark ? Colors.white70 : AppTheme.textMuted,
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Gráfico Hero B2B con contenedor estilizado
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDark.withValues(alpha: 0.7) : Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: isDark
+                    ? AppTheme.brandPrimary.withValues(alpha: 0.25)
+                    : AppTheme.borderLight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.16 : 0.06),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const CajaYaHeroGraphic(width: 340, height: 170),
+          ),
+        ),
+
+        const SizedBox(height: 26),
+
+        // Características destacadas
+        _buildShowcaseFeature(
+          icon: LucideIcons.zap,
+          title: 'Ventas en < 3 segundos',
+          desc: 'Escaneo con código de barras y cobro rápido con Yape, Plin o Efectivo.',
+          isDark: isDark,
+        ),
+        const SizedBox(height: 14),
+        _buildShowcaseFeature(
+          icon: LucideIcons.users,
+          title: 'Multi-cajero con control de roles',
+          desc: 'Gestiona turnos, auditoría de cajeros y arqueos de caja protegidos.',
+          isDark: isDark,
+        ),
+        const SizedBox(height: 14),
+        _buildShowcaseFeature(
+          icon: LucideIcons.receipt,
+          title: 'Tickets térmicos y boletas',
+          desc: 'Impresión Bluetooth/USB de 58mm y 80mm con identidad comercial de tu tienda.',
+          isDark: isDark,
+        ),
+
+        const SizedBox(height: 24),
+
+        // Footer Trust Badge
+        Row(
+          children: [
+            const Icon(LucideIcons.shieldCheck, size: 16, color: AppTheme.accentGreen),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Aislamiento Multi-inquilino seguro • Datos cifrados',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white60 : AppTheme.textMuted,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShowcaseFeature({
+    required IconData icon,
+    required String title,
+    required String desc,
+    required bool isDark,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7.5),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppTheme.brandPrimary.withValues(alpha: 0.18)
+                : AppTheme.surfaceTint,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark
+                  ? AppTheme.brandPrimary.withValues(alpha: 0.35)
+                  : AppTheme.borderTint,
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : AppTheme.brandInk,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                desc,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: isDark ? Colors.white60 : AppTheme.textMuted,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================
+  // CABECERA MARCA PARA MÓVIL
+  // ============================================
+  Widget _buildMobileBrandHeader(BuildContext context, bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CajaYaLogoMark(size: 38),
+        const SizedBox(width: 10),
+        Text(
+          'CajaYa',
+          style: GoogleFonts.outfit(
+            fontSize: 24,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.3,
+            color: isDark ? Colors.white : AppTheme.brandInk,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppTheme.brandPrimary.withValues(alpha: 0.2)
+                : AppTheme.surfaceTint,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isDark
+                  ? AppTheme.brandPrimary.withValues(alpha: 0.4)
+                  : AppTheme.borderTint,
+            ),
+          ),
+          child: Text(
+            'CLOUD POS',
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+              letterSpacing: 0.6,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================
+  // FORMULARIO PRINCIPAL DE ACCESO
+  // ============================================
+  Widget _buildLoginForm(BuildContext context, bool isDark, {required bool isDesktop}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.all(isDesktop ? 28 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Bienvenido a tu Punto de Venta',
+            style: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppTheme.brandInk,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Control de Inventario, Ventas & Caja en Tiempo Real',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              color: AppTheme.textMuted,
+            ),
+          ),
+
+          if (_sessionExpiredNotice) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50.withValues(alpha: isDark ? 0.15 : 1.0),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.amber.shade600.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  Icon(LucideIcons.shieldAlert, size: 20, color: Colors.amber.shade700),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Tu sesión o turno expiró por seguridad. Ingresa tus credenciales para continuar.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.amber.shade200 : Colors.amber.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 20),
+
+          // Campo 1: Usuario
+          Text(
+            'USUARIO / OPERADOR',
+            style: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: isDark ? Colors.white70 : AppTheme.textMuted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _usernameController,
+            cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              hintText: 'admin',
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+              ),
+              prefixIcon: Icon(
+                LucideIcons.user,
+                size: 18,
+                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                  width: 1.8,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // Campo 2: Contraseña
+          Text(
+            'CONTRASEÑA',
+            style: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: isDark ? Colors.white70 : AppTheme.textMuted,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _passwordController,
+            obscureText: _obscurePassword,
+            cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              hintText: '••••••',
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+              ),
+              prefixIcon: Icon(
+                LucideIcons.lock,
+                size: 18,
+                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
+                  size: 18,
+                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                ),
+                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                  width: 1.8,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          ),
+
+          // Error Banner
+          if (_errorMessage.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.alertRed.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.alertCircle, color: AppTheme.alertRed, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: AppTheme.alertRed,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 14),
+
+          // Mantener sesión
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => setState(() => _keepMeSignedIn = !_keepMeSignedIn),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: _keepMeSignedIn ? AppTheme.brandPrimary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: _keepMeSignedIn ? AppTheme.brandPrimary : const Color(0xFFCBD5E1),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: _keepMeSignedIn
+                          ? const Icon(Icons.check, size: 13, color: Colors.white)
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Recordar dispositivo',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Botón Ingresar
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _login,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('INGRESAR AL SISTEMA'),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Opción de Registro para Nuevas Bodegas (SaaS Onboarding)
+          Center(
+            child: InkWell(
+              onTap: () => RegistroBodegaSheet.show(context),
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        LucideIcons.store,
+                        size: 15,
+                        color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '¿Tienes un negocio? ',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                        ),
+                      ),
+                      Text(
+                        'Registra tu bodega gratis',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================
+  // BADGE DE CONEXIÓN CLOUD
+  // ============================================
+  Widget _buildCloudConnectionBadge(BuildContext context, bool isDark) {
+    return Center(
+      child: Tooltip(
+        message: 'Mantén presionado para configuración técnica avanzada',
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onLongPress: _solicitarClaveParaServidor,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDark : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.accentGreen,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'En la nube: Render Live',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    color: AppTheme.textMuted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(LucideIcons.settings, size: 12, color: AppTheme.textMuted),
+              ],
             ),
           ),
         ),

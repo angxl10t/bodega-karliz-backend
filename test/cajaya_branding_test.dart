@@ -5,6 +5,8 @@ import 'package:bodega_mobile/core/theme_provider.dart';
 import 'package:bodega_mobile/core/cajaya_vectors.dart';
 import 'package:bodega_mobile/core/thermal_ticket_service.dart';
 import 'package:bodega_mobile/features/home/bodega_service.dart';
+import 'package:bodega_mobile/features/auth/login_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -117,5 +119,51 @@ void main() {
       expect(find.text('POS ONLINE'), findsOneWidget);
       expect(find.text('Venta Rápida'), findsOneWidget);
     });
+
+    testWidgets('LoginScreen renders compact mobile view on small screens', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ],
+          child: const MaterialApp(
+            home: LoginScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bienvenido a tu Punto de Venta'), findsOneWidget);
+      expect(find.text('INGRESAR AL SISTEMA'), findsOneWidget);
+      expect(find.text('Registra tu bodega gratis'), findsOneWidget);
+    });
+
+    testWidgets('LoginScreen renders split-screen brand showcase on desktop screens', (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ],
+          child: const MaterialApp(
+            home: LoginScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('El Punto de Venta más rápido para tu negocio'), findsOneWidget);
+      expect(find.text('Ventas en < 3 segundos'), findsOneWidget);
+      expect(find.text('Multi-cajero con control de roles'), findsOneWidget);
+      expect(find.text('INGRESAR AL SISTEMA'), findsOneWidget);
+    });
   });
 }
+
