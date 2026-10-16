@@ -43,18 +43,9 @@ public class VentaService {
     @Transactional
     public VentaDTO registrarVenta(VentaDTO dto) {
         Venta venta = new Venta();
-        String docCliente = (dto.getClienteDocumento() != null && !dto.getClienteDocumento().isBlank()) 
-                ? dto.getClienteDocumento().trim() 
-                : null;
-        if (docCliente != null && docCliente.length() > 20) {
-            docCliente = docCliente.substring(0, 20);
-        }
-        String nomCliente = (dto.getClienteNombre() != null && !dto.getClienteNombre().isBlank()) 
-                ? dto.getClienteNombre().trim() 
-                : "Público General";
-        if (nomCliente.length() > 150) {
-            nomCliente = nomCliente.substring(0, 150);
-        }
+        String docCliente = sanitizarTextoImpresion(dto.getClienteDocumento(), 20, null);
+        String nomCliente = sanitizarTextoImpresion(dto.getClienteNombre(), 150, "Público General");
+
         venta.setClienteDocumento(docCliente);
         venta.setClienteNombre(nomCliente);
         venta.setMetodoPago(dto.getMetodoPago() != null ? dto.getMetodoPago() : "Efectivo");
@@ -319,14 +310,11 @@ public class VentaService {
 
         List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
         String usuarioActual = obtenerUsuarioActual();
-        String motivoLimpio = (motivo != null && !motivo.isBlank()) 
-                ? motivo.trim() 
-                : "Anulada por usuario " + usuarioActual + " (Sin justificación especificada)";
-
-        // Prevenir desbordamiento de columna VARCHAR(255) en base de datos
-        if (motivoLimpio.length() > 200) {
-            motivoLimpio = motivoLimpio.substring(0, 200);
-        }
+        String motivoLimpio = sanitizarTextoImpresion(
+                motivo, 
+                200, 
+                "Anulada por usuario " + usuarioActual + " (Sin justificación especificada)"
+        );
 
         String motivoKardex = "Anulación Venta #" + idVenta + " - Justificación: " + motivoLimpio;
         if (motivoKardex.length() > 255) {
@@ -418,5 +406,24 @@ public class VentaService {
         }).collect(Collectors.toList()));
 
         return dto;
+    }
+
+    /**
+     * Sanitiza cadenas de texto para prevenir inyecciones de comandos en impresoras
+     * térmicas (ESC/POS) y neutralizar caracteres de control ASCII (0-31, 127).
+     */
+    private String sanitizarTextoImpresion(String texto, int maxLen, String defaultValue) {
+        if (texto == null || texto.isBlank()) {
+            return defaultValue;
+        }
+        // Elimina caracteres de control ASCII (ej. ESC \x1B, NUL \x00) y tags peligrosos
+        String limpio = texto.replaceAll("[\\p{Cntrl}]", " ")
+                             .replaceAll("[<>]", "")
+                             .replaceAll("\\s+", " ")
+                             .trim();
+        if (limpio.isBlank()) {
+            return defaultValue;
+        }
+        return (limpio.length() > maxLen) ? limpio.substring(0, maxLen) : limpio;
     }
 }

@@ -48,7 +48,7 @@ public class CompraService {
         }
 
         String comprobanteTrim = (dto.getComprobante() != null && !dto.getComprobante().isBlank()) 
-                ? dto.getComprobante().trim() 
+                ? dto.getComprobante().replaceAll("[\\p{Cntrl}]", " ").trim() 
                 : null;
         if (comprobanteTrim != null && comprobanteTrim.length() > 50) {
             comprobanteTrim = comprobanteTrim.substring(0, 50);
