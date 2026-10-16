@@ -48,14 +48,48 @@ class LockService {
     await SecureStorageService.write(_pinKey, pin);
   }
 
-  /// Valida el PIN ingresado contra el almacenado en Keystore
-  Future<bool> verifyPin(String enteredPin) async {
-    final storedPin = await SecureStorageService.read(_pinKey);
-    return storedPin != null && storedPin == enteredPin;
+  int _failedPinAttempts = 0;
+  DateTime? _blockedUntil;
+
+  /// Retorna los segundos restantes de bloqueo por demasiados intentos de PIN fallidos
+  int get remainingBlockedSeconds {
+    if (_blockedUntil == null) return 0;
+    final diff = _blockedUntil!.difference(DateTime.now()).inSeconds;
+    if (diff <= 0) {
+      _blockedUntil = null;
+      _failedPinAttempts = 0;
+      return 0;
+    }
+    return diff;
   }
 
-  /// Elimina el PIN configurado
+  bool get isPinBlocked => remainingBlockedSeconds > 0;
+
+  /// Valida el PIN ingresado contra el almacenado en Keystore con protección anti-fuerza bruta
+  Future<bool> verifyPin(String enteredPin) async {
+    if (isPinBlocked) return false;
+
+    final storedPin = await SecureStorageService.read(_pinKey);
+    final isValid = storedPin != null && storedPin == enteredPin;
+
+    if (isValid) {
+      _failedPinAttempts = 0;
+      _blockedUntil = null;
+      return true;
+    } else {
+      _failedPinAttempts++;
+      if (_failedPinAttempts >= 5) {
+        // Bloqueo temporal por 60 segundos tras 5 intentos fallidos
+        _blockedUntil = DateTime.now().add(const Duration(seconds: 60));
+      }
+      return false;
+    }
+  }
+
+  /// Elimina el PIN configurado y resetea intentos
   Future<void> removePin() async {
+    _failedPinAttempts = 0;
+    _blockedUntil = null;
     await SecureStorageService.delete(_pinKey);
   }
 
