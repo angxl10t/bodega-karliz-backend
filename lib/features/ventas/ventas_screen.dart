@@ -9,6 +9,7 @@ import 'caja_ventas_screen.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/karliz_sound_service.dart';
 import '../../core/thermal_ticket_service.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import 'package:flutter/services.dart';
 
@@ -30,11 +31,43 @@ class _VentasScreenState extends State<VentasScreen> {
   final _clienteNombreController = TextEditingController(text: 'Público General');
   final _clienteDocController = TextEditingController(text: '00000000');
   final _pagoConController = TextEditingController();
+  final _tabletSearchCtrl = TextEditingController();
+  String _tabletSearchQuery = '';
+  String? _tabletSelectedCategoria = 'Todos';
 
   bool _isLoading = true;
   bool _isProcesando = false;
 
   List<Producto> get _safeDisponibles => _productosDisponibles;
+
+  List<String> get _tabletCategorias {
+    final set = <String>{'Todos'};
+    for (final p in _safeDisponibles) {
+      final cat = p.nombreCategoria?.trim();
+      if (cat != null && cat.isNotEmpty) {
+        set.add(cat);
+      }
+    }
+    return set.toList();
+  }
+
+  List<Producto> get _filteredTabletProductos {
+    return _safeDisponibles.where((p) {
+      if (_tabletSelectedCategoria != null && _tabletSelectedCategoria != 'Todos') {
+        final cat = p.nombreCategoria?.trim() ?? 'General';
+        if (cat != _tabletSelectedCategoria) return false;
+      }
+      if (_tabletSearchQuery.isNotEmpty) {
+        final q = _tabletSearchQuery.toLowerCase().trim();
+        final matches = p.nombre.toLowerCase().contains(q) ||
+            _coincideCodigo(p, q) ||
+            (p.codigoBarras ?? '').toLowerCase().contains(q) ||
+            (p.marca ?? '').toLowerCase().contains(q);
+        if (!matches) return false;
+      }
+      return true;
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -49,6 +82,7 @@ class _VentasScreenState extends State<VentasScreen> {
     _clienteNombreController.dispose();
     _clienteDocController.dispose();
     _pagoConController.dispose();
+    _tabletSearchCtrl.dispose();
     super.dispose();
   }
 
@@ -998,7 +1032,7 @@ class _VentasScreenState extends State<VentasScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.primaryOrange));
+      return const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary));
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1006,6 +1040,17 @@ class _VentasScreenState extends State<VentasScreen> {
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
     final labelColor = isDark ? Colors.white : AppTheme.textDark;
 
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= ResponsiveLayout.mobileBreakpoint) {
+          return _buildTabletLayout(isDark, cardBg, borderColor, labelColor);
+        }
+        return _buildMobileLayout(isDark, cardBg, borderColor, labelColor);
+      },
+    );
+  }
+
+  Widget _buildMobileLayout(bool isDark, Color cardBg, Color borderColor, Color labelColor) {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620),
@@ -1626,6 +1671,689 @@ class _VentasScreenState extends State<VentasScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTabletLayout(bool isDark, Color cardBg, Color borderColor, Color labelColor) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // PANEL IZQUIERDO: Catálogo de productos interactivo y búsqueda (Flex: 6)
+          Expanded(
+            flex: 6,
+            child: _buildTabletCatalogoPanel(isDark, cardBg, borderColor, labelColor),
+          ),
+          const SizedBox(width: 14),
+          // PANEL DERECHO: Ticket / Canasta de Venta POS persistente (Flex: 4)
+          Expanded(
+            flex: 4,
+            child: _buildTabletTicketPanel(isDark, cardBg, borderColor, labelColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletCatalogoPanel(bool isDark, Color cardBg, Color borderColor, Color labelColor) {
+    final cats = _tabletCategorias;
+    final productos = _filteredTabletProductos;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor, width: 1.2),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Barra superior de búsqueda y acciones
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _tabletSearchCtrl,
+                    onChanged: (val) {
+                      setState(() => _tabletSearchQuery = val);
+                    },
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: labelColor,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por producto, marca o código...',
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        color: AppTheme.textMuted,
+                      ),
+                      prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppTheme.brandPrimary),
+                      suffixIcon: _tabletSearchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(LucideIcons.x, size: 16),
+                              onPressed: () {
+                                _tabletSearchCtrl.clear();
+                                setState(() => _tabletSearchQuery = '');
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark ? const Color(0xFF134E4A) : const Color(0xFFCCFBF1),
+                  foregroundColor: const Color(0xFF0F766E),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                tooltip: 'Escanear Código de Barras',
+                icon: const Icon(LucideIcons.scanLine, size: 20),
+                onPressed: _escanearCodigoParaVenta,
+              ),
+              const SizedBox(width: 6),
+              IconButton.filledTonal(
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                tooltip: 'Actualizar Catálogo & Stock',
+                icon: const Icon(LucideIcons.refreshCw, size: 18),
+                onPressed: () => _cargarProductos(forceRefresh: true),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Chips de categorías
+          if (cats.length > 1)
+            SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: cats.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 6),
+                itemBuilder: (context, i) {
+                  final cat = cats[i];
+                  final isSelected = (_tabletSelectedCategoria ?? 'Todos') == cat;
+                  return ChoiceChip(
+                    label: Text(cat),
+                    selected: isSelected,
+                    selectedColor: isDark
+                        ? AppTheme.brandPrimary.withValues(alpha: 0.25)
+                        : AppTheme.surfaceTint,
+                    backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppTheme.brandPrimary
+                          : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                      width: isSelected ? 1.4 : 1.0,
+                    ),
+                    labelStyle: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color: isSelected ? AppTheme.brandPrimary : AppTheme.textMuted,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                    onSelected: (_) {
+                      setState(() => _tabletSelectedCategoria = cat);
+                    },
+                  );
+                },
+              ),
+            ),
+          const SizedBox(height: 10),
+
+          // Grid de productos
+          Expanded(
+            child: productos.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.packageSearch, size: 48, color: AppTheme.textMuted),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No se encontraron productos disponibles',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: isDark ? Colors.white70 : AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Intenta con otra búsqueda o filtro de categoría',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                        ),
+                      ],
+                    ),
+                  )
+                : GridView.builder(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 180,
+                      childAspectRatio: 0.84,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: productos.length,
+                    itemBuilder: (context, idx) {
+                      final p = productos[idx];
+                      final cartIdx = _carrito.indexWhere((it) => it.producto.idProducto == p.idProducto);
+                      final inCart = cartIdx != -1;
+                      final inCartQty = inCart ? _carrito[cartIdx].cantidad : 0.0;
+                      final isLowStock = p.stockActual <= 5;
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () => _agregarAlCarrito(p),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? (inCart ? const Color(0xFF132A30) : const Color(0xFF0F172A))
+                                  : (inCart ? const Color(0xFFF0FDFA) : const Color(0xFFF8FAFC)),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: inCart
+                                    ? AppTheme.brandPrimary
+                                    : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                                width: inCart ? 1.8 : 1.0,
+                              ),
+                            ),
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isLowStock
+                                            ? AppTheme.alertRed.withValues(alpha: 0.15)
+                                            : AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${p.stockActual.toInt()} u.',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: isLowStock ? AppTheme.alertRed : AppTheme.brandPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    if (inCart)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.brandPrimary,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          '${inCartQty.toInt()}',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Text(
+                                  p.nombre,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: labelColor,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.brandPrimary,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.brandPrimary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(LucideIcons.plus, size: 12, color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletTicketPanel(bool isDark, Color cardBg, Color borderColor, Color labelColor) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Cabecera del Ticket
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.2) : AppTheme.surfaceTint,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(LucideIcons.receipt, color: AppTheme.brandPrimary, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ticket de Venta (POS)',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: labelColor,
+                      ),
+                    ),
+                    Text(
+                      _carrito.isEmpty
+                          ? 'Canasta vacía'
+                          : '$_totalUnidades u. • ${_carrito.length} productos',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_carrito.isNotEmpty)
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.alertRed,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                  ),
+                  onPressed: _vaciarCarrito,
+                  child: Text(
+                    'Vaciar',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Datos rápidos del cliente
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.user, size: 16, color: AppTheme.brandPrimary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _clienteNombreController,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: labelColor),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      hintText: 'Cliente',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                SizedBox(
+                  width: 80,
+                  child: TextField(
+                    controller: _clienteDocController,
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: labelColor),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      hintText: 'DNI / RUC',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Lista de items en ticket
+          Expanded(
+            child: _carrito.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.shoppingBag, size: 40, color: AppTheme.textMuted.withValues(alpha: 0.5)),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Toca productos para agregarlos',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: _carrito.length,
+                    separatorBuilder: (_, _) => Divider(
+                      height: 12,
+                      color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                    ),
+                    itemBuilder: (context, idx) {
+                      final item = _carrito[idx];
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.producto.nombre,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: labelColor,
+                                  ),
+                                ),
+                                Text(
+                                  'S/ ${item.producto.precioVenta.toStringAsFixed(2)}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Steppers
+                          Row(
+                            children: [
+                              IconButton.filledTonal(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                                  foregroundColor: labelColor,
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(26, 26),
+                                ),
+                                icon: const Icon(LucideIcons.minus, size: 12),
+                                onPressed: () => _decrementarCantidad(idx),
+                              ),
+                              Container(
+                                constraints: const BoxConstraints(minWidth: 26),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  item.cantidad.toStringAsFixed(0),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: labelColor,
+                                  ),
+                                ),
+                              ),
+                              IconButton.filledTonal(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                                  foregroundColor: labelColor,
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(26, 26),
+                                ),
+                                icon: const Icon(LucideIcons.plus, size: 12),
+                                onPressed: () => _incrementarCantidad(idx),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 60,
+                            child: Text(
+                              'S/ ${item.subtotal.toStringAsFixed(2)}',
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.brandPrimary,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                            icon: const Icon(LucideIcons.trash2, size: 14, color: Color(0xFF94A3B8)),
+                            onPressed: () => _eliminarDelCarrito(idx),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+          ),
+
+          const SizedBox(height: 8),
+          Divider(height: 1, color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+          const SizedBox(height: 8),
+
+          // Formas de pago
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark),
+              _buildPaymentChip('Yape', LucideIcons.smartphone, isDark),
+              _buildPaymentChip('Plin', LucideIcons.smartphone, isDark),
+              _buildPaymentChip('Tarjeta', LucideIcons.creditCard, isDark),
+            ],
+          ),
+
+          // Si es Efectivo: calculadora rápida
+          if (_metodoPago == 'Efectivo') ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 38,
+                    child: TextField(
+                      controller: _pagoConController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: labelColor),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        labelText: 'Pagó con',
+                        prefixText: 'S/ ',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _montoRecibido >= _totalVenta
+                        ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5))
+                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _montoRecibido >= _totalVenta ? 'Vuelto' : 'Falta',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
+                      ),
+                      Text(
+                        'S/ ${_vuelto >= 0 ? _vuelto.toStringAsFixed(2) : (_totalVenta - _montoRecibido).toStringAsFixed(2)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: _montoRecibido >= _totalVenta ? AppTheme.accentGreen : AppTheme.alertRed,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          const SizedBox(height: 10),
+
+          // Total y Botón de Cobro
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'TOTAL',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textMuted,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                'S/ ${_totalVenta.toStringAsFixed(2)}',
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.brandPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Botón Ticket Térmico
+          SizedBox(
+            height: 38,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.brandPrimary,
+                side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              ),
+              icon: const Icon(LucideIcons.printer, size: 16),
+              label: Text(
+                'TICKET TÉRMICO',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 11),
+              ),
+              onPressed: () {
+                _mostrarTicketTermicoDialog(
+                  items: _carrito,
+                  total: _totalVenta,
+                  metodo: _metodoPago,
+                  pagadoCon: _montoRecibido,
+                  vuelto: _vuelto,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // Botón Confirmar Cobro
+          SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: (_isProcesando || _carrito.isEmpty) ? null : _procesarVenta,
+              icon: _isProcesando
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Icon(LucideIcons.checkCheck, size: 18),
+              label: Text(
+                _isProcesando ? 'PROCESANDO...' : 'COBRAR • S/ ${_totalVenta.toStringAsFixed(2)}',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.brandPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
