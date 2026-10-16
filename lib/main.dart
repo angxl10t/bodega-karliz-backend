@@ -21,6 +21,7 @@ void main() async {
   UpdateService().checkForUpdatesInBackground();
 
   ApiClient.onSessionExpired = () {
+    LoginScreen.sessionExpiredFlag = true;
     _router.go('/login');
   };
 

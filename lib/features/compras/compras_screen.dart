@@ -742,6 +742,8 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
   }
 
   Future<void> _procesarCompra() async {
+    if (_isProcesando) return;
+
     if (_proveedorSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecciona un proveedor'), backgroundColor: AppTheme.alertRed),

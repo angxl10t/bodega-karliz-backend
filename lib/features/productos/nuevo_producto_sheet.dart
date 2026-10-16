@@ -369,6 +369,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
   }
 
   Future<void> _guardarProducto() async {
+    if (_isGuardando) return;
     if (!_formKey.currentState!.validate()) return;
 
     final precio = double.tryParse(_precioCtrl.text.replaceAll(',', '.')) ?? 0.0;

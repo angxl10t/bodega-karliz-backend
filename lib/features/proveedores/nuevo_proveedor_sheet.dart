@@ -64,6 +64,7 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
   }
 
   Future<void> _guardarProveedor() async {
+    if (_isGuardando) return;
     if (!_formKey.currentState!.validate()) return;
 
     final ruc = _rucCtrl.text.trim();

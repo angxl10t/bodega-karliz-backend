@@ -12,6 +12,9 @@ import '../../core/theme.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  /// Bandera activada por ApiClient cuando el servidor retorna 401 (token expirado)
+  static bool sessionExpiredFlag = false;
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -25,10 +28,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _keepMeSignedIn = true;
   String _errorMessage = '';
+  bool _sessionExpiredNotice = false;
 
   @override
   void initState() {
     super.initState();
+    if (LoginScreen.sessionExpiredFlag) {
+      _sessionExpiredNotice = true;
+      LoginScreen.sessionExpiredFlag = false;
+    }
     // Limpia cualquier residuo de sesión anterior al abrir el login
     SecureStorageService.clearAuth();
   }
@@ -204,6 +212,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: AppTheme.textMuted,
                           ),
                         ),
+
+                        if (_sessionExpiredNotice) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade50.withValues(alpha: isDark ? 0.15 : 1.0),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.amber.shade600.withValues(alpha: 0.4)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(LucideIcons.shieldAlert, size: 20, color: Colors.amber.shade700),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Tu sesión o turno expiró por seguridad. Ingresa tus credenciales para continuar.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.amber.shade200 : Colors.amber.shade900,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
 
                         const SizedBox(height: 20),
 

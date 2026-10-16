@@ -85,6 +85,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
   }
 
   Future<void> _guardarCambios() async {
+    if (_isGuardando) return;
     if (!_formKey.currentState!.validate()) return;
 
     final precio = double.tryParse(_precioCtrl.text.replaceAll(',', '.')) ?? 0.0;

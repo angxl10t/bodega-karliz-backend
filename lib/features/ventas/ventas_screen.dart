@@ -571,6 +571,8 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   Future<void> _procesarVenta() async {
+    if (_isProcesando) return;
+
     if (_carrito.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
