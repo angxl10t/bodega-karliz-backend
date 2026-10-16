@@ -5,7 +5,10 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "compras_detalles")
+@Table(name = "compras_detalles", indexes = {
+    @Index(name = "idx_compras_detalles_compra", columnList = "id_compra"),
+    @Index(name = "idx_compras_detalles_producto", columnList = "id_producto")
+})
 public class CompraDetalle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

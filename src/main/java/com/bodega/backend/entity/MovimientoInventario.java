@@ -8,7 +8,10 @@ import java.time.OffsetDateTime;
 
 @Data
 @Entity
-@Table(name = "movimientos_inventario")
+@Table(name = "movimientos_inventario", indexes = {
+    @Index(name = "idx_mov_producto_fecha", columnList = "id_producto, fecha_movimiento DESC"),
+    @Index(name = "idx_mov_fecha", columnList = "fecha_movimiento DESC")
+})
 public class MovimientoInventario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
