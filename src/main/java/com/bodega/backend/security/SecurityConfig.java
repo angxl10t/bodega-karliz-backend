@@ -55,7 +55,8 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 // Inicio de sesión y registro de nueva bodega son públicos en /api/auth
-                .requestMatchers("/api/auth/login", "/api/auth/registrar-bodega").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/login", "/api/auth/registrar-bodega").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**").permitAll()
                 // Health checks públicos para monitor de Render
                 .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**").permitAll()
                 .requestMatchers("/error").permitAll()
