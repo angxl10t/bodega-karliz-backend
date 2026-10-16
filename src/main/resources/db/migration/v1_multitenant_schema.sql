@@ -12,15 +12,22 @@ CREATE TABLE IF NOT EXISTS bodegas (
     direccion VARCHAR(255),
     telefono VARCHAR(30),
     logo_url VARCHAR(500),
+    color_primario VARCHAR(20) DEFAULT '#2563EB',
+    lema_comercial VARCHAR(255),
     plan VARCHAR(30) NOT NULL DEFAULT 'BASICO',
     estado BOOLEAN NOT NULL DEFAULT TRUE,
     fecha_registro TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     fecha_vencimiento_plan TIMESTAMP WITH TIME ZONE
 );
 
+-- Asegurar columnas si la tabla ya existía previamente
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS color_primario VARCHAR(20) DEFAULT '#2563EB';
+ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS lema_comercial VARCHAR(255);
+UPDATE bodegas SET color_primario = '#2563EB' WHERE color_primario IS NULL;
+
 -- 2. Asegurar que Bodega KARLIZ exista con id_bodega = 1 y Plan PRO
-INSERT INTO bodegas (id_bodega, nombre_comercial, ruc_dni, direccion, telefono, plan, estado)
-VALUES (1, 'Bodega KARLIZ', '10712345678', 'Av. Principal 123', '987654321', 'PRO', TRUE)
+INSERT INTO bodegas (id_bodega, nombre_comercial, ruc_dni, direccion, telefono, plan, color_primario, lema_comercial, estado)
+VALUES (1, 'Bodega KARLIZ', '10712345678', 'Av. Principal 123', '987654321', 'PRO', '#2563EB', 'Atención cálida, rápida y surtido completo', TRUE)
 ON CONFLICT (id_bodega) DO NOTHING;
 
 -- Ajustar la secuencia si es necesario

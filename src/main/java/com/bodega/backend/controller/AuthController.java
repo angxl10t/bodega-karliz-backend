@@ -101,6 +101,13 @@ public class AuthController {
             response.put("ruc", usuario.getBodega().getRucDni() != null ? usuario.getBodega().getRucDni() : "");
             response.put("direccion", usuario.getBodega().getDireccion() != null ? usuario.getBodega().getDireccion() : "");
             response.put("telefono", usuario.getBodega().getTelefono() != null ? usuario.getBodega().getTelefono() : "");
+            response.put("colorPrimario", usuario.getBodega().getColorPrimario() != null ? usuario.getBodega().getColorPrimario() : "#2563EB");
+            response.put("lemaComercial", usuario.getBodega().getLemaComercial() != null ? usuario.getBodega().getLemaComercial() : "");
+            response.put("logoUrl", usuario.getBodega().getLogoUrl() != null ? usuario.getBodega().getLogoUrl() : "");
+        } else {
+            response.put("colorPrimario", "#2563EB");
+            response.put("lemaComercial", "");
+            response.put("logoUrl", "");
         }
         return ResponseEntity.ok(response);
     }
@@ -130,6 +137,8 @@ public class AuthController {
         bodega.setRucDni(dto.getRucDni() != null && !dto.getRucDni().isBlank() ? dto.getRucDni().trim() : null);
         bodega.setDireccion(dto.getDireccion() != null && !dto.getDireccion().isBlank() ? dto.getDireccion().trim() : null);
         bodega.setTelefono(dto.getTelefono() != null && !dto.getTelefono().isBlank() ? dto.getTelefono().trim() : null);
+        bodega.setColorPrimario(dto.getColorPrimario() != null && !dto.getColorPrimario().isBlank() ? dto.getColorPrimario().trim() : "#2563EB");
+        bodega.setLemaComercial(dto.getLemaComercial() != null && !dto.getLemaComercial().isBlank() ? dto.getLemaComercial().trim() : null);
         bodega.setPlan("BASICO");
         bodega.setEstado(true);
         // Periodo de prueba gratuito inicial de 14 días
@@ -159,7 +168,13 @@ public class AuthController {
         response.put("idBodega", bodegaGuardada.getIdBodega().toString());
         response.put("nombreBodega", bodegaGuardada.getNombreComercial());
         response.put("plan", bodegaGuardada.getPlan());
-        response.put("mensaje", "¡Bienvenido a la plataforma! Tu tienda '" + bodegaGuardada.getNombreComercial() + "' ha sido creada con éxito.");
+        response.put("ruc", bodegaGuardada.getRucDni() != null ? bodegaGuardada.getRucDni() : "");
+        response.put("direccion", bodegaGuardada.getDireccion() != null ? bodegaGuardada.getDireccion() : "");
+        response.put("telefono", bodegaGuardada.getTelefono() != null ? bodegaGuardada.getTelefono() : "");
+        response.put("colorPrimario", bodegaGuardada.getColorPrimario() != null ? bodegaGuardada.getColorPrimario() : "#2563EB");
+        response.put("lemaComercial", bodegaGuardada.getLemaComercial() != null ? bodegaGuardada.getLemaComercial() : "");
+        response.put("logoUrl", bodegaGuardada.getLogoUrl() != null ? bodegaGuardada.getLogoUrl() : "");
+        response.put("mensaje", "¡Bienvenido a CajaYa! Tu tienda '" + bodegaGuardada.getNombreComercial() + "' ha sido creada con éxito.");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

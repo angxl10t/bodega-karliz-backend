@@ -11,6 +11,8 @@ public class BodegaDTO {
     private String direccion;
     private String telefono;
     private String logoUrl;
+    private String colorPrimario;
+    private String lemaComercial;
     private String plan;
     private Boolean estado;
     private OffsetDateTime fechaRegistro;

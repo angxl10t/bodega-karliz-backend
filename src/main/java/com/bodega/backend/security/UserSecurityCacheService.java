@@ -49,6 +49,10 @@ public class UserSecurityCacheService {
                     ? u.getBodega().getNombreComercial() : "Bodega KARLIZ";
             String plan = (u.getBodega() != null && u.getBodega().getPlan() != null) 
                     ? u.getBodega().getPlan() : "PRO";
+            String colorPrimario = (u.getBodega() != null && u.getBodega().getColorPrimario() != null)
+                    ? u.getBodega().getColorPrimario() : "#2563EB";
+            String logoUrl = (u.getBodega() != null) ? u.getBodega().getLogoUrl() : null;
+            String lemaComercial = (u.getBodega() != null) ? u.getBodega().getLemaComercial() : null;
 
             UserSecurityProfile nuevo = new UserSecurityProfile(
                     u.getUsername(),
@@ -58,7 +62,10 @@ public class UserSecurityCacheService {
                     u.getFechaCambioClave(),
                     idBodega,
                     nombreBodega,
-                    plan
+                    plan,
+                    colorPrimario,
+                    logoUrl,
+                    lemaComercial
             );
             cache.put(key, nuevo);
             purgeExpiredIfNeeded();

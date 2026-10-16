@@ -34,6 +34,12 @@ public class Bodega {
     @Column(name = "logo_url", length = 500)
     private String logoUrl;
 
+    @Column(name = "color_primario", length = 20)
+    private String colorPrimario = "#2563EB";
+
+    @Column(name = "lema_comercial", length = 255)
+    private String lemaComercial;
+
     // 'BASICO' (1 admin, sin cajeros) | 'PRO' (admin + cajeros con PIN ilimitados) | 'CORPORATIVO'
     @Column(nullable = false, length = 30)
     private String plan = "BASICO";

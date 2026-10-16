@@ -21,6 +21,12 @@ public class RegistroBodegaDTO {
     @Size(max = 30)
     private String telefono;
 
+    @Size(max = 20)
+    private String colorPrimario;
+
+    @Size(max = 255)
+    private String lemaComercial;
+
     @NotBlank(message = "El nombre de usuario administrador es obligatorio")
     @Size(min = 3, max = 50, message = "El nombre de usuario debe tener entre 3 y 50 caracteres")
     @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "El usuario solo puede contener letras, números, puntos y guiones")
