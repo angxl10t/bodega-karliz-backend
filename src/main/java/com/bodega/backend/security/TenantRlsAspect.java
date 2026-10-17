@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 @Order(Ordered.HIGHEST_PRECEDENCE + 50)
 public class TenantRlsAspect {
 
+    private static final ThreadLocal<Boolean> IN_RLS_SET = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
     private final JdbcTemplate jdbcTemplate;
     private final TenantService tenantService;
 
@@ -32,8 +34,14 @@ public class TenantRlsAspect {
         this.tenantService = tenantService;
     }
 
-    @Before("@annotation(org.springframework.transaction.annotation.Transactional) || within(@org.springframework.transaction.annotation.Transactional *)")
+    @Before("(@annotation(org.springframework.transaction.annotation.Transactional) || within(@org.springframework.transaction.annotation.Transactional *)) " +
+            "&& execution(* com.bodega.backend.service..*(..)) " +
+            "&& !within(com.bodega.backend.service.TenantService)")
     public void setTenantSession() {
+        if (Boolean.TRUE.equals(IN_RLS_SET.get())) {
+            return;
+        }
+        IN_RLS_SET.set(Boolean.TRUE);
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
@@ -44,15 +52,17 @@ public class TenantRlsAspect {
                     .anyMatch(a -> a.getAuthority().equals("ROLE_SUPERADMIN"));
 
             if (isSuperAdmin) {
-                jdbcTemplate.queryForObject("SELECT set_config('app.current_tenant_id', ?, true)", String.class, "SUPERADMIN");
+                jdbcTemplate.queryForObject("SELECT set_config('app.current_tenant_id', ?, false)", String.class, "SUPERADMIN");
             } else {
                 Long idBodega = tenantService.getCurrentBodegaId();
                 if (idBodega != null && idBodega > 0) {
-                    jdbcTemplate.queryForObject("SELECT set_config('app.current_tenant_id', ?, true)", String.class, String.valueOf(idBodega));
+                    jdbcTemplate.queryForObject("SELECT set_config('app.current_tenant_id', ?, false)", String.class, String.valueOf(idBodega));
                 }
             }
         } catch (Exception ignored) {
             // Silencioso en tests unitarios con mocks donde no existe una conexión JDBC física
+        } finally {
+            IN_RLS_SET.remove();
         }
     }
 }

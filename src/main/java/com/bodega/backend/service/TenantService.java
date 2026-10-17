@@ -30,7 +30,6 @@ public class TenantService {
      * Obtiene el ID de la bodega del usuario autenticado en la sesión.
      * Si no hay sesión (ej. ejecuciones internas o tests), se asume Tenant 1 (Bodega KARLIZ).
      */
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Long getCurrentBodegaId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
@@ -56,7 +55,6 @@ public class TenantService {
     /**
      * Obtiene la entidad Bodega correspondiente al inquilino autenticado.
      */
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Bodega getCurrentBodega() {
         Long idBodega = getCurrentBodegaId();
         return bodegaRepository.findById(idBodega)

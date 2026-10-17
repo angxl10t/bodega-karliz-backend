@@ -243,49 +243,54 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void inicializarCategoriasYProductos(Bodega bodegaKarliz) {
-        if (bodegaKarliz == null || bodegaKarliz.getIdBodega() == null) return;
-        Long idBodega = bodegaKarliz.getIdBodega();
+        String[][] categoriasDefault = {
+            {"Bebidas y Gaseosas", "Gaseosas, aguas minerales, jugos, energizantes e hidratantes"},
+            {"Snacks y Golosinas", "Papas fritas, galletas dulces, chocolates y caramelos"},
+            {"Lácteos y Huevos", "Leche evaporada, fresca, yogures, mantequillas y quesos"},
+            {"Abarrotes y Despensa", "Arroz, azúcar, fideos, aceites, conservas y condimentos"},
+            {"Limpieza del Hogar", "Detergentes, lejías, lavavajillas, suavizantes y esponjas"},
+            {"Cuidado Personal", "Jabones, champús, cremas dentales y papel higiénico"}
+        };
 
-        long catCount = categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega).size();
-        if (catCount == 0) {
-            String[][] categoriasDefault = {
-                {"Bebidas y Gaseosas", "Gaseosas, aguas minerales, jugos, energizantes e hidratantes"},
-                {"Snacks y Golosinas", "Papas fritas, galletas dulces, chocolates y caramelos"},
-                {"Lácteos y Huevos", "Leche evaporada, fresca, yogures, mantequillas y quesos"},
-                {"Abarrotes y Despensa", "Arroz, azúcar, fideos, aceites, conservas y condimentos"},
-                {"Limpieza del Hogar", "Detergentes, lejías, lavavajillas, suavizantes y esponjas"},
-                {"Cuidado Personal", "Jabones, champús, cremas dentales y papel higiénico"}
-            };
+        for (Bodega b : bodegaRepository.findAll()) {
+            if (b == null || b.getIdBodega() == null) continue;
+            Long idBodega = b.getIdBodega();
 
-            for (String[] c : categoriasDefault) {
-                Categoria cat = new Categoria();
-                cat.setNombre(c[0]);
-                cat.setDescripcion(c[1]);
-                cat.setEstado(true);
-                cat.setBodega(bodegaKarliz);
-                categoriaRepository.save(cat);
+            long catCount = categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega).size();
+            if (catCount == 0) {
+                for (String[] c : categoriasDefault) {
+                    Categoria cat = new Categoria();
+                    cat.setNombre(c[0]);
+                    cat.setDescripcion(c[1]);
+                    cat.setEstado(true);
+                    cat.setBodega(b);
+                    categoriaRepository.save(cat);
+                }
+                log.info("[DataInitializer] Sembradas categorías base para Bodega ID: {} ({}).", idBodega, b.getNombreComercial());
             }
-            log.info("[DataInitializer] Sembradas categorías base para Bodega KARLIZ.");
         }
 
-        long prodCount = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega).size();
-        if (prodCount == 0) {
-            Categoria catBebidas = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idBodega, "Bebidas y Gaseosas").orElse(null);
-            Categoria catLacteos = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idBodega, "Lácteos y Huevos").orElse(null);
-            Categoria catAbarrotes = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idBodega, "Abarrotes y Despensa").orElse(null);
+        if (bodegaKarliz != null && bodegaKarliz.getIdBodega() != null) {
+            Long idKarliz = bodegaKarliz.getIdBodega();
+            long prodCount = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idKarliz).size();
+            if (prodCount == 0) {
+                Categoria catBebidas = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idKarliz, "Bebidas y Gaseosas").orElse(null);
+                Categoria catLacteos = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idKarliz, "Lácteos y Huevos").orElse(null);
+                Categoria catAbarrotes = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idKarliz, "Abarrotes y Despensa").orElse(null);
 
-            if (catBebidas != null) {
-                crearProducto("7750106000018", "Inca Kola 500ml", "Inca Kola", new BigDecimal("3.50"), new BigDecimal("48.000"), catBebidas, bodegaKarliz);
-                crearProducto("7750106000025", "Coca Cola 500ml", "Coca Cola", new BigDecimal("3.50"), new BigDecimal("36.000"), catBebidas, bodegaKarliz);
+                if (catBebidas != null) {
+                    crearProducto("7750106000018", "Inca Kola 500ml", "Inca Kola", new BigDecimal("3.50"), new BigDecimal("48.000"), catBebidas, bodegaKarliz);
+                    crearProducto("7750106000025", "Coca Cola 500ml", "Coca Cola", new BigDecimal("3.50"), new BigDecimal("36.000"), catBebidas, bodegaKarliz);
+                }
+                if (catLacteos != null) {
+                    crearProducto("7750243000012", "Leche Gloria Azul 400g", "Gloria", new BigDecimal("4.50"), new BigDecimal("24.000"), catLacteos, bodegaKarliz);
+                }
+                if (catAbarrotes != null) {
+                    crearProducto("7750350000010", "Arroz Costeño Extra 1kg", "Costeño", new BigDecimal("5.00"), new BigDecimal("50.000"), catAbarrotes, bodegaKarliz);
+                    crearProducto("7750350000027", "Aceite Primor Clásico 1L", "Primor", new BigDecimal("9.80"), new BigDecimal("20.000"), catAbarrotes, bodegaKarliz);
+                }
+                log.info("[DataInitializer] Sembrado inventario inicial demostrativo para Bodega KARLIZ.");
             }
-            if (catLacteos != null) {
-                crearProducto("7750243000012", "Leche Gloria Azul 400g", "Gloria", new BigDecimal("4.50"), new BigDecimal("24.000"), catLacteos, bodegaKarliz);
-            }
-            if (catAbarrotes != null) {
-                crearProducto("7750350000010", "Arroz Costeño Extra 1kg", "Costeño", new BigDecimal("5.00"), new BigDecimal("50.000"), catAbarrotes, bodegaKarliz);
-                crearProducto("7750350000027", "Aceite Primor Clásico 1L", "Primor", new BigDecimal("9.80"), new BigDecimal("20.000"), catAbarrotes, bodegaKarliz);
-            }
-            log.info("[DataInitializer] Sembrado inventario inicial demostrativo para Bodega KARLIZ.");
         }
     }
 

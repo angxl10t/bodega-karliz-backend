@@ -28,7 +28,6 @@ public class UserSecurityCacheService {
      * Obtiene el perfil de seguridad del usuario desde la caché en memoria.
      * Si no existe o expiró, consulta la base de datos y refresca la caché.
      */
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Optional<UserSecurityProfile> getSecurityProfile(String username) {
         if (username == null || username.isBlank()) {
             return Optional.empty();
