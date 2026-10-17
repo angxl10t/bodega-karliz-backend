@@ -16,6 +16,7 @@ public class HealthController {
 
     private final UsuarioRepository usuarioRepository;
     private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
+    private final com.bodega.backend.repository.CategoriaRepository categoriaRepository;
 
     // Caché en memoria para proteger el pool HikariCP frente a ráfagas de pings o ataques DoS
     private volatile long lastDbCheckTime = 0;
@@ -23,16 +24,18 @@ public class HealthController {
     private static final long DB_CHECK_INTERVAL_MS = 60000; // Máximo 1 consulta a la BD cada 60 segundos
 
     public HealthController(UsuarioRepository usuarioRepository,
-                            com.bodega.backend.repository.BodegaRepository bodegaRepository) {
+                            com.bodega.backend.repository.BodegaRepository bodegaRepository,
+                            com.bodega.backend.repository.CategoriaRepository categoriaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.bodegaRepository = bodegaRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
     @GetMapping("/diagnostico")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<Map<String, Object>> diagnostico() {
         Map<String, Object> resp = new HashMap<>();
-        resp.put("version", "1.4.0");
+        resp.put("version", "1.4.1-rls-fix");
         resp.put("row_level_security", "ENABLED");
         resp.put("scalability_engine", "OPTIMIZED_V4");
         try {
@@ -55,6 +58,15 @@ public class HealthController {
         } catch (Exception e) {
             resp.put("error_usuarios", e.getMessage());
         }
+        try {
+            resp.put("categorias", categoriaRepository.findAll().stream().map(c -> Map.of(
+                "idCategoria", c.getIdCategoria(),
+                "nombre", c.getNombre(),
+                "idBodega", c.getBodega() != null ? c.getBodega().getIdBodega() : "NULL"
+            )).toList());
+        } catch (Exception e) {
+            resp.put("error_categorias", e.getMessage());
+        }
         return ResponseEntity.ok(resp);
     }
 
@@ -63,7 +75,7 @@ public class HealthController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("service", "bodega-karliz-backend");
-        response.put("version", "1.4.0");
+        response.put("version", "1.4.1-rls-fix");
         response.put("tenant_engine", "multitenant_enterprise_v4");
         response.put("timestamp", Instant.now().toString());
 

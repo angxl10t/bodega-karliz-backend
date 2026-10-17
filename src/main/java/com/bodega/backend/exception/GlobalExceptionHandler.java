@@ -95,11 +95,14 @@ public class GlobalExceptionHandler {
     }
 
     // Captura universal de cualquier error inesperado no controlado (previene fuga de trazas técnicas al cliente)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
+    @ExceptionHandler(Throwable.class)
+    public ResponseEntity<Map<String, Object>> handleGeneralException(Throwable ex) {
         log.error("[GlobalExceptionHandler] Error no controlado: {}", ex.getMessage(), ex);
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Error interno al procesar la solicitud en el servidor. Por favor intenta nuevamente más tarde.");
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", "Error interno: " + ex.getClass().getName() + " -> " + ex.getMessage());
+        if (ex.getCause() != null) {
+            error.put("cause", ex.getCause().getClass().getName() + " -> " + ex.getCause().getMessage());
+        }
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
