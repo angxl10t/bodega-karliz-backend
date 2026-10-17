@@ -1358,6 +1358,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     }
 
     bool activa = activarDirecto ?? (_bodegaInfo?.facturacionSunatActiva ?? false);
+    String regimen = _bodegaInfo?.regimenTributario ?? 'NUEVO_RUS';
     String proveedor = _bodegaInfo?.sunatProveedor ?? 'API Facturador SUNAT Gratuito';
     final rucCtrl = TextEditingController(text: _bodegaInfo?.sunatRucEmisor ?? _bodegaInfo?.rucDni ?? '');
     final serieBoletaCtrl = TextEditingController(text: _bodegaInfo?.serieBoleta ?? 'B001');
@@ -1585,6 +1586,40 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     ),
                     const SizedBox(height: 12),
 
+                    // Selector de Régimen Tributario
+                    DropdownButtonFormField<String>(
+                      initialValue: regimen,
+                      decoration: InputDecoration(
+                        labelText: 'Régimen Tributario (SUNAT)',
+                        prefixIcon: const Icon(LucideIcons.fileSpreadsheet, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'NUEVO_RUS',
+                          child: Text('Nuevo RUS (Solo Boletas y Tickets)'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'RER',
+                          child: Text('RER (Régimen Especial - Boletas y Facturas)'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'MYPE_TRIBUTARIO',
+                          child: Text('MYPE Tributario (Boletas y Facturas)'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'REGIMEN_GENERAL',
+                          child: Text('Régimen General (Boletas y Facturas)'),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => regimen = val);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
                     Row(
                       children: [
                         Expanded(
@@ -1670,6 +1705,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               try {
                                 final info = await _bodegaService.actualizarConfiguracionSunat(
                                   activa: activa,
+                                  regimenTributario: regimen,
                                   proveedor: proveedor,
                                   rucEmisor: ruc,
                                   serieBoleta: serieBoletaCtrl.text.trim().isEmpty ? 'B001' : serieBoletaCtrl.text.trim(),

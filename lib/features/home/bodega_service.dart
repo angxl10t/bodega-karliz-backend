@@ -15,6 +15,7 @@ class BodegaInfo {
   final bool estado;
   final String? fechaVencimientoPlan;
   final bool facturacionSunatActiva;
+  final String regimenTributario;
   final String? sunatProveedor;
   final String? sunatRucEmisor;
   final String? sunatUsuarioSol;
@@ -34,6 +35,7 @@ class BodegaInfo {
     required this.estado,
     this.fechaVencimientoPlan,
     this.facturacionSunatActiva = false,
+    this.regimenTributario = 'NUEVO_RUS',
     this.sunatProveedor,
     this.sunatRucEmisor,
     this.sunatUsuarioSol,
@@ -57,6 +59,7 @@ class BodegaInfo {
       estado: json['estado'] == true,
       fechaVencimientoPlan: json['fechaVencimientoPlan'],
       facturacionSunatActiva: json['facturacionSunatActiva'] == true,
+      regimenTributario: json['regimenTributario'] as String? ?? 'NUEVO_RUS',
       sunatProveedor: json['sunatProveedor'],
       sunatRucEmisor: json['sunatRucEmisor'],
       sunatUsuarioSol: json['sunatUsuarioSol'],
@@ -79,6 +82,8 @@ class BodegaService {
         // Actualizar caché seguro local
         await SecureStorageService.write('nombre_bodega', info.nombreComercial);
         await SecureStorageService.write('plan_bodega', info.plan);
+        await SecureStorageService.write('regimen_tributario', info.regimenTributario);
+        await SecureStorageService.write('facturacion_sunat_activa', info.facturacionSunatActiva.toString());
         if (info.rucDni != null) await SecureStorageService.write('ruc_bodega', info.rucDni!);
         if (info.direccion != null) await SecureStorageService.write('direccion_bodega', info.direccion!);
         if (info.telefono != null) await SecureStorageService.write('telefono_bodega', info.telefono!);
@@ -187,6 +192,7 @@ class BodegaService {
   /// Solución 2: Configurar y activar el Módulo SUNAT (Exclusivo Administrador)
   Future<BodegaInfo> actualizarConfiguracionSunat({
     required bool activa,
+    String? regimenTributario,
     String? proveedor,
     String? rucEmisor,
     String? usuarioSol,
@@ -196,6 +202,7 @@ class BodegaService {
   }) async {
     final body = <String, dynamic>{
       'facturacionSunatActiva': activa,
+      'regimenTributario': regimenTributario ?? 'NUEVO_RUS',
       'sunatProveedor': proveedor,
       'sunatRucEmisor': rucEmisor,
       'sunatUsuarioSol': usuarioSol,
@@ -207,7 +214,12 @@ class BodegaService {
     final response = await _client.put('/bodegas/configuracion-sunat', body);
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
-      return BodegaInfo.fromJson(data);
+      final info = BodegaInfo.fromJson(data);
+
+      await SecureStorageService.write('regimen_tributario', info.regimenTributario);
+      await SecureStorageService.write('facturacion_sunat_activa', info.facturacionSunatActiva.toString());
+
+      return info;
     }
 
     try {

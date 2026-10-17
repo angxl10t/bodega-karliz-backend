@@ -78,6 +78,7 @@ class ThermalTicketService {
     String? tipoComprobante,
     String? serieCorrelativo,
     String? estadoSunat,
+    String? regimenTributario,
   }) {
     final buffer = StringBuffer();
     final fechaVenta = fecha ?? DateTime.now();
@@ -93,6 +94,16 @@ class ThermalTicketService {
     }
     if (rucDni != null && rucDni.isNotEmpty) {
       buffer.writeln(center('RUC/DNI: $rucDni', width));
+    }
+    if (regimenTributario != null && regimenTributario.isNotEmpty) {
+      final regLabel = switch (regimenTributario) {
+        'NUEVO_RUS' => 'Regimen: NUEVO RUS',
+        'RER' => 'Regimen: ESP. RENTA (RER)',
+        'MYPE_TRIBUTARIO' => 'Regimen: MYPE TRIBUTARIO',
+        'REGIMEN_GENERAL' => 'Regimen: GENERAL',
+        _ => 'Regimen: $regimenTributario',
+      };
+      buffer.writeln(center(regLabel, width));
     }
     if (direccion != null && direccion.isNotEmpty) {
       buffer.writeln(center(direccion, width));
@@ -155,6 +166,12 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Totales y Liquidación de Pago
+    if (esFactura || esBoleta) {
+      final opGravada = total / 1.18;
+      final igv = total - opGravada;
+      buffer.writeln(twoColumns('OP. GRAVADA:', 'S/ ${opGravada.toStringAsFixed(2)}', width));
+      buffer.writeln(twoColumns('I.G.V. (18%):', 'S/ ${igv.toStringAsFixed(2)}', width));
+    }
     buffer.writeln(twoColumns('TOTAL A PAGAR:', 'S/ ${total.toStringAsFixed(2)}', width));
     buffer.writeln(twoColumns('METODO DE PAGO:', metodoPago.toUpperCase(), width));
 
@@ -200,6 +217,7 @@ class ThermalTicketService {
     String? tipoComprobante,
     String? serieCorrelativo,
     String? estadoSunat,
+    String? regimenTributario,
   }) {
     final List<int> bytes = [];
 
@@ -233,6 +251,7 @@ class ThermalTicketService {
       tipoComprobante: tipoComprobante,
       serieCorrelativo: serieCorrelativo,
       estadoSunat: estadoSunat,
+      regimenTributario: regimenTributario,
     );
 
     // Volver a alineación izquierda (ESC a 0)

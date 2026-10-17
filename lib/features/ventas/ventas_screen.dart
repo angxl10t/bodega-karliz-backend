@@ -38,6 +38,10 @@ class _VentasScreenState extends State<VentasScreen> {
   bool _facturacionSunatActiva = false;
   bool _isConsultandoDoc = false;
   String? _alertaDocMensaje;
+  String _nombreBodega = 'CajaYa POS';
+  String? _rucBodega;
+  String? _direccionBodega;
+  String? _lemaBodega;
 
   final _clienteNombreController = TextEditingController(text: 'Público General');
   final _clienteDocController = TextEditingController(text: '00000000');
@@ -161,10 +165,20 @@ class _VentasScreenState extends State<VentasScreen> {
   Future<void> _cargarConfiguracionTributaria() async {
     final reg = await SecureStorageService.read('regimen_tributario');
     final sunat = await SecureStorageService.read('facturacion_sunat_activa');
+    final nombre = await SecureStorageService.read('nombre_bodega');
+    final ruc = await SecureStorageService.read('ruc_bodega');
+    final dir = await SecureStorageService.read('direccion_bodega');
+    final lema = await SecureStorageService.read('lema_comercial');
+
     if (mounted) {
       setState(() {
         _regimenTributario = (reg != null && reg.isNotEmpty) ? reg : 'NUEVO_RUS';
         _facturacionSunatActiva = sunat == 'true';
+        if (nombre != null && nombre.isNotEmpty) _nombreBodega = nombre;
+        _rucBodega = ruc;
+        _direccionBodega = dir;
+        _lemaBodega = lema;
+
         if (_facturacionSunatActiva) {
           _tipoComprobante = 'BOLETA_ELECTRONICA';
         } else {
@@ -1253,6 +1267,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     metodo: metodo,
                     pagadoCon: pagadoCon,
                     vuelto: vuelto,
+                    ventaGenerada: ventaGenerada,
                   );
                 },
               ),
@@ -1286,6 +1301,7 @@ class _VentasScreenState extends State<VentasScreen> {
     required String metodo,
     required double pagadoCon,
     required double vuelto,
+    VentaRegistro? ventaGenerada,
   }) {
     final ticketItems = items.map((it) {
       return TicketItem(
@@ -1304,7 +1320,7 @@ class _VentasScreenState extends State<VentasScreen> {
         builder: (context, setDlgState) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
           final receiptText = ThermalTicketService.generateReceiptText(
-            ticketId: null,
+            ticketId: ventaGenerada?.idVenta,
             clienteNombre: _clienteNombreController.text.trim().isEmpty ? 'Público General' : _clienteNombreController.text.trim(),
             clienteDocumento: _clienteDocController.text.trim().isEmpty ? null : _clienteDocController.text.trim(),
             metodoPago: metodo,
@@ -1313,6 +1329,14 @@ class _VentasScreenState extends State<VentasScreen> {
             pagadoCon: pagadoCon,
             vuelto: vuelto,
             width: selectedWidth,
+            nombreComercio: _nombreBodega,
+            rucDni: _rucBodega,
+            direccion: _direccionBodega,
+            lemaComercial: _lemaBodega,
+            tipoComprobante: ventaGenerada?.tipoComprobante ?? _tipoComprobante,
+            serieCorrelativo: ventaGenerada?.serieCorrelativo,
+            estadoSunat: ventaGenerada?.estadoSunat,
+            regimenTributario: _regimenTributario,
           );
 
           return AlertDialog(
@@ -3205,16 +3229,34 @@ class _VentasScreenState extends State<VentasScreen> {
             ? 'Factura Electrónica'
             : (_tipoComprobante == 'BOLETA_ELECTRONICA' ? 'Boleta Electrónica' : 'Ticket de Venta'));
 
+    final esSunat = (_tipoComprobante == 'FACTURA_ELECTRONICA' || _tipoComprobante == 'BOLETA_ELECTRONICA');
+
     final buffer = StringBuffer();
-    buffer.writeln('🧾 *CajaYa Cloud POS - Comprobante Digital*');
+    buffer.writeln('🧾 *$_nombreBodega - Comprobante Digital*');
     buffer.writeln('*$comprobanteStr*');
+    if (_rucBodega != null && _rucBodega!.isNotEmpty) {
+      buffer.writeln('RUC Emisor: $_rucBodega');
+    }
     buffer.writeln('Cliente: ${_clienteNombreController.text.trim()}');
+    if (doc.isNotEmpty && doc != '00000000') {
+      buffer.writeln('Doc / RUC: $doc');
+    }
+    if (ventaGenerada?.serieCorrelativo != null) {
+      buffer.writeln('Serie-Correlativo: ${ventaGenerada!.serieCorrelativo}');
+      buffer.writeln('Estado SUNAT: ${ventaGenerada.estadoSunat ?? "ACEPTADO"}');
+    }
     buffer.writeln('Fecha: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}');
     buffer.writeln('--------------------------------');
     for (final it in items) {
       buffer.writeln('${it.cantidad.toStringAsFixed(0)}x ${it.producto.nombre} - S/ ${it.subtotal.toStringAsFixed(2)}');
     }
     buffer.writeln('--------------------------------');
+    if (esSunat) {
+      final opGravada = total / 1.18;
+      final igv = total - opGravada;
+      buffer.writeln('Op. Gravada: S/ ${opGravada.toStringAsFixed(2)}');
+      buffer.writeln('I.G.V. (18%): S/ ${igv.toStringAsFixed(2)}');
+    }
     buffer.writeln('*TOTAL COBRADO: S/ ${total.toStringAsFixed(2)}*');
     buffer.writeln('Método de Pago: $metodo');
     buffer.writeln('\n¡Muchas gracias por su preferencia! ✨');
