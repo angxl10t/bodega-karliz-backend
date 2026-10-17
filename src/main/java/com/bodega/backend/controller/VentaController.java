@@ -51,7 +51,7 @@ public class VentaController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> anularVenta(
             @PathVariable Long id,
             @RequestParam(required = false) String motivo) {

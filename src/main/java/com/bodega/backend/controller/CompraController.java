@@ -21,13 +21,13 @@ public class CompraController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<List<CompraDTO>> listarTodas() {
         return ResponseEntity.ok(compraService.listarTodas());
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<CompraDTO> registrarCompra(@Valid @RequestBody CompraDTO dto) {
         return new ResponseEntity<>(compraService.registrarCompra(dto), HttpStatus.CREATED);
     }

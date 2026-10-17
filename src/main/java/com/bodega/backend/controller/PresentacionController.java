@@ -25,13 +25,13 @@ public class PresentacionController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<PresentacionDTO> crear(@Valid @RequestBody PresentacionDTO dto) {
         return new ResponseEntity<>(presentacionService.crear(dto), HttpStatus.CREATED);
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> desactivar(@PathVariable Long id) {
         presentacionService.desactivar(id);
         return ResponseEntity.noContent().build();
