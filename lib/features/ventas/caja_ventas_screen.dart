@@ -95,6 +95,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       final ventasDia = mapa[clave]!;
       double totVentas = 0;
       double totEfectivo = 0;
+      double totEfectivoRecibido = 0;
+      double totVueltoEntregado = 0;
       double totYape = 0;
       double totPlin = 0;
       double totTarjeta = 0;
@@ -115,6 +117,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           totTarjeta += v.total;
         } else {
           totEfectivo += v.total;
+          totEfectivoRecibido += (v.montoRecibido ?? v.total);
+          totVueltoEntregado += (v.vuelto ?? 0.0);
         }
       }
 
@@ -124,6 +128,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       resultado.add(CierreCaja(
         totalVentas: totVentas,
         totalEfectivo: totEfectivo,
+        totalEfectivoRecibido: totEfectivoRecibido,
+        totalVueltoEntregado: totVueltoEntregado,
         totalYape: totYape,
         totalPlin: totPlin,
         totalTarjeta: totTarjeta,
@@ -158,6 +164,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     if (ventasDia.isNotEmpty) {
       double totVentas = 0;
       double totEfectivo = 0;
+      double totEfectivoRecibido = 0;
+      double totVueltoEntregado = 0;
       double totYape = 0;
       double totPlin = 0;
       double totTarjeta = 0;
@@ -178,12 +186,16 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           totTarjeta += v.total;
         } else {
           totEfectivo += v.total;
+          totEfectivoRecibido += (v.montoRecibido ?? v.total);
+          totVueltoEntregado += (v.vuelto ?? 0.0);
         }
       }
 
       return CierreCaja(
         totalVentas: totVentas,
         totalEfectivo: totEfectivo,
+        totalEfectivoRecibido: totEfectivoRecibido,
+        totalVueltoEntregado: totVueltoEntregado,
         totalYape: totYape,
         totalPlin: totPlin,
         totalTarjeta: totTarjeta,
@@ -195,6 +207,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     return CierreCaja(
       totalVentas: 0.0,
       totalEfectivo: 0.0,
+      totalEfectivoRecibido: 0.0,
+      totalVueltoEntregado: 0.0,
       totalYape: 0.0,
       totalPlin: 0.0,
       totalTarjeta: 0.0,
@@ -369,6 +383,34 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     ],
                   ),
                 ),
+                if (venta.esSunat && (venta.estadoSunat ?? '').toUpperCase().contains('ACEPTADO')) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(LucideIcons.alertTriangle, size: 16, color: Colors.amber),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Esta Boleta ya fue aceptada por SUNAT. Al anularla en CajaYa, recuerda generar su respectiva Nota de Crédito en el portal SUNAT para regularizarla fiscalmente.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.amber.shade200 : Colors.amber.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Text(
                   'Motivo o justificación:',
@@ -555,6 +597,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final c = _cierreCaja;
     final totalVendido = c?.totalVentas ?? 0.0;
     final totalEfectivo = c?.totalEfectivo ?? 0.0;
+    final totalEfectivoRecibido = c?.totalEfectivoRecibido ?? totalEfectivo;
+    final totalVueltoEntregado = c?.totalVueltoEntregado ?? 0.0;
     final totalYape = c?.totalYape ?? 0.0;
     final totalPlin = c?.totalPlin ?? 0.0;
     final totalTarjeta = c?.totalTarjeta ?? 0.0;
@@ -813,7 +857,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                           icon: LucideIcons.banknote,
                           color: AppTheme.accentGreen,
                           isDark: isDark,
-                          descripcion: 'Dinero físico en cajón',
+                          descripcion: totalVueltoEntregado > 0
+                              ? 'Cobrado: S/ ${totalEfectivoRecibido.toStringAsFixed(2)} • Vuelto: -S/ ${totalVueltoEntregado.toStringAsFixed(2)}'
+                              : 'Dinero físico en cajón (Neto)',
                         ),
                         _buildCanalPagoTile(
                           width: tileWidth,
@@ -1811,7 +1857,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       ),
                       onPressed: () => _confirmarAnulacion(v),
                     ),
-                  if (_userRol == 'ADMIN' && v.esSunat && !v.isAnulada && (v.estadoSunat == 'PENDIENTE_ENVIO' || v.estadoSunat == null)) ...[
+                  if (_userRol == 'ADMIN' && v.esSunat && !v.isAnulada && 
+                      (v.estadoSunat == 'PENDIENTE_ENVIO' || v.estadoSunat == 'RECHAZADO' || v.estadoSunat == 'ERROR_ENVIO' || v.estadoSunat == null)) ...[
                     const SizedBox(width: 4),
                     TextButton.icon(
                       style: TextButton.styleFrom(

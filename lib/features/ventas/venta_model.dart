@@ -177,6 +177,8 @@ class VentaRegistro {
 class CierreCaja {
   final double totalVentas;
   final double totalEfectivo;
+  final double totalEfectivoRecibido;
+  final double totalVueltoEntregado;
   final double totalYape;
   final double totalPlin;
   final double totalTarjeta;
@@ -186,6 +188,8 @@ class CierreCaja {
   CierreCaja({
     required this.totalVentas,
     required this.totalEfectivo,
+    this.totalEfectivoRecibido = 0.0,
+    this.totalVueltoEntregado = 0.0,
     required this.totalYape,
     required this.totalPlin,
     required this.totalTarjeta,
@@ -194,9 +198,12 @@ class CierreCaja {
   });
 
   factory CierreCaja.fromJson(Map<String, dynamic> json) {
+    final double ef = (json['totalEfectivo'] as num?)?.toDouble() ?? 0.0;
     return CierreCaja(
       totalVentas: (json['totalVentas'] as num?)?.toDouble() ?? 0.0,
-      totalEfectivo: (json['totalEfectivo'] as num?)?.toDouble() ?? 0.0,
+      totalEfectivo: ef,
+      totalEfectivoRecibido: (json['totalEfectivoRecibido'] as num?)?.toDouble() ?? ef,
+      totalVueltoEntregado: (json['totalVueltoEntregado'] as num?)?.toDouble() ?? 0.0,
       totalYape: (json['totalYape'] as num?)?.toDouble() ?? 0.0,
       totalPlin: (json['totalPlin'] as num?)?.toDouble() ?? 0.0,
       totalTarjeta: (json['totalTarjeta'] as num?)?.toDouble() ?? 0.0,
