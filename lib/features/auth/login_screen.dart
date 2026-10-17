@@ -573,6 +573,10 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 6),
           TextField(
             controller: _usernameController,
+            textInputAction: TextInputAction.next,
+            autocorrect: false,
+            enableSuggestions: false,
+            textCapitalization: TextCapitalization.none,
             cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
@@ -631,6 +635,8 @@ class _LoginScreenState extends State<LoginScreen> {
           TextField(
             controller: _passwordController,
             obscureText: _obscurePassword,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _login(),
             cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
