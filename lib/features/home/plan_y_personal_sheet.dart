@@ -1109,6 +1109,243 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     );
   }
 
+  void _abrirHistorialPagosModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+
+        return Dialog(
+          backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520, maxHeight: 600),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(LucideIcons.receiptText, color: AppTheme.brandPrimary, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Historial de Suscripciones & Vouchers',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16.5,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? Colors.white : AppTheme.textDark,
+                              ),
+                            ),
+                            Text(
+                              'Libro mayor auditado contra fraudes',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.accentGreen,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, size: 20),
+                        onPressed: () => Navigator.pop(dialogCtx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: FutureBuilder<List<PagoSuscripcionItem>>(
+                      future: _bodegaService.listarMisPagos(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Error al cargar el historial de pagos.',
+                              style: GoogleFonts.plusJakartaSans(color: AppTheme.alertRed),
+                            ),
+                          );
+                        }
+                        final pagos = snapshot.data ?? [];
+                        if (pagos.isEmpty) {
+                          return Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(LucideIcons.receipt, size: 36, color: AppTheme.textMuted.withValues(alpha: 0.6)),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    'Sin vouchers registrados aún',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Cuando renueves tu plan mediante Yape o Plin, los comprobantes validados aparecerán aquí para auditoría contable.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
+                        return ListView.separated(
+                          itemCount: pagos.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 10),
+                          itemBuilder: (context, index) {
+                            final p = pagos[index];
+                            final bool isYape = p.billetera.toUpperCase() == 'YAPE';
+                            final Color walletColor = isYape ? const Color(0xFF732283) : const Color(0xFF0084FF);
+
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: walletColor.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: walletColor.withValues(alpha: 0.3)),
+                                    ),
+                                    child: Text(
+                                      p.billetera.toUpperCase(),
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
+                                        color: walletColor,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Plan ${p.plan}',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 13.5,
+                                                fontWeight: FontWeight.w800,
+                                                color: isDark ? Colors.white : AppTheme.textDark,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(LucideIcons.checkCheck, size: 10, color: AppTheme.accentGreen),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    p.estado,
+                                                    style: GoogleFonts.plusJakartaSans(
+                                                      fontSize: 9.5,
+                                                      fontWeight: FontWeight.w800,
+                                                      color: AppTheme.accentGreen,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Op: ${p.codigoOperacion}',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                                          ),
+                                        ),
+                                        Text(
+                                          p.fechaPago != null
+                                              ? '${_formatearFecha(p.fechaPago!)} • Reg: ${p.usuarioRegistro ?? "Admin"}'
+                                              : 'Reg: ${p.usuarioRegistro ?? "Admin"}',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 10.5,
+                                            color: AppTheme.textMuted,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    'S/ ${p.monto.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppTheme.accentGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _abrirModalConfiguracionSunat({bool? activarDirecto}) {
     if (_userRol == 'CAJERO') {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1690,6 +1927,24 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                     ? 'Renovar Plan Pro con Yape / Plin (S/ 100)'
                                     : 'Pagar / Mejorar con Yape / Plin (S/ 50 o S/ 100)',
                                 style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                side: BorderSide(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 14),
+                              ),
+                              onPressed: () => _abrirHistorialPagosModal(context),
+                              icon: const Icon(LucideIcons.receipt, size: 16),
+                              label: Text(
+                                'Ver Historial de Vouchers y Renovaciones',
+                                style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700),
                               ),
                             ),
                           ),

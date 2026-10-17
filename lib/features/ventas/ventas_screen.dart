@@ -13,6 +13,7 @@ import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -29,6 +30,7 @@ class _VentasScreenState extends State<VentasScreen> {
   final List<CartItem> _carrito = [];
 
   String _metodoPago = 'Efectivo';
+  String _tipoComprobante = 'TICKET'; // 'TICKET', 'BOLETA_ELECTRONICA', 'FACTURA_ELECTRONICA'
   final _clienteNombreController = TextEditingController(text: 'Público General');
   final _clienteDocController = TextEditingController(text: '00000000');
   final _pagoConController = TextEditingController();
@@ -839,12 +841,29 @@ class _VentasScreenState extends State<VentasScreen> {
       }
     }
 
+    if (_tipoComprobante == 'FACTURA_ELECTRONICA') {
+      final doc = _clienteDocController.text.trim();
+      if (doc.length != 11 || !RegExp(r'^[0-9]{11}$').hasMatch(doc)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Para emitir Factura Electrónica se requiere un RUC válido de 11 dígitos.'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+        return;
+      }
+    }
+
     setState(() => _isProcesando = true);
+
+    final idempotencyKey = "pos_${DateTime.now().millisecondsSinceEpoch}_${(1000 + (DateTime.now().microsecond % 9000))}";
 
     final venta = VentaEnvio(
       clienteDocumento: _clienteDocController.text.trim().isEmpty ? '00000000' : _clienteDocController.text.trim(),
       clienteNombre: _clienteNombreController.text.trim().isEmpty ? 'Público General' : _clienteNombreController.text.trim(),
       metodoPago: _metodoPago,
+      tipoComprobante: _tipoComprobante,
+      idempotencyKey: idempotencyKey,
       detalles: _carrito.map((item) {
         return VentaDetalleEnvio(
           idProducto: item.producto.idProducto!,
@@ -1086,6 +1105,31 @@ class _VentasScreenState extends State<VentasScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF16A34A),
+                  side: const BorderSide(color: Color(0xFF16A34A), width: 1.4),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                ),
+                icon: const Icon(LucideIcons.messageCircle, size: 18),
+                label: Text(
+                  'COMPARTIR POR WHATSAPP',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 12),
+                ),
+                onPressed: () {
+                  _compartirPorWhatsApp(
+                    items: items,
+                    total: total,
+                    metodo: metodo,
+                    ventaGenerada: ventaGenerada,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               height: 44,
@@ -1371,6 +1415,9 @@ class _VentasScreenState extends State<VentasScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
+
+              // Selector de Comprobante (Ticket, Boleta, Factura)
+              _buildTipoComprobanteSelector(isDark),
 
               // Cliente (Compacto)
               Container(
@@ -1748,8 +1795,9 @@ class _VentasScreenState extends State<VentasScreen> {
                           _buildDenomChip('Exacto', _totalVenta, isDark),
                           if (_totalVenta <= 10) _buildDenomChip('S/ 10', 10.0, isDark),
                           if (_totalVenta <= 20) _buildDenomChip('S/ 20', 20.0, isDark),
-                          if (_totalVenta <= 50) _buildDenomChip('S/ 50', 50.0, isDark),
-                          if (_totalVenta <= 100) _buildDenomChip('S/ 100', 100.0, isDark),
+                          _buildDenomChip('S/ 50', 50.0, isDark),
+                          _buildDenomChip('S/ 100', 100.0, isDark),
+                          _buildDenomChip('S/ 200', 200.0, isDark),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -2491,6 +2539,9 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
           const SizedBox(height: 8),
 
+          // Selector de Comprobante (Ticket, Boleta, Factura)
+          _buildTipoComprobanteSelector(isDark),
+
           // Barra Compacta de Datos del Cliente
           Container(
             decoration: BoxDecoration(
@@ -2751,8 +2802,9 @@ class _VentasScreenState extends State<VentasScreen> {
                 _buildDenomChip('Exacto', _totalVenta, isDark),
                 if (_totalVenta <= 10) _buildDenomChip('S/ 10', 10.0, isDark),
                 if (_totalVenta <= 20) _buildDenomChip('S/ 20', 20.0, isDark),
-                if (_totalVenta <= 50) _buildDenomChip('S/ 50', 50.0, isDark),
-                if (_totalVenta <= 100) _buildDenomChip('S/ 100', 100.0, isDark),
+                _buildDenomChip('S/ 50', 50.0, isDark),
+                _buildDenomChip('S/ 100', 100.0, isDark),
+                _buildDenomChip('S/ 200', 200.0, isDark),
               ],
             ),
             const SizedBox(height: 6),
@@ -3009,6 +3061,120 @@ class _VentasScreenState extends State<VentasScreen> {
           }
         });
       },
+    );
+  }
+
+  Future<void> _compartirPorWhatsApp({
+    required List<CartItem> items,
+    required double total,
+    required String metodo,
+    VentaRegistro? ventaGenerada,
+  }) async {
+    final doc = _clienteDocController.text.trim();
+    final numTelf = (doc.length == 9 && doc.startsWith('9')) ? '51$doc' : '';
+
+    final comprobanteStr = ventaGenerada != null && ventaGenerada.etiquetaComprobante.isNotEmpty
+        ? ventaGenerada.etiquetaComprobante
+        : (_tipoComprobante == 'FACTURA_ELECTRONICA'
+            ? 'Factura Electrónica'
+            : (_tipoComprobante == 'BOLETA_ELECTRONICA' ? 'Boleta Electrónica' : 'Ticket de Venta'));
+
+    final buffer = StringBuffer();
+    buffer.writeln('🧾 *CajaYa Cloud POS - Comprobante Digital*');
+    buffer.writeln('*$comprobanteStr*');
+    buffer.writeln('Cliente: ${_clienteNombreController.text.trim()}');
+    buffer.writeln('Fecha: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}');
+    buffer.writeln('--------------------------------');
+    for (final it in items) {
+      buffer.writeln('${it.cantidad.toStringAsFixed(0)}x ${it.producto.nombre} - S/ ${it.subtotal.toStringAsFixed(2)}');
+    }
+    buffer.writeln('--------------------------------');
+    buffer.writeln('*TOTAL COBRADO: S/ ${total.toStringAsFixed(2)}*');
+    buffer.writeln('Método de Pago: $metodo');
+    buffer.writeln('\n¡Muchas gracias por su preferencia! ✨');
+
+    final uri = Uri.parse(numTelf.isNotEmpty
+        ? 'https://wa.me/$numTelf?text=${Uri.encodeComponent(buffer.toString())}'
+        : 'https://wa.me/?text=${Uri.encodeComponent(buffer.toString())}');
+
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir WhatsApp en este dispositivo.')),
+        );
+      }
+    }
+  }
+
+  Widget _buildTipoComprobanteSelector(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          _buildTipoComprobanteTab('TICKET', 'Ticket', LucideIcons.receipt, isDark),
+          _buildTipoComprobanteTab('BOLETA_ELECTRONICA', 'Boleta', LucideIcons.fileText, isDark),
+          _buildTipoComprobanteTab('FACTURA_ELECTRONICA', 'Factura', LucideIcons.building2, isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipoComprobanteTab(String code, String label, IconData icon, bool isDark) {
+    final isSelected = _tipoComprobante == code;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _tipoComprobante = code;
+            if (code == 'FACTURA_ELECTRONICA') {
+              if (_clienteDocController.text == '00000000') {
+                _clienteDocController.clear();
+                _clienteNombreController.clear();
+              }
+            } else if (code == 'TICKET') {
+              if (_clienteDocController.text.isEmpty) {
+                _clienteDocController.text = '00000000';
+                _clienteNombreController.text = 'Público General';
+              }
+            }
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 13,
+                color: isSelected ? Colors.white : (isDark ? Colors.white60 : AppTheme.textMuted),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textMuted),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

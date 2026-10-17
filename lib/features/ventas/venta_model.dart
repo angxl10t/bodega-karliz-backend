@@ -17,12 +17,16 @@ class VentaEnvio {
   final String clienteNombre;
   final String metodoPago;
   final List<VentaDetalleEnvio> detalles;
+  final String? tipoComprobante;
+  final String? idempotencyKey;
 
   VentaEnvio({
     required this.clienteDocumento,
     required this.clienteNombre,
     required this.metodoPago,
     required this.detalles,
+    this.tipoComprobante,
+    this.idempotencyKey,
   });
 
   Map<String, dynamic> toJson() => {
@@ -30,6 +34,8 @@ class VentaEnvio {
         'clienteNombre': clienteNombre,
         'metodoPago': metodoPago,
         'detalles': detalles.map((d) => d.toJson()).toList(),
+        if (tipoComprobante != null) 'tipoComprobante': tipoComprobante,
+        if (idempotencyKey != null) 'idempotencyKey': idempotencyKey,
       };
 }
 

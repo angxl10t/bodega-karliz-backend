@@ -8,6 +8,8 @@ import '../productos/nuevo_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
 import '../auth/auth_service.dart';
 import '../home/plan_y_personal_sheet.dart';
+import '../ventas/venta_model.dart';
+import '../ventas/venta_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -23,7 +25,9 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final ProductoService _productoService = ProductoService();
+  final VentaService _ventaService = VentaService();
   List<Producto> _productos = [];
+  CierreCaja? _cierreHoy;
   String _nombreBodega = 'Bodega KARLIZ';
   String _username = 'Usuario';
   String _userRol = 'ADMIN';
@@ -37,12 +41,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
+    VentaService.ventasRevision.addListener(_onVentasRevisionChanged);
     _cargarDatos();
   }
 
   @override
   void dispose() {
     ProductoService.productosRevision.removeListener(_onProductosRevisionChanged);
+    VentaService.ventasRevision.removeListener(_onVentasRevisionChanged);
     super.dispose();
   }
 
@@ -52,9 +58,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _onVentasRevisionChanged() {
+    if (mounted) {
+      _cargarCierreHoy();
+    }
+  }
+
+  Future<void> _cargarCierreHoy() async {
+    final cierre = await _ventaService.getCierreCajaHoy();
+    if (mounted) {
+      setState(() => _cierreHoy = cierre);
+    }
+  }
+
   Future<void> _cargarDatos({bool forceRefresh = false}) async {
     setState(() => _isLoading = true);
     final prods = await _productoService.getProductos(forceRefresh: forceRefresh);
+    final cierre = await _ventaService.getCierreCajaHoy();
     final nombre = await AuthService().getNombreBodega();
     final username = await AuthService().getUsername();
     final rol = await AuthService().getUserRole();
@@ -65,6 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (mounted) {
       setState(() {
         _productos = prods;
+        _cierreHoy = cierre;
         _nombreBodega = nombre;
         _username = username;
         _userRol = rol;
@@ -106,6 +127,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     _buildGreetingBanner(isDark),
                     const SizedBox(height: 14),
 
+                    // Alerta de Quiebre de Stock Inminente (Acceso directo a reabastecimiento)
+                    if (productosCriticos.isNotEmpty) ...[
+                      _buildStockAlertBanner(productosCriticos, isDark),
+                      const SizedBox(height: 14),
+                    ],
+
                     // Banner Didáctico de Orientación
                     const DidacticBanner(
                       title: 'Consejo del Turno',
@@ -126,11 +153,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         Text(
-                          'Actualizado hoy',
+                          'Actualizado hoy (En vivo)',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
-                            color: AppTheme.textMuted,
-                            fontWeight: FontWeight.w500,
+                            color: AppTheme.accentGreen,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -146,12 +173,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             _buildMetricTile(
                               constraints: constraints,
+                              title: 'Ventas de Hoy',
+                              value: 'S/ ${(_cierreHoy?.totalVentas ?? 0.0).toStringAsFixed(2)}',
+                              subtitle: '${_cierreHoy?.cantidadVentas ?? 0} ventas hoy (En vivo)',
+                              icon: LucideIcons.badgePercent,
+                              accentColor: AppTheme.accentGreen,
+                              isDark: isDark,
+                              onTap: () => widget.onNavigateTab(2), // Tab Arqueo
+                            ),
+                            _buildMetricTile(
+                              constraints: constraints,
                               title: 'Valor en Mercadería',
                               value: 'S/ ${valorInventario.toStringAsFixed(2)}',
                               subtitle: '${stockTotalUnidades % 1 == 0 ? stockTotalUnidades.toInt().toString() : stockTotalUnidades.toStringAsFixed(2)} unidades valorizadas',
                               icon: LucideIcons.wallet,
                               accentColor: AppTheme.brandPrimary,
                               isDark: isDark,
+                              onTap: () => widget.onNavigateTab(3), // Tab Inventario
                             ),
                             _buildMetricTile(
                               constraints: constraints,
@@ -161,6 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.boxes,
                               accentColor: AppTheme.infoIndigo,
                               isDark: isDark,
+                              onTap: () => widget.onNavigateTab(3), // Tab Inventario
                             ),
                             _buildMetricTile(
                               constraints: constraints,
@@ -170,6 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.alertCircle,
                               accentColor: AppTheme.alertRed,
                               isDark: isDark,
+                              onTap: () => widget.onNavigateTab(3), // Tab Inventario
                             ),
                             _buildMetricTile(
                               constraints: constraints,
@@ -179,11 +219,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.clock,
                               accentColor: AppTheme.warningAmber,
                               isDark: isDark,
+                              onTap: () => widget.onNavigateTab(3), // Tab Inventario
                             ),
                           ],
                         );
                       },
                     ),
+
+                    // Tarjeta en Directo de Canales de Pago
+                    _buildPaymentBreakdownCard(isDark),
                     const SizedBox(height: 24),
 
                     // Accesos Rápidos Inteligentes
@@ -779,6 +823,276 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildStockAlertBanner(List<Producto> criticos, bool isDark) {
+    if (criticos.isEmpty) return const SizedBox.shrink();
+
+    final topCriticos = criticos.take(4).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A1215) : const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.withValues(alpha: isDark ? 0.2 : 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.alertRed.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.triangleAlert, color: AppTheme.alertRed, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Alerta de Quiebre de Stock Inminente',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
+                      ),
+                    ),
+                    Text(
+                      '${criticos.length} productos con existencias en nivel crítico (≤ 5 unidades).',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.alertRed,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
+                ),
+                onPressed: () => widget.onNavigateTab(3), // Tab Inventario
+                icon: const Icon(LucideIcons.boxes, size: 14),
+                label: Text(
+                  'Reponer',
+                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: topCriticos.map((p) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF3F171A) : Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF991B1B) : const Color(0xFFFCA5A5),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      p.nombre,
+                      style: GoogleFonts.outfit(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.alertRed.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${p.stockActual.toInt()} u.',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.alertRed,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentBreakdownCard(bool isDark) {
+    final double totalVentas = _cierreHoy?.totalVentas ?? 0.0;
+    final int cantVentas = _cierreHoy?.cantidadVentas ?? 0;
+    final double ef = _cierreHoy?.totalEfectivo ?? 0.0;
+    final double yp = _cierreHoy?.totalYape ?? 0.0;
+    final double pl = _cierreHoy?.totalPlin ?? 0.0;
+    final double tj = _cierreHoy?.totalTarjeta ?? 0.0;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(LucideIcons.circleDollarSign, color: AppTheme.brandPrimary, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Flujo de Caja en Directo (Hoy)',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        '$cantVentas cobros sincronizados • Total S/ ${totalVentas.toStringAsFixed(2)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.brandPrimary,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  visualDensity: VisualDensity.compact,
+                ),
+                onPressed: () => widget.onNavigateTab(2), // Tab Arqueo de Caja
+                icon: const Icon(LucideIcons.arrowRight, size: 14),
+                label: Text(
+                  'Ver Cuadre',
+                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Mini tiles por canal
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double tileWidth = constraints.maxWidth >= 700
+                  ? (constraints.maxWidth - 30) / 4
+                  : (constraints.maxWidth > 380
+                      ? (constraints.maxWidth - 10) / 2
+                      : constraints.maxWidth);
+
+              Widget buildChannelBox(String nombre, double monto, Color color, IconData icon) {
+                return Container(
+                  width: tileWidth,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: isDark ? 0.12 : 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(icon, size: 16, color: color),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nombre,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: color,
+                              ),
+                            ),
+                            Text(
+                              'S/ ${monto.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w900,
+                                color: isDark ? Colors.white : AppTheme.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  buildChannelBox('Efectivo', ef, AppTheme.accentGreen, LucideIcons.banknote),
+                  buildChannelBox('Yape', yp, const Color(0xFF732283), LucideIcons.smartphone),
+                  buildChannelBox('Plin', pl, const Color(0xFF0084FF), LucideIcons.smartphone),
+                  buildChannelBox('Tarjeta', tj, const Color(0xFF6366F1), LucideIcons.creditCard),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMetricTile({
     required BoxConstraints constraints,
     required String title,
@@ -787,14 +1101,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required IconData icon,
     required Color accentColor,
     required bool isDark,
+    VoidCallback? onTap,
   }) {
-    final double cardWidth = constraints.maxWidth >= 950
-        ? (constraints.maxWidth - 30) / 4
-        : (constraints.maxWidth > 520
-            ? (constraints.maxWidth - 10) / 2
-            : constraints.maxWidth);
+    final double cardWidth = constraints.maxWidth >= 1100
+        ? (constraints.maxWidth - 40) / 5
+        : (constraints.maxWidth >= 720
+            ? (constraints.maxWidth - 20) / 3
+            : (constraints.maxWidth > 460
+                ? (constraints.maxWidth - 10) / 2
+                : constraints.maxWidth));
 
-    return Container(
+    final card = Container(
       width: cardWidth,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -851,6 +1168,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+
+    if (onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: card,
+        ),
+      );
+    }
+    return card;
   }
 
   Widget _buildQuickActionBtn({
