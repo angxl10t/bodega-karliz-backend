@@ -18,6 +18,9 @@ public class UsuarioDTO {
     @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "El nombre de usuario solo puede contener letras, números, puntos, guiones y guiones bajos")
     private String username;
 
+    @Size(max = 150, message = "El nombre completo no puede exceder los 150 caracteres")
+    private String nombreCompleto;
+
     // Solo se recibe en peticiones (creación o reseteo). Jamás se expone en respuestas JSON hacia el frontend.
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Size(min = 4, max = 72, message = "La contraseña o PIN debe tener entre 4 y 72 caracteres")

@@ -102,6 +102,9 @@ public class UsuarioService {
                     usuarioExistente.setEstado(true);
                     usuarioExistente.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
                     usuarioExistente.setRol(normalizedRol);
+                    if (dto.getNombreCompleto() != null && !dto.getNombreCompleto().isBlank()) {
+                        usuarioExistente.setNombreCompleto(dto.getNombreCompleto().trim());
+                    }
                     usuarioExistente.setFechaCambioClave(OffsetDateTime.now());
                     Usuario reactivado = usuarioRepository.save(usuarioExistente);
                     userSecurityCacheService.evict(reactivado.getUsername());
@@ -123,6 +126,7 @@ public class UsuarioService {
         try {
             Usuario usuario = new Usuario();
             usuario.setUsername(normalizedUsername);
+            usuario.setNombreCompleto(dto.getNombreCompleto() != null && !dto.getNombreCompleto().isBlank() ? dto.getNombreCompleto().trim() : null);
             usuario.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
             usuario.setRol(normalizedRol);
             usuario.setEstado(true);
@@ -203,6 +207,7 @@ public class UsuarioService {
         UsuarioDTO dto = new UsuarioDTO();
         dto.setIdUsuario(u.getIdUsuario());
         dto.setUsername(u.getUsername());
+        dto.setNombreCompleto(u.getNombreCompleto());
         dto.setRol(u.getRol());
         dto.setEstado(u.getEstado());
         dto.setFechaCambioClave(u.getFechaCambioClave());

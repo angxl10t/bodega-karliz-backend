@@ -44,11 +44,11 @@ public class TenantRlsAspect {
                     .anyMatch(a -> a.getAuthority().equals("ROLE_SUPERADMIN"));
 
             if (isSuperAdmin) {
-                jdbcTemplate.execute("SELECT set_config('app.current_tenant_id', 'SUPERADMIN', true)");
+                jdbcTemplate.queryForObject("SELECT set_config('app.current_tenant_id', ?, true)", String.class, "SUPERADMIN");
             } else {
                 Long idBodega = tenantService.getCurrentBodegaId();
                 if (idBodega != null && idBodega > 0) {
-                    jdbcTemplate.execute("SELECT set_config('app.current_tenant_id', '" + idBodega + "', true)");
+                    jdbcTemplate.queryForObject("SELECT set_config('app.current_tenant_id', ?, true)", String.class, String.valueOf(idBodega));
                 }
             }
         } catch (Exception ignored) {

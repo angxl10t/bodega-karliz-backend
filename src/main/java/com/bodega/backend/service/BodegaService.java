@@ -14,13 +14,16 @@ public class BodegaService {
     private final BodegaRepository bodegaRepository;
     private final TenantService tenantService;
     private final UserSecurityCacheService userSecurityCacheService;
+    private final com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository;
 
     public BodegaService(BodegaRepository bodegaRepository,
                          TenantService tenantService,
-                         UserSecurityCacheService userSecurityCacheService) {
+                         UserSecurityCacheService userSecurityCacheService,
+                         com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository) {
         this.bodegaRepository = bodegaRepository;
         this.tenantService = tenantService;
         this.userSecurityCacheService = userSecurityCacheService;
+        this.pagoSuscripcionRepository = pagoSuscripcionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -105,6 +108,15 @@ public class BodegaService {
     public BodegaDTO registrarPagoYape(com.bodega.backend.dto.PagoYapeDTO dto) {
         Bodega bodega = tenantService.getCurrentBodega();
 
+        String codOp = dto.getCodigoOperacion() != null ? dto.getCodigoOperacion().trim() : "";
+        String billetera = dto.getBilletera() != null ? dto.getBilletera().trim().toUpperCase() : "YAPE";
+
+        // Blindaje Anti-Fraude: Prevención estricta de vouchers/códigos de operación reutilizados
+        if (pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion(billetera, codOp)) {
+            throw new RuntimeException("El código de operación '" + codOp + "' de " + billetera + 
+                    " ya fue registrado y procesado previamente. Los comprobantes de pago no pueden reutilizarse.");
+        }
+
         // Validar coherencia de montos oficiales
         String planSolicitado = dto.getPlan().trim().toUpperCase();
         java.math.BigDecimal montoEsperado = "PRO".equals(planSolicitado) 
@@ -126,6 +138,22 @@ public class BodegaService {
         bodega.setEstado(true);
 
         Bodega guardada = bodegaRepository.save(bodega);
+
+        // Registro de Auditoría en Libro Mayor de Suscripciones (Zero Data Loss)
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String usuarioActual = (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) 
+                ? auth.getName() : "ADMIN";
+
+        com.bodega.backend.entity.PagoSuscripcion pago = new com.bodega.backend.entity.PagoSuscripcion();
+        pago.setBodega(guardada);
+        pago.setCodigoOperacion(codOp);
+        pago.setBilletera(billetera);
+        pago.setPlan(planSolicitado);
+        pago.setMonto(dto.getMonto());
+        pago.setUsuarioRegistro(usuarioActual);
+        pago.setEstado("CONFIRMADO");
+        pagoSuscripcionRepository.save(pago);
+
         userSecurityCacheService.evictAll();
 
         return mapToDTO(guardada);
@@ -206,6 +234,40 @@ public class BodegaService {
         dto.setSerieFactura(b.getSerieFactura());
         dto.setUltimoCorrelativoBoleta(b.getUltimoCorrelativoBoleta());
         dto.setUltimoCorrelativoFactura(b.getUltimoCorrelativoFactura());
+        return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.bodega.backend.dto.PagoSuscripcionDTO> listarMisPagos() {
+        Bodega bodega = tenantService.getCurrentBodega();
+        return pagoSuscripcionRepository.findByBodega_IdBodegaOrderByFechaPagoDesc(bodega.getIdBodega())
+                .stream()
+                .map(this::mapPagoToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.bodega.backend.dto.PagoSuscripcionDTO> listarTodosLosPagos() {
+        return pagoSuscripcionRepository.findAllByOrderByFechaPagoDesc()
+                .stream()
+                .map(this::mapPagoToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private com.bodega.backend.dto.PagoSuscripcionDTO mapPagoToDTO(com.bodega.backend.entity.PagoSuscripcion p) {
+        com.bodega.backend.dto.PagoSuscripcionDTO dto = new com.bodega.backend.dto.PagoSuscripcionDTO();
+        dto.setIdPago(p.getIdPago());
+        if (p.getBodega() != null) {
+            dto.setIdBodega(p.getBodega().getIdBodega());
+            dto.setNombreBodega(p.getBodega().getNombreComercial());
+        }
+        dto.setCodigoOperacion(p.getCodigoOperacion());
+        dto.setBilletera(p.getBilletera());
+        dto.setPlan(p.getPlan());
+        dto.setMonto(p.getMonto());
+        dto.setFechaPago(p.getFechaPago());
+        dto.setUsuarioRegistro(p.getUsuarioRegistro());
+        dto.setEstado(p.getEstado());
         return dto;
     }
 }

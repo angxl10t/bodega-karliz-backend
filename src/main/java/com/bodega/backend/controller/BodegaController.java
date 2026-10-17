@@ -55,4 +55,16 @@ public class BodegaController {
         BodegaDTO actualizada = bodegaService.actualizarConfiguracionSunat(dto);
         return ResponseEntity.ok(actualizada);
     }
+
+    @GetMapping("/mis-pagos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<java.util.List<com.bodega.backend.dto.PagoSuscripcionDTO>> listarMisPagos() {
+        return ResponseEntity.ok(bodegaService.listarMisPagos());
+    }
+
+    @GetMapping("/todos-los-pagos")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<java.util.List<com.bodega.backend.dto.PagoSuscripcionDTO>> listarTodosLosPagos() {
+        return ResponseEntity.ok(bodegaService.listarTodosLosPagos());
+    }
 }

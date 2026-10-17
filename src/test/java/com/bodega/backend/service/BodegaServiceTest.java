@@ -38,6 +38,9 @@ public class BodegaServiceTest {
     @Mock
     private UserSecurityCacheService userSecurityCacheService;
 
+    @Mock
+    private com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository;
+
     @InjectMocks
     private BodegaService bodegaService;
 
@@ -54,6 +57,7 @@ public class BodegaServiceTest {
 
         lenient().when(tenantService.getCurrentBodega()).thenReturn(bodega);
         lenient().when(bodegaRepository.save(any(Bodega.class))).thenAnswer(inv -> inv.getArgument(0));
+        lenient().when(pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion(anyString(), anyString())).thenReturn(false);
 
         var auth = new UsernamePasswordAuthenticationToken(
                 "admin", "password", List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
@@ -80,7 +84,24 @@ public class BodegaServiceTest {
         assertEquals("BASICO", resultado.getPlan());
         assertTrue(resultado.getFechaVencimientoPlan().isAfter(vencimientoAnterior.plusDays(29)));
         verify(bodegaRepository, times(1)).save(bodega);
+        verify(pagoSuscripcionRepository, times(1)).save(any(com.bodega.backend.entity.PagoSuscripcion.class));
         verify(userSecurityCacheService, times(1)).evictAll();
+    }
+
+    @Test
+    void testRegistrarPagoYape_VoucherDuplicado_LanzaExcepcionAntiFraude() {
+        PagoYapeDTO dto = new PagoYapeDTO();
+        dto.setCodigoOperacion("849201");
+        dto.setPlan("BASICO");
+        dto.setMonto(new BigDecimal("50.00"));
+        dto.setBilletera("YAPE");
+
+        when(pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion("YAPE", "849201")).thenReturn(true);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bodegaService.registrarPagoYape(dto));
+        assertTrue(ex.getMessage().contains("ya fue registrado y procesado previamente"));
+        verify(bodegaRepository, never()).save(any());
+        verify(pagoSuscripcionRepository, never()).save(any());
     }
 
     @Test

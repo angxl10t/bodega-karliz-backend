@@ -25,6 +25,9 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean estado = true;
 
+    @Column(name = "nombre_completo", length = 150)
+    private String nombreCompleto;
+
     // Control de revocación de sesiones JWT al cambiar de contraseña
     @Column(name = "fecha_cambio_clave", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCambioClave;
