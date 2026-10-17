@@ -194,12 +194,22 @@ public class UsuarioService {
     }
 
     private void validarMismaBodega(Usuario admin, Usuario target) {
-        if (admin != null && admin.getBodega() != null && target != null && target.getBodega() != null) {
-            if (!admin.getBodega().getIdBodega().equals(target.getBodega().getIdBodega())) {
-                throw new org.springframework.security.access.AccessDeniedException(
-                        "No tienes permisos para modificar usuarios de otra bodega."
-                );
-            }
+        if (admin == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Usuario no autenticado.");
+        }
+        if ("SUPERADMIN".equalsIgnoreCase(admin.getRol())) {
+            return; // SUPERADMIN puede gestionar cualquier cuenta del sistema
+        }
+        if (target != null && "SUPERADMIN".equalsIgnoreCase(target.getRol())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "No tienes permisos para modificar cuentas con privilegios SUPERADMIN."
+            );
+        }
+        if (admin.getBodega() == null || target == null || target.getBodega() == null ||
+                !admin.getBodega().getIdBodega().equals(target.getBodega().getIdBodega())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "No tienes permisos para modificar usuarios de otra bodega o del sistema central."
+            );
         }
     }
 

@@ -171,7 +171,9 @@ public class BodegaService {
     public BodegaDTO actualizarConfiguracionSunat(com.bodega.backend.dto.ConfiguracionSunatDTO dto) {
         // Validación de Rol en Contexto de Seguridad
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        boolean esAdmin = auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean esAdmin = auth != null && auth.getAuthorities().stream().anyMatch(
+                a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_SUPERADMIN")
+        );
 
         if (!esAdmin) {
             throw new RuntimeException("Acceso Denegado: Solo el Administrador de la bodega puede activar o modificar la Facturación Electrónica SUNAT. Los cajeros no tienen permisos para alterar este módulo.");

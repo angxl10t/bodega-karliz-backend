@@ -27,6 +27,7 @@ public class RegistroBodegaDTO {
     @Size(max = 255)
     private String lemaComercial;
 
+    @Pattern(regexp = "^$|^(NUEVO_RUS|RER|MYPE_TRIBUTARIO|REGIMEN_GENERAL)$", message = "El régimen tributario debe ser: NUEVO_RUS, RER, MYPE_TRIBUTARIO o REGIMEN_GENERAL")
     @Size(max = 30)
     private String regimenTributario;
 

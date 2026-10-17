@@ -205,4 +205,66 @@ public class UsuarioServiceTest {
         assertTrue(ex.getMessage().contains("entre 4 y 72 caracteres"));
         verify(usuarioRepository, never()).save(any());
     }
+
+    @Test
+    void testCambiarEstado_OtraBodega_LanzaAccessDeniedException() {
+        Bodega bodega2 = new Bodega();
+        bodega2.setIdBodega(2L);
+
+        Usuario targetOtraBodega = new Usuario();
+        targetOtraBodega.setIdUsuario(99L);
+        targetOtraBodega.setUsername("cajero_otra_tienda");
+        targetOtraBodega.setRol("CAJERO");
+        targetOtraBodega.setBodega(bodega2);
+
+        when(usuarioRepository.findById(99L)).thenReturn(Optional.of(targetOtraBodega));
+
+        // Simular sesión autenticada como admin de bodega 1
+        Usuario adminSesion = new Usuario();
+        adminSesion.setUsername("admin_bodega1");
+        adminSesion.setRol("ADMIN");
+        adminSesion.setBodega(bodega1);
+
+        org.springframework.security.core.Authentication auth = mock(org.springframework.security.core.Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("admin_bodega1");
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        when(usuarioRepository.findByUsernameIgnoreCase("admin_bodega1")).thenReturn(Optional.of(adminSesion));
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> {
+            usuarioService.cambiarEstado(99L, false, "admin_bodega1");
+        });
+
+        verify(usuarioRepository, never()).save(targetOtraBodega);
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void testCambiarEstado_TargetSuperAdmin_PorAdminNormal_LanzaAccessDeniedException() {
+        Usuario targetSuperAdmin = new Usuario();
+        targetSuperAdmin.setIdUsuario(100L);
+        targetSuperAdmin.setUsername("super_global");
+        targetSuperAdmin.setRol("SUPERADMIN");
+        targetSuperAdmin.setBodega(null);
+
+        when(usuarioRepository.findById(100L)).thenReturn(Optional.of(targetSuperAdmin));
+
+        Usuario adminSesion = new Usuario();
+        adminSesion.setUsername("admin_bodega1");
+        adminSesion.setRol("ADMIN");
+        adminSesion.setBodega(bodega1);
+
+        org.springframework.security.core.Authentication auth = mock(org.springframework.security.core.Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("admin_bodega1");
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        when(usuarioRepository.findByUsernameIgnoreCase("admin_bodega1")).thenReturn(Optional.of(adminSesion));
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () -> {
+            usuarioService.cambiarEstado(100L, false, "admin_bodega1");
+        });
+
+        verify(usuarioRepository, never()).save(targetSuperAdmin);
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
 }
