@@ -156,18 +156,53 @@ public class VentaService {
 
         venta.setTotal(totalVenta);
 
-        // Módulo SUNAT: Si la bodega tiene la facturación electrónica activa, generar correlativo atómico con bloqueo pesimista
-        if (bodega != null && Boolean.TRUE.equals(bodega.getFacturacionSunatActiva())) {
+        // Módulo SUNAT: Reglas de Negocio Tributarias
+        String tipoSolicitado = (dto.getTipoComprobante() != null && !dto.getTipoComprobante().isBlank())
+                ? dto.getTipoComprobante().trim().toUpperCase()
+                : null;
+
+        boolean sunatActivo = bodega != null && Boolean.TRUE.equals(bodega.getFacturacionSunatActiva());
+        String regimen = (bodega != null && bodega.getRegimenTributario() != null) 
+                ? bodega.getRegimenTributario().toUpperCase() 
+                : "NUEVO_RUS";
+
+        boolean esFactura = "FACTURA_ELECTRONICA".equals(tipoSolicitado) || "FACTURA".equals(tipoSolicitado);
+
+        // 1. Restricción por Régimen Tributario (Nuevo RUS solo emite Boletas y Tickets)
+        if (esFactura) {
+            if ("NUEVO_RUS".equals(regimen)) {
+                throw new RuntimeException("El régimen tributario de la bodega (Nuevo RUS) no está autorizado para emitir Facturas. Según la normativa SUNAT, solo puede emitir Boletas de Venta y Tickets.");
+            }
+            if (docCliente == null || !docCliente.trim().matches("^[0-9]{11}$")) {
+                throw new RuntimeException("Para emitir Factura Electrónica es obligatorio proporcionar un número de RUC válido de 11 dígitos.");
+            }
+            if (nomCliente == null || nomCliente.trim().isBlank() 
+                    || "Público General".equalsIgnoreCase(nomCliente.trim()) 
+                    || "Clientes Varios".equalsIgnoreCase(nomCliente.trim())) {
+                throw new RuntimeException("Para emitir Factura Electrónica es obligatorio registrar la Razón Social del cliente.");
+            }
+        }
+
+        // 2. Identificación Obligatoria: Boletas de Venta >= S/ 700.00 requieren DNI obligatorio
+        boolean esBoleta = !esFactura && (sunatActivo || "BOLETA_ELECTRONICA".equals(tipoSolicitado) || "BOLETA".equals(tipoSolicitado));
+        if (esBoleta && totalVenta.compareTo(new BigDecimal("700.00")) >= 0) {
+            if (docCliente == null || docCliente.trim().isBlank() || "00000000".equals(docCliente.trim()) || docCliente.trim().length() < 8) {
+                throw new RuntimeException("Normativa SUNAT: Para Boletas de Venta con importe igual o mayor a S/ 700.00 es obligatorio identificar al cliente con su DNI (8 dígitos) o documento oficial.");
+            }
+        }
+
+        // 3. Generación atómica de serie y correlativo con bloqueo pesimista
+        if (sunatActivo) {
             Bodega bodegaLocked = bodegaRepository.findByIdForUpdate(idBodega).orElse(bodega);
-            boolean esRuc = docCliente != null && docCliente.trim().length() == 11;
-            String tipo = esRuc ? "FACTURA_ELECTRONICA" : "BOLETA_ELECTRONICA";
-            String serie = esRuc ? (bodegaLocked.getSerieFactura() != null ? bodegaLocked.getSerieFactura() : "F001")
-                                 : (bodegaLocked.getSerieBoleta() != null ? bodegaLocked.getSerieBoleta() : "B001");
-            long correlativo = esRuc 
+            String tipo = esFactura ? "FACTURA_ELECTRONICA" : "BOLETA_ELECTRONICA";
+            String serie = esFactura 
+                    ? (bodegaLocked.getSerieFactura() != null ? bodegaLocked.getSerieFactura() : "F001")
+                    : (bodegaLocked.getSerieBoleta() != null ? bodegaLocked.getSerieBoleta() : "B001");
+            long correlativo = esFactura 
                     ? (bodegaLocked.getUltimoCorrelativoFactura() != null ? bodegaLocked.getUltimoCorrelativoFactura() + 1 : 1L)
                     : (bodegaLocked.getUltimoCorrelativoBoleta() != null ? bodegaLocked.getUltimoCorrelativoBoleta() + 1 : 1L);
 
-            if (esRuc) {
+            if (esFactura) {
                 bodegaLocked.setUltimoCorrelativoFactura(correlativo);
             } else {
                 bodegaLocked.setUltimoCorrelativoBoleta(correlativo);
@@ -178,7 +213,7 @@ public class VentaService {
             venta.setSerieCorrelativo(String.format("%s-%08d", serie, correlativo));
             venta.setEstadoSunat("ACEPTADO");
         } else {
-            venta.setTipoComprobante("TICKET");
+            venta.setTipoComprobante(esFactura ? "FACTURA" : "TICKET");
             venta.setEstadoSunat(null);
         }
 

@@ -18,6 +18,9 @@ public class BodegaDTO {
     private OffsetDateTime fechaRegistro;
     private OffsetDateTime fechaVencimientoPlan;
 
+    // Régimen Tributario SUNAT: NUEVO_RUS, RER, MYPE_TRIBUTARIO, REGIMEN_GENERAL
+    private String regimenTributario;
+
     // Configuración Facturación Electrónica SUNAT
     private Boolean facturacionSunatActiva;
     private String sunatProveedor;

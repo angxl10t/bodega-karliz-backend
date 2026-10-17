@@ -54,6 +54,10 @@ public class Bodega {
     @Column(name = "fecha_vencimiento_plan", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaVencimientoPlan;
 
+    // Régimen Tributario SUNAT: 'NUEVO_RUS' (solo Boleta/Ticket) | 'RER' | 'MYPE_TRIBUTARIO' | 'REGIMEN_GENERAL' (Boleta y Factura)
+    @Column(name = "regimen_tributario", length = 30)
+    private String regimenTributario = "NUEVO_RUS";
+
     // Módulo Adicional: Facturación Electrónica SUNAT (Activación exclusiva por ADMIN)
     @Column(name = "facturacion_sunat_activa")
     private Boolean facturacionSunatActiva = false;

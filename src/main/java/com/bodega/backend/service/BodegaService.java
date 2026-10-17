@@ -70,6 +70,9 @@ public class BodegaService {
         bodega.setDireccion(dto.getDireccion() != null && !dto.getDireccion().isBlank() ? dto.getDireccion().trim() : null);
         bodega.setTelefono(dto.getTelefono() != null && !dto.getTelefono().isBlank() ? dto.getTelefono().trim() : null);
         bodega.setLemaComercial(dto.getLemaComercial() != null && !dto.getLemaComercial().isBlank() ? dto.getLemaComercial().trim() : null);
+        if (dto.getRegimenTributario() != null && !dto.getRegimenTributario().isBlank()) {
+            bodega.setRegimenTributario(dto.getRegimenTributario().trim().toUpperCase());
+        }
 
         String plan = (bodega.getPlan() != null) ? bodega.getPlan().toUpperCase() : "BASICO";
 
@@ -176,6 +179,10 @@ public class BodegaService {
 
         Bodega bodega = tenantService.getCurrentBodega();
 
+        if (dto.getRegimenTributario() != null && !dto.getRegimenTributario().isBlank()) {
+            bodega.setRegimenTributario(dto.getRegimenTributario().trim().toUpperCase());
+        }
+
         if (dto.getFacturacionSunatActiva() != null) {
             bodega.setFacturacionSunatActiva(dto.getFacturacionSunatActiva());
         }
@@ -224,6 +231,7 @@ public class BodegaService {
         dto.setEstado(b.getEstado());
         dto.setFechaRegistro(b.getFechaRegistro());
         dto.setFechaVencimientoPlan(b.getFechaVencimientoPlan());
+        dto.setRegimenTributario(b.getRegimenTributario() != null ? b.getRegimenTributario() : "NUEVO_RUS");
 
         // Campos Módulo SUNAT
         dto.setFacturacionSunatActiva(Boolean.TRUE.equals(b.getFacturacionSunatActiva()));

@@ -119,10 +119,14 @@ public class AuthController {
             response.put("colorPrimario", usuario.getBodega().getColorPrimario() != null ? usuario.getBodega().getColorPrimario() : "#2563EB");
             response.put("lemaComercial", usuario.getBodega().getLemaComercial() != null ? usuario.getBodega().getLemaComercial() : "");
             response.put("logoUrl", usuario.getBodega().getLogoUrl() != null ? usuario.getBodega().getLogoUrl() : "");
+            response.put("regimenTributario", usuario.getBodega().getRegimenTributario() != null ? usuario.getBodega().getRegimenTributario() : "NUEVO_RUS");
+            response.put("facturacionSunatActiva", String.valueOf(Boolean.TRUE.equals(usuario.getBodega().getFacturacionSunatActiva())));
         } else {
             response.put("colorPrimario", "#8B5CF6");
             response.put("lemaComercial", "Consola Global de Administración de Bodegas");
             response.put("logoUrl", "");
+            response.put("regimenTributario", "REGIMEN_GENERAL");
+            response.put("facturacionSunatActiva", "true");
         }
         return ResponseEntity.ok(response);
     }
