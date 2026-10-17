@@ -5,7 +5,9 @@ import java.math.BigDecimal;
 
 @Data
 @Entity
-@Table(name = "presentaciones")
+@Table(name = "presentaciones", indexes = {
+    @Index(name = "idx_presentaciones_bodega_producto", columnList = "id_bodega, id_producto")
+})
 public class Presentacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +26,8 @@ public class Presentacion {
 
     @Column(nullable = false)
     private Boolean estado = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_bodega")
+    private Bodega bodega;
 }

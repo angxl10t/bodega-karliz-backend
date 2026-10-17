@@ -70,6 +70,7 @@ public class PresentacionService {
         presentacion.setProducto(producto);
         presentacion.setNombre(nombreTrim);
         presentacion.setFactorConversion(dto.getFactorConversion());
+        presentacion.setBodega(producto.getBodega());
 
         Presentacion guardada = presentacionRepository.save(presentacion);
         return mapToDTO(guardada);

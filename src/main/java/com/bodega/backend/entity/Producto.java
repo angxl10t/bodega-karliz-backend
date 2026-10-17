@@ -10,9 +10,16 @@ import java.time.OffsetDateTime;
 
 @Data
 @Entity
-@Table(name = "productos", indexes = {
-    @Index(name = "idx_productos_estado_categoria", columnList = "estado, id_categoria")
-})
+@Table(name = "productos", 
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_productos_bodega_codigo", columnNames = {"id_bodega", "codigo"}),
+        @UniqueConstraint(name = "uk_productos_bodega_codigo_barras", columnNames = {"id_bodega", "codigo_barras"})
+    },
+    indexes = {
+        @Index(name = "idx_productos_bodega_estado", columnList = "id_bodega, estado"),
+        @Index(name = "idx_productos_estado_categoria", columnList = "estado, id_categoria")
+    }
+)
 public class Producto {
 
     @Id
@@ -24,10 +31,10 @@ public class Producto {
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String codigo;
 
-    @Column(name = "codigo_barras", unique = true, length = 100)
+    @Column(name = "codigo_barras", length = 100)
     private String codigoBarras;
 
     @Column(nullable = false, length = 150)

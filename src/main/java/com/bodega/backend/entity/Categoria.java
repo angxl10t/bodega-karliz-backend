@@ -9,7 +9,14 @@ import java.time.OffsetDateTime;
 
 @Data
 @Entity
-@Table(name = "categorias")
+@Table(name = "categorias",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_categorias_bodega_nombre", columnNames = {"id_bodega", "nombre"})
+    },
+    indexes = {
+        @Index(name = "idx_categorias_bodega_estado", columnList = "id_bodega, estado")
+    }
+)
 public class Categoria {
     
     @Id

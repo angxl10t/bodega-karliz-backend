@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 @Data
 @Entity
 @Table(name = "compras_detalles", indexes = {
+    @Index(name = "idx_compras_detalles_bodega_compra", columnList = "id_bodega, id_compra"),
     @Index(name = "idx_compras_detalles_compra", columnList = "id_compra"),
     @Index(name = "idx_compras_detalles_producto", columnList = "id_producto")
 })
@@ -31,4 +32,8 @@ public class CompraDetalle {
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_bodega")
+    private Bodega bodega;
 }

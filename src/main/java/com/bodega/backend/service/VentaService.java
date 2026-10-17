@@ -114,6 +114,7 @@ public class VentaService {
             detalle.setCantidad(cantidadTotal);
             detalle.setPrecioUnitario(precioFinal);
             detalle.setSubtotal(subtotal);
+            detalle.setBodega(bodega != null ? bodega : producto.getBodega());
             detallesGuardados.add(detalle);
 
             // Restar Stock de forma segura frente a nulos
@@ -125,6 +126,7 @@ public class VentaService {
             mov.setProducto(producto);
             mov.setTipoMovimiento("SALIDA");
             mov.setCantidad(cantidadTotal);
+            mov.setBodega(bodega != null ? bodega : producto.getBodega());
             String motivoVenta = "Venta al cliente: " + nomCliente;
             if (motivoVenta.length() > 255) {
                 motivoVenta = motivoVenta.substring(0, 255);
@@ -388,6 +390,7 @@ public class VentaService {
             mov.setCantidad(cantidadRestaurar);
             mov.setMotivo(motivoKardex);
             mov.setUsuarioResponsable(usuarioActual);
+            mov.setBodega(venta.getBodega() != null ? venta.getBodega() : prod.getBodega());
             movimientoInventarioRepository.save(mov);
         }
 

@@ -29,6 +29,14 @@ public class Usuario {
     @Column(name = "fecha_cambio_clave", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCambioClave;
 
+    @org.hibernate.annotations.CreationTimestamp
+    @Column(name = "fecha_creacion", updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaCreacion;
+
+    @org.hibernate.annotations.UpdateTimestamp
+    @Column(name = "fecha_actualizacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaActualizacion;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_bodega")
     private Bodega bodega;

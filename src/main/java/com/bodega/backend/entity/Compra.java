@@ -31,6 +31,10 @@ public class Compra {
     @Column(name = "fecha_compra", updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime fechaCompra;
 
+    @org.hibernate.annotations.UpdateTimestamp
+    @Column(name = "fecha_actualizacion", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechaActualizacion;
+
     @Column(name = "usuario_registro", length = 50)
     private String usuarioRegistro;
 

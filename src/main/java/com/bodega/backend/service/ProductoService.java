@@ -220,6 +220,7 @@ public class ProductoService {
             mov.setCantidad(guardado.getStockActual());
             mov.setMotivo("Inventario Inicial de Apertura");
             mov.setUsuarioResponsable(obtenerUsuarioActual());
+            mov.setBodega(guardado.getBodega());
             movimientoInventarioRepository.save(mov);
         }
 
@@ -291,6 +292,7 @@ public class ProductoService {
                 mov.setCantidad(diff.abs());
                 mov.setMotivo("Ajuste manual de inventario (de " + stockAnterior + " a " + nuevoStock + ")");
                 mov.setUsuarioResponsable(obtenerUsuarioActual());
+                mov.setBodega(producto.getBodega());
                 movimientoInventarioRepository.save(mov);
             }
             producto.setStockActual(nuevoStock);
