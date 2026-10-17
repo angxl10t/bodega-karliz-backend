@@ -9,6 +9,7 @@ class Producto {
   final double precioVenta;
   final double stockActual;
   final double stockMinimo;
+  final bool controlaVencimiento;
 
   Producto({
     this.idProducto,
@@ -21,6 +22,7 @@ class Producto {
     required this.precioVenta,
     required this.stockActual,
     this.stockMinimo = 5.0,
+    this.controlaVencimiento = false,
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class Producto {
       precioVenta: (json['precioVenta'] as num?)?.toDouble() ?? 0.0,
       stockActual: (json['stockActual'] as num?)?.toDouble() ?? 0.0,
       stockMinimo: (json['stockMinimo'] as num?)?.toDouble() ?? 5.0,
+      controlaVencimiento: json['controlaVencimiento'] as bool? ?? false,
     );
   }
 
@@ -49,6 +52,7 @@ class Producto {
       'precioVenta': precioVenta,
       if (includeStock) 'stockActual': stockActual,
       'stockMinimo': stockMinimo,
+      'controlaVencimiento': controlaVencimiento,
       'estado': true,
     };
   }

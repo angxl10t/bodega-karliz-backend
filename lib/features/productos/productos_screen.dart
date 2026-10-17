@@ -960,6 +960,33 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
+                            if (p.controlaVencimiento)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: Colors.amber.shade700.withValues(alpha: 0.5),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(LucideIcons.calendarClock, size: 10, color: Colors.amber.shade700),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Perecible / Vencimiento',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? Colors.amber.shade300 : Colors.amber.shade900,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                       ],

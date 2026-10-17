@@ -46,6 +46,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
   int? _idCategoriaSeleccionada;
   bool _isLoadingCategorias = true;
   bool _isGuardando = false;
+  late bool _controlaVencimiento;
 
   @override
   void initState() {
@@ -55,6 +56,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     _marcaCtrl = TextEditingController(text: widget.producto.marca ?? '');
     _codigoBarrasCtrl = TextEditingController(text: widget.producto.codigoBarras ?? '');
     _stockMinCtrl = TextEditingController(text: widget.producto.stockMinimo.toStringAsFixed(0));
+    _controlaVencimiento = widget.producto.controlaVencimiento;
     _idCategoriaSeleccionada = widget.producto.idCategoria ?? 1;
     _cargarCategorias();
   }
@@ -114,6 +116,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
       precioVenta: precio,
       stockActual: widget.producto.stockActual,
       stockMinimo: stockMin,
+      controlaVencimiento: _controlaVencimiento,
     );
 
     final res = await _productoService.actualizarProductoConDetalle(actualizado);
@@ -474,6 +477,61 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 14),
+
+              // Control de Vencimiento / Perecible
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: inputBg,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: _controlaVencimiento ? AppTheme.brandPrimary.withValues(alpha: 0.15) : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.calendarClock,
+                        size: 18,
+                        color: _controlaVencimiento ? AppTheme.brandPrimary : AppTheme.textMuted,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Control de Vencimiento',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                          Text(
+                            'Alerta si el producto es perecible o tiene caducidad',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch.adaptive(
+                      value: _controlaVencimiento,
+                      activeTrackColor: AppTheme.brandPrimary,
+                      onChanged: (val) => setState(() => _controlaVencimiento = val),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 22),
 

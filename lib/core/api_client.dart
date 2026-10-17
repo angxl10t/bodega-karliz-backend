@@ -16,11 +16,8 @@ class ApiClient {
   }
 
   void _checkAuthStatus(http.Response response, String endpoint) async {
-    // HTTP 401 (No autenticado / Token expirado o inválido)
-    // También atrapamos HTTP 403 en endpoints base de lectura como fallback para tokens inválidos/antiguos
-    final isSessionInvalid = response.statusCode == 401 ||
-        (response.statusCode == 403 && 
-         (endpoint.startsWith('/productos') || endpoint.startsWith('/ventas/caja')));
+    // HTTP 401 (No autenticado / Token expirado o revocado)
+    final isSessionInvalid = response.statusCode == 401;
 
     if (isSessionInvalid && !endpoint.contains('/auth/login')) {
       await SecureStorageService.clearAuth();

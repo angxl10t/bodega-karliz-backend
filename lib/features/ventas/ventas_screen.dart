@@ -1023,7 +1023,7 @@ class _VentasScreenState extends State<VentasScreen> {
     final String? docCliente = (_identificarCliente && docIngresado.isNotEmpty) ? docIngresado : null;
     final String nomCliente = (_identificarCliente && _clienteNombreController.text.trim().isNotEmpty)
         ? _clienteNombreController.text.trim()
-        : 'Clientes Varios';
+        : 'Público General';
 
     final venta = VentaEnvio(
       clienteDocumento: docCliente,
@@ -1655,7 +1655,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(height: 12),
               ],
 
-              // Selector de Comprobante (Ticket, Boleta, Factura)
+              // Selector de Comprobante (Boleta de Venta, Ticket de Venta - Nuevo RUS)
               _buildTipoComprobanteSelector(isDark),
 
               // Cliente (Consumidor Final / Con DNI)
@@ -2603,7 +2603,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
           const SizedBox(height: 8),
 
-          // Selector de Comprobante (Ticket, Boleta, Factura)
+          // Selector de Comprobante (Boleta de Venta, Ticket de Venta - Nuevo RUS)
           _buildTipoComprobanteSelector(isDark),
 
           // Cliente (Consumidor Final / Con DNI)
@@ -3893,7 +3893,7 @@ class _VentasScreenState extends State<VentasScreen> {
     final doc = (_identificarCliente && _clienteDocController.text.trim().isNotEmpty) ? _clienteDocController.text.trim() : '';
     final nom = (_identificarCliente && _clienteNombreController.text.trim().isNotEmpty)
         ? _clienteNombreController.text.trim()
-        : 'Consumidor Final';
+        : 'Público General';
     final numTelf = (doc.length == 9 && doc.startsWith('9')) ? '51$doc' : '';
 
     final comprobanteStr = ventaGenerada != null && ventaGenerada.etiquetaComprobante.isNotEmpty

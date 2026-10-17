@@ -73,6 +73,26 @@ void main() {
       expect(p.idProducto, 99);
       expect(p.idCategoria, 2);
     });
+
+    test('Producto handles controlaVencimiento in fromJson and toJson', () {
+      final json = {
+        'idProducto': 101,
+        'idCategoria': 5,
+        'codigo': 'LAC-0001',
+        'nombre': 'Leche Gloria 400g',
+        'precioVenta': 4.20,
+        'stockActual': 24,
+        'stockMinimo': 6,
+        'controlaVencimiento': true,
+      };
+
+      final p = Producto.fromJson(json);
+      expect(p.controlaVencimiento, isTrue);
+
+      final serialized = p.toJson();
+      expect(serialized['controlaVencimiento'], isTrue);
+      expect(serialized['idProducto'], 101);
+    });
   });
 
   group('Barcode Matching Logic Tests', () {
