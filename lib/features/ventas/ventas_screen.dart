@@ -14,6 +14,8 @@ import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'documento_service.dart';
+import '../../core/secure_storage_service.dart';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -25,12 +27,18 @@ class VentasScreen extends StatefulWidget {
 class _VentasScreenState extends State<VentasScreen> {
   final ProductoService _productoService = ProductoService();
   final VentaService _ventaService = VentaService();
+  final DocumentoService _documentoService = DocumentoService();
 
   List<Producto> _productosDisponibles = [];
   final List<CartItem> _carrito = [];
 
   String _metodoPago = 'Efectivo';
-  String _tipoComprobante = 'TICKET'; // 'TICKET', 'BOLETA_ELECTRONICA', 'FACTURA_ELECTRONICA'
+  String _tipoComprobante = 'BOLETA_ELECTRONICA'; // Por defecto Boleta de Venta (99% de clientes)
+  String _regimenTributario = 'NUEVO_RUS';
+  bool _facturacionSunatActiva = false;
+  bool _isConsultandoDoc = false;
+  String? _alertaDocMensaje;
+
   final _clienteNombreController = TextEditingController(text: 'Público General');
   final _clienteDocController = TextEditingController(text: '00000000');
   final _pagoConController = TextEditingController();
@@ -146,7 +154,67 @@ class _VentasScreenState extends State<VentasScreen> {
   void initState() {
     super.initState();
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
+    _cargarConfiguracionTributaria();
     _cargarProductos();
+  }
+
+  Future<void> _cargarConfiguracionTributaria() async {
+    final reg = await SecureStorageService.read('regimen_tributario');
+    final sunat = await SecureStorageService.read('facturacion_sunat_activa');
+    if (mounted) {
+      setState(() {
+        _regimenTributario = (reg != null && reg.isNotEmpty) ? reg : 'NUEVO_RUS';
+        _facturacionSunatActiva = sunat == 'true';
+        if (_facturacionSunatActiva) {
+          _tipoComprobante = 'BOLETA_ELECTRONICA';
+        } else {
+          _tipoComprobante = 'TICKET';
+        }
+      });
+    }
+  }
+
+  Future<void> _onDocChanged(String value) async {
+    final doc = value.trim();
+    if (mounted) {
+      setState(() => _alertaDocMensaje = null);
+    }
+
+    // 1. DNI (8 dígitos numéricos) para Boletas de Venta y Tickets
+    if (doc.length == 8 && RegExp(r'^[0-9]{8}$').hasMatch(doc)) {
+      if (_tipoComprobante != 'FACTURA_ELECTRONICA') {
+        setState(() => _isConsultandoDoc = true);
+        final res = await _documentoService.consultarDni(doc);
+        if (mounted) {
+          setState(() {
+            _isConsultandoDoc = false;
+            if (res != null && res.encontrado && res.nombreCompleto.isNotEmpty) {
+              _clienteNombreController.text = res.nombreCompleto;
+            }
+          });
+        }
+      }
+    }
+    // 2. RUC (11 dígitos numéricos) para Facturas
+    else if (doc.length == 11 && RegExp(r'^[0-9]{11}$').hasMatch(doc)) {
+      if (_tipoComprobante == 'FACTURA_ELECTRONICA') {
+        setState(() => _isConsultandoDoc = true);
+        final res = await _documentoService.consultarRuc(doc);
+        if (mounted) {
+          setState(() {
+            _isConsultandoDoc = false;
+            if (res != null && res.encontrado && res.razonSocial.isNotEmpty) {
+              _clienteNombreController.text = res.razonSocial;
+            }
+            if (res != null) {
+              if (!res.esActivo || !res.esHabido) {
+                _alertaDocMensaje = '⚠️ RUC figura como ${res.estado} y ${res.condicion} en SUNAT.';
+              }
+            }
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -842,6 +910,15 @@ class _VentasScreenState extends State<VentasScreen> {
     }
 
     if (_tipoComprobante == 'FACTURA_ELECTRONICA') {
+      if (_regimenTributario == 'NUEVO_RUS') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Tu negocio está en el régimen Nuevo RUS y no está autorizado para emitir Facturas según la SUNAT.'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+        return;
+      }
       final doc = _clienteDocController.text.trim();
       if (doc.length != 11 || !RegExp(r'^[0-9]{11}$').hasMatch(doc)) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -851,6 +928,31 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
         );
         return;
+      }
+      final razonSocial = _clienteNombreController.text.trim();
+      if (razonSocial.isEmpty || razonSocial == 'Público General' || razonSocial == 'Clientes Varios') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Para emitir Factura Electrónica es obligatorio registrar la Razón Social de la empresa.'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+        return;
+      }
+    }
+
+    if (_tipoComprobante == 'BOLETA_ELECTRONICA') {
+      if (_totalVenta >= 700.0) {
+        final doc = _clienteDocController.text.trim();
+        if (doc.isEmpty || doc == '00000000' || doc.length < 8) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ Normativa SUNAT: Para Boletas de Venta iguales o mayores a S/ 700.00 es obligatorio identificar al cliente con su DNI.'),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+          return;
+        }
       }
     }
 
@@ -1445,16 +1547,28 @@ class _VentasScreenState extends State<VentasScreen> {
                     ),
                     const SizedBox(width: 8),
                     SizedBox(
-                      width: 90,
+                      width: 105,
                       child: TextField(
                         controller: _clienteDocController,
                         keyboardType: TextInputType.number,
                         style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
-                        decoration: const InputDecoration(
+                        onChanged: _onDocChanged,
+                        decoration: InputDecoration(
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
                           hintText: 'DNI / RUC',
                           border: InputBorder.none,
+                          suffixIcon: _isConsultandoDoc
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(4.0),
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandPrimary),
+                                  ),
+                                )
+                              : null,
+                          suffixIconConstraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                         ),
                       ),
                     ),
@@ -2568,16 +2682,28 @@ class _VentasScreenState extends State<VentasScreen> {
                 ),
                 const SizedBox(width: 6),
                 SizedBox(
-                  width: 82,
+                  width: 98,
                   child: TextField(
                     controller: _clienteDocController,
                     keyboardType: TextInputType.number,
                     style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: labelColor),
-                    decoration: const InputDecoration(
+                    onChanged: _onDocChanged,
+                    decoration: InputDecoration(
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                       hintText: 'DNI / RUC',
                       border: InputBorder.none,
+                      suffixIcon: _isConsultandoDoc
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: Padding(
+                                padding: EdgeInsets.all(3.0),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandPrimary),
+                              ),
+                            )
+                          : null,
+                      suffixIconConstraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     ),
                   ),
                 ),
@@ -3109,69 +3235,164 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   Widget _buildTipoComprobanteSelector(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          _buildTipoComprobanteTab('TICKET', 'Ticket', LucideIcons.receipt, isDark),
-          _buildTipoComprobanteTab('BOLETA_ELECTRONICA', 'Boleta', LucideIcons.fileText, isDark),
-          _buildTipoComprobanteTab('FACTURA_ELECTRONICA', 'Factura', LucideIcons.building2, isDark),
-        ],
-      ),
+    final bool esNuevoRus = _regimenTributario == 'NUEVO_RUS';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+          ),
+          child: Row(
+            children: [
+              _buildTipoComprobanteTab('BOLETA_ELECTRONICA', 'Boleta', LucideIcons.fileText, isDark, false),
+              _buildTipoComprobanteTab('FACTURA_ELECTRONICA', 'Factura', LucideIcons.building2, isDark, esNuevoRus),
+              _buildTipoComprobanteTab('TICKET', 'Ticket', LucideIcons.receipt, isDark, false),
+            ],
+          ),
+        ),
+        if (esNuevoRus)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(LucideIcons.info, size: 11, color: AppTheme.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  'Régimen Nuevo RUS solo emite Boletas y Tickets (SUNAT)',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (_alertaDocMensaje != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.alertTriangle, size: 12, color: Colors.amber),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _alertaDocMensaje!,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (_tipoComprobante == 'BOLETA_ELECTRONICA' && _totalVenta >= 700.0)
+          Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.shade700.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                Icon(LucideIcons.shieldAlert, size: 12, color: Colors.orange.shade800),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'SUNAT: Boletas ≥ S/ 700.00 requieren DNI del cliente obligatoriamente (Art. 8 RCP).',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.orange.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildTipoComprobanteTab(String code, String label, IconData icon, bool isDark) {
+  Widget _buildTipoComprobanteTab(String code, String label, IconData icon, bool isDark, bool isBlocked) {
     final isSelected = _tipoComprobante == code;
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _tipoComprobante = code;
-            if (code == 'FACTURA_ELECTRONICA') {
-              if (_clienteDocController.text == '00000000') {
-                _clienteDocController.clear();
-                _clienteNombreController.clear();
-              }
-            } else if (code == 'TICKET') {
-              if (_clienteDocController.text.isEmpty) {
-                _clienteDocController.text = '00000000';
-                _clienteNombreController.text = 'Público General';
-              }
-            }
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 13,
-                color: isSelected ? Colors.white : (isDark ? Colors.white60 : AppTheme.textMuted),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textMuted),
+      child: Tooltip(
+        message: isBlocked ? 'Régimen Nuevo RUS no puede emitir Facturas' : label,
+        child: GestureDetector(
+          onTap: () {
+            if (isBlocked) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('⚠️ Tu negocio está en el régimen Nuevo RUS. Según la normativa SUNAT, solo puedes emitir Boletas de Venta y Tickets.'),
+                  backgroundColor: AppTheme.warningAmber,
+                  duration: Duration(seconds: 3),
                 ),
-              ),
-            ],
+              );
+              return;
+            }
+            setState(() {
+              _tipoComprobante = code;
+              if (code == 'FACTURA_ELECTRONICA') {
+                if (_clienteDocController.text == '00000000') {
+                  _clienteDocController.clear();
+                  _clienteNombreController.clear();
+                }
+              } else if (code == 'BOLETA_ELECTRONICA' || code == 'TICKET') {
+                if (_clienteDocController.text.isEmpty) {
+                  _clienteDocController.text = '00000000';
+                  _clienteNombreController.text = 'Público General';
+                }
+              }
+            });
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isBlocked ? LucideIcons.lock : icon,
+                  size: 13,
+                  color: isBlocked
+                      ? (isDark ? Colors.white30 : Colors.black26)
+                      : (isSelected ? Colors.white : (isDark ? Colors.white60 : AppTheme.textMuted)),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isBlocked
+                        ? (isDark ? Colors.white30 : Colors.black26)
+                        : (isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textMuted)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -55,6 +55,12 @@ class AuthService {
         if (data['logoUrl'] != null) {
           await SecureStorageService.write('logo_url', data['logoUrl']);
         }
+        if (data['regimenTributario'] != null) {
+          await SecureStorageService.write('regimen_tributario', data['regimenTributario']);
+        }
+        if (data['facturacionSunatActiva'] != null) {
+          await SecureStorageService.write('facturacion_sunat_activa', data['facturacionSunatActiva'].toString());
+        }
         return AuthResult(success: true); // Login exitoso
       }
 
