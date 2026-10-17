@@ -19,6 +19,7 @@ class VentaEnvio {
   final List<VentaDetalleEnvio> detalles;
   final String? tipoComprobante;
   final String? idempotencyKey;
+  final double? montoRecibido;
 
   VentaEnvio({
     this.clienteDocumento,
@@ -27,6 +28,7 @@ class VentaEnvio {
     required this.detalles,
     this.tipoComprobante,
     this.idempotencyKey,
+    this.montoRecibido,
   });
 
   Map<String, dynamic> toJson() => {
@@ -36,6 +38,7 @@ class VentaEnvio {
         'detalles': detalles.map((d) => d.toJson()).toList(),
         if (tipoComprobante != null) 'tipoComprobante': tipoComprobante,
         if (idempotencyKey != null) 'idempotencyKey': idempotencyKey,
+        if (montoRecibido != null) 'montoRecibido': montoRecibido,
       };
 }
 
@@ -100,6 +103,8 @@ class VentaRegistro {
   final String? sunatCdrUrl;
   final String? sunatPdfUrl;
   final String? sunatXmlUrl;
+  final double? montoRecibido;
+  final double? vuelto;
   final List<VentaDetalleItem> detalles;
 
   VentaRegistro({
@@ -108,6 +113,8 @@ class VentaRegistro {
     this.clienteNombre,
     required this.metodoPago,
     required this.total,
+    this.montoRecibido,
+    this.vuelto,
     this.fechaVenta,
     this.usuarioRegistro,
     this.estado = 'COMPLETADA',
@@ -142,6 +149,8 @@ class VentaRegistro {
       clienteNombre: json['clienteNombre'] as String? ?? 'Público General',
       metodoPago: json['metodoPago'] as String? ?? 'Efectivo',
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
+      montoRecibido: (json['montoRecibido'] as num?)?.toDouble(),
+      vuelto: (json['vuelto'] as num?)?.toDouble(),
       fechaVenta: json['fechaVenta'] != null ? DateTime.tryParse(json['fechaVenta']) : null,
       usuarioRegistro: json['usuarioRegistro'] as String?,
       estado: json['estado'] as String? ?? 'COMPLETADA',

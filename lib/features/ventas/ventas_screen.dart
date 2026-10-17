@@ -1031,6 +1031,7 @@ class _VentasScreenState extends State<VentasScreen> {
       metodoPago: _metodoPago,
       tipoComprobante: _tipoComprobante,
       idempotencyKey: idempotencyKey,
+      montoRecibido: _metodoPago == 'Efectivo' ? (_montoRecibido > 0 ? _montoRecibido : _totalVenta) : null,
       detalles: _carrito.map((item) {
         return VentaDetalleEnvio(
           idProducto: item.producto.idProducto!,
