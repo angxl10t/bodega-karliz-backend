@@ -13,7 +13,7 @@ class VentaDetalleEnvio {
 }
 
 class VentaEnvio {
-  final String clienteDocumento;
+  final String? clienteDocumento;
   final String clienteNombre;
   final String metodoPago;
   final List<VentaDetalleEnvio> detalles;
@@ -21,7 +21,7 @@ class VentaEnvio {
   final String? idempotencyKey;
 
   VentaEnvio({
-    required this.clienteDocumento,
+    this.clienteDocumento,
     required this.clienteNombre,
     required this.metodoPago,
     required this.detalles,

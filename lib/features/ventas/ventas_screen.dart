@@ -43,8 +43,10 @@ class _VentasScreenState extends State<VentasScreen> {
   String? _direccionBodega;
   String? _lemaBodega;
 
-  final _clienteNombreController = TextEditingController(text: 'Público General');
-  final _clienteDocController = TextEditingController(text: '00000000');
+  bool _identificarCliente = false;
+  final _clienteNombreController = TextEditingController();
+  final _clienteDocController = TextEditingController();
+  final _clienteDocFocusNode = FocusNode();
   final _pagoConController = TextEditingController();
   final _tabletSearchCtrl = TextEditingController();
   String _tabletSearchQuery = '';
@@ -203,6 +205,7 @@ class _VentasScreenState extends State<VentasScreen> {
           _isConsultandoDoc = false;
           if (res != null && res.encontrado && res.nombreCompleto.isNotEmpty) {
             _clienteNombreController.text = res.nombreCompleto;
+            KarlizSoundService.instance.playBarcodeBeep();
           }
         });
       }
@@ -214,6 +217,7 @@ class _VentasScreenState extends State<VentasScreen> {
     ProductoService.productosRevision.removeListener(_onProductosRevisionChanged);
     _clienteNombreController.dispose();
     _clienteDocController.dispose();
+    _clienteDocFocusNode.dispose();
     _pagoConController.dispose();
     _tabletSearchCtrl.dispose();
     _tabletSearchFocusNode.dispose();
@@ -258,6 +262,49 @@ class _VentasScreenState extends State<VentasScreen> {
     return recibido - _totalVenta;
   }
 
+  void _verificarNormativaSunat700() {
+    if (_tipoComprobante == 'BOLETA_ELECTRONICA' && _totalVenta >= 700.0) {
+      if (!_identificarCliente) {
+        _identificarCliente = true;
+      }
+    }
+  }
+
+  void _actualizarMontoExactoSiCorresponde(double totalAnterior) {
+    if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
+      final actual = double.tryParse(_pagoConController.text.replaceAll(',', '.').trim()) ?? 0.0;
+      if ((actual - totalAnterior).abs() < 0.01) {
+        _pagoConController.text = _totalVenta.toStringAsFixed(2);
+      }
+    }
+    _verificarNormativaSunat700();
+  }
+
+  List<double> _calcularBilletesSugeridos(double total) {
+    if (total <= 0) return [];
+    final sugerencias = <double>{};
+
+    const billetes = [10.0, 20.0, 50.0, 100.0, 200.0];
+    for (final b in billetes) {
+      if (b >= total) {
+        sugerencias.add(b);
+      }
+    }
+
+    final proxDecena = (total / 10).ceil() * 10.0;
+    if (proxDecena > total && proxDecena <= 200) {
+      sugerencias.add(proxDecena);
+    }
+
+    final proxCincuenta = (total / 50).ceil() * 50.0;
+    if (proxCincuenta > total && proxCincuenta <= 200) {
+      sugerencias.add(proxCincuenta);
+    }
+
+    final lista = sugerencias.toList()..sort();
+    return lista.take(5).toList();
+  }
+
   void _agregarAlCarrito(Producto p, {bool playSound = true}) {
     final idx = _carrito.indexWhere((item) => item.producto.idProducto == p.idProducto);
     if (idx != -1 && _carrito[idx].cantidad >= p.stockActual) {
@@ -276,28 +323,24 @@ class _VentasScreenState extends State<VentasScreen> {
       KarlizSoundService.instance.playBarcodeBeep();
     }
 
+    final totalAnterior = _totalVenta;
     setState(() {
       if (idx != -1) {
         _carrito[idx].cantidad += 1;
       } else {
         _carrito.add(CartItem(producto: p, cantidad: 1.0));
       }
-
-      // Si el pago era exacto, actualizar el campo si está en efectivo
-      if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
-        _pagoConController.text = _totalVenta.toStringAsFixed(2);
-      }
+      _actualizarMontoExactoSiCorresponde(totalAnterior);
     });
   }
 
   void _incrementarCantidad(int index) {
     final item = _carrito[index];
     if (item.cantidad < item.producto.stockActual) {
+      final totalAnterior = _totalVenta;
       setState(() {
         item.cantidad += 1;
-        if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
-          _pagoConController.text = _totalVenta.toStringAsFixed(2);
-        }
+        _actualizarMontoExactoSiCorresponde(totalAnterior);
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -311,24 +354,22 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   void _decrementarCantidad(int index) {
+    final totalAnterior = _totalVenta;
     setState(() {
       if (_carrito[index].cantidad > 1) {
         _carrito[index].cantidad -= 1;
       } else {
         _carrito.removeAt(index);
       }
-      if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
-        _pagoConController.text = _totalVenta.toStringAsFixed(2);
-      }
+      _actualizarMontoExactoSiCorresponde(totalAnterior);
     });
   }
 
   void _eliminarDelCarrito(int index) {
+    final totalAnterior = _totalVenta;
     setState(() {
       _carrito.removeAt(index);
-      if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
-        _pagoConController.text = _totalVenta.toStringAsFixed(2);
-      }
+      _actualizarMontoExactoSiCorresponde(totalAnterior);
     });
   }
 
@@ -336,6 +377,10 @@ class _VentasScreenState extends State<VentasScreen> {
     setState(() {
       _carrito.clear();
       _pagoConController.clear();
+      _identificarCliente = false;
+      _clienteDocController.clear();
+      _clienteNombreController.clear();
+      _alertaDocMensaje = null;
     });
   }
 
@@ -877,11 +922,52 @@ class _VentasScreenState extends State<VentasScreen> {
     }
 
     if (_metodoPago == 'Efectivo') {
-      if (_montoRecibido > 0 && _montoRecibido < _totalVenta) {
+      if (_montoRecibido <= 0) {
+        KarlizSoundService.instance.playErrorBeep();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('El monto recibido (S/ ${_montoRecibido.toStringAsFixed(2)}) es menor al total a cobrar (S/ ${_totalVenta.toStringAsFixed(2)})'),
+            content: Row(
+              children: [
+                const Icon(LucideIcons.banknote, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '⚠️ Indica con cuánto paga el cliente o presiona "Pago Exacto" para continuar.',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: AppTheme.alertRed,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+        );
+        return;
+      }
+
+      if (_montoRecibido < _totalVenta) {
+        KarlizSoundService.instance.playErrorBeep();
+        final faltante = _totalVenta - _montoRecibido;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(LucideIcons.alertTriangle, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '⚠️ Monto insuficiente: el cliente pagó S/ ${_montoRecibido.toStringAsFixed(2)}, faltan S/ ${faltante.toStringAsFixed(2)} para completar el total de S/ ${_totalVenta.toStringAsFixed(2)}.',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.alertRed,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
         );
         return;
@@ -901,10 +987,24 @@ class _VentasScreenState extends State<VentasScreen> {
       }
     }
 
+    final String docIngresado = _clienteDocController.text.trim();
+    if (_identificarCliente) {
+      if (docIngresado.isEmpty || docIngresado.length != 8 || !RegExp(r'^[0-9]{8}$').hasMatch(docIngresado)) {
+        KarlizSoundService.instance.playErrorBeep();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚠️ Por favor ingresa un DNI válido de 8 dígitos numéricos.'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+        return;
+      }
+    }
+
     if (_tipoComprobante == 'BOLETA_ELECTRONICA') {
       if (_totalVenta >= 700.0) {
-        final doc = _clienteDocController.text.trim();
-        if (doc.isEmpty || doc == '00000000' || doc.length < 8) {
+        if (!_identificarCliente || docIngresado.length != 8) {
+          KarlizSoundService.instance.playErrorBeep();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('⚠️ Normativa SUNAT: Para Boletas de Venta iguales o mayores a S/ 700.00 es obligatorio identificar al cliente con su DNI.'),
@@ -920,9 +1020,14 @@ class _VentasScreenState extends State<VentasScreen> {
 
     final idempotencyKey = "pos_${DateTime.now().millisecondsSinceEpoch}_${(1000 + (DateTime.now().microsecond % 9000))}";
 
+    final String? docCliente = (_identificarCliente && docIngresado.isNotEmpty) ? docIngresado : null;
+    final String nomCliente = (_identificarCliente && _clienteNombreController.text.trim().isNotEmpty)
+        ? _clienteNombreController.text.trim()
+        : 'Clientes Varios';
+
     final venta = VentaEnvio(
-      clienteDocumento: _clienteDocController.text.trim().isEmpty ? '00000000' : _clienteDocController.text.trim(),
-      clienteNombre: _clienteNombreController.text.trim().isEmpty ? 'Público General' : _clienteNombreController.text.trim(),
+      clienteDocumento: docCliente,
+      clienteNombre: nomCliente,
       metodoPago: _metodoPago,
       tipoComprobante: _tipoComprobante,
       idempotencyKey: idempotencyKey,
@@ -1142,10 +1247,11 @@ class _VentasScreenState extends State<VentasScreen> {
 
             // Desglose Financiero
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
               ),
               child: Column(
                 children: [
@@ -1162,36 +1268,64 @@ class _VentasScreenState extends State<VentasScreen> {
                       ),
                       Text(
                         'S/ ${total.toStringAsFixed(2)}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
                           color: AppTheme.brandPrimary,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ],
                   ),
-                  if (metodo == 'Efectivo' && vuelto > 0) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Vuelto Entregado:',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.accentGreen,
-                          ),
+                  if (metodo == 'Efectivo') ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: vuelto > 0
+                            ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.35) : const Color(0xFFD1FAE5))
+                            : (isDark ? const Color(0xFF172554).withValues(alpha: 0.35) : const Color(0xFFEFF6FF)),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: vuelto > 0 ? AppTheme.accentGreen : const Color(0xFF3B82F6),
+                          width: vuelto > 0 ? 1.5 : 1.0,
                         ),
-                        Text(
-                          'S/ ${vuelto.toStringAsFixed(2)}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.accentGreen,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                vuelto > 0 ? 'VUELTO A ENTREGAR:' : 'EFECTIVO:',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                  color: vuelto > 0 ? const Color(0xFF065F46) : const Color(0xFF1E3A8A),
+                                ),
+                              ),
+                              Text(
+                                'Pagó con S/ ${pagadoCon.toStringAsFixed(2)}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          Text(
+                            vuelto > 0 ? 'S/ ${vuelto.toStringAsFixed(2)}' : 'EXACTO',
+                            style: GoogleFonts.outfit(
+                              fontSize: vuelto > 0 ? 20 : 14,
+                              fontWeight: FontWeight.w900,
+                              color: vuelto > 0 ? const Color(0xFF047857) : const Color(0xFF2563EB),
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ],
@@ -1298,8 +1432,8 @@ class _VentasScreenState extends State<VentasScreen> {
           final isDark = Theme.of(context).brightness == Brightness.dark;
           final receiptText = ThermalTicketService.generateReceiptText(
             ticketId: ventaGenerada?.idVenta,
-            clienteNombre: _clienteNombreController.text.trim().isEmpty ? 'Público General' : _clienteNombreController.text.trim(),
-            clienteDocumento: _clienteDocController.text.trim().isEmpty ? null : _clienteDocController.text.trim(),
+            clienteNombre: (!_identificarCliente || _clienteNombreController.text.trim().isEmpty) ? 'Público General' : _clienteNombreController.text.trim(),
+            clienteDocumento: (!_identificarCliente || _clienteDocController.text.trim().isEmpty) ? null : _clienteDocController.text.trim(),
             metodoPago: metodo,
             items: ticketItems,
             total: total,
@@ -1523,73 +1657,8 @@ class _VentasScreenState extends State<VentasScreen> {
               // Selector de Comprobante (Ticket, Boleta, Factura)
               _buildTipoComprobanteSelector(isDark),
 
-              // Cliente (Compacto)
-              Container(
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: borderColor, width: 1.2),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    const Icon(LucideIcons.user, size: 18, color: AppTheme.brandPrimary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: _clienteNombreController,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
-                        decoration: const InputDecoration(
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                          hintText: 'Cliente / Razón Social',
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 105,
-                      child: TextField(
-                        controller: _clienteDocController,
-                        keyboardType: TextInputType.number,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
-                        onChanged: _onDocChanged,
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                          hintText: 'DNI / RUC',
-                          border: InputBorder.none,
-                          suffixIcon: _isConsultandoDoc
-                              ? const SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(4.0),
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandPrimary),
-                                  ),
-                                )
-                              : null,
-                          suffixIconConstraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-                        ),
-                      ),
-                    ),
-                    if (_clienteNombreController.text.trim() != 'Público General' || _clienteDocController.text.trim() != '00000000')
-                      IconButton(
-                        icon: const Icon(LucideIcons.rotateCcw, size: 16),
-                        tooltip: 'Restaurar Público General',
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                        onPressed: () {
-                          setState(() {
-                            _clienteNombreController.text = 'Público General';
-                            _clienteDocController.text = '00000000';
-                          });
-                        },
-                      ),
-                  ],
-                ),
-              ),
+              // Cliente (Consumidor Final / Con DNI)
+              _buildCustomerCard(isDark, cardBg, borderColor, labelColor, isTablet: false),
               const SizedBox(height: 14),
 
               // Tarjeta Canasta de Compras (POS)
@@ -1845,7 +1914,7 @@ class _VentasScreenState extends State<VentasScreen> {
               ),
               const SizedBox(height: 14),
 
-              // Selector de Método de Pago
+              // Forma de Pago & Calculadora de Vuelto
               Container(
                 decoration: BoxDecoration(
                   color: cardBg,
@@ -1856,139 +1925,39 @@ class _VentasScreenState extends State<VentasScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Forma de Pago',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: labelColor,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark),
-                        _buildPaymentChip('Yape', LucideIcons.smartphone, isDark),
-                        _buildPaymentChip('Plin', LucideIcons.smartphone, isDark),
-                        _buildPaymentChip('Tarjeta', LucideIcons.creditCard, isDark),
-                      ],
-                    ),
-
-                    // Calculadora de Vuelto para Efectivo
-                    if (_metodoPago == 'Efectivo') ...[
-                      const SizedBox(height: 14),
-                      Divider(height: 1, color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Calculadora de Vuelto',
+                        Flexible(
+                          child: Text(
+                            'Forma de Pago',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
                               color: labelColor,
                             ),
                           ),
-                          Text(
-                            'Total a cobrar: S/ ${_totalVenta.toStringAsFixed(2)}',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.brandPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Botones rápidos de denominaciones
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: [
-                          _buildDenomChip('Exacto', _totalVenta, isDark),
-                          if (_totalVenta <= 10) _buildDenomChip('S/ 10', 10.0, isDark),
-                          if (_totalVenta <= 20) _buildDenomChip('S/ 20', 20.0, isDark),
-                          _buildDenomChip('S/ 50', 50.0, isDark),
-                          _buildDenomChip('S/ 100', 100.0, isDark),
-                          _buildDenomChip('S/ 200', 200.0, isDark),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Campo "Pagó con" y Tarjeta de "Vuelto"
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _pagoConController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        ),
+                        if (_metodoPago == 'Efectivo')
+                          Flexible(
+                            child: Text(
+                              'Calculadora de Vuelto',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.right,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: labelColor,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.brandPrimary,
                               ),
-                              decoration: InputDecoration(
-                                labelText: 'Pagó con',
-                                prefixText: 'S/ ',
-                                prefixStyle: GoogleFonts.plusJakartaSans(
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.brandPrimary,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              ),
-                              onChanged: (_) => setState(() {}),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          // Indicador de Vuelto
-                          Container(
-                            constraints: const BoxConstraints(minWidth: 130),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: _montoRecibido >= _totalVenta && _montoRecibido > 0
-                                  ? const Color(0xFFD1FAE5)
-                                  : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _montoRecibido >= _totalVenta && _montoRecibido > 0
-                                    ? AppTheme.accentGreen
-                                    : Colors.transparent,
-                                width: 1.2,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _montoRecibido >= _totalVenta ? 'Vuelto' : 'Falta',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: _montoRecibido >= _totalVenta
-                                        ? const Color(0xFF065F46)
-                                        : AppTheme.textMuted,
-                                  ),
-                                ),
-                                Text(
-                                  'S/ ${_vuelto >= 0 ? _vuelto.toStringAsFixed(2) : (_totalVenta - _montoRecibido).toStringAsFixed(2)}',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    color: _montoRecibido >= _totalVenta
-                                        ? const Color(0xFF047857)
-                                        : AppTheme.alertRed,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildPaymentAndCashSection(isDark, cardBg, borderColor, labelColor, isTablet: false),
                   ],
                 ),
               ),
@@ -2017,72 +1986,50 @@ class _VentasScreenState extends State<VentasScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'TOTAL A COBRAR',
-                              style: GoogleFonts.outfit(
-                                color: AppTheme.textMuted,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TOTAL A COBRAR',
+                                style: GoogleFonts.outfit(
+                                  color: AppTheme.textMuted,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.8,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '$_totalUnidades productos en canasta',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                color: AppTheme.textMuted,
-                                fontWeight: FontWeight.w500,
+                              Text(
+                                '$_totalUnidades productos en canasta',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  color: AppTheme.textMuted,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        Text(
-                          'S/ ${_totalVenta.toStringAsFixed(2)}',
-                          style: GoogleFonts.outfit(
-                            color: AppTheme.brandPrimary,
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                            fontFeatures: const [FontFeature.tabularFigures()],
+                        const SizedBox(width: 8),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'S/ ${_totalVenta.toStringAsFixed(2)}',
+                            style: GoogleFonts.outfit(
+                              color: AppTheme.brandPrimary,
+                              fontSize: 30,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: (_isProcesando || _carrito.isEmpty) ? null : _procesarVenta,
-                        icon: _isProcesando
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              )
-                            : const Icon(LucideIcons.checkCheck, size: 20),
-                        label: Text(
-                          _isProcesando
-                              ? 'PROCESANDO...'
-                              : 'CONFIRMAR Y COBRAR • S/ ${_totalVenta.toStringAsFixed(2)}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.brandPrimary,
-                          foregroundColor: Colors.white,
-                          elevation: 3,
-                          shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                        ),
-                      ),
-                    ),
+                    _buildCobrarButton(isDark: isDark, height: 52, isTablet: false),
                   ],
                 ),
               ),
@@ -2658,116 +2605,55 @@ class _VentasScreenState extends State<VentasScreen> {
           // Selector de Comprobante (Ticket, Boleta, Factura)
           _buildTipoComprobanteSelector(isDark),
 
-          // Barra Compacta de Datos del Cliente
-          Container(
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: Row(
-              children: [
-                const Icon(LucideIcons.userCheck, size: 15, color: AppTheme.brandPrimary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _clienteNombreController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: labelColor),
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      hintText: 'Cliente',
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                SizedBox(
-                  width: 98,
-                  child: TextField(
-                    controller: _clienteDocController,
-                    keyboardType: TextInputType.number,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: labelColor),
-                    onChanged: _onDocChanged,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      hintText: 'DNI / RUC',
-                      border: InputBorder.none,
-                      suffixIcon: _isConsultandoDoc
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: Padding(
-                                padding: EdgeInsets.all(3.0),
-                                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandPrimary),
-                              ),
-                            )
-                          : null,
-                      suffixIconConstraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                    ),
-                  ),
-                ),
-                if (_clienteNombreController.text.trim() != 'Público General' || _clienteDocController.text.trim() != '00000000')
-                  IconButton(
-                    icon: const Icon(LucideIcons.rotateCcw, size: 13),
-                    tooltip: 'Restaurar Público General',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-                    onPressed: () {
-                      setState(() {
-                        _clienteNombreController.text = 'Público General';
-                        _clienteDocController.text = '00000000';
-                      });
-                    },
-                  ),
-              ],
-            ),
-          ),
+          // Cliente (Consumidor Final / Con DNI)
+          _buildCustomerCard(isDark, cardBg, borderColor, labelColor, isTablet: true),
           const SizedBox(height: 8),
 
           // Lista de items en ticket o Banner de terminal listo
           Expanded(
             child: _carrito.isEmpty
                 ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              child: const Icon(LucideIcons.scanLine, size: 28, color: AppTheme.brandPrimary),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'TERMINAL LISTO',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                                color: labelColor,
                               ),
                             ),
-                            child: const Icon(LucideIcons.scanLine, size: 32, color: AppTheme.brandPrimary),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'TERMINAL LISTO',
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                              color: labelColor,
+                            const SizedBox(height: 4),
+                            Text(
+                              'Pasa el lector láser o toca productos del catálogo para agregarlos a la venta.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                color: AppTheme.textMuted,
+                                height: 1.3,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Pasa el lector láser o toca productos del catálogo para agregarlos a la venta.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              color: AppTheme.textMuted,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   )
@@ -2908,88 +2794,8 @@ class _VentasScreenState extends State<VentasScreen> {
           Divider(height: 1, color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
           const SizedBox(height: 6),
 
-          // Canales de pago
-          Wrap(
-            spacing: 5,
-            runSpacing: 4,
-            children: [
-              _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark),
-              _buildPaymentChip('Yape', LucideIcons.smartphone, isDark),
-              _buildPaymentChip('Plin', LucideIcons.smartphone, isDark),
-              _buildPaymentChip('Tarjeta', LucideIcons.creditCard, isDark),
-            ],
-          ),
-
-          // Si es Efectivo: calculadora rápida con billetes
-          if (_metodoPago == 'Efectivo') ...[
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 5,
-              runSpacing: 4,
-              children: [
-                _buildDenomChip('Exacto', _totalVenta, isDark),
-                if (_totalVenta <= 10) _buildDenomChip('S/ 10', 10.0, isDark),
-                if (_totalVenta <= 20) _buildDenomChip('S/ 20', 20.0, isDark),
-                _buildDenomChip('S/ 50', 50.0, isDark),
-                _buildDenomChip('S/ 100', 100.0, isDark),
-                _buildDenomChip('S/ 200', 200.0, isDark),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 38,
-                    child: TextField(
-                      controller: _pagoConController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800, color: labelColor),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        labelText: 'Pagó con',
-                        prefixText: 'S/ ',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _montoRecibido >= _totalVenta
-                        ? (isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5))
-                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        _montoRecibido >= _totalVenta ? 'Vuelto' : 'Falta',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textMuted,
-                        ),
-                      ),
-                      Text(
-                        'S/ ${_vuelto >= 0 ? _vuelto.toStringAsFixed(2) : (_totalVenta - _montoRecibido).toStringAsFixed(2)}',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: _montoRecibido >= _totalVenta ? AppTheme.accentGreen : AppTheme.alertRed,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
+          // Canales de pago & Calculadora de Vuelto
+          _buildPaymentAndCashSection(isDark, cardBg, borderColor, labelColor, isTablet: true),
 
           const SizedBox(height: 8),
 
@@ -3022,35 +2828,46 @@ class _VentasScreenState extends State<VentasScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'TOTAL A COBRAR',
-                      style: GoogleFonts.outfit(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                        color: const Color(0xFF38BDF8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'TOTAL A COBRAR',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                          color: const Color(0xFF38BDF8),
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${_carrito.length} items seleccionados',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        color: Colors.white70,
+                      Text(
+                        '${_carrito.length} items seleccionados',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          color: Colors.white70,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                Text(
-                  'S/ ${_totalVenta.toStringAsFixed(2)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    color: Colors.white,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                const SizedBox(width: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'S/ ${_totalVenta.toStringAsFixed(2)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 25,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      color: Colors.white,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ],
@@ -3085,34 +2902,7 @@ class _VentasScreenState extends State<VentasScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: SizedBox(
-                  height: 46,
-                  child: ElevatedButton.icon(
-                    onPressed: (_isProcesando || _carrito.isEmpty) ? null : _procesarVenta,
-                    icon: _isProcesando
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Icon(LucideIcons.checkCheck, size: 18),
-                    label: Text(
-                      _isProcesando ? 'PROCESANDO...' : 'COBRAR • S/ ${_totalVenta.toStringAsFixed(2)}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.brandPrimary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 3,
-                      shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
+                child: _buildCobrarButton(isDark: isDark, height: 46, isTablet: true),
               ),
             ],
           ),
@@ -3121,21 +2911,347 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
-  Widget _buildDenomChip(String label, double amount, bool isDark) {
-    return ActionChip(
-      label: Text(label),
-      labelStyle: GoogleFonts.plusJakartaSans(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: isDark ? Colors.white70 : AppTheme.textDark,
+  Widget _buildCustomerCard(bool isDark, Color cardBg, Color borderColor, Color labelColor, {bool isTablet = false}) {
+    if (!_identificarCliente) {
+      return Container(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(isTablet ? 14 : 18),
+          border: Border.all(color: borderColor, width: 1.2),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: isTablet ? 10 : 14, vertical: isTablet ? 8 : 10),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(isTablet ? 5 : 7),
+              decoration: BoxDecoration(
+                color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.2 : 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(LucideIcons.userCheck, size: isTablet ? 14 : 16, color: AppTheme.accentGreen),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Consumidor Final',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: isTablet ? 12 : 13,
+                            fontWeight: FontWeight.w700,
+                            color: labelColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Sin DNI',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'Público general • Boleta o Ticket rápido',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isTablet ? 10 : 11,
+                      color: AppTheme.textMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.brandPrimary,
+                side: BorderSide(color: AppTheme.brandPrimary.withValues(alpha: 0.5), width: 1.2),
+                padding: EdgeInsets.symmetric(horizontal: isTablet ? 8 : 12, vertical: isTablet ? 4 : 6),
+                minimumSize: Size(0, isTablet ? 30 : 34),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: Icon(LucideIcons.idCard, size: isTablet ? 13 : 15),
+              label: Text(
+                '+ DNI',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: isTablet ? 11 : 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              onPressed: () {
+                setState(() => _identificarCliente = true);
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  _clienteDocFocusNode.requestFocus();
+                });
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Modo Con DNI
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(isTablet ? 14 : 18),
+        border: Border.all(
+          color: AppTheme.brandPrimary.withValues(alpha: 0.45),
+          width: 1.4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brandPrimary.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-      side: BorderSide(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      padding: EdgeInsets.all(isTablet ? 9 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.idCard, size: isTablet ? 13 : 15, color: AppTheme.brandPrimary),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Cliente con DNI',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: isTablet ? 11.5 : 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              if (_tipoComprobante == 'BOLETA_ELECTRONICA' && _totalVenta >= 700.0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(LucideIcons.shieldAlert, size: 10, color: Colors.amber.shade900),
+                      const SizedBox(width: 3),
+                      Text(
+                        'SUNAT ≥ S/ 700',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.amber.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () {
+                    setState(() {
+                      _identificarCliente = false;
+                      _clienteDocController.clear();
+                      _clienteNombreController.clear();
+                      _alertaDocMensaje = null;
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(LucideIcons.rotateCcw, size: 11, color: AppTheme.textMuted),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Consumidor Final',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: isTablet ? 6 : 8),
+          Row(
+            children: [
+              SizedBox(
+                width: isTablet ? 105 : 120,
+                child: TextField(
+                  controller: _clienteDocController,
+                  focusNode: _clienteDocFocusNode,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(8),
+                  ],
+                  style: GoogleFonts.outfit(
+                    fontSize: isTablet ? 12.5 : 13.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                  onChanged: _onDocChanged,
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: isTablet ? 7 : 9),
+                    hintText: 'DNI (8 d.)',
+                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppTheme.brandPrimary, width: 1.4),
+                    ),
+                    suffixIcon: _isConsultandoDoc
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: Padding(
+                              padding: EdgeInsets.all(7.0),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandPrimary),
+                            ),
+                          )
+                        : (_clienteDocController.text.length == 8
+                            ? const Icon(LucideIcons.checkCheck, size: 14, color: AppTheme.accentGreen)
+                            : null),
+                    suffixIconConstraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: _clienteNombreController,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: isTablet ? 11.5 : 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: isTablet ? 7 : 9),
+                    hintText: 'Nombre del Cliente',
+                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppTheme.brandPrimary, width: 1.4),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_clienteNombreController.text.isNotEmpty && _clienteDocController.text.length == 8) ...[
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                const Icon(LucideIcons.badgeCheck, size: 12, color: AppTheme.accentGreen),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Identificado: ${_clienteNombreController.text.trim()}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.accentGreen,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDenomChip({
+    required String label,
+    required double amount,
+    required bool isDark,
+    bool isExacto = false,
+  }) {
+    final isSelected = (_montoRecibido - amount).abs() < 0.01;
+    final primaryColor = isExacto ? AppTheme.accentGreen : AppTheme.brandPrimary;
+
+    return ActionChip(
+      avatar: isExacto
+          ? Icon(LucideIcons.zap, size: 13, color: isSelected ? Colors.white : AppTheme.accentGreen)
+          : null,
+      label: Text(label),
+      labelStyle: GoogleFonts.outfit(
+        fontSize: 11.5,
+        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+        color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
+      ),
+      backgroundColor: isSelected
+          ? primaryColor
+          : (isExacto
+              ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFD1FAE5))
+              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))),
+      side: BorderSide(
+        color: isSelected
+            ? primaryColor
+            : (isExacto ? AppTheme.accentGreen.withValues(alpha: 0.7) : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0))),
+        width: isSelected || isExacto ? 1.4 : 1.0,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onPressed: () {
         setState(() {
           _pagoConController.text = amount.toStringAsFixed(2);
         });
+        HapticFeedback.selectionClick();
+        KarlizSoundService.instance.playBarcodeBeep();
       },
     );
   }
@@ -3162,7 +3278,7 @@ class _VentasScreenState extends State<VentasScreen> {
     return ChoiceChip(
       avatar: Icon(
         icon,
-        size: 16,
+        size: 15,
         color: isSelected ? Colors.white : (isDark ? Colors.white70 : methodColor),
       ),
       label: Text(metodo),
@@ -3178,17 +3294,592 @@ class _VentasScreenState extends State<VentasScreen> {
         color: isSelected ? methodColor : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
         width: isSelected ? 1.4 : 1.0,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       onSelected: (_) {
         setState(() {
           _metodoPago = metodo;
-          if (_metodoPago == 'Efectivo') {
-            _pagoConController.text = _totalVenta.toStringAsFixed(2);
-          } else {
-            _pagoConController.clear();
-          }
+          _pagoConController.clear();
         });
+        HapticFeedback.selectionClick();
       },
+    );
+  }
+
+  Widget _buildVueltoCard(bool isDark, {bool isTablet = false}) {
+    if (_montoRecibido <= 0) {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: isTablet ? 10 : 14, vertical: isTablet ? 8 : 10),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: isDark ? 0.2 : 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(LucideIcons.banknote, size: 15, color: Colors.amber),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Efectivo no especificado',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isTablet ? 11 : 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white70 : AppTheme.textDark,
+                    ),
+                  ),
+                  Text(
+                    'Toca un billete o pulsa Pagar Exacto',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isTablet ? 9.5 : 10.5,
+                      color: AppTheme.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                setState(() {
+                  _pagoConController.text = _totalVenta.toStringAsFixed(2);
+                });
+                HapticFeedback.selectionClick();
+                KarlizSoundService.instance.playBarcodeBeep();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.25 : 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.zap, size: 12, color: AppTheme.accentGreen),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Pagar Exacto',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.accentGreen,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_montoRecibido < _totalVenta) {
+      final faltante = _totalVenta - _montoRecibido;
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: isTablet ? 10 : 14, vertical: isTablet ? 8 : 10),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF450A0A).withValues(alpha: 0.5) : const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.6), width: 1.2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: AppTheme.alertRed.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(LucideIcons.alertTriangle, size: 16, color: AppTheme.alertRed),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'MONTO INSUFICIENTE',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                      color: AppTheme.alertRed,
+                    ),
+                  ),
+                  Text(
+                    'Faltan S/ ${faltante.toStringAsFixed(2)} para completar',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : const Color(0xFF7F1D1D),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              '- S/ ${faltante.toStringAsFixed(2)}',
+              style: GoogleFonts.outfit(
+                fontSize: isTablet ? 14 : 16,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.alertRed,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_vuelto == 0) {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: isTablet ? 10 : 14, vertical: isTablet ? 8 : 10),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F2942) : const Color(0xFFEFF6FF),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.6), width: 1.2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(LucideIcons.checkCheck, size: 16, color: Color(0xFF3B82F6)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PAGO EXACTO',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                      color: const Color(0xFF2563EB),
+                    ),
+                  ),
+                  Text(
+                    'Monto cubierto al centavo',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : const Color(0xFF1E3A8A),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              'SIN VUELTO',
+              style: GoogleFonts.outfit(
+                fontSize: isTablet ? 12 : 13,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF2563EB),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // _vuelto > 0
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: isTablet ? 10 : 14, vertical: isTablet ? 8 : 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.45) : const Color(0xFFD1FAE5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.accentGreen, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.accentGreen.withValues(alpha: 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppTheme.accentGreen.withValues(alpha: 0.25),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(LucideIcons.coins, size: 20, color: Color(0xFF047857)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'VUELTO A ENTREGAR',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                    color: const Color(0xFF065F46),
+                  ),
+                ),
+                Text(
+                  'Pagó con S/ ${_montoRecibido.toStringAsFixed(2)}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white70 : const Color(0xFF065F46),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            'S/ ${_vuelto.toStringAsFixed(2)}',
+            style: GoogleFonts.outfit(
+              fontSize: isTablet ? 18 : 22,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF047857),
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentAndCashSection(bool isDark, Color cardBg, Color borderColor, Color labelColor, {bool isTablet = false}) {
+    final billetes = _calcularBilletesSugeridos(_totalVenta);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Selector de Canales de Pago
+        Wrap(
+          spacing: isTablet ? 5 : 8,
+          runSpacing: isTablet ? 4 : 6,
+          children: [
+            _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark),
+            _buildPaymentChip('Yape', LucideIcons.smartphone, isDark),
+            _buildPaymentChip('Plin', LucideIcons.smartphone, isDark),
+            _buildPaymentChip('Tarjeta', LucideIcons.creditCard, isDark),
+          ],
+        ),
+        SizedBox(height: isTablet ? 8 : 12),
+
+        if (_metodoPago == 'Efectivo') ...[
+          // Denominaciones sugeridas rápidas
+          Wrap(
+            spacing: isTablet ? 5 : 7,
+            runSpacing: isTablet ? 4 : 6,
+            children: [
+              _buildDenomChip(
+                label: 'Exacto (S/ ${_totalVenta.toStringAsFixed(2)})',
+                amount: _totalVenta,
+                isDark: isDark,
+                isExacto: true,
+              ),
+              for (final b in billetes)
+                _buildDenomChip(
+                  label: 'S/ ${b % 1 == 0 ? b.toInt() : b.toStringAsFixed(2)}',
+                  amount: b,
+                  isDark: isDark,
+                ),
+            ],
+          ),
+          SizedBox(height: isTablet ? 8 : 10),
+
+          // Campo "Pagó con"
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: isTablet ? 40 : 46,
+                  child: TextField(
+                    controller: _pagoConController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: GoogleFonts.outfit(
+                      fontSize: isTablet ? 14 : 16,
+                      fontWeight: FontWeight.w800,
+                      color: labelColor,
+                    ),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      labelText: 'Efectivo recibido',
+                      labelStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: isTablet ? 11.5 : 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textMuted,
+                      ),
+                      prefixText: 'S/ ',
+                      prefixStyle: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w900,
+                        fontSize: isTablet ? 14 : 16,
+                        color: AppTheme.brandPrimary,
+                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: isTablet ? 8 : 12),
+                      suffixIcon: _pagoConController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(LucideIcons.x, size: 14),
+                              onPressed: () {
+                                setState(() => _pagoConController.clear());
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: isTablet ? 8 : 10),
+
+          // Tarjeta Inteligente de Vuelto
+          _buildVueltoCard(isDark, isTablet: isTablet),
+        ] else ...[
+          // Banner informativo para métodos digitales (Yape, Plin, Tarjeta)
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: isTablet ? 8 : 10),
+            decoration: BoxDecoration(
+              color: _metodoPago == 'Yape'
+                  ? const Color(0xFF742284).withValues(alpha: isDark ? 0.2 : 0.1)
+                  : (_metodoPago == 'Plin'
+                      ? const Color(0xFF0891B2).withValues(alpha: isDark ? 0.2 : 0.1)
+                      : const Color(0xFF2563EB).withValues(alpha: isDark ? 0.2 : 0.1)),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _metodoPago == 'Yape'
+                    ? const Color(0xFF742284).withValues(alpha: 0.35)
+                    : (_metodoPago == 'Plin'
+                        ? const Color(0xFF0891B2).withValues(alpha: 0.35)
+                        : const Color(0xFF2563EB).withValues(alpha: 0.35)),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  _metodoPago == 'Tarjeta' ? LucideIcons.creditCard : LucideIcons.smartphone,
+                  size: 18,
+                  color: _metodoPago == 'Yape'
+                      ? const Color(0xFF9333EA)
+                      : (_metodoPago == 'Plin' ? const Color(0xFF0891B2) : const Color(0xFF2563EB)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _metodoPago == 'Yape'
+                        ? 'Cobro Yape: Verifica la notificación en tu celular antes de confirmar.'
+                        : (_metodoPago == 'Plin'
+                            ? 'Cobro Plin: Verifica la transferencia recibida en tu cuenta bancaria.'
+                            : 'Cobro Tarjeta: Desliza o inserta la tarjeta en tu terminal POS.'),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isTablet ? 10.5 : 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : const Color(0xFF334155),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCobrarButton({required bool isDark, required double height, bool isTablet = false}) {
+    final bool canCobrar = !_isProcesando && _carrito.isNotEmpty;
+
+    if (_isProcesando) {
+      return SizedBox(
+        width: double.infinity,
+        height: height,
+        child: ElevatedButton.icon(
+          onPressed: null,
+          icon: const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2),
+          ),
+          label: Text(
+            'PROCESANDO COBRO...',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w800),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.brandPrimary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
+          ),
+        ),
+      );
+    }
+
+    if (_carrito.isEmpty) {
+      return SizedBox(
+        width: double.infinity,
+        height: height,
+        child: ElevatedButton.icon(
+          onPressed: null,
+          icon: const Icon(LucideIcons.shoppingBag, size: 18),
+          label: Text(
+            'CANASTA VACÍA',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+            foregroundColor: AppTheme.textMuted,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
+          ),
+        ),
+      );
+    }
+
+    if (_metodoPago == 'Efectivo') {
+      if (_montoRecibido <= 0) {
+        return SizedBox(
+          width: double.infinity,
+          height: height,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              setState(() {
+                _pagoConController.text = _totalVenta.toStringAsFixed(2);
+              });
+              HapticFeedback.mediumImpact();
+              KarlizSoundService.instance.playBarcodeBeep();
+            },
+            icon: const Icon(LucideIcons.zap, size: 18),
+            label: Text(
+              'COBRAR EXACTO • S/ ${_totalVenta.toStringAsFixed(2)}',
+              style: GoogleFonts.plusJakartaSans(fontSize: isTablet ? 12.5 : 13.5, fontWeight: FontWeight.w800),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              elevation: 3,
+              shadowColor: const Color(0xFF0D9488).withValues(alpha: 0.35),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
+            ),
+          ),
+        );
+      }
+
+      if (_montoRecibido < _totalVenta) {
+        final faltante = _totalVenta - _montoRecibido;
+        return SizedBox(
+          width: double.infinity,
+          height: height,
+          child: ElevatedButton.icon(
+            onPressed: null,
+            icon: const Icon(LucideIcons.alertTriangle, size: 18),
+            label: Text(
+              'FALTA DINERO: S/ ${faltante.toStringAsFixed(2)}',
+              style: GoogleFonts.plusJakartaSans(fontSize: isTablet ? 12 : 13, fontWeight: FontWeight.w800),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.alertRed.withValues(alpha: 0.15),
+              foregroundColor: AppTheme.alertRed,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
+            ),
+          ),
+        );
+      }
+
+      // Efectivo cubierto
+      final String labelText = _vuelto > 0
+          ? 'COBRAR S/ ${_totalVenta.toStringAsFixed(2)} • VUELTO: S/ ${_vuelto.toStringAsFixed(2)}'
+          : 'COBRAR S/ ${_totalVenta.toStringAsFixed(2)} • PAGO EXACTO';
+
+      return SizedBox(
+        width: double.infinity,
+        height: height,
+        child: ElevatedButton.icon(
+          onPressed: _procesarVenta,
+          icon: const Icon(LucideIcons.checkCheck, size: 18),
+          label: Text(
+            labelText,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: isTablet ? 12.5 : 13.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.brandPrimary,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
+          ),
+        ),
+      );
+    }
+
+    // Métodos digitales
+    Color btnColor = AppTheme.brandPrimary;
+    String btnLabel = 'CONFIRMAR Y COBRAR • S/ ${_totalVenta.toStringAsFixed(2)}';
+    IconData btnIcon = LucideIcons.checkCheck;
+
+    if (_metodoPago == 'Yape') {
+      btnColor = const Color(0xFF742284);
+      btnLabel = 'CONFIRMAR PAGO YAPE • S/ ${_totalVenta.toStringAsFixed(2)}';
+      btnIcon = LucideIcons.smartphone;
+    } else if (_metodoPago == 'Plin') {
+      btnColor = const Color(0xFF0891B2);
+      btnLabel = 'CONFIRMAR PAGO PLIN • S/ ${_totalVenta.toStringAsFixed(2)}';
+      btnIcon = LucideIcons.smartphone;
+    } else if (_metodoPago == 'Tarjeta') {
+      btnColor = const Color(0xFF2563EB);
+      btnLabel = 'CONFIRMAR POS TARJETA • S/ ${_totalVenta.toStringAsFixed(2)}';
+      btnIcon = LucideIcons.creditCard;
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      height: height,
+      child: ElevatedButton.icon(
+        onPressed: canCobrar ? _procesarVenta : null,
+        icon: Icon(btnIcon, size: 18),
+        label: Text(
+          btnLabel,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: isTablet ? 12.5 : 13.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: btnColor,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          shadowColor: btnColor.withValues(alpha: 0.35),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
+        ),
+      ),
     );
   }
 
@@ -3198,7 +3889,10 @@ class _VentasScreenState extends State<VentasScreen> {
     required String metodo,
     VentaRegistro? ventaGenerada,
   }) async {
-    final doc = _clienteDocController.text.trim();
+    final doc = (_identificarCliente && _clienteDocController.text.trim().isNotEmpty) ? _clienteDocController.text.trim() : '';
+    final nom = (_identificarCliente && _clienteNombreController.text.trim().isNotEmpty)
+        ? _clienteNombreController.text.trim()
+        : 'Consumidor Final';
     final numTelf = (doc.length == 9 && doc.startsWith('9')) ? '51$doc' : '';
 
     final comprobanteStr = ventaGenerada != null && ventaGenerada.etiquetaComprobante.isNotEmpty
@@ -3212,8 +3906,8 @@ class _VentasScreenState extends State<VentasScreen> {
       buffer.writeln('RUC Emisor: $_rucBodega');
     }
     buffer.writeln('Régimen: NUEVO RUS');
-    buffer.writeln('Cliente: ${_clienteNombreController.text.trim()}');
-    if (doc.isNotEmpty && doc != '00000000') {
+    buffer.writeln('Cliente: $nom');
+    if (doc.isNotEmpty) {
       buffer.writeln('DNI: $doc');
     }
     if (ventaGenerada?.serieCorrelativo != null) {
@@ -3271,12 +3965,16 @@ class _VentasScreenState extends State<VentasScreen> {
             children: [
               const Icon(LucideIcons.checkCircle2, size: 11, color: AppTheme.accentGreen),
               const SizedBox(width: 4),
-              Text(
-                'Régimen Nuevo RUS (SUNAT): Venta ágil a consumidor final',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : AppTheme.textMuted,
+              Flexible(
+                child: Text(
+                  'Régimen Nuevo RUS (SUNAT): Venta ágil a consumidor final',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white70 : AppTheme.textMuted,
+                  ),
                 ),
               ),
             ],
@@ -3347,15 +4045,12 @@ class _VentasScreenState extends State<VentasScreen> {
           onTap: () {
             setState(() {
               _tipoComprobante = code;
-              if (_clienteDocController.text.isEmpty) {
-                _clienteDocController.text = '00000000';
-                _clienteNombreController.text = 'Público General';
-              }
+              _verificarNormativaSunat700();
             });
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(vertical: 7),
+            padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
             decoration: BoxDecoration(
               color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
               borderRadius: BorderRadius.circular(9),
@@ -3368,13 +4063,17 @@ class _VentasScreenState extends State<VentasScreen> {
                   size: 14,
                   color: isSelected ? Colors.white : (isDark ? Colors.white60 : AppTheme.textMuted),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textMuted),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textMuted),
+                    ),
                   ),
                 ),
               ],

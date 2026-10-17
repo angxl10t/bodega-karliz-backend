@@ -21,6 +21,13 @@ class ProductoService {
     productosRevision.value++;
   }
 
+  /// Permite inyectar productos en tests sin realizar llamadas de red HTTP
+  @visibleForTesting
+  static void setMockProductos(List<Producto> productos) {
+    _cachedProductos = List<Producto>.from(productos);
+    _cacheTimestamp = DateTime.now();
+  }
+
   /// Lista los productos disponibles. Si hay una copia en memoria reciente (< 45s) y no se
   /// solicita forceRefresh, la retorna de forma instantánea sin demora de red.
   Future<List<Producto>> getProductos({bool forceRefresh = false}) async {
