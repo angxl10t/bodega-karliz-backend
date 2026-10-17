@@ -509,7 +509,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildGreetingBanner(bool isDark) {
     final String initial = _username.isNotEmpty ? _username[0].toUpperCase() : 'U';
-    final bool isAdmin = _userRol.toUpperCase() == 'ADMIN';
+    final bool isAdmin = _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
 
     return Container(
       padding: const EdgeInsets.all(20),

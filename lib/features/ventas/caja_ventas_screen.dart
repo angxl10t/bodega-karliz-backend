@@ -24,6 +24,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   bool _isLoading = true;
   String _busquedaVenta = '';
   String _userRol = 'CAJERO';
+  bool get _esAdmin => _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
 
   DateTime _fechaSeleccionada = DateTime.now();
   bool _filtrarVentasPorFecha = false;
@@ -1843,7 +1844,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_userRol == 'ADMIN' && !v.isAnulada)
+                  if (_esAdmin && !v.isAnulada)
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.alertRed,
@@ -1857,7 +1858,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       ),
                       onPressed: () => _confirmarAnulacion(v),
                     ),
-                  if (_userRol == 'ADMIN' && v.esSunat && !v.isAnulada && 
+                  if (_esAdmin && v.esSunat && !v.isAnulada && 
                       (v.estadoSunat == 'PENDIENTE_ENVIO' || v.estadoSunat == 'RECHAZADO' || v.estadoSunat == 'ERROR_ENVIO' || v.estadoSunat == null)) ...[
                     const SizedBox(width: 4),
                     TextButton.icon(

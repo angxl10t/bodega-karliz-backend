@@ -11,6 +11,7 @@ import 'compra_model.dart';
 import 'compra_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
+import '../auth/auth_service.dart';
 
 class ComprasScreen extends StatefulWidget {
   const ComprasScreen({super.key});
@@ -39,6 +40,8 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
   bool _isLoading = true;
   bool _isProcesando = false;
   String _busquedaHistorial = '';
+  String _userRol = 'ADMIN';
+  bool get _esAdmin => _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
 
   List<Producto> get _safeProductos => _productos;
   List<Proveedor> get _safeProveedores => _proveedores;
@@ -75,9 +78,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
   Future<void> _cargarDatos({bool forceRefresh = false}) async {
     setState(() => _isLoading = true);
+    final rol = await AuthService().getUserRole();
+    if (!mounted) return;
+    setState(() => _userRol = rol);
+
     final prods = await _productoService.getProductos(forceRefresh: forceRefresh);
     final provs = await _proveedorService.getProveedores(forceRefresh: forceRefresh);
-    final compras = await _compraService.getCompras();
+    final compras = _esAdmin ? await _compraService.getCompras() : <CompraRegistro>[];
 
     if (mounted) {
       setState(() {
@@ -904,6 +911,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    if (!_esAdmin) {
+      return Scaffold(
+        backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
+        body: _buildCajeroRestringido(isDark),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(48),
@@ -930,6 +944,51 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           _buildFormularioCompra(isDark),
           _buildHistorialCompras(isDark),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCajeroRestringido(bool isDark) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.shieldAlert, size: 36, color: AppTheme.brandPrimary),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Módulo Reservado para Administrador',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'El registro de compras a proveedores, costos mayoristas de adquisición y márgenes comerciales está restringido a administradores.\n\nComo operador de caja, tus funciones autorizadas se concentran en la atención al cliente, cobros en caja y ventas en el POS.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -28,6 +28,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   String _selectedCategoria = 'Todos';
   String _estadoStockFiltro = 'todos'; // 'todos', 'bajo_stock', 'con_stock'
   String _userRol = 'CAJERO';
+  bool get _esAdmin => _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
 
   final TextEditingController _searchController = TextEditingController();
 
@@ -252,7 +253,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     ),
                   ),
 
-                  if (_userRol == 'ADMIN') ...[
+                  if (_esAdmin) ...[
                     const SizedBox(width: 8),
                     Material(
                       color: Colors.transparent,
@@ -619,7 +620,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
           ],
         ),
       ),
-      floatingActionButton: _userRol == 'ADMIN'
+      floatingActionButton: _esAdmin
           ? FloatingActionButton.extended(
               backgroundColor: AppTheme.brandPrimary,
               foregroundColor: Colors.white,
@@ -1049,7 +1050,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  if (_userRol == 'ADMIN') ...[
+                  if (_esAdmin) ...[
                     Expanded(
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(

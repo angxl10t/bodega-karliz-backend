@@ -377,7 +377,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
-                                      'Permisos: POS, Caja, Almacén, Compras y Métricas',
+                                      _userRol == 'SUPERADMIN'
+                                          ? 'Permisos: Consola Global, Auditoría y Todas las Bodegas'
+                                          : (_userRol == 'ADMIN'
+                                              ? 'Permisos: POS, Caja, Almacén, Compras y Métricas'
+                                              : 'Permisos: Cobro en Caja POS y Consulta de Stock'),
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w500,
