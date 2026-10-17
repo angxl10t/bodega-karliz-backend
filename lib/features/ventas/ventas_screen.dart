@@ -1076,29 +1076,60 @@ class _VentasScreenState extends State<VentasScreen> {
             ),
             if (ventaGenerada != null && ventaGenerada.esSunat) ...[
               const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentGreen.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(LucideIcons.checkCircle2, size: 14, color: AppTheme.accentGreen),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${ventaGenerada.etiquetaComprobante} • SUNAT ACEPTADO',
-                      style: GoogleFonts.outfit(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.accentGreen,
+              () {
+                final estado = (ventaGenerada.estadoSunat ?? 'ACEPTADO').toUpperCase();
+                final Color badgeColor;
+                final IconData badgeIcon;
+                final String badgeText;
+
+                switch (estado) {
+                  case 'ACEPTADO':
+                    badgeColor = AppTheme.accentGreen;
+                    badgeIcon = LucideIcons.checkCircle2;
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • SUNAT ACEPTADO';
+                    break;
+                  case 'ACEPTADO_BETA':
+                    badgeColor = const Color(0xFF0D9488);
+                    badgeIcon = LucideIcons.checkCheck;
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • SUNAT BETA (MODO PRUEBA)';
+                    break;
+                  case 'RECHAZADO':
+                    badgeColor = const Color(0xFFEF4444);
+                    badgeIcon = LucideIcons.alertCircle;
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • RECHAZADO SUNAT';
+                    break;
+                  case 'PENDIENTE_ENVIO':
+                  default:
+                    badgeColor = const Color(0xFFF59E0B);
+                    badgeIcon = LucideIcons.clock;
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • PENDIENTE ENVÍO SUNAT';
+                    break;
+                }
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(badgeIcon, size: 14, color: badgeColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        badgeText,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: badgeColor,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                );
+              }(),
             ],
             const SizedBox(height: 4),
             Text(
@@ -1336,6 +1367,7 @@ class _VentasScreenState extends State<VentasScreen> {
             tipoComprobante: ventaGenerada?.tipoComprobante ?? _tipoComprobante,
             serieCorrelativo: ventaGenerada?.serieCorrelativo,
             estadoSunat: ventaGenerada?.estadoSunat,
+            sunatHash: ventaGenerada?.sunatHash,
             regimenTributario: _regimenTributario,
           );
 

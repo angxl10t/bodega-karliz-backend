@@ -78,6 +78,7 @@ class ThermalTicketService {
     String? tipoComprobante,
     String? serieCorrelativo,
     String? estadoSunat,
+    String? sunatHash,
     String? regimenTributario,
   }) {
     final buffer = StringBuffer();
@@ -186,6 +187,10 @@ class ThermalTicketService {
 
     // Pie de Ticket y Agradecimiento
     if (esSunat) {
+      if (sunatHash != null && sunatHash.trim().isNotEmpty) {
+        final shortHash = sunatHash.trim().length > 16 ? '${sunatHash.trim().substring(0, 16)}...' : sunatHash.trim();
+        buffer.writeln(twoColumns('HASH SUNAT:', shortHash, width));
+      }
       buffer.writeln(center('Representacion impresa de la', width));
       buffer.writeln(center(esFactura ? 'FACTURA ELECTRONICA' : 'BOLETA DE VENTA ELECTRONICA', width));
       buffer.writeln(center('Autorizado mediante Resolucion SUNAT', width));
@@ -217,6 +222,7 @@ class ThermalTicketService {
     String? tipoComprobante,
     String? serieCorrelativo,
     String? estadoSunat,
+    String? sunatHash,
     String? regimenTributario,
   }) {
     final List<int> bytes = [];
@@ -251,6 +257,7 @@ class ThermalTicketService {
       tipoComprobante: tipoComprobante,
       serieCorrelativo: serieCorrelativo,
       estadoSunat: estadoSunat,
+      sunatHash: sunatHash,
       regimenTributario: regimenTributario,
     );
 

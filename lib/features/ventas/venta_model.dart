@@ -95,6 +95,11 @@ class VentaRegistro {
   final String? tipoComprobante;
   final String? serieCorrelativo;
   final String? estadoSunat;
+  final String? sunatHash;
+  final String? sunatMensaje;
+  final String? sunatCdrUrl;
+  final String? sunatPdfUrl;
+  final String? sunatXmlUrl;
   final List<VentaDetalleItem> detalles;
 
   VentaRegistro({
@@ -112,6 +117,11 @@ class VentaRegistro {
     this.tipoComprobante = 'TICKET',
     this.serieCorrelativo,
     this.estadoSunat,
+    this.sunatHash,
+    this.sunatMensaje,
+    this.sunatCdrUrl,
+    this.sunatPdfUrl,
+    this.sunatXmlUrl,
     required this.detalles,
   });
 
@@ -141,6 +151,11 @@ class VentaRegistro {
       tipoComprobante: json['tipoComprobante'] as String? ?? 'TICKET',
       serieCorrelativo: json['serieCorrelativo'] as String?,
       estadoSunat: json['estadoSunat'] as String?,
+      sunatHash: json['sunatHash'] as String?,
+      sunatMensaje: json['sunatMensaje'] as String?,
+      sunatCdrUrl: json['sunatCdrUrl'] as String?,
+      sunatPdfUrl: json['sunatPdfUrl'] as String?,
+      sunatXmlUrl: json['sunatXmlUrl'] as String?,
       detalles: (json['detalles'] as List<dynamic>?)
               ?.map((d) => VentaDetalleItem.fromJson(d as Map<String, dynamic>))
               .toList() ??

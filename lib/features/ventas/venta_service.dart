@@ -132,4 +132,25 @@ class VentaService {
     final res = await anularVentaConDetalle(idVenta, motivo: motivo);
     return res.ok;
   }
+
+  /// Reintenta el envío de un comprobante electrónico pendiente a SUNAT
+  Future<RegistroVentaResult> reintentarSunat(int idVenta) async {
+    try {
+      final response = await _apiClient.post('/ventas/$idVenta/reintentar-sunat', {});
+      if (response.statusCode == 200) {
+        notifyVentasChanged();
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return RegistroVentaResult(success: true, venta: VentaRegistro.fromJson(data));
+      }
+      try {
+        final errData = jsonDecode(utf8.decode(response.bodyBytes));
+        if (errData is Map && errData.containsKey('error')) {
+          return RegistroVentaResult(success: false, errorMessage: errData['error'].toString());
+        }
+      } catch (_) {}
+      return RegistroVentaResult(success: false, errorMessage: 'Error ${response.statusCode} al reintentar envío a SUNAT.');
+    } catch (e) {
+      return RegistroVentaResult(success: false, errorMessage: 'Error de conexión con el servidor al reintentar envío.');
+    }
+  }
 }

@@ -451,6 +451,54 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     }
   }
 
+  Future<void> _reintentarSunat(VentaRegistro venta) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Text('Reenviando ${venta.etiquetaComprobante} a SUNAT...'),
+          ],
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+
+    final result = await _ventaService.reintentarSunat(venta.idVenta);
+    if (!mounted) return;
+
+    messenger.hideCurrentSnackBar();
+    if (result.success && result.venta != null) {
+      final v = result.venta!;
+      final estado = (v.estadoSunat ?? '').toUpperCase();
+      final esAceptado = estado.contains('ACEPTADO');
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            esAceptado
+                ? '¡${v.serieCorrelativo ?? "#${v.idVenta}"} aceptado por SUNAT!'
+                : (v.sunatMensaje ?? 'Estado SUNAT: $estado'),
+          ),
+          backgroundColor: esAceptado ? AppTheme.accentGreen : const Color(0xFFF59E0B),
+        ),
+      );
+      _cargarDatos();
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(result.errorMessage ?? 'Error al conectar con la pasarela de facturación SUNAT'),
+          backgroundColor: AppTheme.alertRed,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1549,21 +1597,46 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                           ),
                           if (v.esSunat) ...[
                             const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                              decoration: BoxDecoration(
-                                color: AppTheme.accentGreen.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                'SUNAT',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.accentGreen,
+                            () {
+                              final estado = (v.estadoSunat ?? 'ACEPTADO').toUpperCase();
+                              final Color bg;
+                              final Color fg;
+                              final String label;
+
+                              if (estado == 'ACEPTADO') {
+                                bg = AppTheme.accentGreen.withValues(alpha: 0.15);
+                                fg = AppTheme.accentGreen;
+                                label = 'SUNAT OK';
+                              } else if (estado == 'ACEPTADO_BETA') {
+                                bg = const Color(0xFF0D9488).withValues(alpha: 0.15);
+                                fg = const Color(0xFF0D9488);
+                                label = 'SUNAT BETA';
+                              } else if (estado == 'RECHAZADO') {
+                                bg = AppTheme.alertRed.withValues(alpha: 0.15);
+                                fg = AppTheme.alertRed;
+                                label = 'RECHAZADO';
+                              } else {
+                                bg = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+                                fg = const Color(0xFFF59E0B);
+                                label = 'PENDIENTE';
+                              }
+
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                decoration: BoxDecoration(
+                                  color: bg,
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                              ),
-                            ),
+                                child: Text(
+                                  label,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    color: fg,
+                                  ),
+                                ),
+                              );
+                            }(),
                           ],
                         ],
                       ),
@@ -1721,38 +1794,57 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (_userRol == 'ADMIN' && !v.isAnulada)
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.alertRed,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  icon: const Icon(LucideIcons.undo2, size: 15),
-                  label: Text(
-                    'Anular Venta',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
-                  ),
-                  onPressed: () => _confirmarAnulacion(v),
-                )
-              else if (v.isAnulada)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(LucideIcons.rotateCcw, size: 13, color: AppTheme.accentGreen),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Stock devuelto a bodega',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.accentGreen,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_userRol == 'ADMIN' && !v.isAnulada)
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.alertRed,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
+                      icon: const Icon(LucideIcons.undo2, size: 15),
+                      label: Text(
+                        'Anular Venta',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
+                      onPressed: () => _confirmarAnulacion(v),
+                    ),
+                  if (_userRol == 'ADMIN' && v.esSunat && !v.isAnulada && (v.estadoSunat == 'PENDIENTE_ENVIO' || v.estadoSunat == null)) ...[
+                    const SizedBox(width: 4),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFF59E0B),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      icon: const Icon(LucideIcons.send, size: 14),
+                      label: Text(
+                        'Reenviar SUNAT',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
+                      onPressed: () => _reintentarSunat(v),
                     ),
                   ],
-                )
-              else
-                const SizedBox.shrink(),
+                  if (v.isAnulada)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(LucideIcons.rotateCcw, size: 13, color: AppTheme.accentGreen),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Stock devuelto a bodega',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.accentGreen,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
               Row(
                 children: [
                   Text(
