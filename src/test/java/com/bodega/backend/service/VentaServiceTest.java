@@ -126,4 +126,77 @@ public class VentaServiceTest {
         assertNotNull(venta.getFechaAnulacion());
         verify(ventaRepository, times(1)).save(venta);
     }
+
+    @Test
+    void testRegistrarVenta_Idempotencia_RetornaVentaExistenteSinDobleCobro() {
+        String key = "idemp-pos-uuid-9999";
+        com.bodega.backend.dto.VentaDTO dto = new com.bodega.backend.dto.VentaDTO();
+        dto.setIdempotencyKey(key);
+
+        Venta ventaExistente = new Venta();
+        ventaExistente.setIdVenta(55L);
+        ventaExistente.setTotal(new BigDecimal("25.00"));
+        ventaExistente.setEstado("COMPLETADA");
+        ventaExistente.setIdempotencyKey(key);
+
+        when(ventaRepository.findByBodega_IdBodegaAndIdempotencyKey(1L, key))
+                .thenReturn(Optional.of(ventaExistente));
+        when(ventaDetalleRepository.findByVenta(ventaExistente))
+                .thenReturn(List.of());
+
+        com.bodega.backend.dto.VentaDTO resultado = ventaService.registrarVenta(dto);
+
+        assertNotNull(resultado);
+        assertEquals(55L, resultado.getIdVenta());
+        assertEquals(new BigDecimal("25.00"), resultado.getTotal());
+        assertEquals(key, resultado.getIdempotencyKey());
+
+        // Blindaje contra doble cobro: No busca productos ni descuenta stock
+        verify(productoRepository, never()).findByIdForUpdateAndBodega(any(), any());
+        verify(ventaRepository, never()).save(any(Venta.class));
+    }
+
+    @Test
+    void testRegistrarVenta_FacturacionSunat_IncrementaCorrelativoConBloqueoPesimista() {
+        com.bodega.backend.entity.Bodega bodega = new com.bodega.backend.entity.Bodega();
+        bodega.setIdBodega(1L);
+        bodega.setFacturacionSunatActiva(true);
+        bodega.setSerieBoleta("B001");
+        bodega.setUltimoCorrelativoBoleta(15L);
+
+        when(tenantService.getCurrentBodega()).thenReturn(bodega);
+        when(bodegaRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(bodega));
+
+        Producto prod = new Producto();
+        prod.setIdProducto(10L);
+        prod.setNombre("Galletas Soda");
+        prod.setPrecioVenta(new BigDecimal("1.50"));
+        prod.setStockActual(new BigDecimal("50.000"));
+        prod.setEstado(true);
+
+        when(productoRepository.findByIdForUpdateAndBodega(10L, 1L)).thenReturn(Optional.of(prod));
+        when(ventaRepository.save(any(Venta.class))).thenAnswer(invocation -> {
+            Venta v = invocation.getArgument(0);
+            v.setIdVenta(88L);
+            return v;
+        });
+
+        com.bodega.backend.dto.VentaDTO dto = new com.bodega.backend.dto.VentaDTO();
+        dto.setMetodoPago("Efectivo");
+        com.bodega.backend.dto.VentaDetalleDTO item = new com.bodega.backend.dto.VentaDetalleDTO();
+        item.setIdProducto(10L);
+        item.setCantidad(new BigDecimal("2.000"));
+        dto.setDetalles(List.of(item));
+
+        com.bodega.backend.dto.VentaDTO ventaGenerada = ventaService.registrarVenta(dto);
+
+        assertNotNull(ventaGenerada);
+        assertEquals("BOLETA_ELECTRONICA", ventaGenerada.getTipoComprobante());
+        assertEquals("B001-00000016", ventaGenerada.getSerieCorrelativo());
+        assertEquals(16L, bodega.getUltimoCorrelativoBoleta());
+
+        // Verifica que se ejecutó con bloqueo pesimista en la Bodega
+        verify(bodegaRepository, times(1)).findByIdForUpdate(1L);
+        verify(bodegaRepository, times(1)).save(bodega);
+    }
 }

@@ -29,4 +29,6 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT v FROM Venta v WHERE v.idVenta = :id AND v.bodega.idBodega = :idBodega")
     Optional<Venta> findByIdForUpdateAndBodega(@Param("id") Long id, @Param("idBodega") Long idBodega);
+
+    Optional<Venta> findByBodega_IdBodegaAndIdempotencyKey(Long idBodega, String idempotencyKey);
 }

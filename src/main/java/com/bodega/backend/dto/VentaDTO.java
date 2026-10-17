@@ -38,6 +38,10 @@ public class VentaDTO {
     private String serieCorrelativo;
     private String estadoSunat;
 
+    // Clave de Idempotencia contra doble submit / pérdida de conexión
+    @Size(max = 64, message = "La clave de idempotencia no puede exceder los 64 caracteres")
+    private String idempotencyKey;
+
     @NotEmpty(message = "La venta debe tener al menos un producto")
     @Size(max = 100, message = "La venta no puede contener más de 100 productos diferentes")
     @Valid

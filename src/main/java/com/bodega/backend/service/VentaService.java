@@ -48,9 +48,23 @@ public class VentaService {
     public VentaDTO registrarVenta(VentaDTO dto) {
         Long idBodega = tenantService.getCurrentBodegaId();
 
+        // Idempotencia: Si la transacción ya fue procesada (por reintento de red), retornar la venta existente
+        if (dto.getIdempotencyKey() != null && !dto.getIdempotencyKey().isBlank()) {
+            String idempKey = dto.getIdempotencyKey().trim();
+            java.util.Optional<Venta> ventaExistente = ventaRepository.findByBodega_IdBodegaAndIdempotencyKey(idBodega, idempKey);
+            if (ventaExistente.isPresent()) {
+                Venta ve = ventaExistente.get();
+                List<VentaDetalle> dets = ventaDetalleRepository.findByVenta(ve);
+                return mapToDTO(ve, dets);
+            }
+        }
+
         Bodega bodega = tenantService.getCurrentBodega();
         Venta venta = new Venta();
         venta.setBodega(bodega);
+        if (dto.getIdempotencyKey() != null && !dto.getIdempotencyKey().isBlank()) {
+            venta.setIdempotencyKey(dto.getIdempotencyKey().trim());
+        }
         String docCliente = sanitizarTextoImpresion(dto.getClienteDocumento(), 20, null);
         String nomCliente = sanitizarTextoImpresion(dto.getClienteNombre(), 150, "Público General");
 
@@ -142,22 +156,23 @@ public class VentaService {
 
         venta.setTotal(totalVenta);
 
-        // Módulo SUNAT: Si la bodega tiene la facturación electrónica activa, generar correlativo y comprobante
+        // Módulo SUNAT: Si la bodega tiene la facturación electrónica activa, generar correlativo atómico con bloqueo pesimista
         if (bodega != null && Boolean.TRUE.equals(bodega.getFacturacionSunatActiva())) {
+            Bodega bodegaLocked = bodegaRepository.findByIdForUpdate(idBodega).orElse(bodega);
             boolean esRuc = docCliente != null && docCliente.trim().length() == 11;
             String tipo = esRuc ? "FACTURA_ELECTRONICA" : "BOLETA_ELECTRONICA";
-            String serie = esRuc ? (bodega.getSerieFactura() != null ? bodega.getSerieFactura() : "F001")
-                                 : (bodega.getSerieBoleta() != null ? bodega.getSerieBoleta() : "B001");
+            String serie = esRuc ? (bodegaLocked.getSerieFactura() != null ? bodegaLocked.getSerieFactura() : "F001")
+                                 : (bodegaLocked.getSerieBoleta() != null ? bodegaLocked.getSerieBoleta() : "B001");
             long correlativo = esRuc 
-                    ? (bodega.getUltimoCorrelativoFactura() != null ? bodega.getUltimoCorrelativoFactura() + 1 : 1L)
-                    : (bodega.getUltimoCorrelativoBoleta() != null ? bodega.getUltimoCorrelativoBoleta() + 1 : 1L);
+                    ? (bodegaLocked.getUltimoCorrelativoFactura() != null ? bodegaLocked.getUltimoCorrelativoFactura() + 1 : 1L)
+                    : (bodegaLocked.getUltimoCorrelativoBoleta() != null ? bodegaLocked.getUltimoCorrelativoBoleta() + 1 : 1L);
 
             if (esRuc) {
-                bodega.setUltimoCorrelativoFactura(correlativo);
+                bodegaLocked.setUltimoCorrelativoFactura(correlativo);
             } else {
-                bodega.setUltimoCorrelativoBoleta(correlativo);
+                bodegaLocked.setUltimoCorrelativoBoleta(correlativo);
             }
-            bodegaRepository.save(bodega);
+            bodegaRepository.save(bodegaLocked);
 
             venta.setTipoComprobante(tipo);
             venta.setSerieCorrelativo(String.format("%s-%08d", serie, correlativo));
@@ -439,6 +454,7 @@ public class VentaService {
         dto.setTipoComprobante(venta.getTipoComprobante() != null ? venta.getTipoComprobante() : "TICKET");
         dto.setSerieCorrelativo(venta.getSerieCorrelativo());
         dto.setEstadoSunat(venta.getEstadoSunat());
+        dto.setIdempotencyKey(venta.getIdempotencyKey());
 
         dto.setDetalles(detalles.stream().map(d -> {
             VentaDetalleDTO detDto = new VentaDetalleDTO();

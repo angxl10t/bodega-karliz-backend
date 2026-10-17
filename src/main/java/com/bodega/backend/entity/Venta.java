@@ -61,6 +61,10 @@ public class Venta {
     @Column(name = "estado_sunat", length = 30)
     private String estadoSunat;
 
+    // Idempotencia para prevenir doble cobro o duplicidad por reintentos de red
+    @Column(name = "idempotency_key", length = 64)
+    private String idempotencyKey;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_bodega")
     private Bodega bodega;
