@@ -78,10 +78,23 @@ public class DocumentoConsultaService {
                 ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                     Map<?, ?> body = response.getBody();
+                    if (body.get("data") instanceof Map) {
+                        body = (Map<?, ?>) body.get("data");
+                    }
                     String nombres = getStr(body, "nombres");
+                    if (nombres == null) nombres = getStr(body, "nombre");
+                    if (nombres == null) nombres = getStr(body, "first_name");
+
                     String apePat = getStr(body, "apellidoPaterno");
+                    if (apePat == null) apePat = getStr(body, "apellido_paterno");
+                    if (apePat == null) apePat = getStr(body, "paterno");
+
                     String apeMat = getStr(body, "apellidoMaterno");
+                    if (apeMat == null) apeMat = getStr(body, "apellido_materno");
+                    if (apeMat == null) apeMat = getStr(body, "materno");
+
                     String nombreCompleto = getStr(body, "nombreCompleto");
+                    if (nombreCompleto == null) nombreCompleto = getStr(body, "nombre_completo");
 
                     if ((nombreCompleto == null || nombreCompleto.isBlank()) && (nombres != null)) {
                         nombreCompleto = (nombres + " " + (apePat != null ? apePat : "") + " " + (apeMat != null ? apeMat : "")).trim();
@@ -134,7 +147,7 @@ public class DocumentoConsultaService {
             return dto;
         }
 
-        // 2. Si hay token de API configurado, consultar servicio externo (apis.net.pe)
+        // 2. Si hay token de API configurado, consultar servicio externo (apis.net.pe o apiperu.dev)
         if (apiToken != null && !apiToken.isBlank()) {
             try {
                 HttpHeaders headers = new HttpHeaders();
@@ -149,10 +162,24 @@ public class DocumentoConsultaService {
                 ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                     Map<?, ?> body = response.getBody();
+                    if (body.get("data") instanceof Map) {
+                        body = (Map<?, ?>) body.get("data");
+                    }
                     String razonSocial = getStr(body, "razonSocial");
+                    if (razonSocial == null) razonSocial = getStr(body, "razon_social");
+                    if (razonSocial == null) razonSocial = getStr(body, "nombre_o_razon_social");
+                    if (razonSocial == null) razonSocial = getStr(body, "nombre");
+
                     String estado = getStr(body, "estado");
+                    if (estado == null) estado = getStr(body, "estado_del_contribuyente");
+
                     String condicion = getStr(body, "condicion");
+                    if (condicion == null) condicion = getStr(body, "condicion_de_domicilio");
+
                     String direccion = getStr(body, "direccion");
+                    if (direccion == null) direccion = getStr(body, "direccion_completa");
+                    if (direccion == null) direccion = getStr(body, "domicilio_fiscal");
+
                     String departamento = getStr(body, "departamento");
                     String provincia = getStr(body, "provincia");
                     String distrito = getStr(body, "distrito");
