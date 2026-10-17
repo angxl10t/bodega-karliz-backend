@@ -201,8 +201,8 @@ public class BodegaService {
             bodega.setSunatUsuarioSol(dto.getSunatUsuarioSol().isBlank() ? null : dto.getSunatUsuarioSol().trim());
         }
 
-        if (dto.getSunatTokenApi() != null && !dto.getSunatTokenApi().isBlank()) {
-            bodega.setSunatTokenApi(dto.getSunatTokenApi().trim());
+        if (dto.getSunatTokenApi() != null) {
+            bodega.setSunatTokenApi(dto.getSunatTokenApi().isBlank() ? null : dto.getSunatTokenApi().trim());
         }
 
         if (dto.getSerieBoleta() != null && !dto.getSerieBoleta().isBlank()) {

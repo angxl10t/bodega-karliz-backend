@@ -351,6 +351,8 @@ public class VentaService {
 
         BigDecimal totalVentas = BigDecimal.ZERO;
         BigDecimal totalEfectivo = BigDecimal.ZERO;
+        BigDecimal totalEfectivoRecibido = BigDecimal.ZERO;
+        BigDecimal totalVueltoEntregado = BigDecimal.ZERO;
         BigDecimal totalYape = BigDecimal.ZERO;
         BigDecimal totalPlin = BigDecimal.ZERO;
         BigDecimal totalTarjeta = BigDecimal.ZERO;
@@ -376,6 +378,10 @@ public class VentaService {
                     totalTarjeta = totalTarjeta.add(tot);
                 } else {
                     totalEfectivo = totalEfectivo.add(tot);
+                    BigDecimal recibido = v.getMontoRecibido() != null ? v.getMontoRecibido() : tot;
+                    BigDecimal vuelto = v.getVuelto() != null ? v.getVuelto() : BigDecimal.ZERO;
+                    totalEfectivoRecibido = totalEfectivoRecibido.add(recibido);
+                    totalVueltoEntregado = totalVueltoEntregado.add(vuelto);
                 }
             }
         }
@@ -383,6 +389,8 @@ public class VentaService {
         resumen.setCantidadVentas(cantidadVentasValidas);
         resumen.setTotalVentas(totalVentas);
         resumen.setTotalEfectivo(totalEfectivo);
+        resumen.setTotalEfectivoRecibido(totalEfectivoRecibido);
+        resumen.setTotalVueltoEntregado(totalVueltoEntregado);
         resumen.setTotalYape(totalYape);
         resumen.setTotalPlin(totalPlin);
         resumen.setTotalTarjeta(totalTarjeta);
@@ -466,6 +474,23 @@ public class VentaService {
         venta.setFechaAnulacion(OffsetDateTime.now());
         venta.setUsuarioAnulacion(usuarioActual);
         venta.setMotivoAnulacion(motivoLimpio);
+
+        // 4. Integridad telemática SUNAT:
+        String estadoSunatActual = venta.getEstadoSunat() != null ? venta.getEstadoSunat().trim().toUpperCase() : null;
+        if ("PENDIENTE_ENVIO".equals(estadoSunatActual) || "RECHAZADO".equals(estadoSunatActual) || "ERROR_ENVIO".equals(estadoSunatActual)) {
+            venta.setEstadoSunat("ANULADA_LOCAL");
+            venta.setSunatMensaje("Comprobante anulado localmente antes del despacho telemático a SUNAT.");
+        } else if ("ACEPTADO".equals(estadoSunatActual) || "ACEPTADO_BETA".equals(estadoSunatActual)) {
+            String avisoSunat = "[AVISO CONTABLE: Comprobante ACEPTADO por SUNAT (" + 
+                    (venta.getSerieCorrelativo() != null ? venta.getSerieCorrelativo() : ("#" + idVenta)) + 
+                    "). Para anulación tributaria ante SUNAT se requiere emitir Nota de Crédito Electrónica.]";
+            String msgPrevio = venta.getSunatMensaje() != null ? venta.getSunatMensaje().trim() : "";
+            if (msgPrevio.length() > 200) {
+                msgPrevio = msgPrevio.substring(0, 200);
+            }
+            venta.setSunatMensaje(msgPrevio.isEmpty() ? avisoSunat : msgPrevio + " | " + avisoSunat);
+        }
+
         ventaRepository.save(venta);
     }
 
@@ -477,6 +502,14 @@ public class VentaService {
         Long idBodega = tenantService.getCurrentBodegaId();
         Venta venta = ventaRepository.findByIdForUpdateAndBodega(idVenta, idBodega)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + idVenta));
+
+        if ("ANULADA".equalsIgnoreCase(venta.getEstado())) {
+            throw new RuntimeException("No se puede reenviar a SUNAT la venta #" + idVenta + " porque ha sido anulada.");
+        }
+
+        if ("ACEPTADO".equalsIgnoreCase(venta.getEstadoSunat())) {
+            throw new RuntimeException("El comprobante " + (venta.getSerieCorrelativo() != null ? venta.getSerieCorrelativo() : ("#" + idVenta)) + " ya fue aceptado previamente por SUNAT.");
+        }
 
         if (!"BOLETA_ELECTRONICA".equalsIgnoreCase(venta.getTipoComprobante()) &&
             !"FACTURA_ELECTRONICA".equalsIgnoreCase(venta.getTipoComprobante())) {

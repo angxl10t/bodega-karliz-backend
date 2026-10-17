@@ -138,6 +138,7 @@ public class CompraService {
             mov.setProducto(producto);
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(cantidadTotal);
+            mov.setBodega(producto.getBodega() != null ? producto.getBodega() : tenantService.getCurrentBodega());
             String motivoCompra = "Compra a proveedor: " + proveedor.getRazonSocial() + (comprobanteTrim != null ? " (" + comprobanteTrim + ")" : "");
             if (motivoCompra.length() > 255) {
                 motivoCompra = motivoCompra.substring(0, 255);

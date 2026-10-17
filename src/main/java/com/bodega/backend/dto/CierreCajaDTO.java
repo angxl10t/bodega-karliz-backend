@@ -8,6 +8,8 @@ import java.time.OffsetDateTime;
 public class CierreCajaDTO {
     private BigDecimal totalVentas = BigDecimal.ZERO;
     private BigDecimal totalEfectivo = BigDecimal.ZERO;
+    private BigDecimal totalEfectivoRecibido = BigDecimal.ZERO;
+    private BigDecimal totalVueltoEntregado = BigDecimal.ZERO;
     private BigDecimal totalYape = BigDecimal.ZERO;
     private BigDecimal totalPlin = BigDecimal.ZERO;
     private BigDecimal totalTarjeta = BigDecimal.ZERO;
