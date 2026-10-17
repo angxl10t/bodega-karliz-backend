@@ -4,6 +4,7 @@ import '../../core/api_client.dart';
 class UsuarioItem {
   final int idUsuario;
   final String username;
+  final String? nombreCompleto;
   final String rol;
   final bool estado;
   final int? idBodega;
@@ -13,6 +14,7 @@ class UsuarioItem {
   UsuarioItem({
     required this.idUsuario,
     required this.username,
+    this.nombreCompleto,
     required this.rol,
     required this.estado,
     this.idBodega,
@@ -24,6 +26,7 @@ class UsuarioItem {
     return UsuarioItem(
       idUsuario: json['idUsuario'] is int ? json['idUsuario'] : int.parse(json['idUsuario'].toString()),
       username: json['username'] ?? '',
+      nombreCompleto: json['nombreCompleto'],
       rol: json['rol'] ?? 'CAJERO',
       estado: json['estado'] == true,
       idBodega: json['idBodega'],
@@ -47,14 +50,19 @@ class UsuariosService {
 
   Future<void> crearUsuario({
     required String username,
+    String? nombreCompleto,
     required String password,
     required String rol,
   }) async {
-    final response = await _client.post('/usuarios', {
+    final Map<String, dynamic> body = {
       'username': username,
       'password': password,
       'rol': rol,
-    });
+    };
+    if (nombreCompleto != null && nombreCompleto.trim().isNotEmpty) {
+      body['nombreCompleto'] = nombreCompleto.trim();
+    }
+    final response = await _client.post('/usuarios', body);
     if (response.statusCode != 200 && response.statusCode != 201) {
       try {
         final err = jsonDecode(utf8.decode(response.bodyBytes));

@@ -221,4 +221,59 @@ class BodegaService {
 
     throw Exception('No se pudo actualizar la configuración de SUNAT.');
   }
+
+  /// Consulta del Libro Mayor de Pagos y Renovaciones de la Bodega
+  Future<List<PagoSuscripcionItem>> listarMisPagos() async {
+    try {
+      final response = await _client.get('/bodegas/mis-pagos');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data.map((json) => PagoSuscripcionItem.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+}
+
+class PagoSuscripcionItem {
+  final int idPago;
+  final int? idBodega;
+  final String? nombreBodega;
+  final String codigoOperacion;
+  final String billetera;
+  final String plan;
+  final double monto;
+  final String? fechaPago;
+  final String? usuarioRegistro;
+  final String estado;
+
+  PagoSuscripcionItem({
+    required this.idPago,
+    this.idBodega,
+    this.nombreBodega,
+    required this.codigoOperacion,
+    required this.billetera,
+    required this.plan,
+    required this.monto,
+    this.fechaPago,
+    this.usuarioRegistro,
+    required this.estado,
+  });
+
+  factory PagoSuscripcionItem.fromJson(Map<String, dynamic> json) {
+    return PagoSuscripcionItem(
+      idPago: json['idPago'] is int ? json['idPago'] : int.parse(json['idPago'].toString()),
+      idBodega: json['idBodega'],
+      nombreBodega: json['nombreBodega'],
+      codigoOperacion: json['codigoOperacion'] ?? '',
+      billetera: json['billetera'] ?? '',
+      plan: json['plan'] ?? 'PRO',
+      monto: json['monto'] != null
+          ? (json['monto'] is num ? (json['monto'] as num).toDouble() : double.tryParse(json['monto'].toString()) ?? 0.0)
+          : 0.0,
+      fechaPago: json['fechaPago'],
+      usuarioRegistro: json['usuarioRegistro'],
+      estado: json['estado'] ?? 'CONFIRMADO',
+    );
+  }
 }
