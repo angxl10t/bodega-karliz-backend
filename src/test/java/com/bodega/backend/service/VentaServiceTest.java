@@ -49,6 +49,9 @@ public class VentaServiceTest {
     @Mock
     private com.bodega.backend.repository.BodegaRepository bodegaRepository;
 
+    @Mock
+    private SunatRestEmissionService sunatRestEmissionService;
+
     @InjectMocks
     private VentaService ventaService;
 

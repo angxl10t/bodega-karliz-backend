@@ -29,19 +29,22 @@ public class VentaService {
     private final MovimientoInventarioRepository movimientoInventarioRepository;
     private final TenantService tenantService;
     private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
+    private final SunatRestEmissionService sunatRestEmissionService;
 
     public VentaService(VentaRepository ventaRepository,
                         VentaDetalleRepository ventaDetalleRepository,
                         ProductoRepository productoRepository,
                         MovimientoInventarioRepository movimientoInventarioRepository,
                         TenantService tenantService,
-                        com.bodega.backend.repository.BodegaRepository bodegaRepository) {
+                        com.bodega.backend.repository.BodegaRepository bodegaRepository,
+                        SunatRestEmissionService sunatRestEmissionService) {
         this.ventaRepository = ventaRepository;
         this.ventaDetalleRepository = ventaDetalleRepository;
         this.productoRepository = productoRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.tenantService = tenantService;
         this.bodegaRepository = bodegaRepository;
+        this.sunatRestEmissionService = sunatRestEmissionService;
     }
 
     @Transactional
@@ -211,10 +214,14 @@ public class VentaService {
 
             venta.setTipoComprobante(tipo);
             venta.setSerieCorrelativo(String.format("%s-%08d", serie, correlativo));
-            venta.setEstadoSunat("ACEPTADO");
+
+            // Despacho telemático REST a SUNAT / OSE / PSE (tolerante a fallos de red)
+            sunatRestEmissionService.despacharComprobante(venta, detallesGuardados, bodegaLocked);
         } else {
             venta.setTipoComprobante(esFactura ? "FACTURA" : "TICKET");
             venta.setEstadoSunat(null);
+            venta.setSunatHash(null);
+            venta.setSunatMensaje(null);
         }
 
         Venta cabeceraGuardada = ventaRepository.save(venta);
@@ -452,6 +459,28 @@ public class VentaService {
         ventaRepository.save(venta);
     }
 
+    /**
+     * Reintenta el despacho telemático a SUNAT para comprobantes pendientes o con fallo de red.
+     */
+    @Transactional
+    public VentaDTO reintentarEnvioSunat(Long idVenta) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Venta venta = ventaRepository.findByIdForUpdateAndBodega(idVenta, idBodega)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + idVenta));
+
+        if (!"BOLETA_ELECTRONICA".equalsIgnoreCase(venta.getTipoComprobante()) &&
+            !"FACTURA_ELECTRONICA".equalsIgnoreCase(venta.getTipoComprobante())) {
+            throw new RuntimeException("La venta #" + idVenta + " no es un comprobante electrónico SUNAT.");
+        }
+
+        List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
+        Bodega bodega = bodegaRepository.findById(idBodega).orElse(venta.getBodega());
+
+        sunatRestEmissionService.despacharComprobante(venta, detalles, bodega);
+        Venta guardada = ventaRepository.save(venta);
+        return mapToDTO(guardada, detalles);
+    }
+
     private boolean esAdmin() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getAuthorities() != null) {
@@ -489,6 +518,11 @@ public class VentaService {
         dto.setTipoComprobante(venta.getTipoComprobante() != null ? venta.getTipoComprobante() : "TICKET");
         dto.setSerieCorrelativo(venta.getSerieCorrelativo());
         dto.setEstadoSunat(venta.getEstadoSunat());
+        dto.setSunatHash(venta.getSunatHash());
+        dto.setSunatMensaje(venta.getSunatMensaje());
+        dto.setSunatCdrUrl(venta.getSunatCdrUrl());
+        dto.setSunatPdfUrl(venta.getSunatPdfUrl());
+        dto.setSunatXmlUrl(venta.getSunatXmlUrl());
         dto.setIdempotencyKey(venta.getIdempotencyKey());
 
         dto.setDetalles(detalles.stream().map(d -> {

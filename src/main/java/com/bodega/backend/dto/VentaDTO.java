@@ -37,6 +37,11 @@ public class VentaDTO {
     private String tipoComprobante;
     private String serieCorrelativo;
     private String estadoSunat;
+    private String sunatHash;
+    private String sunatMensaje;
+    private String sunatCdrUrl;
+    private String sunatPdfUrl;
+    private String sunatXmlUrl;
 
     // Clave de Idempotencia contra doble submit / pérdida de conexión
     @Size(max = 64, message = "La clave de idempotencia no puede exceder los 64 caracteres")

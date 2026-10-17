@@ -58,4 +58,10 @@ public class VentaController {
         ventaService.anularVenta(id, motivo);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/reintentar-sunat")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<VentaDTO> reintentarSunat(@PathVariable Long id) {
+        return ResponseEntity.ok(ventaService.reintentarEnvioSunat(id));
+    }
 }

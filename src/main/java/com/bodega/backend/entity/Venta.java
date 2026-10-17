@@ -61,6 +61,21 @@ public class Venta {
     @Column(name = "estado_sunat", length = 30)
     private String estadoSunat;
 
+    @Column(name = "sunat_hash", length = 100)
+    private String sunatHash;
+
+    @Column(name = "sunat_mensaje", length = 255)
+    private String sunatMensaje;
+
+    @Column(name = "sunat_cdr_url", length = 500)
+    private String sunatCdrUrl;
+
+    @Column(name = "sunat_pdf_url", length = 500)
+    private String sunatPdfUrl;
+
+    @Column(name = "sunat_xml_url", length = 500)
+    private String sunatXmlUrl;
+
     // Idempotencia para prevenir doble cobro o duplicidad por reintentos de red
     @Column(name = "idempotency_key", length = 64)
     private String idempotencyKey;
