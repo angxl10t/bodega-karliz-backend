@@ -24,7 +24,7 @@ public class BodegaController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<java.util.List<BodegaDTO>> listarTodas() {
         return ResponseEntity.ok(bodegaService.listarTodas());
     }

@@ -29,9 +29,10 @@ public class HealthController {
     }
 
     @GetMapping("/diagnostico")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<Map<String, Object>> diagnostico() {
         Map<String, Object> resp = new HashMap<>();
-        resp.put("version", "1.0.9");
+        resp.put("version", "1.1.0");
         try {
             resp.put("bodegas", bodegaRepository.findAll().stream().map(b -> Map.of(
                 "idBodega", b.getIdBodega(),
@@ -60,7 +61,7 @@ public class HealthController {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("service", "bodega-karliz-backend");
-        response.put("version", "1.0.9");
+        response.put("version", "1.1.0");
         response.put("tenant_engine", "multitenant_v1");
         response.put("timestamp", Instant.now().toString());
 

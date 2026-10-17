@@ -26,6 +26,9 @@ public class PresentacionServiceTest {
     @Mock
     private ProductoRepository productoRepository;
 
+    @Mock
+    private TenantService tenantService;
+
     @InjectMocks
     private PresentacionService presentacionService;
 
@@ -49,7 +52,8 @@ public class PresentacionServiceTest {
         mockGuardado.setEstado(true);
 
         // Simulamos que la base de datos encuentra el producto y guarda la presentación
-        when(productoRepository.findById(1L)).thenReturn(Optional.of(mockProducto));
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(productoRepository.findByIdProductoAndBodega_IdBodega(1L, 1L)).thenReturn(Optional.of(mockProducto));
         when(presentacionRepository.save(any(Presentacion.class))).thenReturn(mockGuardado);
 
         // 2. Ejecutar la función real
@@ -62,7 +66,7 @@ public class PresentacionServiceTest {
         assertEquals("Coca Cola 3L", resultado.getNombreProducto());
         
         // Verificar que el repositorio fue llamado exactamente una vez
-        verify(productoRepository, times(1)).findById(1L);
+        verify(productoRepository, times(1)).findByIdProductoAndBodega_IdBodega(1L, 1L);
         verify(presentacionRepository, times(1)).save(any(Presentacion.class));
     }
 }

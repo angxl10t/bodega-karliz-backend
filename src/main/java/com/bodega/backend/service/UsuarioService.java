@@ -43,9 +43,10 @@ public class UsuarioService {
                     .map(this::mapToDTO)
                     .collect(Collectors.toList());
         }
-        return usuarioRepository.findAllByOrderByRolAscUsernameAsc().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        // Principio Fail-Closed: Si no es SUPERADMIN ni tiene bodega vinculada, denegar acceso
+        throw new org.springframework.security.access.AccessDeniedException(
+                "No tienes una tienda o bodega asociada para consultar usuarios."
+        );
     }
 
     @Transactional

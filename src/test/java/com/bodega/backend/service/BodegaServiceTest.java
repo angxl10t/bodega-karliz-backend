@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -128,5 +129,43 @@ public class BodegaServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> bodegaService.actualizarConfiguracionSunat(dto));
         assertTrue(ex.getMessage().contains("Solo el Administrador de la bodega puede activar"));
         verify(bodegaRepository, never()).save(any());
+    }
+
+    @Test
+    void testObtenerPorId_MismaBodega_Exitoso() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+
+        BodegaDTO res = bodegaService.obtenerPorId(1L);
+
+        assertNotNull(res);
+        assertEquals("Bodega KARLIZ", res.getNombreComercial());
+    }
+
+    @Test
+    void testObtenerPorId_OtraBodega_ComoAdmin_LanzaAccessDeniedException() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, 
+                () -> bodegaService.obtenerPorId(99L));
+        verify(bodegaRepository, never()).findById(99L);
+    }
+
+    @Test
+    void testObtenerPorId_OtraBodega_ComoSuperAdmin_PermiteAcceso() {
+        var authSuper = new UsernamePasswordAuthenticationToken(
+                "admin", "password", List.of(new SimpleGrantedAuthority("ROLE_SUPERADMIN")));
+        SecurityContextHolder.getContext().setAuthentication(authSuper);
+
+        Bodega otraBodega = new Bodega();
+        otraBodega.setIdBodega(99L);
+        otraBodega.setNombreComercial("Otra Tienda");
+        when(bodegaRepository.findById(99L)).thenReturn(Optional.of(otraBodega));
+
+        BodegaDTO res = bodegaService.obtenerPorId(99L);
+
+        assertNotNull(res);
+        assertEquals(99L, res.getIdBodega());
+        assertEquals("Otra Tienda", res.getNombreComercial());
     }
 }

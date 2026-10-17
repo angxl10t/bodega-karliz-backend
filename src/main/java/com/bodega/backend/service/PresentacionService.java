@@ -15,22 +15,30 @@ public class PresentacionService {
 
     private final PresentacionRepository presentacionRepository;
     private final ProductoRepository productoRepository;
+    private final TenantService tenantService;
 
-    public PresentacionService(PresentacionRepository presentacionRepository, ProductoRepository productoRepository) {
+    public PresentacionService(PresentacionRepository presentacionRepository, 
+                               ProductoRepository productoRepository,
+                               TenantService tenantService) {
         this.presentacionRepository = presentacionRepository;
         this.productoRepository = productoRepository;
+        this.tenantService = tenantService;
     }
 
     @Transactional(readOnly = true)
     public List<PresentacionDTO> listarPorProducto(Long idProducto) {
-        return presentacionRepository.findByProducto_IdProductoAndEstadoTrue(idProducto)
+        Long idBodega = tenantService.getCurrentBodegaId();
+        productoRepository.findByIdProductoAndBodega_IdBodega(idProducto, idBodega)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado en esta bodega con ID: " + idProducto));
+        return presentacionRepository.findByProducto_IdProductoAndProducto_Bodega_IdBodegaAndEstadoTrue(idProducto, idBodega)
                 .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     @Transactional
     public PresentacionDTO crear(PresentacionDTO dto) {
-        Producto producto = productoRepository.findById(dto.getIdProducto())
-                .orElseThrow(() -> new RuntimeException("El producto al que intentas asignar la presentación no existe."));
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Producto producto = productoRepository.findByIdProductoAndBodega_IdBodega(dto.getIdProducto(), idBodega)
+                .orElseThrow(() -> new RuntimeException("El producto al que intentas asignar la presentación no existe en tu bodega."));
 
         if (Boolean.FALSE.equals(producto.getEstado())) {
             throw new RuntimeException("No se puede asignar una presentación a un producto inactivo o dado de baja: " + producto.getNombre());
@@ -70,8 +78,9 @@ public class PresentacionService {
     // ACCIDENTAL DATA LOSS PREVENTION: Borrado Lógico en lugar de Delete físico
     @Transactional
     public void desactivar(Long idPresentacion) {
-        Presentacion presentacion = presentacionRepository.findById(idPresentacion)
-                .orElseThrow(() -> new RuntimeException("Presentación no encontrada"));
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Presentacion presentacion = presentacionRepository.findByIdPresentacionAndProducto_Bodega_IdBodega(idPresentacion, idBodega)
+                .orElseThrow(() -> new RuntimeException("Presentación no encontrada en tu bodega con ID: " + idPresentacion));
         if (Boolean.FALSE.equals(presentacion.getEstado())) {
             return;
         }

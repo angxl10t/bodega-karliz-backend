@@ -13,15 +13,17 @@ import java.util.stream.Collectors;
 public class MovimientoService {
 
     private final MovimientoInventarioRepository movimientoRepository;
+    private final TenantService tenantService;
 
-    public MovimientoService(MovimientoInventarioRepository movimientoRepository) {
+    public MovimientoService(MovimientoInventarioRepository movimientoRepository, TenantService tenantService) {
         this.movimientoRepository = movimientoRepository;
+        this.tenantService = tenantService;
     }
 
     @Transactional(readOnly = true)
     public List<MovimientoInventarioDTO> listarTodos() {
-        // Carga protegida con límite de 200 registros recientes para evitar agotamiento de memoria
-        return movimientoRepository.findTop200ByOrderByFechaMovimientoDesc()
+        Long idBodega = tenantService.getCurrentBodegaId();
+        return movimientoRepository.findTop200ByProducto_Bodega_IdBodegaOrderByFechaMovimientoDesc(idBodega)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -32,7 +34,8 @@ public class MovimientoService {
         if (idProducto == null || idProducto <= 0) {
             return java.util.Collections.emptyList();
         }
-        return movimientoRepository.findTop100ByProducto_IdProductoOrderByFechaMovimientoDesc(idProducto)
+        Long idBodega = tenantService.getCurrentBodegaId();
+        return movimientoRepository.findTop100ByProducto_IdProductoAndProducto_Bodega_IdBodegaOrderByFechaMovimientoDesc(idProducto, idBodega)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

@@ -39,6 +39,17 @@ public class BodegaService {
 
     @Transactional(readOnly = true)
     public BodegaDTO obtenerPorId(Long idBodega) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        boolean isSuperAdmin = auth != null && auth.getAuthorities() != null && 
+                auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SUPERADMIN"));
+        if (!isSuperAdmin) {
+            Long currentBodegaId = tenantService.getCurrentBodegaId();
+            if (currentBodegaId == null || !currentBodegaId.equals(idBodega)) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "No tienes permisos para ver información de otra bodega."
+                );
+            }
+        }
         Bodega b = bodegaRepository.findById(idBodega)
                 .orElseThrow(() -> new RuntimeException("Bodega con ID " + idBodega + " no encontrada"));
         return mapToDTO(b);

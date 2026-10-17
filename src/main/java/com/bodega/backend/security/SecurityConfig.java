@@ -57,8 +57,8 @@ public class SecurityConfig {
                 // Inicio de sesión y registro de nueva bodega son públicos en /api/auth
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/login", "/api/auth/registrar-bodega").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**").permitAll()
-                // Health checks públicos para monitor de Render
-                .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**").permitAll()
+                // Health check ultraligero público para monitor de Render (diagnóstico restringido a SUPERADMIN)
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/health", "/health").permitAll()
                 .requestMatchers("/error").permitAll()
                 // Bloqueo total y autenticación obligatoria para todo lo demás
                 .anyRequest().authenticated()
