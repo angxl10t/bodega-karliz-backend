@@ -159,6 +159,16 @@ public class VentaService {
 
         venta.setTotal(totalVenta);
 
+        // Auditoría de Caja: Monto recibido en efectivo y vuelto entregado
+        if (dto.getMontoRecibido() != null && dto.getMontoRecibido().compareTo(BigDecimal.ZERO) > 0) {
+            venta.setMontoRecibido(dto.getMontoRecibido());
+            if (dto.getMontoRecibido().compareTo(totalVenta) >= 0) {
+                venta.setVuelto(dto.getMontoRecibido().subtract(totalVenta));
+            } else {
+                venta.setVuelto(BigDecimal.ZERO);
+            }
+        }
+
         // Módulo SUNAT: Reglas de Negocio Tributarias
         String tipoSolicitado = (dto.getTipoComprobante() != null && !dto.getTipoComprobante().isBlank())
                 ? dto.getTipoComprobante().trim().toUpperCase()
@@ -504,6 +514,8 @@ public class VentaService {
         dto.setClienteDocumento(venta.getClienteDocumento());
         dto.setClienteNombre(venta.getClienteNombre());
         dto.setMetodoPago(venta.getMetodoPago());
+        dto.setMontoRecibido(venta.getMontoRecibido());
+        dto.setVuelto(venta.getVuelto());
         dto.setTotal(venta.getTotal());
         dto.setFechaVenta(venta.getFechaVenta());
         dto.setUsuarioRegistro(venta.getUsuarioRegistro());

@@ -9,8 +9,8 @@ ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS regimen_tributario VARCHAR(30) DEFA
 -- 2. Asegurar que las bodegas existentes tengan un régimen válido
 UPDATE bodegas SET regimen_tributario = 'NUEVO_RUS' WHERE regimen_tributario IS NULL;
 
--- Asignar a Bodega KARLIZ MYPE_TRIBUTARIO para permitirle emitir Facturas y Boletas
-UPDATE bodegas SET regimen_tributario = 'MYPE_TRIBUTARIO' WHERE id_bodega = 3 OR nombre_comercial ILIKE '%KARLIZ%';
+-- Asignar a Bodega KARLIZ y todas las bodegas NUEVO_RUS (exclusivo Boletas y Tickets)
+UPDATE bodegas SET regimen_tributario = 'NUEVO_RUS' WHERE id_bodega = 3 OR nombre_comercial ILIKE '%KARLIZ%';
 
 -- 3. Constraint CHECK para los regímenes tributarios oficiales en el Perú
 DO $$

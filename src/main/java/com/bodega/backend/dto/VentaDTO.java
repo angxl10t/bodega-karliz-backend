@@ -22,6 +22,8 @@ public class VentaDTO {
     @Pattern(regexp = "(?i)^(Efectivo|Yape|Plin|Tarjeta)$", message = "El método de pago debe ser: Efectivo, Yape, Plin o Tarjeta")
     @Size(max = 50, message = "El método de pago no puede exceder los 50 caracteres")
     private String metodoPago;
+    private BigDecimal montoRecibido;
+    private BigDecimal vuelto;
 
     private BigDecimal total;
     private OffsetDateTime fechaVenta;

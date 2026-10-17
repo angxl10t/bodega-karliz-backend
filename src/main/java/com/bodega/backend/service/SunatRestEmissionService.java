@@ -123,9 +123,9 @@ public class SunatRestEmissionService {
             log.warn("[SUNAT REST] Fallo temporal de comunicación telemática para venta #{}: {}", venta.getIdVenta(), ex.getMessage());
             // No revertir la venta comercial; marcar para reintento posterior
             venta.setEstadoSunat("PENDIENTE_ENVIO");
-            String errorMsg = ex.getMessage();
-            if (errorMsg != null && errorMsg.length() > 250) {
-                errorMsg = errorMsg.substring(0, 250);
+            String errorMsg = ex.getMessage() != null ? ex.getMessage().trim() : "Fallo de conexión no especificado";
+            if (errorMsg.length() > 500) {
+                errorMsg = errorMsg.substring(0, 500);
             }
             venta.setSunatMensaje("Pendiente de envío telemático: " + errorMsg);
         }

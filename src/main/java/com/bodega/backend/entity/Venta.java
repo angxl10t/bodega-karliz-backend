@@ -61,10 +61,10 @@ public class Venta {
     @Column(name = "estado_sunat", length = 30)
     private String estadoSunat;
 
-    @Column(name = "sunat_hash", length = 100)
+    @Column(name = "sunat_hash", length = 255)
     private String sunatHash;
 
-    @Column(name = "sunat_mensaje", length = 255)
+    @Column(name = "sunat_mensaje", columnDefinition = "TEXT")
     private String sunatMensaje;
 
     @Column(name = "sunat_cdr_url", length = 500)
@@ -75,6 +75,13 @@ public class Venta {
 
     @Column(name = "sunat_xml_url", length = 500)
     private String sunatXmlUrl;
+
+    // Auditoría de Caja: Monto pagado en efectivo y vuelto entregado al cliente
+    @Column(name = "monto_recibido", precision = 12, scale = 2)
+    private BigDecimal montoRecibido;
+
+    @Column(name = "vuelto", precision = 12, scale = 2)
+    private BigDecimal vuelto;
 
     // Idempotencia para prevenir doble cobro o duplicidad por reintentos de red
     @Column(name = "idempotency_key", length = 64)
