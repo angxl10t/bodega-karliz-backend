@@ -96,7 +96,7 @@ public class AuthController {
             idBodega = (usuario.getBodega() != null) ? usuario.getBodega().getIdBodega() : 1L;
             nombreBodega = (usuario.getBodega() != null && usuario.getBodega().getNombreComercial() != null) 
                     ? usuario.getBodega().getNombreComercial() 
-                    : "Bodega KARLIZ";
+                    : "CajaYa POS";
             plan = (usuario.getBodega() != null && usuario.getBodega().getPlan() != null) 
                     ? usuario.getBodega().getPlan() 
                     : "PRO";
@@ -158,6 +158,11 @@ public class AuthController {
         bodega.setTelefono(dto.getTelefono() != null && !dto.getTelefono().isBlank() ? dto.getTelefono().trim() : null);
         bodega.setColorPrimario(dto.getColorPrimario() != null && !dto.getColorPrimario().isBlank() ? dto.getColorPrimario().trim() : "#2563EB");
         bodega.setLemaComercial(dto.getLemaComercial() != null && !dto.getLemaComercial().isBlank() ? dto.getLemaComercial().trim() : null);
+        if (dto.getRegimenTributario() != null && !dto.getRegimenTributario().isBlank()) {
+            bodega.setRegimenTributario(dto.getRegimenTributario().trim().toUpperCase());
+        } else {
+            bodega.setRegimenTributario("NUEVO_RUS");
+        }
         bodega.setPlan("BASICO");
         bodega.setEstado(true);
         // Periodo de prueba gratuito inicial de 14 días
@@ -193,6 +198,8 @@ public class AuthController {
         response.put("colorPrimario", bodegaGuardada.getColorPrimario() != null ? bodegaGuardada.getColorPrimario() : "#2563EB");
         response.put("lemaComercial", bodegaGuardada.getLemaComercial() != null ? bodegaGuardada.getLemaComercial() : "");
         response.put("logoUrl", bodegaGuardada.getLogoUrl() != null ? bodegaGuardada.getLogoUrl() : "");
+        response.put("regimenTributario", bodegaGuardada.getRegimenTributario() != null ? bodegaGuardada.getRegimenTributario() : "NUEVO_RUS");
+        response.put("facturacionSunatActiva", String.valueOf(Boolean.TRUE.equals(bodegaGuardada.getFacturacionSunatActiva())));
         response.put("mensaje", "¡Bienvenido a CajaYa! Tu tienda '" + bodegaGuardada.getNombreComercial() + "' ha sido creada con éxito.");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

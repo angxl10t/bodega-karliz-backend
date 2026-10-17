@@ -48,7 +48,7 @@ public class UserSecurityCacheService {
             Long idBodega = (u.getBodega() != null) ? u.getBodega().getIdBodega() : null;
             String nombreBodega = (u.getBodega() != null && u.getBodega().getNombreComercial() != null) 
                     ? u.getBodega().getNombreComercial() 
-                    : (esSuperAdmin ? "CajaYa Cloud Platform" : "Bodega KARLIZ");
+                    : (esSuperAdmin ? "CajaYa Cloud Platform" : "CajaYa POS");
             String plan = (u.getBodega() != null && u.getBodega().getPlan() != null) 
                     ? u.getBodega().getPlan() 
                     : (esSuperAdmin ? "SUPERADMIN" : "PRO");
