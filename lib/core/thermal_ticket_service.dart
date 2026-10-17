@@ -115,23 +115,25 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Datos del Comprobante
+    final bool esBoleta = tipoComprobante == 'BOLETA_ELECTRONICA' || tipoComprobante == 'BOLETA';
     final bool esFactura = tipoComprobante == 'FACTURA_ELECTRONICA';
-    final bool esBoleta = tipoComprobante == 'BOLETA_ELECTRONICA';
-    final bool esSunat = esFactura || esBoleta;
+    final bool esSunat = esBoleta || esFactura;
 
-    if (esFactura) {
+    if (esBoleta) {
+      buffer.writeln(center('BOLETA DE VENTA', width));
+      if (serieCorrelativo != null && serieCorrelativo.isNotEmpty) {
+        buffer.writeln(twoColumns('SERIE-CORRELATIVO:', serieCorrelativo, width));
+      }
+    } else if (esFactura) {
       buffer.writeln(center('FACTURA ELECTRONICA', width));
       buffer.writeln(twoColumns('SERIE-CORRELATIVO:', serieCorrelativo ?? 'F001-00000001', width));
-    } else if (esBoleta) {
-      buffer.writeln(center('BOLETA DE VENTA ELECTRONICA', width));
-      buffer.writeln(twoColumns('SERIE-CORRELATIVO:', serieCorrelativo ?? 'B001-00000001', width));
     } else {
       final ticketNum = ticketId != null ? '#${ticketId.toString().padLeft(6, '0')}' : 'TICKET DE VENTA';
       buffer.writeln(twoColumns('COMPROBANTE:', ticketNum, width));
     }
 
-    if (esSunat) {
-      buffer.writeln(twoColumns('ESTADO SUNAT:', estadoSunat ?? 'ACEPTADO', width));
+    if (esSunat && estadoSunat != null && estadoSunat.isNotEmpty) {
+      buffer.writeln(twoColumns('ESTADO SUNAT:', estadoSunat, width));
     }
 
     buffer.writeln(twoColumns('FECHA:', dateStr, width));
@@ -139,11 +141,13 @@ class ThermalTicketService {
       buffer.writeln(twoColumns('CAJERO:', cajero, width));
     }
 
-    final docCli = (clienteDocumento != null && clienteDocumento.isNotEmpty)
+    final docCli = (clienteDocumento != null && clienteDocumento.isNotEmpty && clienteDocumento != '00000000')
         ? clienteDocumento
-        : (esFactura ? 'RUC PENDIENTE' : '00000000');
+        : null;
     buffer.writeln(twoColumns('CLIENTE:', clienteNombre, width));
-    buffer.writeln(twoColumns(esFactura ? 'RUC:' : 'DOC:', docCli, width));
+    if (docCli != null) {
+      buffer.writeln(twoColumns('DNI:', docCli, width));
+    }
     buffer.writeln(divider(width, '-'));
 
     // Encabezado de Productos (CANT  DESCRIPCION  TOTAL)
@@ -167,7 +171,8 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Totales y Liquidación de Pago
-    if (esFactura || esBoleta) {
+    // Nota Tributaria: En el Nuevo RUS la ley prohíbe discriminar IGV (el precio es precio cerrado al consumidor)
+    if (esFactura && regimenTributario != 'NUEVO_RUS') {
       final opGravada = total / 1.18;
       final igv = total - opGravada;
       buffer.writeln(twoColumns('OP. GRAVADA:', 'S/ ${opGravada.toStringAsFixed(2)}', width));
