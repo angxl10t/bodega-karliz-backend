@@ -28,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final VentaService _ventaService = VentaService();
   List<Producto> _productos = [];
   CierreCaja? _cierreHoy;
-  String _nombreBodega = 'Bodega KARLIZ';
+  String _nombreBodega = 'CajaYa POS';
   String _username = 'Usuario';
   String _userRol = 'ADMIN';
   String _plan = 'PRO';

@@ -132,7 +132,7 @@ class AuthService {
   }
 
   Future<String> getNombreBodega() async {
-    return await SecureStorageService.read('nombre_bodega') ?? 'Bodega KARLIZ';
+    return await SecureStorageService.read('nombre_bodega') ?? 'CajaYa POS';
   }
 
   Future<String> getPlanBodega() async {
@@ -165,6 +165,15 @@ class AuthService {
 
   Future<String> getLogoUrl() async {
     return await SecureStorageService.read('logo_url') ?? '';
+  }
+
+  Future<String> getRegimenTributario() async {
+    return await SecureStorageService.read('regimen_tributario') ?? 'NUEVO_RUS';
+  }
+
+  Future<bool> isFacturacionSunatActiva() async {
+    final val = await SecureStorageService.read('facturacion_sunat_activa');
+    return val == 'true';
   }
 
   Future<AuthResult> registrarBodega({
@@ -228,6 +237,12 @@ class AuthService {
         }
         if (data['logoUrl'] != null) {
           await SecureStorageService.write('logo_url', data['logoUrl']);
+        }
+        if (data['regimenTributario'] != null) {
+          await SecureStorageService.write('regimen_tributario', data['regimenTributario']);
+        }
+        if (data['facturacionSunatActiva'] != null) {
+          await SecureStorageService.write('facturacion_sunat_activa', data['facturacionSunatActiva'].toString());
         }
         return AuthResult(success: true);
       }

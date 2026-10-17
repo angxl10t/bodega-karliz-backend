@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<Widget> _screens;
   String _username = 'admin';
   String _userRol = 'ADMIN';
-  String _nombreBodega = 'Bodega KARLIZ';
+  String _nombreBodega = 'CajaYa POS';
   String _plan = 'PRO';
   Timer? _inactivityTimer;
   bool _orientationConfigured = false;
@@ -1224,7 +1224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Flexible(
                         child: Text(
-                          _nombreBodega.isNotEmpty ? _nombreBodega : 'Bodega KARLIZ',
+                          _nombreBodega.isNotEmpty ? _nombreBodega : 'CajaYa POS',
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.outfit(
                             fontSize: 16,
