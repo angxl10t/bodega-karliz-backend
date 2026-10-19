@@ -35,8 +35,11 @@ public class MovimientoService {
             return java.util.Collections.emptyList();
         }
         Long idBodega = tenantService.getCurrentBodegaId();
-        return movimientoRepository.findTop100ByProducto_IdProductoAndProducto_Bodega_IdBodegaOrderByFechaMovimientoDesc(idProducto, idBodega)
-                .stream()
+        List<MovimientoInventario> lista = movimientoRepository.findTop100ByBodega_IdBodegaAndProducto_IdProductoOrderByFechaMovimientoDesc(idBodega, idProducto);
+        if (lista.isEmpty()) {
+            lista = movimientoRepository.findTop100ByProducto_IdProductoAndProducto_Bodega_IdBodegaOrderByFechaMovimientoDesc(idProducto, idBodega);
+        }
+        return lista.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
