@@ -94,6 +94,30 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    // Atrapa parámetros requeridos de URL ausentes (@RequestParam)
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, String>> handleMissingServletRequestParameter(org.springframework.web.bind.MissingServletRequestParameterException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "El parámetro obligatorio '" + ex.getParameterName() + "' no fue proporcionado en la solicitud.");
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // Atrapa métodos HTTP no soportados (ej. enviar GET a un endpoint POST)
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "El método HTTP '" + ex.getMethod() + "' no está permitido para este endpoint.");
+        return new ResponseEntity<>(error, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    // Atrapa rutas o recursos no existentes
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "El recurso o endpoint solicitado no existe.");
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
     // Captura universal de cualquier error inesperado no controlado (previene fuga de trazas técnicas al cliente)
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Throwable ex) {
