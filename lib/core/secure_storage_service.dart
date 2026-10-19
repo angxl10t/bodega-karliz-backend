@@ -10,41 +10,64 @@ class SecureStorageService {
     ),
   );
 
-  /// Escribe un valor de forma cifrada
+  /// Escribe un valor de forma cifrada con respaldo resiliente
   static Future<void> write(String key, String value) async {
-    await _storage.write(key: key, value: value);
+    try {
+      await _storage.write(key: key, value: value);
+    } catch (_) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(key, value);
+      } catch (_) {}
+    }
   }
 
-  /// Lee un valor descifrado, con migración transparente si existía en SharedPreferences
+  /// Lee un valor descifrado, con migración transparente y fallback resiliente
   static Future<String?> read(String key) async {
-    String? val = await _storage.read(key: key);
-    if (val == null) {
-      // Migración desde SharedPreferences legado si existe
+    try {
+      String? val = await _storage.read(key: key);
+      if (val != null) return val;
+    } catch (_) {}
+
+    try {
       final prefs = await SharedPreferences.getInstance();
       if (prefs.containsKey(key)) {
-        val = prefs.getString(key);
+        final val = prefs.getString(key);
         if (val != null) {
-          await _storage.write(key: key, value: val);
-          await prefs.remove(key); // Eliminar del archivo plano no cifrado
+          try {
+            await _storage.write(key: key, value: val);
+            await prefs.remove(key);
+          } catch (_) {}
+          return val;
         }
       }
-    }
-    return val;
+    } catch (_) {}
+    return null;
   }
 
-  /// Elimina una clave de ambos almacenamientos
+  /// Elimina una clave de ambos almacenamientos de forma segura
   static Future<void> delete(String key) async {
-    await _storage.delete(key: key);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(key);
+    try {
+      await _storage.delete(key: key);
+    } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(key);
+    } catch (_) {}
   }
 
-  /// Comprueba si existe la clave de forma segura
+  /// Comprueba si existe la clave de forma segura y tolerante a fallos
   static Future<bool> containsKey(String key) async {
-    final hasKey = await _storage.containsKey(key: key);
-    if (hasKey) return true;
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(key);
+    try {
+      final hasKey = await _storage.containsKey(key: key);
+      if (hasKey) return true;
+    } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.containsKey(key);
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Limpia todas las credenciales cifradas

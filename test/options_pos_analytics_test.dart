@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bodega_mobile/core/secure_storage_service.dart';
 import 'package:bodega_mobile/features/ventas/venta_model.dart';
 import 'package:bodega_mobile/features/home/bodega_service.dart';
 import 'package:bodega_mobile/features/home/usuarios_service.dart';
@@ -130,6 +132,12 @@ void main() {
       expect(usuario.nombreCompleto, 'Carlos Méndez');
       expect(usuario.rol, 'CAJERO');
       expect(usuario.estado, isTrue);
+    });
+
+    test('SecureStorageService reads transparently from SharedPreferences fallback', () async {
+      SharedPreferences.setMockInitialValues({'test_token': 'jwt_super_secret_token'});
+      final val = await SecureStorageService.read('test_token');
+      expect(val, 'jwt_super_secret_token');
     });
   });
 }
