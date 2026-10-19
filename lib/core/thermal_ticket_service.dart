@@ -21,6 +21,8 @@ class ThermalTicketService {
         .replaceAll('Í', 'I')
         .replaceAll('Ó', 'O')
         .replaceAll('Ú', 'U')
+        .replaceAll('ü', 'u')
+        .replaceAll('Ü', 'U')
         .replaceAll('ñ', 'n')
         .replaceAll('Ñ', 'N')
         .replaceAll(RegExp(r'[^\x20-\x7E]'), '') // Solo caracteres ASCII imprimibles
@@ -224,6 +226,10 @@ class ThermalTicketService {
     DateTime? fecha,
     int width = width58mm,
     String nombreComercio = 'CajaYa POS',
+    String? rucDni,
+    String? direccion = 'Av. Principal 123 - Lima',
+    String? telefono = 'Tel: 987 654 321',
+    String? lemaComercial,
     String? tipoComprobante,
     String? serieCorrelativo,
     String? estadoSunat,
@@ -259,6 +265,10 @@ class ThermalTicketService {
       fecha: fecha,
       width: width,
       nombreComercio: '', // Ya impreso arriba en grande
+      rucDni: rucDni,
+      direccion: direccion,
+      telefono: telefono,
+      lemaComercial: lemaComercial,
       tipoComprobante: tipoComprobante,
       serieCorrelativo: serieCorrelativo,
       estadoSunat: estadoSunat,

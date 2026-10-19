@@ -103,6 +103,31 @@ void main() {
       final textDecoded = String.fromCharCodes(bytes);
       expect(textDecoded.contains('CajaYa POS'), isTrue);
     });
+
+    test('ThermalTicketService ESC/POS includes custom store metadata and sanitizes umlaut ü', () {
+      final bytes = ThermalTicketService.generateEscPosBytes(
+        ticketId: 2,
+        clienteNombre: 'Güero Pérez',
+        clienteDocumento: '12345678',
+        metodoPago: 'Efectivo',
+        items: [
+          TicketItem(nombre: 'Agüita Mineral', cantidad: 1, precioUnitario: 2.50, subtotal: 2.50),
+        ],
+        total: 2.50,
+        nombreComercio: 'Bodega La Cigüeña',
+        rucDni: '10443322119',
+        lemaComercial: 'Calidad y confianza',
+        direccion: 'Av. Las Flores 789',
+        telefono: '999111333',
+      );
+
+      final textDecoded = String.fromCharCodes(bytes);
+      expect(textDecoded.contains('Bodega La Ciguena'), isTrue);
+      expect(textDecoded.contains('Aguita Mineral'), isTrue);
+      expect(textDecoded.contains('Guero Perez'), isTrue);
+      expect(textDecoded.contains('RUC/DNI: 10443322119'), isTrue);
+      expect(textDecoded.contains('"Calidad y confianza"'), isTrue);
+    });
   });
 
   group('CajaYa Vector Widgets Tests', () {
