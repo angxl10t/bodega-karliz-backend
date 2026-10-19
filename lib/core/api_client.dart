@@ -21,7 +21,7 @@ class ApiClient {
     // HTTP 401 (No autenticado / Token expirado o revocado)
     final isSessionInvalid = response.statusCode == 401;
 
-    if (isSessionInvalid && !endpoint.contains('/auth/login')) {
+    if (isSessionInvalid && !endpoint.contains('/auth/') && !endpoint.contains('/health')) {
       await SecureStorageService.clearAuth();
       onSessionExpired?.call();
     }

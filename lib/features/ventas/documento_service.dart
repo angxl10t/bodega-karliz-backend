@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../../core/api_constants.dart';
-import '../../core/secure_storage_service.dart';
+import '../../core/api_client.dart';
 import 'documento_model.dart';
 
 class DocumentoService {
+  final ApiClient _apiClient = ApiClient();
+
   /// Consulta un DNI a través del backend BFF (RENIEC)
   Future<DniResponse?> consultarDni(String numero) async {
     final cleanDoc = numero.trim();
@@ -13,15 +13,7 @@ class DocumentoService {
     }
 
     try {
-      final token = await SecureStorageService.read('jwt_token');
-      final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/v1/documentos/dni/$cleanDoc'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      ).timeout(const Duration(seconds: 8));
-
+      final response = await _apiClient.get('/v1/documentos/dni/$cleanDoc');
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         return DniResponse.fromJson(data);
@@ -45,15 +37,7 @@ class DocumentoService {
     }
 
     try {
-      final token = await SecureStorageService.read('jwt_token');
-      final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/v1/documentos/ruc/$cleanRuc'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      ).timeout(const Duration(seconds: 8));
-
+      final response = await _apiClient.get('/v1/documentos/ruc/$cleanRuc');
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         return RucResponse.fromJson(data);
