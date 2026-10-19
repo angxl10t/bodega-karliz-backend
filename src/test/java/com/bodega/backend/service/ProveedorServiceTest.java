@@ -106,6 +106,32 @@ public class ProveedorServiceTest {
     }
 
     @Test
+    void testActualizarProveedor_PreservaCamposNoModificados_Exito() {
+        Proveedor existente = new Proveedor();
+        existente.setIdProveedor(5L);
+        existente.setRuc("20123456789");
+        existente.setRazonSocial("Proveedor Original");
+        existente.setDireccion("Calle 123");
+        existente.setTelefono("999888777");
+        existente.setEstado(true);
+
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(proveedorRepository.findByIdProveedorAndBodega_IdBodega(5L, 1L)).thenReturn(Optional.of(existente));
+        when(proveedorRepository.save(any(Proveedor.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Actualización parcial: solo cambia razón social, no manda direccion ni telefono
+        ProveedorDTO dto = new ProveedorDTO();
+        dto.setRazonSocial("Proveedor Renovado");
+
+        ProveedorDTO resultado = proveedorService.actualizar(5L, dto);
+
+        assertEquals("Proveedor Renovado", resultado.getRazonSocial());
+        assertEquals("Calle 123", resultado.getDireccion(), "Debe preservar la dirección anterior si no viene en el DTO");
+        assertEquals("999888777", resultado.getTelefono(), "Debe preservar el teléfono anterior si no viene en el DTO");
+        verify(proveedorRepository, times(1)).save(existente);
+    }
+
+    @Test
     void testDesactivarProveedor_Exito() {
         Proveedor proveedor = new Proveedor();
         proveedor.setIdProveedor(5L);

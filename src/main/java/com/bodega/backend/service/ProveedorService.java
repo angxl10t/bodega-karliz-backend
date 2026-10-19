@@ -88,8 +88,12 @@ public class ProveedorService {
         if (dto.getRazonSocial() != null && !dto.getRazonSocial().isBlank()) {
             proveedor.setRazonSocial(sanitizarTexto(dto.getRazonSocial(), 255));
         }
-        proveedor.setDireccion(sanitizarTexto(dto.getDireccion(), 255));
-        proveedor.setTelefono(sanitizarTexto(dto.getTelefono(), 20));
+        if (dto.getDireccion() != null) {
+            proveedor.setDireccion(sanitizarTexto(dto.getDireccion(), 255));
+        }
+        if (dto.getTelefono() != null) {
+            proveedor.setTelefono(sanitizarTexto(dto.getTelefono(), 20));
+        }
 
         Proveedor guardado = proveedorRepository.save(proveedor);
         return mapToDTO(guardado);
