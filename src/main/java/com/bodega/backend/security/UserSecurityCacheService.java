@@ -99,7 +99,7 @@ public class UserSecurityCacheService {
 
     private void purgeExpiredIfNeeded() {
         Instant now = Instant.now();
-        if (now.isAfter(lastPurge.plusSeconds(300))) { // Limpieza periódica cada 5 minutos
+        if (now.isAfter(lastPurge.plusSeconds(300)) || cache.size() > 2000) { // Limpieza periódica cada 5 minutos o por techo de memoria
             cache.entrySet().removeIf(entry -> entry.getValue().isExpired(CACHE_TTL_SECONDS));
             lastPurge = now;
         }
