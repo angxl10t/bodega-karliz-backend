@@ -80,17 +80,20 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     setState(() => _isLoading = true);
     final rol = await AuthService().getUserRole();
     if (!mounted) return;
-    setState(() => _userRol = rol);
+    _userRol = rol;
+    final esAdmin = rol.toUpperCase() == 'ADMIN' || rol.toUpperCase() == 'SUPERADMIN';
 
-    final prods = await _productoService.getProductos(forceRefresh: forceRefresh);
-    final provs = await _proveedorService.getProveedores(forceRefresh: forceRefresh);
-    final compras = _esAdmin ? await _compraService.getCompras() : <CompraRegistro>[];
+    final results = await Future.wait([
+      _productoService.getProductos(forceRefresh: forceRefresh),
+      _proveedorService.getProveedores(forceRefresh: forceRefresh),
+      esAdmin ? _compraService.getCompras() : Future.value(<CompraRegistro>[]),
+    ]);
 
     if (mounted) {
       setState(() {
-        _productos = List<Producto>.from(prods);
-        _proveedores = List<Proveedor>.from(provs);
-        _historialCompras = List<CompraRegistro>.from(compras);
+        _productos = List<Producto>.from(results[0] as List<Producto>);
+        _proveedores = List<Proveedor>.from(results[1] as List<Proveedor>);
+        _historialCompras = List<CompraRegistro>.from(results[2] as List<CompraRegistro>);
         if (_safeProveedores.isNotEmpty && _proveedorSeleccionado == null) {
           _proveedorSeleccionado = _safeProveedores.first;
         }
@@ -250,12 +253,8 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         ),
                         onPressed: () async {
                           Navigator.pop(ctx);
-                          final nuevo = await NuevoProveedorSheet.show(context, onCreado: (p) async {
-                            await _cargarDatos();
-                            setState(() => _proveedorSeleccionado = p);
-                          });
+                          final nuevo = await NuevoProveedorSheet.show(context);
                           if (nuevo != null && mounted) {
-                            await _cargarDatos();
                             setState(() => _proveedorSeleccionado = nuevo);
                           }
                         },

@@ -73,26 +73,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _cargarDatos({bool forceRefresh = false}) async {
     setState(() => _isLoading = true);
-    final prods = await _productoService.getProductos(forceRefresh: forceRefresh);
-    final cierre = await _ventaService.getCierreCajaHoy();
-    final nombre = await AuthService().getNombreBodega();
-    final username = await AuthService().getUsername();
-    final rol = await AuthService().getUserRole();
-    final plan = await AuthService().getPlanBodega();
-    final ruc = await AuthService().getRucBodega();
-    final tel = await AuthService().getTelefonoBodega();
-    final dir = await AuthService().getDireccionBodega();
+    final auth = AuthService();
+    final results = await Future.wait([
+      _productoService.getProductos(forceRefresh: forceRefresh),
+      _ventaService.getCierreCajaHoy(),
+      auth.getNombreBodega(),
+      auth.getUsername(),
+      auth.getUserRole(),
+      auth.getPlanBodega(),
+      auth.getRucBodega(),
+      auth.getTelefonoBodega(),
+      auth.getDireccionBodega(),
+    ]);
     if (mounted) {
       setState(() {
-        _productos = prods;
-        _cierreHoy = cierre;
-        _nombreBodega = nombre;
-        _username = username;
-        _userRol = rol;
-        _plan = plan;
-        _ruc = ruc;
-        _telefono = tel;
-        _direccion = dir;
+        _productos = results[0] as List<Producto>;
+        _cierreHoy = results[1] as CierreCaja?;
+        _nombreBodega = (results[2] as String?) ?? 'CajaYa POS';
+        _username = (results[3] as String?) ?? 'Usuario';
+        _userRol = (results[4] as String?) ?? 'ADMIN';
+        _plan = (results[5] as String?) ?? 'PRO';
+        _ruc = (results[6] as String?) ?? '';
+        _telefono = (results[7] as String?) ?? '';
+        _direccion = (results[8] as String?) ?? '';
         _isLoading = false;
       });
     }

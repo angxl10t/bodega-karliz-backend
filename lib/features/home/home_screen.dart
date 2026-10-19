@@ -115,16 +115,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _cargarDatosUsuario() async {
-    final user = await AuthService().getUsername();
-    final rol = await AuthService().getUserRole();
-    final nombreBodega = await AuthService().getNombreBodega();
-    final plan = await AuthService().getPlanBodega();
+    final auth = AuthService();
+    final results = await Future.wait([
+      auth.getUsername(),
+      auth.getUserRole(),
+      auth.getNombreBodega(),
+      auth.getPlanBodega(),
+    ]);
     if (mounted) {
       setState(() {
-        _username = user;
-        _userRol = rol;
-        _nombreBodega = nombreBodega;
-        _plan = plan;
+        _username = results[0];
+        _userRol = results[1];
+        _nombreBodega = results[2];
+        _plan = results[3];
       });
 
       // Si aún no ha configurado su PIN de caja, ofrecer configurarlo tras ingresar
