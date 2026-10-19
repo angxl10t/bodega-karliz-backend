@@ -231,8 +231,8 @@ public class VentaService {
 
         for (VentaDetalle det : detallesGuardados) {
             det.setVenta(cabeceraGuardada);
-            ventaDetalleRepository.save(det);
         }
+        ventaDetalleRepository.saveAll(detallesGuardados);
 
         return mapToDTO(cabeceraGuardada, detallesGuardados);
     }

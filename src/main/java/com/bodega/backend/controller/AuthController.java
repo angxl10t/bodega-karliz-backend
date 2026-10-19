@@ -220,14 +220,16 @@ public class AuthController {
             {"Panadería y Desayuno", "Pan de molde, mermeladas, café, avena e infusiones"}
         };
 
+        java.util.List<com.bodega.backend.entity.Categoria> cats = new java.util.ArrayList<>();
         for (String[] catData : categoriasDefault) {
             com.bodega.backend.entity.Categoria cat = new com.bodega.backend.entity.Categoria();
             cat.setNombre(catData[0]);
             cat.setDescripcion(catData[1]);
             cat.setEstado(true);
             cat.setBodega(bodega);
-            categoriaRepository.save(cat);
+            cats.add(cat);
         }
+        categoriaRepository.saveAll(cats);
     }
 
     private String extractClientIp(HttpServletRequest request) {

@@ -159,8 +159,8 @@ public class CompraService {
 
         for (CompraDetalle det : detallesGuardados) {
             det.setCompra(cabeceraGuardada);
-            compraDetalleRepository.save(det);
         }
+        compraDetalleRepository.saveAll(detallesGuardados);
 
         return mapToDTO(cabeceraGuardada, detallesGuardados);
     }
