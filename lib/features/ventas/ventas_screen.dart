@@ -165,12 +165,20 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   Future<void> _cargarConfiguracionTributaria() async {
-    final reg = await SecureStorageService.read('regimen_tributario');
-    final sunat = await SecureStorageService.read('facturacion_sunat_activa');
-    final nombre = await SecureStorageService.read('nombre_bodega');
-    final ruc = await SecureStorageService.read('ruc_bodega');
-    final dir = await SecureStorageService.read('direccion_bodega');
-    final lema = await SecureStorageService.read('lema_comercial');
+    final results = await Future.wait([
+      SecureStorageService.read('regimen_tributario'),
+      SecureStorageService.read('facturacion_sunat_activa'),
+      SecureStorageService.read('nombre_bodega'),
+      SecureStorageService.read('ruc_bodega'),
+      SecureStorageService.read('direccion_bodega'),
+      SecureStorageService.read('lema_comercial'),
+    ]);
+    final reg = results[0];
+    final sunat = results[1];
+    final nombre = results[2];
+    final ruc = results[3];
+    final dir = results[4];
+    final lema = results[5];
 
     if (mounted) {
       setState(() {
@@ -1051,7 +1059,6 @@ class _VentasScreenState extends State<VentasScreen> {
         final itemsVendidos = List<CartItem>.from(_carrito);
 
         _vaciarCarrito();
-        _cargarProductos();
 
         _mostrarConfirmacionCobro(
           items: itemsVendidos,
