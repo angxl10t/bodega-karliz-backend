@@ -8,11 +8,13 @@ class ApiClient {
 
   Future<Map<String, String>> _getHeaders() async {
     final token = await SecureStorageService.read('jwt_token') ?? '';
-    return {
+    final headers = <String, String>{
       'Content-Type': 'application/json',
-      // Inyectamos el JWT cifrado en hardware en cada petición
-      'Authorization': 'Bearer $token',
     };
+    if (token.trim().isNotEmpty) {
+      headers['Authorization'] = 'Bearer ${token.trim()}';
+    }
+    return headers;
   }
 
   void _checkAuthStatus(http.Response response, String endpoint) async {
