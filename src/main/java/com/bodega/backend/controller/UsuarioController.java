@@ -51,7 +51,12 @@ public class UsuarioController {
             @RequestBody Map<String, String> body,
             Principal principal) {
         String adminActual = principal != null ? principal.getName() : "";
-        String nuevaPassword = (body != null) ? body.get("nuevaPassword") : null;
+        String nuevaPassword = null;
+        if (body != null) {
+            nuevaPassword = body.get("nuevaPassword");
+            if (nuevaPassword == null) nuevaPassword = body.get("password");
+            if (nuevaPassword == null) nuevaPassword = body.get("nueva_password");
+        }
         usuarioService.resetearPassword(id, nuevaPassword, adminActual);
         Map<String, String> res = new HashMap<>();
         res.put("mensaje", "Contraseña restablecida exitosamente.");
