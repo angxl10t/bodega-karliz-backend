@@ -4,6 +4,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'movimiento_model.dart';
 import 'movimiento_service.dart';
 import '../productos/producto_service.dart';
+import '../ventas/venta_service.dart';
+import '../compras/compra_service.dart';
 import '../../core/theme.dart';
 
 class KardexScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class KardexScreen extends StatefulWidget {
 
 class _KardexScreenState extends State<KardexScreen> {
   final MovimientoService _movimientoService = MovimientoService();
+  final TextEditingController _searchController = TextEditingController();
   List<MovimientoInventario> _movimientos = [];
   bool _isLoading = true;
   String _filtroTexto = '';
@@ -24,12 +27,17 @@ class _KardexScreenState extends State<KardexScreen> {
   void initState() {
     super.initState();
     ProductoService.productosRevision.addListener(_onRevisionChanged);
+    VentaService.ventasRevision.addListener(_onRevisionChanged);
+    CompraService.comprasRevision.addListener(_onRevisionChanged);
     _cargarMovimientos();
   }
 
   @override
   void dispose() {
     ProductoService.productosRevision.removeListener(_onRevisionChanged);
+    VentaService.ventasRevision.removeListener(_onRevisionChanged);
+    CompraService.comprasRevision.removeListener(_onRevisionChanged);
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -159,6 +167,7 @@ class _KardexScreenState extends State<KardexScreen> {
                             ),
                           ),
                           child: TextField(
+                            controller: _searchController,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
@@ -168,6 +177,15 @@ class _KardexScreenState extends State<KardexScreen> {
                               hintText: 'Filtrar por producto o motivo...',
                               hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
                               prefixIcon: const Icon(LucideIcons.search, size: 18),
+                              suffixIcon: _filtroTexto.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(LucideIcons.x, size: 16),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() => _filtroTexto = '');
+                                      },
+                                    )
+                                  : null,
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             ),

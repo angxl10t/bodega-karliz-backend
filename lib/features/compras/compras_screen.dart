@@ -52,6 +52,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     _tabController = TabController(length: 2, vsync: this);
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
     ProveedorService.proveedoresRevision.addListener(_onProveedoresRevisionChanged);
+    CompraService.comprasRevision.addListener(_onComprasRevisionChanged);
     _cargarDatos();
   }
 
@@ -59,6 +60,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
   void dispose() {
     ProductoService.productosRevision.removeListener(_onProductosRevisionChanged);
     ProveedorService.proveedoresRevision.removeListener(_onProveedoresRevisionChanged);
+    CompraService.comprasRevision.removeListener(_onComprasRevisionChanged);
     _tabController.dispose();
     _comprobanteController.dispose();
     super.dispose();
@@ -71,6 +73,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
   }
 
   void _onProveedoresRevisionChanged() {
+    if (mounted) {
+      _cargarDatos(forceRefresh: true);
+    }
+  }
+
+  void _onComprasRevisionChanged() {
     if (mounted) {
       _cargarDatos(forceRefresh: true);
     }

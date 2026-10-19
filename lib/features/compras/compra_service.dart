@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../../core/api_client.dart';
 import '../productos/producto_service.dart';
 import 'compra_model.dart';
@@ -6,12 +7,20 @@ import 'compra_model.dart';
 class CompraService {
   final ApiClient _apiClient = ApiClient();
 
+  /// Notificador reactivo para sincronizar compras y Kardex en tiempo real
+  static final ValueNotifier<int> comprasRevision = ValueNotifier<int>(0);
+
+  static void notifyComprasChanged() {
+    comprasRevision.value++;
+  }
+
   /// Registra la compra. Retorna null si fue exitosa, o el mensaje de error si falló.
   Future<String?> registrarCompra(CompraEnvio compra) async {
     try {
       final response = await _apiClient.post('/compras', compra.toJson());
       if (response.statusCode == 201 || response.statusCode == 200) {
         ProductoService.invalidateCache();
+        notifyComprasChanged();
         return null; // Éxito
       }
       try {
