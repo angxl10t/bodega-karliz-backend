@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'movimiento_model.dart';
 import 'movimiento_service.dart';
+import '../productos/producto_service.dart';
 import '../../core/theme.dart';
 
 class KardexScreen extends StatefulWidget {
@@ -22,7 +23,20 @@ class _KardexScreenState extends State<KardexScreen> {
   @override
   void initState() {
     super.initState();
+    ProductoService.productosRevision.addListener(_onRevisionChanged);
     _cargarMovimientos();
+  }
+
+  @override
+  void dispose() {
+    ProductoService.productosRevision.removeListener(_onRevisionChanged);
+    super.dispose();
+  }
+
+  void _onRevisionChanged() {
+    if (mounted) {
+      _cargarMovimientos();
+    }
   }
 
   Future<void> _cargarMovimientos() async {
