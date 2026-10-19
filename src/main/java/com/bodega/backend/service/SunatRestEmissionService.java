@@ -119,6 +119,15 @@ public class SunatRestEmissionService {
                 venta.setEstadoSunat("PENDIENTE_ENVIO");
                 venta.setSunatMensaje("Servicio de facturación respondió con código: " + response.getStatusCode());
             }
+        } catch (org.springframework.web.client.HttpStatusCodeException httpEx) {
+            log.warn("[SUNAT REST] Error HTTP de pasarela {} para venta #{}: {}", httpEx.getStatusCode(), venta.getIdVenta(), httpEx.getResponseBodyAsString());
+            venta.setEstadoSunat("PENDIENTE_ENVIO");
+            String responseBody = httpEx.getResponseBodyAsString();
+            String msg = (responseBody != null && !responseBody.isBlank()) ? responseBody.trim() : httpEx.getMessage();
+            if (msg.length() > 500) {
+                msg = msg.substring(0, 500);
+            }
+            venta.setSunatMensaje("Error de pasarela (" + httpEx.getStatusCode().value() + "): " + msg);
         } catch (Exception ex) {
             log.warn("[SUNAT REST] Fallo temporal de comunicación telemática para venta #{}: {}", venta.getIdVenta(), ex.getMessage());
             // No revertir la venta comercial; marcar para reintento posterior
@@ -193,31 +202,28 @@ public class SunatRestEmissionService {
             client.put("tipoDoc", "6"); // RUC
             client.put("numDoc", docCliente != null ? docCliente : "20000000001");
             client.put("rznSocial", nomCliente);
-        } else if (docCliente != null && docCliente.length() == 8) {
+        } else if (docCliente != null && docCliente.matches("^[0-9]{8}$") && !"00000000".equals(docCliente)) {
             client.put("tipoDoc", "1"); // DNI
+            client.put("numDoc", docCliente);
+            client.put("rznSocial", nomCliente);
+        } else if (docCliente != null && docCliente.matches("^[0-9]{11}$")) {
+            client.put("tipoDoc", "6"); // RUC
             client.put("numDoc", docCliente);
             client.put("rznSocial", nomCliente);
         } else {
             client.put("tipoDoc", "0"); // Doc Trib. No Domiciliado / Sin Documento
             client.put("numDoc", "00000000");
-            client.put("rznSocial", "CLIENTES VARIOS");
+            client.put("rznSocial", (nomCliente != null && !nomCliente.isBlank() && !"Público General".equalsIgnoreCase(nomCliente)) ? nomCliente : "CLIENTES VARIOS");
         }
         payload.put("client", client);
 
-        // Desglose Tributario (Operación Gravada + IGV 18%)
-        BigDecimal total = (venta.getTotal() != null ? venta.getTotal() : BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal baseImponible = total.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
-        BigDecimal igv = total.subtract(baseImponible).setScale(2, RoundingMode.HALF_UP);
-
-        payload.put("mtoOperGravadas", baseImponible);
-        payload.put("mtoIGV", igv);
-        payload.put("totalImpuestos", igv);
-        payload.put("valorVenta", baseImponible);
-        payload.put("subTotal", total);
-        payload.put("mtoImpVenta", total);
-
-        // Ítems Detallados
+        // Ítems Detallados y Desglose Tributario UBL 2.1
+        // Regla SUNAT: mtoOperGravadas y mtoIGV deben coincidir exactamente con la sumatoria de las líneas (evita Error 2062)
         List<Map<String, Object>> details = new ArrayList<>();
+        BigDecimal sumValorVenta = BigDecimal.ZERO;
+        BigDecimal sumIgv = BigDecimal.ZERO;
+        BigDecimal sumTotal = BigDecimal.ZERO;
+
         for (VentaDetalle det : detalles) {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("tipAfeIgv", "10"); // Gravado - Operación Onerosa
@@ -231,6 +237,10 @@ public class SunatRestEmissionService {
             BigDecimal valorVentaItem = subtotalItem.divide(new BigDecimal("1.18"), 2, RoundingMode.HALF_UP);
             BigDecimal igvItem = subtotalItem.subtract(valorVentaItem).setScale(2, RoundingMode.HALF_UP);
 
+            sumValorVenta = sumValorVenta.add(valorVentaItem);
+            sumIgv = sumIgv.add(igvItem);
+            sumTotal = sumTotal.add(subtotalItem);
+
             item.put("mtoValorUnitario", valorUnitarioSinIgv);
             item.put("mtoPrecioUnitario", precioUnitarioConIgv);
             item.put("mtoValorVenta", valorVentaItem);
@@ -241,6 +251,14 @@ public class SunatRestEmissionService {
             details.add(item);
         }
         payload.put("details", details);
+
+        BigDecimal ventaTotal = (venta.getTotal() != null ? venta.getTotal() : sumTotal).setScale(2, RoundingMode.HALF_UP);
+        payload.put("mtoOperGravadas", sumValorVenta);
+        payload.put("mtoIGV", sumIgv);
+        payload.put("totalImpuestos", sumIgv);
+        payload.put("valorVenta", sumValorVenta);
+        payload.put("subTotal", sumTotal);
+        payload.put("mtoImpVenta", ventaTotal);
 
         return payload;
     }

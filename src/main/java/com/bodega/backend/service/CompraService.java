@@ -126,6 +126,7 @@ public class CompraService {
             detalle.setCantidad(cantidadTotal);
             detalle.setPrecioUnitario(precioUnitario);
             detalle.setSubtotal(subtotal);
+            detalle.setBodega(tenantService.getCurrentBodega() != null ? tenantService.getCurrentBodega() : producto.getBodega());
             detallesGuardados.add(detalle);
 
             // 3. Actualizar Stock del Producto

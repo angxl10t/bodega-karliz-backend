@@ -183,17 +183,7 @@ public class VentaService {
 
         // 1. Restricción por Régimen Tributario (Nuevo RUS solo emite Boletas y Tickets)
         if (esFactura) {
-            if ("NUEVO_RUS".equals(regimen)) {
-                throw new RuntimeException("El régimen tributario de la bodega (Nuevo RUS) no está autorizado para emitir Facturas. Según la normativa SUNAT, solo puede emitir Boletas de Venta y Tickets.");
-            }
-            if (docCliente == null || !docCliente.trim().matches("^[0-9]{11}$")) {
-                throw new RuntimeException("Para emitir Factura Electrónica es obligatorio proporcionar un número de RUC válido de 11 dígitos.");
-            }
-            if (nomCliente == null || nomCliente.trim().isBlank() 
-                    || "Público General".equalsIgnoreCase(nomCliente.trim()) 
-                    || "Clientes Varios".equalsIgnoreCase(nomCliente.trim())) {
-                throw new RuntimeException("Para emitir Factura Electrónica es obligatorio registrar la Razón Social del cliente.");
-            }
+            throw new RuntimeException("La emisión de facturas se encuentra deshabilitada en CajaYa POS. La plataforma está configurada exclusivamente para el Régimen Nuevo RUS (Boletas de Venta electrónicas y Tickets comerciales).");
         }
 
         // 2. Identificación Obligatoria: Boletas de Venta >= S/ 700.00 requieren DNI obligatorio
