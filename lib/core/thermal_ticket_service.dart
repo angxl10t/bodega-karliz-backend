@@ -25,6 +25,8 @@ class ThermalTicketService {
         .replaceAll('Ü', 'U')
         .replaceAll('ñ', 'n')
         .replaceAll('Ñ', 'N')
+        .replaceAll('¡', '')
+        .replaceAll('¿', '')
         .replaceAll(RegExp(r'[^\x20-\x7E]'), '') // Solo caracteres ASCII imprimibles
         .trim();
   }

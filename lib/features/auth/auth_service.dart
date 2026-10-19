@@ -20,7 +20,7 @@ class AuthService {
       ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
         final String token = data['token'];
         final String rol = data['rol'];
 
@@ -204,7 +204,7 @@ class AuthService {
       ).timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
         final String token = data['token'];
         final String rol = data['rol'] ?? 'ADMIN';
 

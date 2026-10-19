@@ -506,7 +506,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
           );
         },
       ),
-    );
+    ).then((_) {
+      userCtrl.dispose();
+      passCtrl.dispose();
+      confirmPassCtrl.dispose();
+    });
   }
 
   void _abrirResetPasswordModal(UsuarioItem u) {
@@ -575,7 +579,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
           );
         },
       ),
-    );
+    ).then((_) => passCtrl.dispose());
   }
 
   String _formatearFecha(String isoDate) {
@@ -1106,7 +1110,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
           );
         },
       ),
-    );
+    ).then((_) => codOperacionCtrl.dispose());
   }
 
   void _abrirHistorialPagosModal(BuildContext context) {
@@ -1756,7 +1760,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
           );
         },
       ),
-    );
+    ).then((_) {
+      rucCtrl.dispose();
+      serieBoletaCtrl.dispose();
+      serieFacturaCtrl.dispose();
+    });
   }
 
   @override
