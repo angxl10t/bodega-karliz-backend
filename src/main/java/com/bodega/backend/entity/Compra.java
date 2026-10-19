@@ -8,6 +8,8 @@ import java.time.OffsetDateTime;
 @Data
 @Entity
 @Table(name = "compras", indexes = {
+    @Index(name = "idx_compras_bodega_fecha", columnList = "id_bodega, fecha_compra DESC"),
+    @Index(name = "idx_compras_bodega_proveedor", columnList = "id_bodega, id_proveedor"),
     @Index(name = "idx_compras_fecha", columnList = "fecha_compra DESC"),
     @Index(name = "idx_compras_proveedor", columnList = "id_proveedor")
 })

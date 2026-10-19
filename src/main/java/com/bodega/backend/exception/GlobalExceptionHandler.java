@@ -118,6 +118,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    // Atrapa Content-Type no soportado (ej. enviar text/plain a un endpoint que requiere JSON)
+    @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleMediaTypeNotSupported(org.springframework.web.HttpMediaTypeNotSupportedException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "El tipo de contenido (Content-Type) '" + ex.getContentType() + "' no es soportado. Se requiere 'application/json'.");
+        return new ResponseEntity<>(error, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+
     // Captura universal de cualquier error inesperado no controlado (previene fuga de trazas técnicas al cliente)
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<Map<String, String>> handleGeneralException(Throwable ex) {
