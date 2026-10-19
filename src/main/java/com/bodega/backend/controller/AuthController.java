@@ -174,6 +174,7 @@ public class AuthController {
         Usuario admin = new Usuario();
         admin.setUsername(username);
         admin.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
+        admin.setNombreCompleto(dto.getNombreComercial().trim());
         admin.setRol("ADMIN");
         admin.setEstado(true);
         admin.setFechaCambioClave(java.time.OffsetDateTime.now());
