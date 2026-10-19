@@ -49,12 +49,16 @@ class ThermalTicketService {
   /// Formatea una línea con dos columnas: izquierda (justificada a la izq) y derecha (justificada a la der)
   static String twoColumns(String left, String right, [int width = width58mm]) {
     final cleanLeft = sanitize(left);
-    final cleanRight = sanitize(right);
+    String cleanRight = sanitize(right);
+
+    if (cleanRight.length >= width) {
+      cleanRight = cleanRight.substring(0, width - 1);
+    }
 
     final maxLeftLen = width - cleanRight.length - 1;
     final safeLeft = (cleanLeft.length > maxLeftLen && maxLeftLen > 0)
         ? cleanLeft.substring(0, maxLeftLen)
-        : cleanLeft;
+        : (maxLeftLen <= 0 ? '' : cleanLeft);
 
     final spaces = width - safeLeft.length - cleanRight.length;
     final pad = spaces > 0 ? ' ' * spaces : ' ';

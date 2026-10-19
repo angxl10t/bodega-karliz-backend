@@ -1700,6 +1700,17 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                 return;
                               }
 
+                              final sBoleta = serieBoletaCtrl.text.trim().toUpperCase();
+                              final sFactura = serieFacturaCtrl.text.trim().toUpperCase();
+                              if (sBoleta.isNotEmpty && !RegExp(r'^B[A-Z0-9]{3}$').hasMatch(sBoleta)) {
+                                setModalState(() => modalError = 'La serie de boleta debe tener 4 caracteres e iniciar con B (ej: B001).');
+                                return;
+                              }
+                              if (sFactura.isNotEmpty && !RegExp(r'^F[A-Z0-9]{3}$').hasMatch(sFactura)) {
+                                setModalState(() => modalError = 'La serie de factura debe tener 4 caracteres e iniciar con F (ej: F001).');
+                                return;
+                              }
+
                               final messenger = ScaffoldMessenger.of(context);
                               setModalState(() {
                                 isSaving = true;
@@ -1712,8 +1723,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   regimenTributario: regimen,
                                   proveedor: proveedor,
                                   rucEmisor: ruc,
-                                  serieBoleta: serieBoletaCtrl.text.trim().isEmpty ? 'B001' : serieBoletaCtrl.text.trim(),
-                                  serieFactura: serieFacturaCtrl.text.trim().isEmpty ? 'F001' : serieFacturaCtrl.text.trim(),
+                                  serieBoleta: sBoleta.isEmpty ? 'B001' : sBoleta,
+                                  serieFactura: sFactura.isEmpty ? 'F001' : sFactura,
                                 );
 
                                 if (dialogCtx.mounted) Navigator.pop(dialogCtx);
