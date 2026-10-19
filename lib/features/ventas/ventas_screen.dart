@@ -2336,7 +2336,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       final cartIdx = _carrito.indexWhere((it) => it.producto.idProducto == p.idProducto);
                       final inCart = cartIdx != -1;
                       final inCartQty = inCart ? _carrito[cartIdx].cantidad : 0.0;
-                      final isLowStock = p.stockActual <= 5;
+                      final isLowStock = p.stockActual <= (p.stockMinimo > 0 ? p.stockMinimo : 5.0);
                       final catIcon = _getCategoryIcon(p.nombreCategoria);
                       final catColor = _getCategoryColor(p.nombreCategoria, isDark);
 

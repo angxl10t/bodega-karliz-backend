@@ -109,8 +109,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final int totalProductos = _productos.length;
     final double stockTotalUnidades = _productos.fold(0.0, (acc, p) => acc + p.stockActual);
     final double valorInventario = _productos.fold(0.0, (acc, p) => acc + (p.stockActual * p.precioVenta));
-    final List<Producto> productosCriticos = _productos.where((p) => p.stockActual <= 5).toList();
-    final List<Producto> productosBajos = _productos.where((p) => p.stockActual > 5 && p.stockActual <= 10).toList();
+    final List<Producto> productosCriticos = _productos.where((p) {
+      final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
+      return p.stockActual <= (umbralMinimo * 0.5);
+    }).toList();
+    final List<Producto> productosBajos = _productos.where((p) {
+      final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
+      return p.stockActual > (umbralMinimo * 0.5) && p.stockActual <= umbralMinimo;
+    }).toList();
     final int totalAlertas = productosCriticos.length + productosBajos.length;
 
     return Scaffold(
@@ -428,7 +434,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             spacing: 10,
                             runSpacing: 8,
                             children: items.map((p) {
-                              final isCritico = p.stockActual <= 5;
+                              final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
+                              final isCritico = p.stockActual <= (umbralMinimo * 0.5);
                               final color = isCritico ? AppTheme.alertRed : AppTheme.warningAmber;
 
                               return Container(

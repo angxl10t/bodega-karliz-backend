@@ -129,11 +129,12 @@ class _ProductosScreenState extends State<ProductosScreen> {
           if (cat != _selectedCategoria) return false;
         }
 
-        // 3. Filtro por Estado de Stock
+        // 3. Filtro por Estado de Stock (basado en el stock mínimo configurado para cada producto)
+        final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
         if (_estadoStockFiltro == 'bajo_stock') {
-          return p.stockActual <= 10;
+          return p.stockActual <= umbralMinimo;
         } else if (_estadoStockFiltro == 'con_stock') {
-          return p.stockActual > 10;
+          return p.stockActual > umbralMinimo;
         }
         return true;
       }).toList();
@@ -161,7 +162,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
 
     final items = _safeTodos;
-    final int bajoStockCount = items.where((p) => p.stockActual <= 10).length;
+    final int bajoStockCount = items.where((p) {
+      final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
+      return p.stockActual <= umbralMinimo;
+    }).length;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -653,8 +657,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   Widget _buildProductCard(Producto p, bool isDark) {
-    final bool stockCritico = p.stockActual <= 5;
-    final bool stockBajo = p.stockActual > 5 && p.stockActual <= 10;
+    final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
+    final bool stockCritico = p.stockActual <= (umbralMinimo * 0.5);
+    final bool stockBajo = p.stockActual > (umbralMinimo * 0.5) && p.stockActual <= umbralMinimo;
     final Color badgeColor = stockCritico
         ? (isDark ? const Color(0xFFFB7185) : const Color(0xFFE11D48))
         : (stockBajo
