@@ -11,7 +11,9 @@ public interface PagoSuscripcionRepository extends JpaRepository<PagoSuscripcion
 
     boolean existsByBilleteraIgnoreCaseAndCodigoOperacion(String billetera, String codigoOperacion);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"bodega"})
     List<PagoSuscripcion> findByBodega_IdBodegaOrderByFechaPagoDesc(Long idBodega);
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"bodega"})
     List<PagoSuscripcion> findAllByOrderByFechaPagoDesc();
 }

@@ -20,6 +20,9 @@ public interface MovimientoInventarioRepository extends JpaRepository<Movimiento
     List<MovimientoInventario> findTop200ByOrderByFechaMovimientoDesc();
 
     @EntityGraph(attributePaths = {"producto"})
+    List<MovimientoInventario> findTop200ByBodega_IdBodegaOrderByFechaMovimientoDesc(Long idBodega);
+
+    @EntityGraph(attributePaths = {"producto"})
     List<MovimientoInventario> findTop200ByProducto_Bodega_IdBodegaOrderByFechaMovimientoDesc(Long idBodega);
 
     @EntityGraph(attributePaths = {"producto"})

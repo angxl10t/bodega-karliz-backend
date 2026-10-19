@@ -36,6 +36,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     boolean existsByCategoria_IdCategoriaAndEstadoTrue(Long idCategoria);
     boolean existsByCategoria_IdCategoriaAndBodega_IdBodegaAndEstadoTrue(Long idCategoria, Long idBodega);
 
+    @EntityGraph(attributePaths = {"categoria"})
     Optional<Producto> findByIdProductoAndBodega_IdBodega(Long idProducto, Long idBodega);
 
     // Bloqueo pesimista (SELECT ... FOR UPDATE) para evitar condiciones de carrera (Race Condition) en ventas concurrentes
