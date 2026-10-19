@@ -50797,14 +50797,17 @@ q=q.error
 this.a.b.tT(new A.m8("WebAudioError",p,o+": "+s+" (Code: "+A.t(q==null?r:q.code)+")",r))},
 $S:2}
 A.fd.prototype={
-o6(){var s=0,r=A.q(t.GU),q,p,o
+o6(){var s=0,r=A.q(t.GU),q,p,o,n
 var $async$o6=A.r(function(a,b){if(a===1)return A.n(b,r)
 for(;;)switch(s){case 0:s=3
 return A.i(A.ee("jwt_token"),$async$o6)
-case 3:o=b
-if(o==null)o=""
+case 3:n=b
+if(n==null)n=""
 p=t.N
-q=A.at(["Content-Type","application/json","Authorization","Bearer "+o],p,p)
+o=A.at(["Content-Type","application/json"],p,p)
+p=B.b.al(n)
+if(p.length!==0)o.n(0,"Authorization","Bearer "+p)
+q=o
 s=1
 break
 case 1:return A.o(q,r)}})
