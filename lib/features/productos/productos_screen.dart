@@ -58,8 +58,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
     _todosProductos = [];
     _productosFiltrados = [];
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
-    _cargarRol();
-    _cargarProductos();
+    _inicializarDatos();
   }
 
   @override
@@ -75,9 +74,26 @@ class _ProductosScreenState extends State<ProductosScreen> {
     }
   }
 
-  Future<void> _cargarRol() async {
-    final rol = await AuthService().getUserRole();
-    if (mounted) setState(() => _userRol = rol);
+  Future<void> _inicializarDatos() async {
+    setState(() => _isLoading = true);
+    try {
+      final results = await Future.wait([
+        AuthService().getUserRole(),
+        _productoService.getProductos(forceRefresh: false),
+      ]);
+      if (mounted) {
+        final rol = results[0] as String;
+        final prods = results[1] as List<Producto>;
+        setState(() {
+          _userRol = rol;
+          _todosProductos = List<Producto>.from(prods);
+          _aplicarFiltros();
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _cargarProductos({bool forceRefresh = false}) async {
