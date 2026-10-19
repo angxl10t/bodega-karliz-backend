@@ -49,7 +49,6 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
   String _username = 'Cajero';
   bool _canBiometrics = false;
   String _errorMessage = '';
-  int _failedAttempts = 0;
   int _cooldownSeconds = 0;
   Timer? _cooldownTimer;
   late AnimationController _shakeController;
@@ -74,22 +73,50 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
   Future<void> _cargarDatos() async {
     final user = await AuthService().getUsername();
     final canBio = await LockService().canCheckBiometrics();
+    final remaining = LockService().remainingBlockedSeconds;
     if (mounted) {
       setState(() {
         _username = user;
         _canBiometrics = canBio;
       });
-      // Intento biométrico automático discreto al mostrar
-      if (canBio) {
+      if (remaining > 0) {
+        _startCooldown(remaining);
+      } else if (canBio) {
         _autenticarBiometria();
       }
     }
   }
 
+  void _startCooldown(int seconds) {
+    _cooldownTimer?.cancel();
+    setState(() {
+      _cooldownSeconds = seconds;
+      _pin = '';
+      _errorMessage = 'Teclado bloqueado. Espera $_cooldownSeconds s.';
+    });
+
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      final rem = LockService().remainingBlockedSeconds;
+      setState(() {
+        _cooldownSeconds = rem;
+        if (_cooldownSeconds <= 0) {
+          timer.cancel();
+          _errorMessage = '';
+        } else {
+          _errorMessage = 'Teclado bloqueado. Espera $_cooldownSeconds s.';
+        }
+      });
+    });
+  }
+
   Future<void> _autenticarBiometria() async {
     final ok = await LockService().authenticateWithBiometrics();
     if (ok && mounted) {
-      _failedAttempts = 0;
+      _cooldownTimer?.cancel();
       HapticFeedback.mediumImpact();
       Navigator.of(context, rootNavigator: true).pop();
       widget.onUnlocked();
@@ -122,9 +149,13 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
   }
 
   Future<void> _verificarPin() async {
+    if (LockService().isPinBlocked) {
+      _startCooldown(LockService().remainingBlockedSeconds);
+      return;
+    }
+
     final ok = await LockService().verifyPin(_pin);
     if (ok && mounted) {
-      _failedAttempts = 0;
       _cooldownTimer?.cancel();
       HapticFeedback.mediumImpact();
       Navigator.of(context, rootNavigator: true).pop();
@@ -132,35 +163,15 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
     } else {
       HapticFeedback.heavyImpact();
       _shakeController.forward(from: 0.0);
-      _failedAttempts++;
 
-      if (_failedAttempts >= 5) {
-        _cooldownSeconds = 30;
-        setState(() {
-          _pin = '';
-          _errorMessage = '5 intentos fallidos. Teclado bloqueado por 30s por seguridad.';
-        });
-        _cooldownTimer?.cancel();
-        _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          if (!mounted) {
-            timer.cancel();
-            return;
-          }
-          setState(() {
-            _cooldownSeconds--;
-            if (_cooldownSeconds <= 0) {
-              timer.cancel();
-              _errorMessage = '';
-              _failedAttempts = 3; // Permite 2 intentos adicionales antes del siguiente bloqueo
-            } else {
-              _errorMessage = 'Teclado bloqueado. Espera $_cooldownSeconds s.';
-            }
-          });
-        });
+      if (LockService().isPinBlocked) {
+        _startCooldown(LockService().remainingBlockedSeconds);
       } else {
-        final restantes = 5 - _failedAttempts;
+        final restantes = LockService.maxFailedAttempts - LockService().failedAttempts;
         setState(() {
-          _errorMessage = 'PIN incorrecto. Te quedan $restantes intentos.';
+          _errorMessage = restantes > 0
+              ? 'PIN incorrecto. Te quedan $restantes intentos.'
+              : 'PIN incorrecto. Intenta nuevamente.';
           _pin = '';
         });
       }

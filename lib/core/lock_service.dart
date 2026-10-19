@@ -48,8 +48,13 @@ class LockService {
     await SecureStorageService.write(_pinKey, pin);
   }
 
+  static const int maxFailedAttempts = 5;
+  static const int cooldownDurationSeconds = 30;
+
   int _failedPinAttempts = 0;
   DateTime? _blockedUntil;
+
+  int get failedAttempts => _failedPinAttempts;
 
   /// Retorna los segundos restantes de bloqueo por demasiados intentos de PIN fallidos
   int get remainingBlockedSeconds {
@@ -78,9 +83,9 @@ class LockService {
       return true;
     } else {
       _failedPinAttempts++;
-      if (_failedPinAttempts >= 5) {
-        // Bloqueo temporal por 60 segundos tras 5 intentos fallidos
-        _blockedUntil = DateTime.now().add(const Duration(seconds: 60));
+      if (_failedPinAttempts >= maxFailedAttempts) {
+        // Bloqueo temporal por 30 segundos tras 5 intentos fallidos
+        _blockedUntil = DateTime.now().add(const Duration(seconds: cooldownDurationSeconds));
       }
       return false;
     }
