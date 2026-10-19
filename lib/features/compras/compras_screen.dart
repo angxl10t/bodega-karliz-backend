@@ -32,7 +32,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
   Proveedor? _proveedorSeleccionado;
 
-  final _comprobanteController = TextEditingController(text: 'FAC-001');
+  final _comprobanteController = TextEditingController();
   String _tipoComprobante = 'Factura';
 
   final List<CompraCartItem> _canastaCompras = [];
@@ -826,6 +826,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
         setState(() {
           _canastaCompras.clear();
+          _comprobanteController.clear();
         });
 
         _cargarDatos();
@@ -1146,6 +1147,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
                             decoration: const InputDecoration(
                               labelText: 'N° de Comprobante / Factura',
+                              hintText: 'Ej: F001-000452 o B001-124',
                               counterText: '',
                               contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             ),
