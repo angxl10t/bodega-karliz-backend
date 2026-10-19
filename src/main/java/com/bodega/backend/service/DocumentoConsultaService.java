@@ -112,7 +112,7 @@ public class DocumentoConsultaService {
                             .fuente("RENIEC_API")
                             .build();
 
-                    cacheDni.put(dni, new CacheEntry<>(dto));
+                    guardarEnCacheDni(dni, dto);
                     return dto;
                 }
             } catch (Exception e) {
@@ -205,7 +205,7 @@ public class DocumentoConsultaService {
                             .fuente("SUNAT_API")
                             .build();
 
-                    cacheRuc.put(ruc, new CacheEntry<>(dto));
+                    guardarEnCacheRuc(ruc, dto);
                     return dto;
                 }
             } catch (Exception e) {
@@ -228,6 +228,22 @@ public class DocumentoConsultaService {
                         : "El número no cumple con el algoritmo Módulo 11 de la SUNAT.")
                 .fuente(checksumValido ? "VALIDACION_LOCAL_MODULO11" : "FORMATO_INVALIDO")
                 .build();
+    }
+
+    private void guardarEnCacheDni(String dni, DniConsultaDTO dto) {
+        if (cacheDni.size() >= 5000) {
+            cacheDni.entrySet().removeIf(e -> e.getValue().isExpired(CACHE_TTL_MS));
+            if (cacheDni.size() >= 5000) cacheDni.clear();
+        }
+        cacheDni.put(dni, new CacheEntry<>(dto));
+    }
+
+    private void guardarEnCacheRuc(String ruc, RucConsultaDTO dto) {
+        if (cacheRuc.size() >= 5000) {
+            cacheRuc.entrySet().removeIf(e -> e.getValue().isExpired(CACHE_TTL_MS));
+            if (cacheRuc.size() >= 5000) cacheRuc.clear();
+        }
+        cacheRuc.put(ruc, new CacheEntry<>(dto));
     }
 
     /**
