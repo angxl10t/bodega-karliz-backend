@@ -58,9 +58,7 @@ public class DocumentoConsultaService {
         // 1. Revisar caché en memoria
         CacheEntry<DniConsultaDTO> cached = cacheDni.get(dni);
         if (cached != null && !cached.isExpired(CACHE_TTL_MS)) {
-            DniConsultaDTO dto = cached.data;
-            dto.setFuente("CACHE_LOCAL");
-            return dto;
+            return cached.data.toBuilder().fuente("CACHE_LOCAL").build();
         }
 
         // 2. Si hay token de API configurado, consultar servicio externo (apis.net.pe)
@@ -142,9 +140,7 @@ public class DocumentoConsultaService {
         // 1. Revisar caché en memoria
         CacheEntry<RucConsultaDTO> cached = cacheRuc.get(ruc);
         if (cached != null && !cached.isExpired(CACHE_TTL_MS)) {
-            RucConsultaDTO dto = cached.data;
-            dto.setFuente("CACHE_LOCAL");
-            return dto;
+            return cached.data.toBuilder().fuente("CACHE_LOCAL").build();
         }
 
         // 2. Si hay token de API configurado, consultar servicio externo (apis.net.pe o apiperu.dev)

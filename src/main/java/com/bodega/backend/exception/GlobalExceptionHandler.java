@@ -1,5 +1,9 @@
 package com.bodega.backend.exception;
 
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -7,6 +11,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +25,52 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // Atrapa violaciones de unicidad o llaves foráneas en base de datos
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("[GlobalExceptionHandler] Violación de integridad de datos: {}", ex.getMessage());
+        Map<String, String> error = new HashMap<>();
+        String rootMsg = ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage();
+        if (rootMsg != null) {
+            String lower = rootMsg.toLowerCase();
+            if (lower.contains("duplicate key") || lower.contains("unique constraint") || lower.contains("llave duplicada") || lower.contains("ya existe la llave")) {
+                error.put("error", "Ya existe un registro con estos datos únicos (código de barras, SKU, DNI/RUC o usuario).");
+                return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+            }
+            if (lower.contains("foreign key") || lower.contains("violates foreign key") || lower.contains("clave foránea") || lower.contains("llave foránea")) {
+                error.put("error", "No se puede completar la operación porque este registro está vinculado a otros datos (ventas, compras o movimientos asociados).");
+                return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+            }
+        }
+        error.put("error", "No se puede procesar la operación debido a restricciones de integridad en los datos.");
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    // Atrapa colisiones de concurrencia y bloqueos simultáneos
+    @ExceptionHandler({
+        OptimisticLockingFailureException.class,
+        PessimisticLockingFailureException.class,
+        CannotAcquireLockException.class
+    })
+    public ResponseEntity<Map<String, String>> handleConcurrencyConflict(Exception ex) {
+        log.warn("[GlobalExceptionHandler] Conflicto de concurrencia detectado: {}", ex.getMessage());
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "El registro fue modificado simultáneamente por otra operación o terminal. Por favor refresque e intente nuevamente.");
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    // Atrapa validaciones de restricciones en parámetros de URL o entidades (@Validated)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> error = new HashMap<>();
+        String primerMensaje = ex.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .findFirst()
+                .orElse("Parámetros de solicitud no válidos.");
+        error.put("error", primerMensaje);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 
     // Atrapa reglas de negocio controladas y previene fuga de errores internos de BD
     @ExceptionHandler(RuntimeException.class)
