@@ -297,6 +297,30 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     }
   }
 
+  void _mostrarAvisoAccesoRestringidoCajero() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(LucideIcons.shieldAlert, color: Colors.white, size: 20),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Por seguridad contable, los cajeros solo pueden consultar el arqueo del turno actual (Hoy).',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppTheme.alertRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
   void _verBoletasDelDia(DateTime f) {
     setState(() {
       _fechaSeleccionada = f;
@@ -946,10 +970,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(LucideIcons.calendarX2, size: 32, color: AppTheme.textMuted),
+                          Icon(!_esAdmin ? LucideIcons.shieldCheck : LucideIcons.calendarX2, size: 32, color: !_esAdmin ? AppTheme.brandPrimary : AppTheme.textMuted),
                           const SizedBox(height: 10),
                           Text(
-                            'No hay jornadas anteriores registradas',
+                            !_esAdmin ? 'Modo Cajero: Turno Actual Activo' : 'No hay jornadas anteriores registradas',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
@@ -958,7 +982,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Las ventas de los días anteriores se guardan automáticamente para su consulta.',
+                            !_esAdmin
+                                ? 'Por seguridad contable, la auditoría y cierre de días anteriores está reservada para el Administrador de la tienda.'
+                                : 'Las ventas de los días anteriores se guardan automáticamente para su consulta.',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
                           ),
@@ -1035,24 +1061,24 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           _buildChipFecha(
             label: 'Ayer',
             selected: esAyer,
-            icon: LucideIcons.calendarClock,
-            onTap: () => _seleccionarFecha(ayer),
+            icon: _esAdmin ? LucideIcons.calendarClock : LucideIcons.lock,
+            onTap: _esAdmin ? () => _seleccionarFecha(ayer) : _mostrarAvisoAccesoRestringidoCajero,
             isDark: isDark,
           ),
           const SizedBox(width: 8),
           _buildChipFecha(
             label: _nombreDiaSemana(anteayer),
             selected: esAnteayer,
-            icon: LucideIcons.history,
-            onTap: () => _seleccionarFecha(anteayer),
+            icon: _esAdmin ? LucideIcons.history : LucideIcons.lock,
+            onTap: _esAdmin ? () => _seleccionarFecha(anteayer) : _mostrarAvisoAccesoRestringidoCajero,
             isDark: isDark,
           ),
           const SizedBox(width: 8),
           _buildChipFecha(
             label: esOtro ? _formatearFechaCorta(_fechaSeleccionada) : 'Elegir Fecha',
             selected: esOtro,
-            icon: LucideIcons.calendarSearch,
-            onTap: _abrirSelectorFecha,
+            icon: _esAdmin ? LucideIcons.calendarSearch : LucideIcons.lock,
+            onTap: _esAdmin ? _abrirSelectorFecha : _mostrarAvisoAccesoRestringidoCajero,
             isDark: isDark,
           ),
         ],

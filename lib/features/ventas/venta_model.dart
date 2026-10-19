@@ -151,10 +151,10 @@ class VentaRegistro {
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
       montoRecibido: (json['montoRecibido'] as num?)?.toDouble(),
       vuelto: (json['vuelto'] as num?)?.toDouble(),
-      fechaVenta: json['fechaVenta'] != null ? DateTime.tryParse(json['fechaVenta']) : null,
+      fechaVenta: json['fechaVenta'] != null ? DateTime.tryParse(json['fechaVenta'].toString()) : null,
       usuarioRegistro: json['usuarioRegistro'] as String?,
       estado: json['estado'] as String? ?? 'COMPLETADA',
-      fechaAnulacion: json['fechaAnulacion'] != null ? DateTime.tryParse(json['fechaAnulacion']) : null,
+      fechaAnulacion: json['fechaAnulacion'] != null ? DateTime.tryParse(json['fechaAnulacion'].toString()) : null,
       usuarioAnulacion: json['usuarioAnulacion'] as String?,
       motivoAnulacion: json['motivoAnulacion'] as String?,
       tipoComprobante: json['tipoComprobante'] as String? ?? 'TICKET',
@@ -208,7 +208,7 @@ class CierreCaja {
       totalPlin: (json['totalPlin'] as num?)?.toDouble() ?? 0.0,
       totalTarjeta: (json['totalTarjeta'] as num?)?.toDouble() ?? 0.0,
       cantidadVentas: (json['cantidadVentas'] as num?)?.toInt() ?? 0,
-      fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha']) : null,
+      fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha'].toString()) : null,
     );
   }
 }

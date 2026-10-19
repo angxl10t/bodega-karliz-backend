@@ -26,7 +26,7 @@ class MovimientoInventario {
       cantidad: (json['cantidad'] as num?)?.toDouble() ?? 0.0,
       motivo: json['motivo'] as String? ?? '',
       fechaMovimiento: json['fechaMovimiento'] != null
-          ? DateTime.tryParse(json['fechaMovimiento'])
+          ? DateTime.tryParse(json['fechaMovimiento'].toString())
           : null,
     );
   }

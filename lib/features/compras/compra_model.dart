@@ -110,7 +110,7 @@ class CompraRegistro {
       razonSocialProveedor: json['razonSocialProveedor'] as String? ?? 'Proveedor',
       comprobante: json['comprobante'] as String? ?? 'S/C',
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
-      fechaCompra: json['fechaCompra'] != null ? DateTime.tryParse(json['fechaCompra']) : null,
+      fechaCompra: json['fechaCompra'] != null ? DateTime.tryParse(json['fechaCompra'].toString()) : null,
       detalles: (json['detalles'] as List<dynamic>?)
               ?.map((d) => CompraDetalleItem.fromJson(d as Map<String, dynamic>))
               .toList() ??
