@@ -39,16 +39,14 @@ public class TenantService {
                     return profile.get().getIdBodega();
                 }
                 if ("SUPERADMIN".equalsIgnoreCase(profile.get().getRol())) {
-                    return bodegaRepository.findAll().stream()
+                    return bodegaRepository.findFirstByOrderByIdBodegaAsc()
                             .map(Bodega::getIdBodega)
-                            .findFirst()
                             .orElse(1L);
                 }
             }
         }
-        return bodegaRepository.findAll().stream()
+        return bodegaRepository.findFirstByOrderByIdBodegaAsc()
                 .map(Bodega::getIdBodega)
-                .findFirst()
                 .orElse(1L);
     }
 
@@ -58,8 +56,7 @@ public class TenantService {
     public Bodega getCurrentBodega() {
         Long idBodega = getCurrentBodegaId();
         return bodegaRepository.findById(idBodega)
-                .orElseGet(() -> bodegaRepository.findAll().stream()
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException("Bodega no configurada en el sistema")));
+                .or(() -> bodegaRepository.findFirstByOrderByIdBodegaAsc())
+                .orElseThrow(() -> new RuntimeException("Bodega no configurada en el sistema"));
     }
 }
