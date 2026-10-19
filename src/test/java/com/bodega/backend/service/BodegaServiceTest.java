@@ -153,6 +153,26 @@ public class BodegaServiceTest {
     }
 
     @Test
+    void testActualizarConfiguracionSunat_SerieBoletaInvalida_LanzaExcepcion() {
+        ConfiguracionSunatDTO dto = new ConfiguracionSunatDTO();
+        dto.setSerieBoleta("INVALIDA"); // Serie no cumple formato ^B[A-Z0-9]{3}$
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bodegaService.actualizarConfiguracionSunat(dto));
+        assertTrue(ex.getMessage().contains("La serie de boleta debe tener 4 caracteres"));
+        verify(bodegaRepository, never()).save(any());
+    }
+
+    @Test
+    void testActualizarConfiguracionSunat_SerieFacturaInvalida_LanzaExcepcion() {
+        ConfiguracionSunatDTO dto = new ConfiguracionSunatDTO();
+        dto.setSerieFactura("123"); // Serie no cumple formato ^F[A-Z0-9]{3}$
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bodegaService.actualizarConfiguracionSunat(dto));
+        assertTrue(ex.getMessage().contains("La serie de factura debe tener 4 caracteres"));
+        verify(bodegaRepository, never()).save(any());
+    }
+
+    @Test
     void testObtenerPorId_MismaBodega_Exitoso() {
         when(tenantService.getCurrentBodegaId()).thenReturn(1L);
         when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));

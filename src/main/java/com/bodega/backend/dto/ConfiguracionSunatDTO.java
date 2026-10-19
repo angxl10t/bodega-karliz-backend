@@ -24,9 +24,9 @@ public class ConfiguracionSunatDTO {
     @Size(max = 255, message = "El token o clave SOL no puede exceder 255 caracteres")
     private String sunatTokenApi;
 
-    @Size(max = 10, message = "La serie de boleta no puede exceder 10 caracteres")
+    @Pattern(regexp = "^$|^[B|b][A-Za-z0-9]{3}$", message = "La serie de boleta debe tener 4 caracteres e iniciar con 'B' (ej: B001)")
     private String serieBoleta;
 
-    @Size(max = 10, message = "La serie de factura no puede exceder 10 caracteres")
+    @Pattern(regexp = "^$|^[F|f][A-Za-z0-9]{3}$", message = "La serie de factura debe tener 4 caracteres e iniciar con 'F' (ej: F001)")
     private String serieFactura;
 }

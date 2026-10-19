@@ -206,11 +206,19 @@ public class BodegaService {
         }
 
         if (dto.getSerieBoleta() != null && !dto.getSerieBoleta().isBlank()) {
-            bodega.setSerieBoleta(dto.getSerieBoleta().trim().toUpperCase());
+            String serieB = dto.getSerieBoleta().trim().toUpperCase();
+            if (!serieB.matches("^[B][A-Z0-9]{3}$")) {
+                throw new RuntimeException("La serie de boleta debe tener 4 caracteres e iniciar con 'B' (ej: B001)");
+            }
+            bodega.setSerieBoleta(serieB);
         }
 
         if (dto.getSerieFactura() != null && !dto.getSerieFactura().isBlank()) {
-            bodega.setSerieFactura(dto.getSerieFactura().trim().toUpperCase());
+            String serieF = dto.getSerieFactura().trim().toUpperCase();
+            if (!serieF.matches("^[F][A-Z0-9]{3}$")) {
+                throw new RuntimeException("La serie de factura debe tener 4 caracteres e iniciar con 'F' (ej: F001)");
+            }
+            bodega.setSerieFactura(serieF);
         }
 
         Bodega guardada = bodegaRepository.save(bodega);
