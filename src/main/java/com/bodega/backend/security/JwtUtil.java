@@ -17,6 +17,8 @@ public class JwtUtil {
     @org.springframework.beans.factory.annotation.Value("${jwt.secret:}")
     private String secretKey;
 
+    private Key signingKey;
+
     @jakarta.annotation.PostConstruct
     public void validateSecret() {
         if (secretKey == null || secretKey.trim().length() < 32) {
@@ -24,10 +26,11 @@ public class JwtUtil {
                 "CRITICAL SECURITY CONFIGURATION ERROR: La variable de entorno JWT_SECRET no está configurada o tiene menos de 256 bits (mínimo 32 caracteres)."
             );
         }
+        this.signingKey = Keys.hmacShaKeyFor(secretKey.trim().getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(secretKey.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return this.signingKey;
     }
 
     public String extractUsername(String token) {
@@ -47,9 +50,10 @@ public class JwtUtil {
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token) {
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
+                .setAllowedClockSkewSeconds(60) // Tolerancia de 60 segundos ante desvíos de reloj en clientes móviles y servidores
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -80,7 +84,17 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return (extractedUsername != null && extractedUsername.equalsIgnoreCase(username) && !isTokenExpired(token));
+        if (token == null || token.isBlank() || username == null || username.isBlank()) {
+            return false;
+        }
+        try {
+            Claims claims = extractAllClaims(token);
+            String extractedUsername = claims.getSubject();
+            Date expiration = claims.getExpiration();
+            return (extractedUsername != null && extractedUsername.equalsIgnoreCase(username.trim())
+                    && (expiration == null || !expiration.before(new Date())));
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

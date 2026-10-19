@@ -218,7 +218,10 @@ public class VentaService {
             // Despacho telemático REST a SUNAT / OSE / PSE (tolerante a fallos de red)
             sunatRestEmissionService.despacharComprobante(venta, detallesGuardados, bodegaLocked);
         } else {
-            venta.setTipoComprobante(esFactura ? "FACTURA" : "TICKET");
+            String tipo = ("BOLETA_ELECTRONICA".equals(tipoSolicitado) || "BOLETA".equals(tipoSolicitado)) 
+                    ? "BOLETA" 
+                    : "TICKET";
+            venta.setTipoComprobante(tipo);
             venta.setEstadoSunat(null);
             venta.setSunatHash(null);
             venta.setSunatMensaje(null);

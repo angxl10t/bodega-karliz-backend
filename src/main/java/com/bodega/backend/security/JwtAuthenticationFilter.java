@@ -33,24 +33,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authorizationHeader = request.getHeader("Authorization");
 
+        io.jsonwebtoken.Claims claims = null;
         String username = null;
-        String jwt = null;
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
-            try {
-                username = jwtUtil.extractUsername(jwt);
-            } catch (Exception e) {
-                // Token inválido o expirado
+        if (authorizationHeader != null && authorizationHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            String jwt = authorizationHeader.substring(7).trim();
+            if (!jwt.isEmpty()) {
+                try {
+                    claims = jwtUtil.extractAllClaims(jwt);
+                    username = claims.getSubject();
+                } catch (Exception e) {
+                    // Token inválido, expirado o con firma incorrecta
+                }
             }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && claims != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserSecurityProfile usuario = userSecurityCacheService.getSecurityProfile(username).orElse(null);
 
-            if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) && jwtUtil.validateToken(jwt, usuario.getUsername())) {
+            if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) 
+                    && username.equalsIgnoreCase(usuario.getUsername())) {
                 // Validación de revocación de sesión: si la contraseña cambió luego de emitir el token, se invalida
-                Date issuedAt = jwtUtil.extractIssuedAt(jwt);
+                Date issuedAt = claims.getIssuedAt();
                 boolean tokenRevocado = false;
 
                 if (usuario.getFechaCambioClave() != null && issuedAt != null) {
