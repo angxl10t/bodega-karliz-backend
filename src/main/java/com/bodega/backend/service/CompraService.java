@@ -189,8 +189,8 @@ public class CompraService {
     private CompraDTO mapToDTO(Compra compra, List<CompraDetalle> detalles) {
         CompraDTO dto = new CompraDTO();
         dto.setIdCompra(compra.getIdCompra());
-        dto.setIdProveedor(compra.getProveedor().getIdProveedor());
-        dto.setRazonSocialProveedor(compra.getProveedor().getRazonSocial());
+        dto.setIdProveedor(compra.getProveedor() != null ? compra.getProveedor().getIdProveedor() : null);
+        dto.setRazonSocialProveedor(compra.getProveedor() != null ? compra.getProveedor().getRazonSocial() : "Proveedor no disponible");
         dto.setComprobante(compra.getComprobante());
         dto.setTotal(compra.getTotal());
         dto.setFechaCompra(compra.getFechaCompra());
@@ -199,8 +199,8 @@ public class CompraService {
         dto.setDetalles(detalles.stream().map(d -> {
             CompraDetalleDTO detDto = new CompraDetalleDTO();
             detDto.setIdDetalleCompra(d.getIdDetalleCompra());
-            detDto.setIdProducto(d.getProducto().getIdProducto());
-            detDto.setNombreProducto(d.getProducto().getNombre());
+            detDto.setIdProducto(d.getProducto() != null ? d.getProducto().getIdProducto() : null);
+            detDto.setNombreProducto(d.getProducto() != null ? d.getProducto().getNombre() : "Producto no disponible");
             detDto.setCantidad(d.getCantidad());
             detDto.setPrecioUnitario(d.getPrecioUnitario());
             detDto.setSubtotal(d.getSubtotal());

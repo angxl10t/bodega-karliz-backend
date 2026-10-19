@@ -369,8 +369,8 @@ public class ProductoService {
     private ProductoDTO mapToDTO(Producto producto) {
         ProductoDTO dto = new ProductoDTO();
         dto.setIdProducto(producto.getIdProducto());
-        dto.setIdCategoria(producto.getCategoria().getIdCategoria());
-        dto.setNombreCategoria(producto.getCategoria().getNombre());
+        dto.setIdCategoria(producto.getCategoria() != null ? producto.getCategoria().getIdCategoria() : null);
+        dto.setNombreCategoria(producto.getCategoria() != null ? producto.getCategoria().getNombre() : "General");
         dto.setCodigo(producto.getCodigo());
         dto.setCodigoBarras(producto.getCodigoBarras());
         dto.setNombre(producto.getNombre());

@@ -72,7 +72,12 @@ public class UsuarioService {
         Usuario admin = obtenerUsuarioEnSesion();
         com.bodega.backend.entity.Bodega bodega = (admin != null && admin.getBodega() != null) ? admin.getBodega() : null;
         if (bodega == null) {
-            bodega = bodegaRepository.findById(1L).orElse(null);
+            if (dto.getIdBodega() != null && dto.getIdBodega() > 0) {
+                bodega = bodegaRepository.findById(dto.getIdBodega()).orElse(null);
+            }
+            if (bodega == null) {
+                bodega = bodegaRepository.findById(1L).orElse(null);
+            }
         }
 
         // Feature Gating: En Plan BÁSICO se permiten hasta 2 cajeros activos + 1 admin (total 3 activos)

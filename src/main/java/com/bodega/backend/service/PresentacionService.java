@@ -92,8 +92,8 @@ public class PresentacionService {
     private PresentacionDTO mapToDTO(Presentacion presentacion) {
         PresentacionDTO dto = new PresentacionDTO();
         dto.setIdPresentacion(presentacion.getIdPresentacion());
-        dto.setIdProducto(presentacion.getProducto().getIdProducto());
-        dto.setNombreProducto(presentacion.getProducto().getNombre());
+        dto.setIdProducto(presentacion.getProducto() != null ? presentacion.getProducto().getIdProducto() : null);
+        dto.setNombreProducto(presentacion.getProducto() != null ? presentacion.getProducto().getNombre() : "Producto no disponible");
         dto.setNombre(presentacion.getNombre());
         dto.setFactorConversion(presentacion.getFactorConversion());
         dto.setEstado(presentacion.getEstado());

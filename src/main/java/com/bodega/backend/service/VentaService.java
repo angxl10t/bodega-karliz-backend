@@ -566,8 +566,8 @@ public class VentaService {
         dto.setDetalles(detalles.stream().map(d -> {
             VentaDetalleDTO detDto = new VentaDetalleDTO();
             detDto.setIdDetalleVenta(d.getIdDetalleVenta());
-            detDto.setIdProducto(d.getProducto().getIdProducto());
-            detDto.setNombreProducto(d.getProducto().getNombre());
+            detDto.setIdProducto(d.getProducto() != null ? d.getProducto().getIdProducto() : null);
+            detDto.setNombreProducto(d.getProducto() != null ? d.getProducto().getNombre() : "Producto no disponible");
             detDto.setCantidad(d.getCantidad());
             detDto.setPrecioUnitario(d.getPrecioUnitario());
             detDto.setSubtotal(d.getSubtotal());
