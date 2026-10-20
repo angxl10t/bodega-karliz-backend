@@ -90,4 +90,39 @@ public class BodegaController {
     public ResponseEntity<java.util.Map<String, Object>> obtenerMetricasSistema() {
         return ResponseEntity.ok(bodegaService.obtenerMetricasSistema());
     }
+
+    @PostMapping("/provisionar")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<BodegaDTO> provisionarBodega(
+            @jakarta.validation.Valid @RequestBody com.bodega.backend.dto.ProvisionarBodegaDTO dto) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(bodegaService.provisionarBodega(dto));
+    }
+
+    @PutMapping("/pagos/{id}/estado")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<com.bodega.backend.dto.PagoSuscripcionDTO> cambiarEstadoPago(
+            @PathVariable Long id,
+            @RequestParam String estado) {
+        return ResponseEntity.ok(bodegaService.cambiarEstadoPago(id, estado));
+    }
+
+    @GetMapping("/anuncio-global")
+    public ResponseEntity<java.util.Map<String, Object>> obtenerAnuncioGlobal() {
+        return ResponseEntity.ok(bodegaService.obtenerAnuncioGlobal());
+    }
+
+    @PostMapping("/anuncio-global")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<java.util.Map<String, Object>> publicarAnuncioGlobal(
+            @RequestBody java.util.Map<String, Object> req) {
+        return ResponseEntity.ok(bodegaService.publicarAnuncioGlobal(req));
+    }
+
+    @DeleteMapping("/anuncio-global")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<java.util.Map<String, String>> eliminarAnuncioGlobal() {
+        bodegaService.eliminarAnuncioGlobal();
+        return ResponseEntity.ok(java.util.Map.of("mensaje", "Anuncio global eliminado exitosamente"));
+    }
 }

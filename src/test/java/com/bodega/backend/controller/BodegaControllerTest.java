@@ -182,4 +182,53 @@ public class BodegaControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(10L, response.getBody().get("totalBodegas"));
     }
+
+    @Test
+    void testProvisionarBodega() {
+        com.bodega.backend.dto.ProvisionarBodegaDTO dto = new com.bodega.backend.dto.ProvisionarBodegaDTO();
+        dto.setNombreComercial("Tienda Nueva");
+        dto.setAdminUsername("admin_nueva");
+        dto.setAdminPassword("secret123");
+
+        when(bodegaService.provisionarBodega(dto)).thenReturn(bodegaDTO);
+
+        ResponseEntity<BodegaDTO> response = bodegaController.provisionarBodega(dto);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(bodegaDTO, response.getBody());
+    }
+
+    @Test
+    void testCambiarEstadoPago() {
+        PagoSuscripcionDTO pago = new PagoSuscripcionDTO();
+        pago.setIdPago(99L);
+        pago.setEstado("CONFIRMADO");
+
+        when(bodegaService.cambiarEstadoPago(99L, "CONFIRMADO")).thenReturn(pago);
+
+        ResponseEntity<PagoSuscripcionDTO> response = bodegaController.cambiarEstadoPago(99L, "CONFIRMADO");
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("CONFIRMADO", response.getBody().getEstado());
+    }
+
+    @Test
+    void testAnuncioGlobal() {
+        when(bodegaService.obtenerAnuncioGlobal()).thenReturn(java.util.Map.of("mensaje", "Aviso"));
+        when(bodegaService.publicarAnuncioGlobal(any())).thenReturn(java.util.Map.of("mensaje", "Nuevo aviso"));
+
+        var getResp = bodegaController.obtenerAnuncioGlobal();
+        assertEquals(HttpStatus.OK, getResp.getStatusCode());
+        assertEquals("Aviso", getResp.getBody().get("mensaje"));
+
+        var postResp = bodegaController.publicarAnuncioGlobal(java.util.Map.of("mensaje", "Nuevo aviso"));
+        assertEquals(HttpStatus.OK, postResp.getStatusCode());
+        assertEquals("Nuevo aviso", postResp.getBody().get("mensaje"));
+
+        var delResp = bodegaController.eliminarAnuncioGlobal();
+        assertEquals(HttpStatus.OK, delResp.getStatusCode());
+        verify(bodegaService).eliminarAnuncioGlobal();
+    }
 }

@@ -47,6 +47,21 @@ public class BodegaServiceTest {
     @Mock
     private com.bodega.backend.repository.VentaRepository ventaRepository;
 
+    @Mock
+    private com.bodega.backend.repository.ProductoRepository productoRepository;
+
+    @Mock
+    private com.bodega.backend.repository.CompraRepository compraRepository;
+
+    @Mock
+    private com.bodega.backend.repository.MovimientoInventarioRepository movimientoInventarioRepository;
+
+    @Mock
+    private com.bodega.backend.repository.CategoriaRepository categoriaRepository;
+
+    @Mock
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private BodegaService bodegaService;
 
@@ -255,5 +270,70 @@ public class BodegaServiceTest {
         assertEquals(1L, metricas.get("bodegasActivas"));
         assertEquals(5L, metricas.get("totalUsuarios"));
         assertEquals(120L, metricas.get("totalVentas"));
+    }
+
+    @Test
+    void testProvisionarBodega() {
+        com.bodega.backend.dto.ProvisionarBodegaDTO dto = new com.bodega.backend.dto.ProvisionarBodegaDTO();
+        dto.setNombreComercial("Minimarket San Jorge");
+        dto.setAdminUsername("admin_sanjorge");
+        dto.setAdminPassword("secret123");
+        dto.setPlan("PRO");
+        dto.setDiasVigencia(60);
+
+        when(usuarioRepository.existsByUsernameIgnoreCase("admin_sanjorge")).thenReturn(false);
+        when(passwordEncoder.encode("secret123")).thenReturn("encoded_secret");
+        when(bodegaRepository.save(any(Bodega.class))).thenAnswer(inv -> {
+            Bodega b = inv.getArgument(0);
+            b.setIdBodega(15L);
+            return b;
+        });
+
+        BodegaDTO result = bodegaService.provisionarBodega(dto);
+
+        assertNotNull(result);
+        assertEquals("Minimarket San Jorge", result.getNombreComercial());
+        assertEquals("PRO", result.getPlan());
+        verify(usuarioRepository).save(any(com.bodega.backend.entity.Usuario.class));
+        verify(userSecurityCacheService).evictAll();
+    }
+
+    @Test
+    void testCambiarEstadoPago() {
+        com.bodega.backend.entity.PagoSuscripcion pago = new com.bodega.backend.entity.PagoSuscripcion();
+        pago.setIdPago(50L);
+        pago.setEstado("PENDIENTE");
+        pago.setCodigoOperacion("YP-991122");
+        pago.setBilletera("YAPE");
+        pago.setPlan("PRO");
+        pago.setMonto(new BigDecimal("29.90"));
+
+        when(pagoSuscripcionRepository.findById(50L)).thenReturn(Optional.of(pago));
+        when(pagoSuscripcionRepository.save(any(com.bodega.backend.entity.PagoSuscripcion.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        com.bodega.backend.dto.PagoSuscripcionDTO result = bodegaService.cambiarEstadoPago(50L, "CONFIRMADO");
+
+        assertNotNull(result);
+        assertEquals("CONFIRMADO", result.getEstado());
+        assertEquals("YP-991122", result.getCodigoOperacion());
+    }
+
+    @Test
+    void testAnuncioGlobal() {
+        assertTrue(bodegaService.obtenerAnuncioGlobal().isEmpty());
+
+        java.util.Map<String, Object> req = java.util.Map.of("mensaje", "Mantenimiento domingo 2am", "tipo", "INFO");
+        java.util.Map<String, Object> publicado = bodegaService.publicarAnuncioGlobal(req);
+
+        assertNotNull(publicado);
+        assertEquals("Mantenimiento domingo 2am", publicado.get("mensaje"));
+        assertEquals(true, publicado.get("activo"));
+
+        java.util.Map<String, Object> obtenido = bodegaService.obtenerAnuncioGlobal();
+        assertFalse(obtenido.isEmpty());
+        assertEquals("Mantenimiento domingo 2am", obtenido.get("mensaje"));
+
+        bodegaService.eliminarAnuncioGlobal();
+        assertTrue(bodegaService.obtenerAnuncioGlobal().isEmpty());
     }
 }

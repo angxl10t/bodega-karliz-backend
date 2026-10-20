@@ -2,9 +2,18 @@ package com.bodega.backend.service;
 
 import com.bodega.backend.dto.ActualizarBodegaDTO;
 import com.bodega.backend.dto.BodegaDTO;
+import com.bodega.backend.dto.ProvisionarBodegaDTO;
 import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.repository.BodegaRepository;
+import com.bodega.backend.repository.CategoriaRepository;
+import com.bodega.backend.repository.CompraRepository;
+import com.bodega.backend.repository.MovimientoInventarioRepository;
+import com.bodega.backend.repository.PagoSuscripcionRepository;
+import com.bodega.backend.repository.ProductoRepository;
+import com.bodega.backend.repository.UsuarioRepository;
+import com.bodega.backend.repository.VentaRepository;
 import com.bodega.backend.security.UserSecurityCacheService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,22 +23,40 @@ public class BodegaService {
     private final BodegaRepository bodegaRepository;
     private final TenantService tenantService;
     private final UserSecurityCacheService userSecurityCacheService;
-    private final com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository;
-    private final com.bodega.backend.repository.UsuarioRepository usuarioRepository;
-    private final com.bodega.backend.repository.VentaRepository ventaRepository;
+    private final PagoSuscripcionRepository pagoSuscripcionRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final VentaRepository ventaRepository;
+    private final ProductoRepository productoRepository;
+    private final CompraRepository compraRepository;
+    private final MovimientoInventarioRepository movimientoInventarioRepository;
+    private final CategoriaRepository categoriaRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    private final java.util.concurrent.atomic.AtomicReference<java.util.Map<String, Object>> anuncioGlobal =
+            new java.util.concurrent.atomic.AtomicReference<>(null);
 
     public BodegaService(BodegaRepository bodegaRepository,
                          TenantService tenantService,
                          UserSecurityCacheService userSecurityCacheService,
-                         com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository,
-                         com.bodega.backend.repository.UsuarioRepository usuarioRepository,
-                         com.bodega.backend.repository.VentaRepository ventaRepository) {
+                         PagoSuscripcionRepository pagoSuscripcionRepository,
+                         UsuarioRepository usuarioRepository,
+                         VentaRepository ventaRepository,
+                         ProductoRepository productoRepository,
+                         CompraRepository compraRepository,
+                         MovimientoInventarioRepository movimientoInventarioRepository,
+                         CategoriaRepository categoriaRepository,
+                         PasswordEncoder passwordEncoder) {
         this.bodegaRepository = bodegaRepository;
         this.tenantService = tenantService;
         this.userSecurityCacheService = userSecurityCacheService;
         this.pagoSuscripcionRepository = pagoSuscripcionRepository;
         this.usuarioRepository = usuarioRepository;
         this.ventaRepository = ventaRepository;
+        this.productoRepository = productoRepository;
+        this.compraRepository = compraRepository;
+        this.movimientoInventarioRepository = movimientoInventarioRepository;
+        this.categoriaRepository = categoriaRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -297,6 +324,10 @@ public class BodegaService {
 
         long totalUsuarios = usuarioRepository != null ? usuarioRepository.count() : 0;
         long totalVentas = ventaRepository != null ? ventaRepository.count() : 0;
+        long totalProductos = productoRepository != null ? productoRepository.count() : 0;
+        long totalCompras = compraRepository != null ? compraRepository.count() : 0;
+        long totalMovimientos = movimientoInventarioRepository != null ? movimientoInventarioRepository.count() : 0;
+        long totalCategorias = categoriaRepository != null ? categoriaRepository.count() : 0;
 
         java.util.List<com.bodega.backend.entity.PagoSuscripcion> pagos = pagoSuscripcionRepository.findAll();
         long totalPagos = pagos.size();
@@ -312,10 +343,126 @@ public class BodegaService {
         metricas.put("bodegasBasico", bodegasBasico);
         metricas.put("totalUsuarios", totalUsuarios);
         metricas.put("totalVentas", totalVentas);
+        metricas.put("totalProductos", totalProductos);
+        metricas.put("totalCompras", totalCompras);
+        metricas.put("totalMovimientos", totalMovimientos);
+        metricas.put("totalCategorias", totalCategorias);
         metricas.put("totalPagos", totalPagos);
         metricas.put("totalRecaudado", totalRecaudado);
 
         return metricas;
+    }
+
+    @Transactional
+    public BodegaDTO provisionarBodega(ProvisionarBodegaDTO dto) {
+        String username = dto.getAdminUsername() != null ? dto.getAdminUsername().trim().toLowerCase() : "";
+        if (username.isBlank()) {
+            throw new RuntimeException("El nombre de usuario administrador no puede estar vacío.");
+        }
+        if (!username.matches("^[a-zA-Z0-9._-]+$")) {
+            throw new RuntimeException("El nombre de usuario solo puede contener letras, números, puntos (.), guiones (-) y guiones bajos (_).");
+        }
+        if (usuarioRepository.existsByUsernameIgnoreCase(username)) {
+            throw new RuntimeException("El nombre de usuario '" + username + "' ya está registrado. Por favor elija otro.");
+        }
+        if (dto.getAdminPassword() == null || dto.getAdminPassword().trim().length() < 4) {
+            throw new RuntimeException("La contraseña inicial debe tener al menos 4 caracteres.");
+        }
+
+        Bodega bodega = new Bodega();
+        bodega.setNombreComercial(dto.getNombreComercial().trim());
+        bodega.setRucDni(dto.getRucDni() != null && !dto.getRucDni().isBlank() ? dto.getRucDni().trim() : null);
+        bodega.setDireccion(dto.getDireccion() != null && !dto.getDireccion().isBlank() ? dto.getDireccion().trim() : null);
+        bodega.setTelefono(dto.getTelefono() != null && !dto.getTelefono().isBlank() ? dto.getTelefono().trim() : null);
+        bodega.setColorPrimario(dto.getColorPrimario() != null && !dto.getColorPrimario().isBlank() ? dto.getColorPrimario().trim() : "#2563EB");
+        bodega.setLemaComercial(dto.getLemaComercial() != null && !dto.getLemaComercial().isBlank() ? dto.getLemaComercial().trim() : null);
+
+        String regimen = (dto.getRegimenTributario() != null && !dto.getRegimenTributario().isBlank())
+                ? dto.getRegimenTributario().trim().toUpperCase() : "NUEVO_RUS";
+        bodega.setRegimenTributario(regimen);
+
+        String plan = (dto.getPlan() != null && !dto.getPlan().isBlank()) ? dto.getPlan().trim().toUpperCase() : "PRO";
+        bodega.setPlan("BASICO".equals(plan) ? "BASICO" : "PRO");
+        bodega.setEstado(true);
+
+        int dias = (dto.getDiasVigencia() != null && dto.getDiasVigencia() > 0) ? dto.getDiasVigencia() : 30;
+        bodega.setFechaVencimientoPlan(java.time.OffsetDateTime.now().plusDays(dias));
+
+        Bodega guardada = bodegaRepository.save(bodega);
+
+        // Crear Administrador Inicial de la Bodega
+        com.bodega.backend.entity.Usuario admin = new com.bodega.backend.entity.Usuario();
+        admin.setUsername(username);
+        admin.setPassword(passwordEncoder.encode(dto.getAdminPassword().trim()));
+        admin.setNombreCompleto(dto.getNombreComercial().trim());
+        admin.setRol("ADMIN");
+        admin.setEstado(true);
+        admin.setFechaCambioClave(java.time.OffsetDateTime.now());
+        admin.setBodega(guardada);
+        usuarioRepository.save(admin);
+
+        // Clonar catálogo estándar de categorías peruanas
+        clonarCategoriasMaestras(guardada);
+
+        userSecurityCacheService.evictAll();
+
+        return mapToDTO(guardada);
+    }
+
+    private void clonarCategoriasMaestras(Bodega bodega) {
+        if (categoriaRepository == null) return;
+        String[][] categoriasDefault = {
+            {"Gaseosas y Bebidas", "Gaseosas, aguas minerales, jugos, energizantes e hidratantes"},
+            {"Bebidas Alcohólicas", "Cervezas, piscos, rones, vinos y licores"},
+            {"Snacks y Piqueos", "Papas fritas, chizitos, tortillas, platanitos y frutos secos"},
+            {"Lácteos y Derivados", "Leche evaporada, fresca, yogures, mantequillas y quesos"},
+            {"Embutidos y Fiambrería", "Hot dogs, jamonadas, salchichas, tocinos y embutidos"},
+            {"Abarrotes y Fideos", "Arroz, azúcar, fideos, aceites, conservas y condimentos"},
+            {"Helados y Postres", "Helados en paleta, conos, bombones y potes familiares"},
+            {"Golosinas y Chocolates", "Chocolates, galletas dulces, caramelos y confitería"},
+            {"Cuidado Personal y Dental", "Cremas dentales, jabones, champús y papel"},
+            {"Limpieza y Cuidado del Hogar", "Detergentes, lejías, lavavajillas, suavizantes y esponjas"},
+            {"Cigarrillos y Tabacos", "Cigarrillos en cajetilla, fósforos y encendedores"},
+            {"Panadería y Desayuno", "Pan de molde, mermeladas, café, avena e infusiones"}
+        };
+
+        java.util.List<com.bodega.backend.entity.Categoria> cats = new java.util.ArrayList<>();
+        for (String[] catData : categoriasDefault) {
+            com.bodega.backend.entity.Categoria cat = new com.bodega.backend.entity.Categoria();
+            cat.setNombre(catData[0]);
+            cat.setDescripcion(catData[1]);
+            cat.setEstado(true);
+            cat.setBodega(bodega);
+            cats.add(cat);
+        }
+        categoriaRepository.saveAll(cats);
+    }
+
+    @Transactional
+    public com.bodega.backend.dto.PagoSuscripcionDTO cambiarEstadoPago(Long idPago, String nuevoEstado) {
+        com.bodega.backend.entity.PagoSuscripcion pago = pagoSuscripcionRepository.findById(idPago)
+                .orElseThrow(() -> new RuntimeException("Pago de suscripción con ID " + idPago + " no encontrado"));
+        String estadoNorm = (nuevoEstado != null && !nuevoEstado.isBlank()) ? nuevoEstado.trim().toUpperCase() : "CONFIRMADO";
+        pago.setEstado(estadoNorm);
+        com.bodega.backend.entity.PagoSuscripcion guardado = pagoSuscripcionRepository.save(pago);
+        return mapPagoToDTO(guardado);
+    }
+
+    public java.util.Map<String, Object> obtenerAnuncioGlobal() {
+        java.util.Map<String, Object> a = anuncioGlobal.get();
+        return (a != null) ? a : java.util.Collections.emptyMap();
+    }
+
+    public java.util.Map<String, Object> publicarAnuncioGlobal(java.util.Map<String, Object> req) {
+        java.util.Map<String, Object> datos = new java.util.HashMap<>(req);
+        datos.put("fechaEmision", java.time.OffsetDateTime.now().toString());
+        datos.put("activo", true);
+        anuncioGlobal.set(datos);
+        return datos;
+    }
+
+    public void eliminarAnuncioGlobal() {
+        anuncioGlobal.set(null);
     }
 
     @Transactional(readOnly = true)
