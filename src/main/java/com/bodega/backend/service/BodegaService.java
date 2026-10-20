@@ -15,15 +15,21 @@ public class BodegaService {
     private final TenantService tenantService;
     private final UserSecurityCacheService userSecurityCacheService;
     private final com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository;
+    private final com.bodega.backend.repository.UsuarioRepository usuarioRepository;
+    private final com.bodega.backend.repository.VentaRepository ventaRepository;
 
     public BodegaService(BodegaRepository bodegaRepository,
                          TenantService tenantService,
                          UserSecurityCacheService userSecurityCacheService,
-                         com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository) {
+                         com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository,
+                         com.bodega.backend.repository.UsuarioRepository usuarioRepository,
+                         com.bodega.backend.repository.VentaRepository ventaRepository) {
         this.bodegaRepository = bodegaRepository;
         this.tenantService = tenantService;
         this.userSecurityCacheService = userSecurityCacheService;
         this.pagoSuscripcionRepository = pagoSuscripcionRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.ventaRepository = ventaRepository;
     }
 
     @Transactional(readOnly = true)
@@ -253,6 +259,63 @@ public class BodegaService {
         dto.setUltimoCorrelativoBoleta(b.getUltimoCorrelativoBoleta());
         dto.setUltimoCorrelativoFactura(b.getUltimoCorrelativoFactura());
         return dto;
+    }
+
+    @Transactional
+    public BodegaDTO cambiarEstadoBodega(Long idBodega, boolean activo) {
+        Bodega bodega = bodegaRepository.findById(idBodega)
+                .orElseThrow(() -> new RuntimeException("Bodega con ID " + idBodega + " no encontrada"));
+        bodega.setEstado(activo);
+        Bodega guardada = bodegaRepository.save(bodega);
+        userSecurityCacheService.evictAll();
+        return mapToDTO(guardada);
+    }
+
+    @Transactional
+    public BodegaDTO cambiarPlanBodega(Long idBodega, String nuevoPlan, Integer diasVigencia) {
+        Bodega bodega = bodegaRepository.findById(idBodega)
+                .orElseThrow(() -> new RuntimeException("Bodega con ID " + idBodega + " no encontrada"));
+        if (nuevoPlan != null && !nuevoPlan.isBlank()) {
+            bodega.setPlan(nuevoPlan.trim().toUpperCase());
+        }
+        int dias = (diasVigencia != null && diasVigencia > 0) ? diasVigencia : 30;
+        bodega.setFechaVencimientoPlan(java.time.OffsetDateTime.now().plusDays(dias));
+        Bodega guardada = bodegaRepository.save(bodega);
+        userSecurityCacheService.evictAll();
+        return mapToDTO(guardada);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> obtenerMetricasSistema() {
+        java.util.Map<String, Object> metricas = new java.util.HashMap<>();
+        java.util.List<Bodega> bodegas = bodegaRepository.findAll();
+        long totalBodegas = bodegas.size();
+        long bodegasActivas = bodegas.stream().filter(b -> Boolean.TRUE.equals(b.getEstado())).count();
+        long bodegasInactivas = totalBodegas - bodegasActivas;
+        long bodegasPro = bodegas.stream().filter(b -> "PRO".equalsIgnoreCase(b.getPlan())).count();
+        long bodegasBasico = totalBodegas - bodegasPro;
+
+        long totalUsuarios = usuarioRepository != null ? usuarioRepository.count() : 0;
+        long totalVentas = ventaRepository != null ? ventaRepository.count() : 0;
+
+        java.util.List<com.bodega.backend.entity.PagoSuscripcion> pagos = pagoSuscripcionRepository.findAll();
+        long totalPagos = pagos.size();
+        java.math.BigDecimal totalRecaudado = pagos.stream()
+                .map(com.bodega.backend.entity.PagoSuscripcion::getMonto)
+                .filter(java.util.Objects::nonNull)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        metricas.put("totalBodegas", totalBodegas);
+        metricas.put("bodegasActivas", bodegasActivas);
+        metricas.put("bodegasInactivas", bodegasInactivas);
+        metricas.put("bodegasPro", bodegasPro);
+        metricas.put("bodegasBasico", bodegasBasico);
+        metricas.put("totalUsuarios", totalUsuarios);
+        metricas.put("totalVentas", totalVentas);
+        metricas.put("totalPagos", totalPagos);
+        metricas.put("totalRecaudado", totalRecaudado);
+
+        return metricas;
     }
 
     @Transactional(readOnly = true)

@@ -41,6 +41,12 @@ public class BodegaServiceTest {
     @Mock
     private com.bodega.backend.repository.PagoSuscripcionRepository pagoSuscripcionRepository;
 
+    @Mock
+    private com.bodega.backend.repository.UsuarioRepository usuarioRepository;
+
+    @Mock
+    private com.bodega.backend.repository.VentaRepository ventaRepository;
+
     @InjectMocks
     private BodegaService bodegaService;
 
@@ -208,5 +214,46 @@ public class BodegaServiceTest {
         assertNotNull(res);
         assertEquals(99L, res.getIdBodega());
         assertEquals("Otra Tienda", res.getNombreComercial());
+    }
+
+    @Test
+    void testCambiarEstadoBodega() {
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+        when(bodegaRepository.save(any(Bodega.class))).thenReturn(bodega);
+
+        BodegaDTO result = bodegaService.cambiarEstadoBodega(1L, false);
+
+        assertNotNull(result);
+        assertFalse(bodega.getEstado());
+        verify(userSecurityCacheService).evictAll();
+    }
+
+    @Test
+    void testCambiarPlanBodega() {
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+        when(bodegaRepository.save(any(Bodega.class))).thenReturn(bodega);
+
+        BodegaDTO result = bodegaService.cambiarPlanBodega(1L, "PRO", 60);
+
+        assertNotNull(result);
+        assertEquals("PRO", bodega.getPlan());
+        assertNotNull(bodega.getFechaVencimientoPlan());
+        verify(userSecurityCacheService).evictAll();
+    }
+
+    @Test
+    void testObtenerMetricasSistema() {
+        when(bodegaRepository.findAll()).thenReturn(List.of(bodega));
+        when(usuarioRepository.count()).thenReturn(5L);
+        when(ventaRepository.count()).thenReturn(120L);
+        when(pagoSuscripcionRepository.findAll()).thenReturn(List.of());
+
+        java.util.Map<String, Object> metricas = bodegaService.obtenerMetricasSistema();
+
+        assertNotNull(metricas);
+        assertEquals(1L, metricas.get("totalBodegas"));
+        assertEquals(1L, metricas.get("bodegasActivas"));
+        assertEquals(5L, metricas.get("totalUsuarios"));
+        assertEquals(120L, metricas.get("totalVentas"));
     }
 }

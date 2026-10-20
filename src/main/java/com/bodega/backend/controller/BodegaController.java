@@ -67,4 +67,27 @@ public class BodegaController {
     public ResponseEntity<java.util.List<com.bodega.backend.dto.PagoSuscripcionDTO>> listarTodosLosPagos() {
         return ResponseEntity.ok(bodegaService.listarTodosLosPagos());
     }
+
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<BodegaDTO> cambiarEstadoBodega(
+            @PathVariable Long id,
+            @RequestParam boolean activo) {
+        return ResponseEntity.ok(bodegaService.cambiarEstadoBodega(id, activo));
+    }
+
+    @PutMapping("/{id}/plan")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<BodegaDTO> cambiarPlanBodega(
+            @PathVariable Long id,
+            @RequestParam String plan,
+            @RequestParam(required = false, defaultValue = "30") Integer dias) {
+        return ResponseEntity.ok(bodegaService.cambiarPlanBodega(id, plan, dias));
+    }
+
+    @GetMapping("/metricas-sistema")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<java.util.Map<String, Object>> obtenerMetricasSistema() {
+        return ResponseEntity.ok(bodegaService.obtenerMetricasSistema());
+    }
 }

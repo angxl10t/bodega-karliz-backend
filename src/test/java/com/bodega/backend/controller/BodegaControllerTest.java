@@ -149,4 +149,37 @@ public class BodegaControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
     }
+
+    @Test
+    void testCambiarEstadoBodega() {
+        when(bodegaService.cambiarEstadoBodega(1L, false)).thenReturn(bodegaDTO);
+
+        ResponseEntity<BodegaDTO> response = bodegaController.cambiarEstadoBodega(1L, false);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(bodegaService).cambiarEstadoBodega(1L, false);
+    }
+
+    @Test
+    void testCambiarPlanBodega() {
+        when(bodegaService.cambiarPlanBodega(1L, "PRO", 45)).thenReturn(bodegaDTO);
+
+        ResponseEntity<BodegaDTO> response = bodegaController.cambiarPlanBodega(1L, "PRO", 45);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(bodegaService).cambiarPlanBodega(1L, "PRO", 45);
+    }
+
+    @Test
+    void testObtenerMetricasSistema() {
+        when(bodegaService.obtenerMetricasSistema()).thenReturn(java.util.Map.of("totalBodegas", 10L));
+
+        ResponseEntity<java.util.Map<String, Object>> response = bodegaController.obtenerMetricasSistema();
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(10L, response.getBody().get("totalBodegas"));
+    }
 }
