@@ -221,6 +221,62 @@ class BodegaService {
     } catch (_) {}
     return [];
   }
+
+  /// Consulta Global de TODOS los Pagos (Exclusivo Superadmin)
+  Future<List<PagoSuscripcionItem>> listarTodosLosPagos() async {
+    try {
+      final response = await _client.get('/bodegas/todos-los-pagos');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data.map((json) => PagoSuscripcionItem.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Activar o Suspender una bodega del sistema (Exclusivo Superadmin)
+  Future<BodegaInfo> cambiarEstadoBodega(int idBodega, bool activo) async {
+    final response = await _client.put('/bodegas/$idBodega/estado?activo=$activo', {});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return BodegaInfo.fromJson(data);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo cambiar el estado de la bodega');
+    throw Exception(errorMsg);
+  }
+
+  /// Cambiar o extender el plan de una bodega (Exclusivo Superadmin)
+  Future<BodegaInfo> cambiarPlanBodega(int idBodega, String plan, {int dias = 30}) async {
+    final response = await _client.put('/bodegas/$idBodega/plan?plan=$plan&dias=$dias', {});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return BodegaInfo.fromJson(data);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo actualizar el plan de la bodega');
+    throw Exception(errorMsg);
+  }
+
+  /// Métricas consolidadas del SaaS (Exclusivo Superadmin)
+  Future<Map<String, dynamic>> obtenerMetricasSistema() async {
+    try {
+      final response = await _client.get('/bodegas/metricas-sistema');
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return {};
+  }
+
+  /// Monitoreo de salud y telemetría JVM del servidor
+  Future<Map<String, dynamic>> obtenerHealthServidor() async {
+    try {
+      final response = await _client.get('/health');
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return {};
+  }
 }
 
 class PagoSuscripcionItem {

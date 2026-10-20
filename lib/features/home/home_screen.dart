@@ -1503,85 +1503,93 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Row(
+      body: Column(
         children: [
-          if (isWideScreen)
-            NavigationRail(
-              selectedIndex: _selectedIndex.clamp(0, _screens.length - 1),
-              onDestinationSelected: (index) {
-                HapticFeedback.selectionClick();
-                setState(() {
-                  _selectedIndex = index;
-                  _loadedTabs.add(index);
-                });
-              },
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: IconButton(
-                  tooltip: _railCollapsed ? 'Expandir menú' : 'Compactar menú POS',
-                  icon: Icon(
-                    _railCollapsed ? LucideIcons.panelLeftOpen : LucideIcons.panelLeftClose,
-                    size: 18,
-                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
+          if (_userRol == 'SUPERADMIN')
+            _buildSuperAdminAuditBanner(context, isDark),
+          Expanded(
+            child: Row(
+              children: [
+                if (isWideScreen)
+                  NavigationRail(
+                    selectedIndex: _selectedIndex.clamp(0, _screens.length - 1),
+                    onDestinationSelected: (index) {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        _selectedIndex = index;
+                        _loadedTabs.add(index);
+                      });
+                    },
+                    leading: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: IconButton(
+                        tooltip: _railCollapsed ? 'Expandir menú' : 'Compactar menú POS',
+                        icon: Icon(
+                          _railCollapsed ? LucideIcons.panelLeftOpen : LucideIcons.panelLeftClose,
+                          size: 18,
+                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                        ),
+                        onPressed: () => setState(() => _railCollapsed = !_railCollapsed),
+                      ),
+                    ),
+                    labelType: _railCollapsed ? NavigationRailLabelType.none : NavigationRailLabelType.all,
+                    backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+                    indicatorColor: AppTheme.brandPrimary,
+                    indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    selectedIconTheme: const IconThemeData(
+                      color: Colors.white,
+                      size: 21,
+                    ),
+                    unselectedIconTheme: IconThemeData(
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      size: 20,
+                    ),
+                    selectedLabelTextStyle: GoogleFonts.outfit(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.brandPrimary,
+                    ),
+                    unselectedLabelTextStyle: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFF8B98AD) : const Color(0xFF94A3B8),
+                    ),
+                    destinations: const [
+                      NavigationRailDestination(
+                        icon: Icon(LucideIcons.layoutGrid),
+                        label: Text('Inicio'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(LucideIcons.shoppingBag),
+                        label: Text('POS'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(LucideIcons.banknote),
+                        label: Text('Caja'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(LucideIcons.boxes),
+                        label: Text('Stock'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(LucideIcons.truck),
+                        label: Text('Compras'),
+                      ),
+                    ],
                   ),
-                  onPressed: () => setState(() => _railCollapsed = !_railCollapsed),
-                ),
-              ),
-              labelType: _railCollapsed ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-              indicatorColor: AppTheme.brandPrimary,
-              indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              selectedIconTheme: const IconThemeData(
-                color: Colors.white,
-                size: 21,
-              ),
-              unselectedIconTheme: IconThemeData(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                size: 20,
-              ),
-              selectedLabelTextStyle: GoogleFonts.outfit(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.brandPrimary,
-              ),
-              unselectedLabelTextStyle: GoogleFonts.outfit(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isDark ? const Color(0xFF8B98AD) : const Color(0xFF94A3B8),
-              ),
-              destinations: const [
-                NavigationRailDestination(
-                  icon: Icon(LucideIcons.layoutGrid),
-                  label: Text('Inicio'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(LucideIcons.shoppingBag),
-                  label: Text('POS'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(LucideIcons.banknote),
-                  label: Text('Caja'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(LucideIcons.boxes),
-                  label: Text('Stock'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(LucideIcons.truck),
-                  label: Text('Compras'),
+                if (isWideScreen)
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  ),
+                Expanded(
+                  child: AnimatedIndexedStack(
+                    index: _selectedIndex.clamp(0, _screens.length - 1),
+                    children: _builtScreens,
+                  ),
                 ),
               ],
-            ),
-          if (isWideScreen)
-            VerticalDivider(
-              width: 1,
-              thickness: 1,
-              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-            ),
-          Expanded(
-            child: AnimatedIndexedStack(
-              index: _selectedIndex.clamp(0, _screens.length - 1),
-              children: _builtScreens,
             ),
           ),
         ],
@@ -1598,6 +1606,82 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               isDark: isDark,
             ),
+      ),
+    );
+  }
+
+  Widget _buildSuperAdminAuditBanner(BuildContext context, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF4C1D95), const Color(0xFF1E1B4B)]
+              : [const Color(0xFFEDE9FE), const Color(0xFFDDD6FE)],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF7C3AED).withValues(alpha: 0.4) : const Color(0xFFC4B5FD),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(LucideIcons.shieldCheck, size: 16, color: Color(0xFF8B5CF6)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'MODO AUDITORÍA SUPERADMIN',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                    color: isDark ? const Color(0xFFC4B5FD) : const Color(0xFF5B21B6),
+                  ),
+                ),
+                Text(
+                  'Inspeccionando tienda "${_nombreBodega.isNotEmpty ? _nombreBodega : 'CajaYa POS'}" con privilegios globales de plataforma.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white70 : const Color(0xFF4C1D95),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton.icon(
+            onPressed: () => context.go('/superadmin'),
+            icon: const Icon(LucideIcons.arrowLeft, size: 14),
+            label: Text(
+              'Volver a Consola',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF8B5CF6),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              minimumSize: const Size(0, 34),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
       ),
     );
   }

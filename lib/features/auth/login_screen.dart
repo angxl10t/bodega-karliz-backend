@@ -75,7 +75,14 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted && colorHex.isNotEmpty) {
           context.read<ThemeProvider>().setAccentColorFromHex(colorHex);
         }
-        if (mounted) context.go('/home');
+        final role = await _authService.getUserRole();
+        if (mounted) {
+          if (role.toUpperCase() == 'SUPERADMIN') {
+            context.go('/superadmin');
+          } else {
+            context.go('/home');
+          }
+        }
       } else {
         setState(() => _errorMessage = result.errorMessage ?? 'Usuario o contraseña incorrectos');
       }

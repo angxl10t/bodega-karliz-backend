@@ -6,6 +6,7 @@ import 'features/auth/auth_service.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/superadmin/superadmin_dashboard_screen.dart';
 import 'core/theme_provider.dart';
 import 'core/api_constants.dart';
 import 'core/update_service.dart';
@@ -39,13 +40,18 @@ final _router = GoRouter(
     if (path == '/splash') return null;
     final isLoggedIn = await AuthService().isLoggedIn();
     if (!isLoggedIn && path != '/login') return '/login';
-    if (isLoggedIn && path == '/login') return '/home';
+    if (isLoggedIn && path == '/login') {
+      final role = await AuthService().getUserRole();
+      if (role.toUpperCase() == 'SUPERADMIN') return '/superadmin';
+      return '/home';
+    }
     return null;
   },
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+    GoRoute(path: '/superadmin', builder: (context, state) => const SuperAdminDashboardScreen()),
   ],
 );
 
