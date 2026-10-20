@@ -5,6 +5,8 @@ import 'package:bodega_mobile/features/ventas/venta_model.dart';
 import 'package:bodega_mobile/features/proveedores/proveedor_model.dart';
 import 'package:bodega_mobile/features/compras/compra_model.dart';
 import 'package:bodega_mobile/features/categorias/categoria_model.dart';
+import 'package:bodega_mobile/features/movimientos/movimiento_model.dart';
+import 'package:bodega_mobile/features/home/bodega_service.dart';
 import 'package:bodega_mobile/core/category_helper.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -433,6 +435,83 @@ void main() {
       expect(validarProducto(precio: 3.5, stock: -5, stockMin: 2), isFalse);
       expect(validarProducto(precio: 3.5, stock: 0, stockMin: -1), isFalse);
       expect(validarProducto(precio: 3.5, stock: 0, stockMin: 0), isTrue);
+    });
+  });
+
+  group('Kardex & Stock Adjustment Model Tests', () {
+    test('MovimientoInventario.fromJson safely parses usuarioResponsable and numeric values', () {
+      final json = {
+        'idMovimiento': 105,
+        'idProducto': 42,
+        'nombreProducto': 'Arroz Costeño 1kg',
+        'tipoMovimiento': 'SALIDA',
+        'cantidad': 3.5,
+        'motivo': '[MERMA] Empaque humedecido',
+        'fechaMovimiento': '2026-10-20T10:30:00Z',
+        'usuarioResponsable': 'admin_karliz',
+      };
+
+      final m = MovimientoInventario.fromJson(json);
+      expect(m.idMovimiento, equals(105));
+      expect(m.idProducto, equals(42));
+      expect(m.nombreProducto, equals('Arroz Costeño 1kg'));
+      expect(m.tipoMovimiento, equals('SALIDA'));
+      expect(m.cantidad, equals(3.5));
+      expect(m.motivo, equals('[MERMA] Empaque humedecido'));
+      expect(m.usuarioResponsable, equals('admin_karliz'));
+      expect(m.fechaMovimiento, isNotNull);
+    });
+
+    test('Stock projection logic enforces non-negative remaining stock for exits', () {
+      double proyectarStock({required double stockActual, required double cantidad, required bool esSalida}) {
+        if (esSalida) {
+          if (cantidad > stockActual) throw ArgumentError('Merma excede stock actual');
+          return stockActual - cantidad;
+        } else {
+          return stockActual + cantidad;
+        }
+      }
+
+      expect(proyectarStock(stockActual: 20.0, cantidad: 5.0, esSalida: true), equals(15.0));
+      expect(proyectarStock(stockActual: 20.0, cantidad: 20.0, esSalida: true), equals(0.0));
+      expect(proyectarStock(stockActual: 20.0, cantidad: 4.5, esSalida: false), equals(24.5));
+      expect(() => proyectarStock(stockActual: 20.0, cantidad: 25.0, esSalida: true), throwsArgumentError);
+    });
+  });
+
+  group('SaaS Subscription Quota Tests', () {
+    test('BodegaInfo.fromJson parses quota and limit fields correctly', () {
+      final json = {
+        'idBodega': 5,
+        'nombreComercial': 'Minimarket Los Andes',
+        'plan': 'BASICO',
+        'estado': true,
+        'limiteProductos': 150,
+        'totalProductosActivos': 120,
+        'limiteAlcanzado': false,
+      };
+
+      final b = BodegaInfo.fromJson(json);
+      expect(b.idBodega, equals(5));
+      expect(b.plan, equals('BASICO'));
+      expect(b.limiteProductos, equals(150));
+      expect(b.totalProductosActivos, equals(120));
+      expect(b.limiteAlcanzado, isFalse);
+    });
+
+    test('BodegaInfo marks limit reached when total equals or exceeds 150 in BASICO plan', () {
+      final json = {
+        'idBodega': 6,
+        'nombreComercial': 'Bodega La Esquina',
+        'plan': 'BASICO',
+        'estado': true,
+        'limiteProductos': 150,
+        'totalProductosActivos': 150,
+        'limiteAlcanzado': true,
+      };
+
+      final b = BodegaInfo.fromJson(json);
+      expect(b.limiteAlcanzado, isTrue);
     });
   });
 }

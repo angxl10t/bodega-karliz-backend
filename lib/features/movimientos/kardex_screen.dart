@@ -58,6 +58,17 @@ class _KardexScreenState extends State<KardexScreen> {
     }
   }
 
+  bool _esAjuste(MovimientoInventario m) {
+    final mot = m.motivo.toUpperCase();
+    return mot.contains('[MERMA]') ||
+        mot.contains('[ROTURA]') ||
+        mot.contains('[VENCIMIENTO]') ||
+        mot.contains('[CONSUMO_INTERNO]') ||
+        mot.contains('[SOBRANTE]') ||
+        mot.contains('AJUSTE MANUAL') ||
+        mot.contains('[AJUSTE');
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -69,9 +80,13 @@ class _KardexScreenState extends State<KardexScreen> {
       bool matchesTipo = true;
       if (_filtroTipo == 'ENTRADA') {
         matchesTipo = (m.tipoMovimiento.contains('ENTRADA') || m.tipoMovimiento.contains('COMPRA')) &&
-            !m.motivo.toUpperCase().contains('ANULACI');
+            !m.motivo.toUpperCase().contains('ANULACI') &&
+            !_esAjuste(m);
       } else if (_filtroTipo == 'SALIDA') {
-        matchesTipo = m.tipoMovimiento.contains('SALIDA') || m.tipoMovimiento.contains('VENTA');
+        matchesTipo = (m.tipoMovimiento.contains('SALIDA') || m.tipoMovimiento.contains('VENTA')) &&
+            !_esAjuste(m);
+      } else if (_filtroTipo == 'AJUSTE') {
+        matchesTipo = _esAjuste(m);
       } else if (_filtroTipo == 'DEVOLUCION') {
         matchesTipo = m.tipoMovimiento.contains('DEVOLUCION') ||
             m.tipoMovimiento.contains('ANULACION') ||
@@ -86,9 +101,12 @@ class _KardexScreenState extends State<KardexScreen> {
         m.motivo.toUpperCase().contains('ANULACI')).length;
     final int totalEntradas = _movimientos.where((m) =>
         (m.tipoMovimiento.contains('ENTRADA') || m.tipoMovimiento.contains('COMPRA')) &&
-        !m.motivo.toUpperCase().contains('ANULACI')).length;
+        !m.motivo.toUpperCase().contains('ANULACI') &&
+        !_esAjuste(m)).length;
     final int totalSalidas = _movimientos.where((m) =>
-        m.tipoMovimiento.contains('SALIDA') || m.tipoMovimiento.contains('VENTA')).length;
+        (m.tipoMovimiento.contains('SALIDA') || m.tipoMovimiento.contains('VENTA')) &&
+        !_esAjuste(m)).length;
+    final int totalAjustes = _movimientos.where((m) => _esAjuste(m)).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -107,7 +125,7 @@ class _KardexScreenState extends State<KardexScreen> {
               ),
             ),
             Text(
-              'Auditoría y trazabilidad de entradas/salidas',
+              'Auditoría y trazabilidad de entradas, salidas y mermas',
               style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
             ),
           ],
@@ -133,7 +151,7 @@ class _KardexScreenState extends State<KardexScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: const DidacticBanner(
                       title: 'Auditoría en Tiempo Real',
-                      description: 'Cada venta en POS resta stock, cada compra suma existencias y cada anulación devuelve productos al inventario automáticamente.',
+                      description: 'Cada venta en POS resta stock, cada compra suma existencias, cada merma o rotura descuenta por deterioro y las anulaciones restituyen productos.',
                       icon: LucideIcons.fileSpreadsheet,
                     ),
                   ),
@@ -145,17 +163,19 @@ class _KardexScreenState extends State<KardexScreen> {
                     child: Row(
                       children: [
                         _buildKpiChip('Entradas', '$totalEntradas', AppTheme.accentGreen, isDark),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         _buildKpiChip('Salidas', '$totalSalidas', AppTheme.brandPrimary, isDark),
-                        const SizedBox(width: 8),
-                        _buildKpiChip('Devoluciones', '$totalDevoluciones', AppTheme.infoIndigo, isDark),
+                        const SizedBox(width: 6),
+                        _buildKpiChip('Mermas', '$totalAjustes', const Color(0xFFEA580C), isDark),
+                        const SizedBox(width: 6),
+                        _buildKpiChip('Devolución', '$totalDevoluciones', AppTheme.infoIndigo, isDark),
                       ],
                     ),
                   ),
 
                   // Filtros y Buscador
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                     child: Column(
                       children: [
                         Container(
@@ -174,7 +194,7 @@ class _KardexScreenState extends State<KardexScreen> {
                               color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Filtrar por producto o motivo...',
+                              hintText: 'Filtrar por producto, motivo o usuario...',
                               hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
                               prefixIcon: const Icon(LucideIcons.search, size: 18),
                               suffixIcon: _filtroTexto.isNotEmpty
@@ -203,6 +223,8 @@ class _KardexScreenState extends State<KardexScreen> {
                               _buildFilterChip('ENTRADA', 'Entradas (Compras)', isDark),
                               const SizedBox(width: 6),
                               _buildFilterChip('SALIDA', 'Salidas (Ventas)', isDark),
+                              const SizedBox(width: 6),
+                              _buildFilterChip('AJUSTE', 'Mermas y Ajustes', isDark),
                               const SizedBox(width: 6),
                               _buildFilterChip('DEVOLUCION', 'Devoluciones / Anulaciones', isDark),
                             ],
@@ -251,7 +273,7 @@ class _KardexScreenState extends State<KardexScreen> {
   Widget _buildKpiChip(String label, String count, Color color, bool isDark) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isDark ? AppTheme.cardDark : Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -264,14 +286,16 @@ class _KardexScreenState extends State<KardexScreen> {
             Text(
               count,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w900,
                 color: color,
               ),
             ),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted, fontWeight: FontWeight.w600),
+              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -304,13 +328,19 @@ class _KardexScreenState extends State<KardexScreen> {
     final bool isDevolucion = tipo.contains('DEVOLUCION') ||
         tipo.contains('ANULACION') ||
         m.motivo.toUpperCase().contains('ANULACI');
-    final bool isEntrada = !isDevolucion && (tipo.contains('ENTRADA') || tipo.contains('COMPRA'));
+    final bool isAjuste = _esAjuste(m);
+    final bool isEntrada = !isDevolucion && !isAjuste && (tipo.contains('ENTRADA') || tipo.contains('COMPRA'));
 
     Color badgeColor;
     IconData icon;
     String sign;
 
-    if (isEntrada) {
+    if (isAjuste) {
+      final esSobrante = m.motivo.toUpperCase().contains('[SOBRANTE]') || tipo.contains('ENTRADA');
+      badgeColor = esSobrante ? AppTheme.accentGreen : const Color(0xFFEA580C);
+      icon = esSobrante ? LucideIcons.packagePlus : LucideIcons.packageMinus;
+      sign = esSobrante ? '+' : '-';
+    } else if (isEntrada) {
       badgeColor = AppTheme.accentGreen;
       icon = LucideIcons.arrowDownLeft;
       sign = '+';
@@ -339,6 +369,7 @@ class _KardexScreenState extends State<KardexScreen> {
         ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 42,
@@ -370,17 +401,47 @@ class _KardexScreenState extends State<KardexScreen> {
                     color: AppTheme.textMuted,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  fechaStr,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    color: AppTheme.textMuted,
-                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      fechaStr,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                    if (m.usuarioResponsable != null && m.usuarioResponsable!.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(LucideIcons.userCheck, size: 10, color: AppTheme.textMuted),
+                            const SizedBox(width: 4),
+                            Text(
+                              m.usuarioResponsable!,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white60 : const Color(0xFF475569),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(

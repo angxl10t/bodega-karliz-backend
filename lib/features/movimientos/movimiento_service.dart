@@ -30,4 +30,26 @@ class MovimientoService {
       return [];
     }
   }
+
+  Future<bool> registrarAjuste({
+    required int idProducto,
+    required double cantidad,
+    required String tipoAjuste,
+    required String motivo,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/movimientos/ajuste',
+        {
+          'idProducto': idProducto,
+          'cantidad': cantidad,
+          'tipoAjuste': tipoAjuste,
+          'motivo': motivo,
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 }

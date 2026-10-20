@@ -6,6 +6,7 @@ class MovimientoInventario {
   final double cantidad;
   final String motivo;
   final DateTime? fechaMovimiento;
+  final String? usuarioResponsable;
 
   MovimientoInventario({
     required this.idMovimiento,
@@ -15,6 +16,7 @@ class MovimientoInventario {
     required this.cantidad,
     required this.motivo,
     this.fechaMovimiento,
+    this.usuarioResponsable,
   });
 
   factory MovimientoInventario.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class MovimientoInventario {
       fechaMovimiento: json['fechaMovimiento'] != null
           ? DateTime.tryParse(json['fechaMovimiento'].toString())
           : null,
+      usuarioResponsable: json['usuarioResponsable'] as String?,
     );
   }
 }

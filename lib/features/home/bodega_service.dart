@@ -21,6 +21,9 @@ class BodegaInfo {
   final String? sunatUsuarioSol;
   final String? serieBoleta;
   final String? serieFactura;
+  final int? limiteProductos;
+  final int? totalProductosActivos;
+  final bool limiteAlcanzado;
 
   BodegaInfo({
     required this.idBodega,
@@ -41,6 +44,9 @@ class BodegaInfo {
     this.sunatUsuarioSol,
     this.serieBoleta,
     this.serieFactura,
+    this.limiteProductos,
+    this.totalProductosActivos,
+    this.limiteAlcanzado = false,
   });
 
   factory BodegaInfo.fromJson(Map<String, dynamic> json) {
@@ -65,6 +71,9 @@ class BodegaInfo {
       sunatUsuarioSol: json['sunatUsuarioSol'],
       serieBoleta: json['serieBoleta'],
       serieFactura: json['serieFactura'],
+      limiteProductos: json['limiteProductos'] as int?,
+      totalProductosActivos: (json['totalProductosActivos'] as num?)?.toInt(),
+      limiteAlcanzado: json['limiteAlcanzado'] == true,
     );
   }
 }

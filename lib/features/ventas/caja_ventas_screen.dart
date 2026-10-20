@@ -36,6 +36,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
 
   DateTime _fechaSeleccionada = DateTime.now();
   bool _filtrarVentasPorFecha = false;
+  String _filtroEstadoVenta = 'TODAS'; // 'TODAS', 'COMPLETADAS', 'ANULADAS'
 
   @override
   void initState() {
@@ -2306,6 +2307,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
         : _ventas;
 
     final filtradas = ventasFiltradasPorDia.where((v) {
+      if (_filtroEstadoVenta == 'COMPLETADAS' && v.isAnulada) return false;
+      if (_filtroEstadoVenta == 'ANULADAS' && !v.isAnulada) return false;
+
       final doc = v.clienteDocumento ?? '';
       final nom = v.clienteNombre ?? '';
       final q = _busquedaVenta.toLowerCase();
@@ -2410,6 +2414,20 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             ),
           ),
 
+          // Filtro por Estado: Todas / Completadas / Anuladas
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: Row(
+              children: [
+                _buildEstadoVentaChip('TODAS', 'Todas', ventasFiltradasPorDia.length, null, isDark),
+                const SizedBox(width: 8),
+                _buildEstadoVentaChip('COMPLETADAS', 'Completadas', ventasFiltradasPorDia.where((v) => !v.isAnulada).length, AppTheme.accentGreen, isDark),
+                const SizedBox(width: 8),
+                _buildEstadoVentaChip('ANULADAS', 'Anuladas', ventasFiltradasPorDia.where((v) => v.isAnulada).length, AppTheme.alertRed, isDark),
+              ],
+            ),
+          ),
+
           // Buscador de Ventas
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
@@ -2486,6 +2504,45 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEstadoVentaChip(String key, String label, int count, Color? accent, bool isDark) {
+    final isSelected = _filtroEstadoVenta == key;
+    final color = accent ?? AppTheme.brandPrimary;
+    return InkWell(
+      onTap: () => setState(() => _filtroEstadoVenta = key),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: isDark ? 0.28 : 0.12)
+              : (isDark ? AppTheme.cardDark : Colors.white),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (accent != null) ...[
+              Container(width: 6, height: 6, decoration: BoxDecoration(color: accent, shape: BoxShape.circle)),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              '$label ($count)',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? color : (isDark ? Colors.white70 : AppTheme.textDark),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

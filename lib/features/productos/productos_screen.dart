@@ -8,6 +8,8 @@ import 'producto_service.dart';
 import 'nuevo_producto_sheet.dart';
 import 'editar_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
+import '../movimientos/ajuste_stock_sheet.dart';
+import '../home/bodega_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/theme.dart';
@@ -23,6 +25,8 @@ class ProductosScreen extends StatefulWidget {
 
 class _ProductosScreenState extends State<ProductosScreen> {
   final ProductoService _productoService = ProductoService();
+  final BodegaService _bodegaService = BodegaService();
+  BodegaInfo? _bodegaInfo;
   List<Producto> _todosProductos = [];
   List<Producto> _productosFiltrados = [];
   bool _isLoading = true;
@@ -82,13 +86,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
       final results = await Future.wait([
         AuthService().getUserRole(),
         _productoService.getProductos(forceRefresh: false),
+        _bodegaService.obtenerMiBodega(),
       ]);
       if (mounted) {
         final rol = results[0] as String;
         final prods = results[1] as List<Producto>;
+        final bInfo = results[2] as BodegaInfo?;
         setState(() {
           _userRol = rol;
           _todosProductos = List<Producto>.from(prods);
+          _bodegaInfo = bInfo;
           _aplicarFiltros();
           _isLoading = false;
         });
@@ -100,10 +107,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   Future<void> _cargarProductos({bool forceRefresh = false}) async {
     setState(() => _isLoading = true);
-    final productos = await _productoService.getProductos(forceRefresh: forceRefresh);
+    final results = await Future.wait([
+      _productoService.getProductos(forceRefresh: forceRefresh),
+      _bodegaService.obtenerMiBodega(),
+    ]);
     if (mounted) {
+      final productos = results[0] as List<Producto>;
+      final bInfo = results[1] as BodegaInfo?;
       setState(() {
         _todosProductos = List<Producto>.from(productos);
+        _bodegaInfo = bInfo;
         _aplicarFiltros();
         _isLoading = false;
       });
@@ -255,6 +268,19 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                     : AppTheme.accentGreen,
                               ),
                             ),
+                            if (_bodegaInfo != null) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                width: 3,
+                                height: 3,
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.textMuted,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              _buildCuotaPlanBadge(isDark),
+                            ],
                           ],
                         ),
                       ],
@@ -718,7 +744,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
                 'Nuevo Producto',
                 style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
               ),
-              onPressed: () => NuevoProductoSheet.show(context, _cargarProductos),
+              onPressed: () {
+                final esBasico = _bodegaInfo?.plan.toUpperCase() == 'BASICO';
+                final total = _todosProductos.length;
+                final limite = _bodegaInfo?.limiteProductos ?? 150;
+                if (esBasico && total >= limite) {
+                  _mostrarModalLimitePlanBasico(context);
+                } else {
+                  NuevoProductoSheet.show(context, _cargarProductos);
+                }
+              },
             )
           : null,
     );
@@ -1172,13 +1207,33 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                          side: const BorderSide(color: Color(0xFFEA580C), width: 1.2),
+                          foregroundColor: const Color(0xFFEA580C),
+                        ),
+                        icon: const Icon(LucideIcons.scale, size: 15),
+                        label: Text(
+                          'AJUSTAR',
+                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 12),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          AjusteStockSheet.show(context, p, _cargarProductos);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
                           foregroundColor: AppTheme.brandPrimary,
                         ),
-                        icon: const Icon(LucideIcons.pencil, size: 16),
+                        icon: const Icon(LucideIcons.pencil, size: 15),
                         label: Text(
                           'EDITAR',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 12),
                         ),
                         onPressed: () {
                           Navigator.pop(ctx);
@@ -1186,7 +1241,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                   ],
                   Expanded(
                     child: ElevatedButton.icon(
@@ -1288,6 +1343,170 @@ class _ProductosScreenState extends State<ProductosScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCuotaPlanBadge(bool isDark) {
+    final info = _bodegaInfo;
+    if (info == null) return const SizedBox.shrink();
+    final isBasico = info.plan.toUpperCase() == 'BASICO';
+    final limite = info.limiteProductos ?? 150;
+    final total = _todosProductos.length;
+    final alcanzado = isBasico && total >= limite;
+    final porLlenar = isBasico && total >= (limite - 10) && !alcanzado;
+
+    final Color badgeColor = alcanzado
+        ? AppTheme.alertRed
+        : (porLlenar ? const Color(0xFFD97706) : AppTheme.brandPrimary);
+
+    return InkWell(
+      onTap: isBasico ? () => _mostrarModalLimitePlanBasico(context) : null,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: badgeColor.withValues(alpha: isDark ? 0.22 : 0.1),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isBasico ? (alcanzado ? LucideIcons.triangleAlert : LucideIcons.package) : LucideIcons.sparkles,
+              size: 11,
+              color: badgeColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              isBasico ? '$total/$limite' : 'PRO Ilimitado',
+              style: GoogleFonts.outfit(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                color: badgeColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _mostrarModalLimitePlanBasico(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.crown, color: AppTheme.brandPrimary, size: 28),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Límite de Catálogo - Plan BÁSICO',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Has alcanzado el límite de 150 productos activos para el Plan BÁSICO. Pasa al Plan PRO para desbloquear todo el potencial de tu negocio:',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+              ),
+              child: Column(
+                children: [
+                  _buildVentajaPro('🚀 Catálogo y Productos Ilimitados', 'Registra todos los SKUs que necesites sin restricciones.', isDark),
+                  const SizedBox(height: 10),
+                  _buildVentajaPro('👥 Múltiples Cajeros con PIN', 'Crea usuarios independientes para cada turno y terminal.', isDark),
+                  const SizedBox(height: 10),
+                  _buildVentajaPro('🧾 Facturación Electrónica SUNAT', 'Emite Boletas y Facturas electrónicas oficiales en vivo.', isDark),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                backgroundColor: AppTheme.brandPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Entendido',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVentajaPro(String titulo, String subtitulo, bool isDark) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(LucideIcons.circleCheck, color: AppTheme.accentGreen, size: 16),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titulo,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              Text(
+                subtitulo,
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
