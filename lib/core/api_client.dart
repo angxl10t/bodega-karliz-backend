@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'api_constants.dart';
 import 'secure_storage_service.dart';
@@ -27,9 +28,22 @@ class ApiClient {
     }
   }
 
+  Uri _resolveUri(String endpoint) {
+    final clean = endpoint.trim();
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      return Uri.parse(clean);
+    }
+    final path = clean.startsWith('/') ? clean : '/$clean';
+    return Uri.parse('${ApiConstants.baseUrl}$path');
+  }
+
+  @visibleForTesting
+  Uri resolveUri(String endpoint) => _resolveUri(endpoint);
+
   Future<http.Response> get(String endpoint) async {
+    final uri = _resolveUri(endpoint);
     final res = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+      uri,
       headers: await _getHeaders(),
     ).timeout(const Duration(seconds: 30));
     _checkAuthStatus(res, endpoint);
@@ -37,8 +51,9 @@ class ApiClient {
   }
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
+    final uri = _resolveUri(endpoint);
     final res = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+      uri,
       headers: await _getHeaders(),
       body: jsonEncode(body),
     ).timeout(const Duration(seconds: 30));
@@ -47,8 +62,9 @@ class ApiClient {
   }
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
+    final uri = _resolveUri(endpoint);
     final res = await http.put(
-      Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+      uri,
       headers: await _getHeaders(),
       body: jsonEncode(body),
     ).timeout(const Duration(seconds: 30));
@@ -57,8 +73,9 @@ class ApiClient {
   }
 
   Future<http.Response> patch(String endpoint, Map<String, dynamic> body) async {
+    final uri = _resolveUri(endpoint);
     final res = await http.patch(
-      Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+      uri,
       headers: await _getHeaders(),
       body: jsonEncode(body),
     ).timeout(const Duration(seconds: 30));
@@ -67,8 +84,9 @@ class ApiClient {
   }
 
   Future<http.Response> delete(String endpoint) async {
+    final uri = _resolveUri(endpoint);
     final res = await http.delete(
-      Uri.parse('${ApiConstants.baseUrl}$endpoint'),
+      uri,
       headers: await _getHeaders(),
     ).timeout(const Duration(seconds: 30));
     _checkAuthStatus(res, endpoint);
