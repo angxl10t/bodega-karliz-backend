@@ -154,9 +154,10 @@ class _KarlizBarcodeScannerModalState extends State<KarlizBarcodeScannerModal>
     }
   }
 
-  void _abrirDialogoManual() {
+  Future<void> _abrirDialogoManual() async {
     final manualCtrl = TextEditingController(text: _lastScannedCode);
-    showDialog(
+    try {
+      await showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
@@ -241,6 +242,9 @@ class _KarlizBarcodeScannerModalState extends State<KarlizBarcodeScannerModal>
         );
       },
     );
+    } finally {
+      manualCtrl.dispose();
+    }
   }
 
   @override
