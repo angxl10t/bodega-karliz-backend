@@ -22,6 +22,9 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     long countByBodega_IdBodegaAndEstadoTrue(Long idBodega);
 
+    @Query("SELECT p.bodega.idBodega, COUNT(p) FROM Producto p WHERE p.estado = true GROUP BY p.bodega.idBodega")
+    List<Object[]> countActiveProductsGroupedByBodega();
+
     List<Producto> findByEstadoFalse();
     List<Producto> findByBodega_IdBodegaAndEstadoFalse(Long idBodega);
     

@@ -258,10 +258,13 @@ public class BodegaServiceTest {
 
     @Test
     void testObtenerMetricasSistema() {
-        when(bodegaRepository.findAll()).thenReturn(List.of(bodega));
+        when(bodegaRepository.count()).thenReturn(1L);
+        when(bodegaRepository.countByEstadoTrue()).thenReturn(1L);
+        when(bodegaRepository.countByPlanIgnoreCase("PRO")).thenReturn(1L);
         when(usuarioRepository.count()).thenReturn(5L);
         when(ventaRepository.count()).thenReturn(120L);
-        when(pagoSuscripcionRepository.findAll()).thenReturn(List.of());
+        when(pagoSuscripcionRepository.count()).thenReturn(0L);
+        when(pagoSuscripcionRepository.sumarTotalRecaudado()).thenReturn(java.math.BigDecimal.ZERO);
 
         java.util.Map<String, Object> metricas = bodegaService.obtenerMetricasSistema();
 

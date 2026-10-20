@@ -17,6 +17,8 @@ public interface BodegaRepository extends JpaRepository<Bodega, Long> {
     Optional<Bodega> findByIdBodegaAndEstadoTrue(Long idBodega);
     List<Bodega> findByEstadoTrueOrderByNombreComercialAsc();
     boolean existsByRucDni(String rucDni);
+    long countByEstadoTrue();
+    long countByPlanIgnoreCase(String plan);
 
     Optional<Bodega> findFirstByOrderByIdBodegaAsc();
 

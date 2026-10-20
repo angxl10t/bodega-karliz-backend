@@ -16,4 +16,7 @@ public interface PagoSuscripcionRepository extends JpaRepository<PagoSuscripcion
 
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"bodega"})
     List<PagoSuscripcion> findAllByOrderByFechaPagoDesc();
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(p.monto), 0) FROM PagoSuscripcion p")
+    java.math.BigDecimal sumarTotalRecaudado();
 }

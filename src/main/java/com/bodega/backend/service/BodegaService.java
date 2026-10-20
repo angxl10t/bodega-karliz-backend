@@ -67,9 +67,23 @@ public class BodegaService {
 
     @Transactional(readOnly = true)
     public java.util.List<BodegaDTO> listarTodas() {
+        java.util.Map<Long, Long> countsMap = new java.util.HashMap<>();
+        if (productoRepository != null) {
+            try {
+                java.util.List<Object[]> counts = productoRepository.countActiveProductsGroupedByBodega();
+                if (counts != null) {
+                    for (Object[] row : counts) {
+                        if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
+                            countsMap.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
         return bodegaRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "idBodega"))
                 .stream()
-                .map(this::mapToDTO)
+                .map(b -> mapToDTO(b, countsMap.getOrDefault(b.getIdBodega(), 0L)))
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -261,6 +275,13 @@ public class BodegaService {
     }
 
     private BodegaDTO mapToDTO(Bodega b) {
+        long totalActivos = (productoRepository != null && b.getIdBodega() != null)
+                ? productoRepository.countByBodega_IdBodegaAndEstadoTrue(b.getIdBodega())
+                : 0L;
+        return mapToDTO(b, totalActivos);
+    }
+
+    private BodegaDTO mapToDTO(Bodega b, long totalActivos) {
         BodegaDTO dto = new BodegaDTO();
         dto.setIdBodega(b.getIdBodega());
         dto.setNombreComercial(b.getNombreComercial());
@@ -287,9 +308,6 @@ public class BodegaService {
         dto.setUltimoCorrelativoFactura(b.getUltimoCorrelativoFactura());
 
         // Cuotas SaaS por Plan
-        long totalActivos = (productoRepository != null && b.getIdBodega() != null)
-                ? productoRepository.countByBodega_IdBodegaAndEstadoTrue(b.getIdBodega())
-                : 0L;
         dto.setTotalProductosActivos(totalActivos);
         if ("BASICO".equalsIgnoreCase(b.getPlan())) {
             dto.setLimiteProductos(150);
@@ -329,12 +347,11 @@ public class BodegaService {
     @Transactional(readOnly = true)
     public java.util.Map<String, Object> obtenerMetricasSistema() {
         java.util.Map<String, Object> metricas = new java.util.HashMap<>();
-        java.util.List<Bodega> bodegas = bodegaRepository.findAll();
-        long totalBodegas = bodegas.size();
-        long bodegasActivas = bodegas.stream().filter(b -> Boolean.TRUE.equals(b.getEstado())).count();
-        long bodegasInactivas = totalBodegas - bodegasActivas;
-        long bodegasPro = bodegas.stream().filter(b -> "PRO".equalsIgnoreCase(b.getPlan())).count();
-        long bodegasBasico = totalBodegas - bodegasPro;
+        long totalBodegas = bodegaRepository != null ? bodegaRepository.count() : 0;
+        long bodegasActivas = bodegaRepository != null ? bodegaRepository.countByEstadoTrue() : 0;
+        long bodegasInactivas = Math.max(0, totalBodegas - bodegasActivas);
+        long bodegasPro = bodegaRepository != null ? bodegaRepository.countByPlanIgnoreCase("PRO") : 0;
+        long bodegasBasico = Math.max(0, totalBodegas - bodegasPro);
 
         long totalUsuarios = usuarioRepository != null ? usuarioRepository.count() : 0;
         long totalVentas = ventaRepository != null ? ventaRepository.count() : 0;
@@ -343,12 +360,13 @@ public class BodegaService {
         long totalMovimientos = movimientoInventarioRepository != null ? movimientoInventarioRepository.count() : 0;
         long totalCategorias = categoriaRepository != null ? categoriaRepository.count() : 0;
 
-        java.util.List<com.bodega.backend.entity.PagoSuscripcion> pagos = pagoSuscripcionRepository.findAll();
-        long totalPagos = pagos.size();
-        java.math.BigDecimal totalRecaudado = pagos.stream()
-                .map(com.bodega.backend.entity.PagoSuscripcion::getMonto)
-                .filter(java.util.Objects::nonNull)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        long totalPagos = pagoSuscripcionRepository != null ? pagoSuscripcionRepository.count() : 0;
+        java.math.BigDecimal totalRecaudado = pagoSuscripcionRepository != null 
+                ? pagoSuscripcionRepository.sumarTotalRecaudado() 
+                : java.math.BigDecimal.ZERO;
+        if (totalRecaudado == null) {
+            totalRecaudado = java.math.BigDecimal.ZERO;
+        }
 
         metricas.put("totalBodegas", totalBodegas);
         metricas.put("bodegasActivas", bodegasActivas);
