@@ -481,7 +481,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               children: [
                 const Icon(LucideIcons.megaphone, color: Color(0xFF7C3AED), size: 20),
                 const SizedBox(width: 10),
-                Text('Comunicado Global', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17)),
+                Expanded(
+                  child: Text(
+                    'Comunicado Global',
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                  ),
+                ),
               ],
             ),
             content: Column(
@@ -495,7 +500,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 const SizedBox(height: 12),
                 Text('TIPO DE AVISO:', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppTheme.textMuted)),
                 const SizedBox(height: 6),
-                Row(
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
                   children: [
                     ChoiceChip(
                       label: const Text('ℹ️ Informativo'),
@@ -504,7 +511,6 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         if (val) setModalState(() => tipo = 'INFO');
                       },
                     ),
-                    const SizedBox(width: 6),
                     ChoiceChip(
                       label: const Text('⚠️ Advertencia'),
                       selected: tipo == 'WARNING',
@@ -512,7 +518,6 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         if (val) setModalState(() => tipo = 'WARNING');
                       },
                     ),
-                    const SizedBox(width: 6),
                     ChoiceChip(
                       label: const Text('🚨 Urgente'),
                       selected: tipo == 'URGENTE',
@@ -979,7 +984,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           children: [
             const Icon(LucideIcons.logOut, color: AppTheme.alertRed, size: 22),
             const SizedBox(width: 10),
-            Text('Cerrar Sesión Superadmin', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17)),
+            Expanded(
+              child: Text('Cerrar Sesión Superadmin', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17)),
+            ),
           ],
         ),
         content: Text(
@@ -2600,20 +2607,28 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(LucideIcons.database, size: 20, color: Color(0xFF0284C7)),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Volumen Global de Datos & Tablas',
-                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.database, size: 20, color: Color(0xFF0284C7)),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        'Volumen Global de Datos & Tablas',
+                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  visualDensity: VisualDensity.compact,
                 ),
                 icon: const Icon(LucideIcons.copy, size: 14),
                 label: const Text('Copiar JSON'),
