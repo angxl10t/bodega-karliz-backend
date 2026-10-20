@@ -103,6 +103,16 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
       return;
     }
 
+    if (stockMin < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El stock mínimo no puede ser negativo'),
+          backgroundColor: AppTheme.alertRed,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isGuardando = true);
 
     final barcodeClean = _codigoBarrasCtrl.text.trim().replaceAll(RegExp(r'[\r\n\t]'), '');

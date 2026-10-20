@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -306,10 +307,22 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                     TextFormField(
                                       controller: _rucCtrl,
                                       keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(11),
+                                      ],
                                       decoration: const InputDecoration(
                                         hintText: '11 u 8 dígitos',
                                         prefixIcon: Icon(LucideIcons.fileText, size: 16),
                                       ),
+                                      validator: (v) {
+                                        if (v == null || v.trim().isEmpty) return null;
+                                        final clean = v.trim();
+                                        if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$').hasMatch(clean)) {
+                                          return 'DNI (8 d.) o RUC (11 d.)';
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ],
                                 ),
@@ -324,10 +337,21 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                     TextFormField(
                                       controller: _telefonoCtrl,
                                       keyboardType: TextInputType.phone,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(9),
+                                      ],
                                       decoration: const InputDecoration(
                                         hintText: 'Ej. 987654321',
                                         prefixIcon: Icon(LucideIcons.phone, size: 16),
                                       ),
+                                      validator: (v) {
+                                        if (v == null || v.trim().isEmpty) return null;
+                                        if (v.trim().length != 9) {
+                                          return 'Debe tener 9 dígitos';
+                                        }
+                                        return null;
+                                      },
                                     ),
                                   ],
                                 ),

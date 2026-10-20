@@ -397,4 +397,42 @@ void main() {
       expect(gloria.first.nombre, 'Leche Gloria Azul 400g');
     });
   });
+
+  group('Form Validation & Document Resilience Tests', () {
+    test('Validates RUC (11 digits) and DNI (8 digits) strictly', () {
+      final regExp = RegExp(r'^(?:[0-9]{8}|[0-9]{11})$');
+      expect(regExp.hasMatch('20601234567'), isTrue); // RUC 11
+      expect(regExp.hasMatch('10456789012'), isTrue); // RUC persona natural 11
+      expect(regExp.hasMatch('74839201'), isTrue);    // DNI 8
+      expect(regExp.hasMatch('12345'), isFalse);      // 5 dígitos inválido
+      expect(regExp.hasMatch('206012345678'), isFalse); // 12 dígitos inválido
+      expect(regExp.hasMatch('2060123456A'), isFalse); // Letra inválido
+      expect(regExp.hasMatch(''), isFalse);
+    });
+
+    test('Validates Peruvian mobile phone number (9 digits)', () {
+      final regExp = RegExp(r'^[0-9]{9}$');
+      expect(regExp.hasMatch('987654321'), isTrue);
+      expect(regExp.hasMatch('912345678'), isTrue);
+      expect(regExp.hasMatch('98765432'), isFalse);  // 8 dígitos
+      expect(regExp.hasMatch('9876543210'), isFalse); // 10 dígitos
+      expect(regExp.hasMatch('98765432a'), isFalse);
+    });
+
+    test('Validates product non-negative constraints for price, stock and min stock', () {
+      bool validarProducto({required double precio, required double stock, required double stockMin}) {
+        if (precio <= 0) return false;
+        if (stock < 0) return false;
+        if (stockMin < 0) return false;
+        return true;
+      }
+
+      expect(validarProducto(precio: 3.50, stock: 10, stockMin: 2), isTrue);
+      expect(validarProducto(precio: 0.0, stock: 10, stockMin: 2), isFalse);
+      expect(validarProducto(precio: -1.5, stock: 10, stockMin: 2), isFalse);
+      expect(validarProducto(precio: 3.5, stock: -5, stockMin: 2), isFalse);
+      expect(validarProducto(precio: 3.5, stock: 0, stockMin: -1), isFalse);
+      expect(validarProducto(precio: 3.5, stock: 0, stockMin: 0), isTrue);
+    });
+  });
 }

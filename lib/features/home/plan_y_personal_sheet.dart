@@ -1460,7 +1460,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                 ),
                                 Text(
                                   activa
-                                      ? 'Las ventas generarán Boletas y Facturas electrónicas oficiales.'
+                                      ? 'Las ventas generarán Boletas electrónicas oficiales (Nuevo RUS) o comprobantes según tu régimen.'
                                       : 'Las ventas generarán únicamente Tickets de control interno.',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
