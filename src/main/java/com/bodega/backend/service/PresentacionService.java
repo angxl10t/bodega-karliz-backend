@@ -76,6 +76,40 @@ public class PresentacionService {
         return mapToDTO(guardada);
     }
 
+    @Transactional
+    public PresentacionDTO actualizar(Long idPresentacion, PresentacionDTO dto) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Presentacion presentacion = presentacionRepository.findByIdPresentacionAndProducto_Bodega_IdBodega(idPresentacion, idBodega)
+                .orElseThrow(() -> new RuntimeException("Presentación no encontrada en tu bodega con ID: " + idPresentacion));
+
+        if (Boolean.FALSE.equals(presentacion.getEstado())) {
+            throw new RuntimeException("No se puede editar una presentación inactiva o dada de baja.");
+        }
+
+        String nombreTrim = dto.getNombre() != null ? dto.getNombre().trim() : "";
+        if (nombreTrim.isBlank()) {
+            throw new RuntimeException("El nombre de la presentación es obligatorio.");
+        }
+
+        if (dto.getFactorConversion() == null || dto.getFactorConversion().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("El factor de conversión debe ser mayor a 0.");
+        }
+
+        presentacionRepository.findByProducto_IdProductoAndNombreIgnoreCase(presentacion.getProducto().getIdProducto(), nombreTrim)
+                .filter(otro -> !otro.getIdPresentacion().equals(idPresentacion))
+                .ifPresent(otro -> {
+                    if (Boolean.TRUE.equals(otro.getEstado())) {
+                        throw new RuntimeException("Ya existe otra presentación activa con el nombre '" + nombreTrim + "' para este producto.");
+                    }
+                });
+
+        presentacion.setNombre(nombreTrim);
+        presentacion.setFactorConversion(dto.getFactorConversion());
+
+        Presentacion guardada = presentacionRepository.save(presentacion);
+        return mapToDTO(guardada);
+    }
+
     // ACCIDENTAL DATA LOSS PREVENTION: Borrado Lógico en lugar de Delete físico
     @Transactional
     public void desactivar(Long idPresentacion) {
