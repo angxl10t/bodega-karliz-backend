@@ -7,6 +7,13 @@ import 'secure_storage_service.dart';
 class ApiClient {
   static void Function()? onSessionExpired;
 
+  /// Cliente HTTP compartido con soporte nativo de Connection Pooling y HTTP Keep-Alive
+  /// Reutiliza conexiones TCP/TLS existentes, reduciendo drásticamente la latencia en peticiones subsiguientes.
+  static final http.Client _defaultClient = http.Client();
+  final http.Client _client;
+
+  ApiClient({http.Client? client}) : _client = client ?? _defaultClient;
+
   /// Extrae el mensaje de error legible desde la respuesta HTTP del servidor
   /// con soporte para campos estándar: 'error', 'message', 'mensaje', 'detail' y texto plano.
   static String extractErrorMessage(http.Response response, [String fallback = 'Error al procesar la solicitud']) {
@@ -78,7 +85,7 @@ class ApiClient {
 
   Future<http.Response> get(String endpoint) async {
     final uri = _resolveUri(endpoint);
-    final res = await http.get(
+    final res = await _client.get(
       uri,
       headers: await _getHeaders(),
     ).timeout(const Duration(seconds: 30));
@@ -88,7 +95,7 @@ class ApiClient {
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final uri = _resolveUri(endpoint);
-    final res = await http.post(
+    final res = await _client.post(
       uri,
       headers: await _getHeaders(),
       body: jsonEncode(body),
@@ -99,7 +106,7 @@ class ApiClient {
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
     final uri = _resolveUri(endpoint);
-    final res = await http.put(
+    final res = await _client.put(
       uri,
       headers: await _getHeaders(),
       body: jsonEncode(body),
@@ -110,7 +117,7 @@ class ApiClient {
 
   Future<http.Response> patch(String endpoint, Map<String, dynamic> body) async {
     final uri = _resolveUri(endpoint);
-    final res = await http.patch(
+    final res = await _client.patch(
       uri,
       headers: await _getHeaders(),
       body: jsonEncode(body),
@@ -121,7 +128,7 @@ class ApiClient {
 
   Future<http.Response> delete(String endpoint) async {
     final uri = _resolveUri(endpoint);
-    final res = await http.delete(
+    final res = await _client.delete(
       uri,
       headers: await _getHeaders(),
     ).timeout(const Duration(seconds: 30));

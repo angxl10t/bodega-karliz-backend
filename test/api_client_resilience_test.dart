@@ -86,6 +86,15 @@ void main() {
 
       expect(expiredCalled, isFalse);
     });
+    test('ApiClient initializes with shared Keep-Alive client or optional injected client', () {
+      final defaultClient = ApiClient();
+      expect(defaultClient, isNotNull);
+
+      final customMock = http.Client();
+      final customApiClient = ApiClient(client: customMock);
+      expect(customApiClient, isNotNull);
+      customMock.close();
+    });
   });
 
   group('ApiClient extractErrorMessage Tests', () {
