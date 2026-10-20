@@ -1021,7 +1021,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC),
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(72),
+        preferredSize: const Size.fromHeight(68),
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF111827) : Colors.white,
@@ -1032,111 +1032,113 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               ),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: SafeArea(
             bottom: false,
             child: Row(
               children: [
                 // Logo & Badge de Plataforma
                 Container(
-                  padding: const EdgeInsets.all(9),
+                  padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF7C3AED), Color(0xFF4F46E5)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(LucideIcons.shieldCheck, color: Colors.white, size: 20),
+                  child: const Icon(LucideIcons.shieldCheck, color: Colors.white, size: 18),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'CajaYa',
                             style: GoogleFonts.outfit(
-                              fontSize: 19,
+                              fontSize: 16,
                               fontWeight: FontWeight.w900,
                               color: isDark ? Colors.white : const Color(0xFF0F172A),
-                              letterSpacing: -0.5,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.4)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF10B981),
-                                    shape: BoxShape.circle,
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.4)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 5,
+                                    height: 5,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF10B981),
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'SUPERADMIN ROOT',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF8B5CF6),
-                                    letterSpacing: 0.5,
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      'SUPERADMIN ROOT',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        color: const Color(0xFF8B5CF6),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 1),
                       Text(
-                        'Consola Global de Gestión de Plataforma • Multi-Tenant',
+                        'Consola Global de Gestión • Multi-Tenant',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.textMuted,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 6),
 
                 // Latencia en vivo
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(LucideIcons.activity, size: 14, color: _latencyMs < 300 ? AppTheme.accentGreen : Colors.amber),
-                      const SizedBox(width: 5),
+                      Icon(LucideIcons.activity, size: 12, color: _latencyMs < 300 ? AppTheme.accentGreen : Colors.amber),
+                      const SizedBox(width: 4),
                       Text(
                         '${_latencyMs}ms',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w700,
                           color: isDark ? Colors.white70 : AppTheme.textDark,
                         ),
@@ -1144,26 +1146,29 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
 
                 // Botón Refrescar
                 IconButton(
+                  visualDensity: VisualDensity.compact,
                   tooltip: 'Actualizar Telemetría',
-                  icon: const Icon(LucideIcons.refreshCw, size: 18),
+                  icon: const Icon(LucideIcons.refreshCw, size: 17),
                   onPressed: _cargarTodo,
                 ),
 
                 // Conmutador de Tema
                 IconButton(
+                  visualDensity: VisualDensity.compact,
                   tooltip: 'Cambiar Modo Oscuro/Claro',
-                  icon: Icon(themeProvider.isDarkMode ? LucideIcons.sun : LucideIcons.moon, size: 18),
+                  icon: Icon(themeProvider.isDarkMode ? LucideIcons.sun : LucideIcons.moon, size: 17),
                   onPressed: () => themeProvider.toggleTheme(),
                 ),
 
                 // Cerrar Sesión
                 IconButton(
+                  visualDensity: VisualDensity.compact,
                   tooltip: 'Cerrar Sesión Superadmin',
-                  icon: const Icon(LucideIcons.logOut, color: AppTheme.alertRed, size: 18),
+                  icon: const Icon(LucideIcons.logOut, color: AppTheme.alertRed, size: 17),
                   onPressed: _cerrarSesionSuperAdmin,
                 ),
               ],
@@ -1380,8 +1385,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     required bool isDark,
   }) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 190),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      constraints: const BoxConstraints(minWidth: 160, maxWidth: 220),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -1395,6 +1400,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         ],
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -1405,35 +1411,44 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             child: Icon(icon, color: color, size: 18),
           ),
           const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.textMuted,
-                  letterSpacing: 0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textMuted,
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                value,
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : AppTheme.textDark,
+                Text(
+                  value,
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              Text(
-                subtitle,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1617,8 +1632,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: b.estado ? borderColor : AppTheme.alertRed.withValues(alpha: 0.4), width: b.estado ? 1 : 1.5),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: b.estado ? borderColor : AppTheme.alertRed.withValues(alpha: 0.4),
+          width: b.estado ? 1 : 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
@@ -1627,248 +1645,272 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Fila 1: Título, ID, Plan & Switch
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: esPro
-                        ? const Color(0xFF7C3AED).withValues(alpha: 0.12)
-                        : const Color(0xFF2563EB).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    LucideIcons.store,
-                    color: esPro ? const Color(0xFF7C3AED) : const Color(0xFF2563EB),
-                    size: 20,
-                  ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Fila 1: Icono, Nombre de Bodega, Dirección y Switch Activo/Inactivo
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: esPro
+                      ? const Color(0xFF7C3AED).withValues(alpha: 0.12)
+                      : const Color(0xFF2563EB).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              b.nombreComercial,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : AppTheme.textDark,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'ID #${b.idBodega}',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textMuted,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        b.direccion ?? 'Dirección no especificada',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
-                      ),
-                    ],
-                  ),
+                child: Icon(
+                  LucideIcons.store,
+                  color: esPro ? const Color(0xFF7C3AED) : const Color(0xFF2563EB),
+                  size: 20,
                 ),
-
-                // Badge de Plan
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: esPro ? const Color(0xFF7C3AED) : const Color(0xFF64748B),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    esPro ? 'PLAN PRO' : 'PLAN BÁSICO',
-                    style: GoogleFonts.outfit(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-                if (b.fechaVencimientoPlan != null) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: vencido
-                          ? AppTheme.alertRed.withValues(alpha: 0.15)
-                          : (porVencer ? Colors.amber.withValues(alpha: 0.15) : AppTheme.accentGreen.withValues(alpha: 0.15)),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: vencido
-                            ? AppTheme.alertRed.withValues(alpha: 0.4)
-                            : (porVencer ? Colors.amber.withValues(alpha: 0.5) : AppTheme.accentGreen.withValues(alpha: 0.4)),
-                        width: 1,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      b.nombreComercial,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          vencido
-                              ? LucideIcons.alertTriangle
-                              : (porVencer ? LucideIcons.clock : LucideIcons.checkCircle2),
-                          size: 11,
-                          color: vencido
-                              ? AppTheme.alertRed
-                              : (porVencer ? Colors.amber.shade800 : AppTheme.accentGreen),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          vencido
-                              ? 'Vencido (${diasRestantes?.abs()}d)'
-                              : (porVencer ? 'Vence en ${diasRestantes}d' : 'Vigente (${diasRestantes}d)'),
-                          style: GoogleFonts.outfit(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: vencido
-                                ? AppTheme.alertRed
-                                : (porVencer ? Colors.amber.shade800 : AppTheme.accentGreen),
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 2),
+                    Text(
+                      b.direccion ?? 'Dirección no registrada',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: AppTheme.textMuted,
+                      ),
                     ),
-                  ),
-                ],
-                const SizedBox(width: 8),
-
-                // Switch Activo / Suspendido
-                Tooltip(
-                  message: b.estado ? 'Tienda Activa (Toca para suspender)' : 'Tienda Suspendida (Toca para activar)',
-                  child: Switch(
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Switch de Estado con etiqueta clara
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Switch(
                     value: b.estado,
                     activeThumbColor: AppTheme.accentGreen,
                     inactiveThumbColor: AppTheme.alertRed,
                     onChanged: (_) => _toggleEstadoBodega(b),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Fila 2: Metadata tributaria y de contacto
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        const Icon(LucideIcons.fileText, size: 14, color: AppTheme.textMuted),
-                        const SizedBox(width: 6),
-                        Text(
-                          'RUC/DNI: ${b.rucDni ?? "Sin registrar"}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                  Text(
+                    b.estado ? 'ACTIVA' : 'SUSPENDIDA',
+                    style: GoogleFonts.outfit(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: b.estado ? AppTheme.accentGreen : AppTheme.alertRed,
                     ),
                   ),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        const Icon(LucideIcons.phone, size: 14, color: AppTheme.textMuted),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Tel: ${b.telefono ?? "Sin teléfono"}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (b.fechaVencimientoPlan != null)
-                    Expanded(
-                      child: Row(
-                        children: [
-                          const Icon(LucideIcons.calendar, size: 14, color: AppTheme.textMuted),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Vence: ${_formatearFechaIso(b.fechaVencimientoPlan!)}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ),
                 ],
               ),
-            ),
-            const SizedBox(height: 12),
+            ],
+          ),
+          const SizedBox(height: 10),
 
-            // Fila 3: Acciones
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+          // Fila 2: Badges (ID, Plan, Vencimiento) organizados con Wrap para que nunca colisionen
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              // Badge ID
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Text(
+                  'ID #${b.idBodega}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+              ),
+
+              // Badge Plan
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: esPro ? const Color(0xFF7C3AED) : const Color(0xFF2563EB),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  esPro ? 'PLAN PRO' : 'PLAN BÁSICO',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+
+              // Badge de Vencimiento
+              if (b.fechaVencimientoPlan != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: vencido
+                        ? AppTheme.alertRed.withValues(alpha: 0.15)
+                        : (porVencer ? Colors.amber.withValues(alpha: 0.15) : AppTheme.accentGreen.withValues(alpha: 0.15)),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: vencido
+                          ? AppTheme.alertRed.withValues(alpha: 0.4)
+                          : (porVencer ? Colors.amber.withValues(alpha: 0.5) : AppTheme.accentGreen.withValues(alpha: 0.4)),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        vencido
+                            ? LucideIcons.alertTriangle
+                            : (porVencer ? LucideIcons.clock : LucideIcons.checkCircle2),
+                        size: 11,
+                        color: vencido
+                            ? AppTheme.alertRed
+                            : (porVencer ? Colors.amber.shade800 : AppTheme.accentGreen),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        vencido
+                            ? 'Vencido (${diasRestantes?.abs()}d)'
+                            : (porVencer ? 'Vence en ${diasRestantes}d' : 'Vigente (${diasRestantes}d)'),
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: vencido
+                              ? AppTheme.alertRed
+                              : (porVencer ? Colors.amber.shade800 : AppTheme.accentGreen),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Fila 3: Datos de Contacto y RUC
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: borderColor),
+            ),
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 5,
               children: [
-                if (b.telefono != null && b.telefono!.trim().isNotEmpty) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.fileText, size: 13, color: AppTheme.textMuted),
+                    const SizedBox(width: 5),
+                    Text(
+                      'RUC/DNI: ${b.rucDni ?? "Sin registrar"}',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(LucideIcons.phone, size: 13, color: AppTheme.textMuted),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Tel: ${b.telefono ?? "Sin teléfono"}',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+                if (b.fechaVencimientoPlan != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(LucideIcons.calendar, size: 13, color: AppTheme.textMuted),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Vence: ${_formatearFechaIso(b.fechaVencimientoPlan!)}',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Fila 4: Acciones con Wrap (Cero desbordamiento)
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (b.telefono != null && b.telefono!.trim().isNotEmpty)
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF10B981),
                       side: const BorderSide(color: Color(0xFF10B981)),
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      visualDensity: VisualDensity.compact,
                     ),
                     icon: const Icon(LucideIcons.messageCircle, size: 14),
-                    label: const Text('Recordar WhatsApp'),
+                    label: const Text('WhatsApp'),
                     onPressed: () => _enviarRecordatorioWhatsApp(b, diasRestantes, vencido),
                   ),
-                  const SizedBox(width: 8),
-                ],
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    visualDensity: VisualDensity.compact,
                   ),
                   icon: const Icon(LucideIcons.sparkles, size: 14),
                   label: const Text('Gestionar Plan'),
                   onPressed: () => _abrirModalCambiarPlan(b),
                 ),
-                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     elevation: 0,
+                    visualDensity: VisualDensity.compact,
                   ),
                   icon: const Icon(LucideIcons.eye, size: 14),
-                  label: const Text('Inspeccionar Tienda'),
+                  label: const Text('Inspeccionar'),
                   onPressed: () => _inspeccionarBodega(b),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1980,16 +2022,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         : (esAdmin ? const Color(0xFF2563EB) : const Color(0xFF10B981));
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
               color: badgeColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
@@ -1997,31 +2039,36 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             child: Icon(
               esSuper ? LucideIcons.shieldCheck : (esAdmin ? LucideIcons.userCheck : LucideIcons.user),
               color: badgeColor,
-              size: 20,
+              size: 18,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   children: [
-                    Text(
-                      u.username,
-                      style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w800),
+                    Flexible(
+                      child: Text(
+                        u.username,
+                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w800),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                       decoration: BoxDecoration(
                         color: badgeColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         u.rol,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w800,
                           color: badgeColor,
                         ),
@@ -2029,20 +2076,25 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     ),
                   ],
                 ),
+                const SizedBox(height: 2),
                 Text(
                   esSuper
-                      ? 'Superadministrador Global de Plataforma'
+                      ? 'Superadministrador Global'
                       : 'Tienda: ${u.nombreBodega ?? "Sin bodega vinculada"}',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 6),
 
           // Botón Restablecer Clave
           IconButton(
+            visualDensity: VisualDensity.compact,
             tooltip: 'Restablecer Clave',
-            icon: const Icon(LucideIcons.keyRound, size: 18),
+            icon: const Icon(LucideIcons.keyRound, size: 17),
             onPressed: () => _abrirResetPasswordUsuario(u),
           ),
 
@@ -2178,11 +2230,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      'Op: ${p.codigoOperacion}',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
+                                    Flexible(
+                                      child: Text(
+                                        'Op: ${p.codigoOperacion}',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(width: 6),
@@ -2197,15 +2253,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 1),
                                 Text(
                                   'Tienda: ${p.nombreBodega ?? "Bodega #${p.idBodega ?? ''}"} • Plan ${p.plan}',
                                   style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                if (p.fechaPago != null)
+                                if (p.fechaPago != null) ...[
+                                  const SizedBox(height: 1),
                                   Text(
                                     _formatearFechaIso(p.fechaPago!),
                                     style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
+                                ],
                               ],
                             ),
                           ),
@@ -2371,7 +2434,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Memoria Usada / Total:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
-                    Text('$usedMem MB / $totalMem MB (Límite: $maxMem MB)', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '$usedMem MB / $totalMem MB (Límite: $maxMem MB)',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -2389,7 +2460,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Tiempo de Actividad (Uptime):', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
-                    Text(_formatearUptime(uptimeSecs is int ? uptimeSecs : int.tryParse(uptimeSecs.toString()) ?? 0), style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        _formatearUptime(uptimeSecs is int ? uptimeSecs : int.tryParse(uptimeSecs.toString()) ?? 0),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -2397,7 +2476,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Hilos de Ejecución Activos:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
-                    Text('$activeThreads threads', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '$activeThreads threads',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -2405,7 +2492,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Aislamiento Multi-Tenant:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
-                    Text('multitenant_enterprise_v4 (RLS Active)', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.accentGreen)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'multitenant_v4 (RLS Active)',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.accentGreen),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -2596,26 +2691,34 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(LucideIcons.megaphone, size: 20, color: Color(0xFF7C3AED)),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Comunicado Global a Terminales (Broadcast)',
-                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.megaphone, size: 18, color: Color(0xFF7C3AED)),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Comunicado Global (Broadcast)',
+                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w800),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   elevation: 0,
+                  visualDensity: VisualDensity.compact,
                 ),
-                icon: const Icon(LucideIcons.plus, size: 14),
-                label: Text(tieneAnuncio ? 'Editar Aviso' : 'Emitir Comunicado'),
+                icon: const Icon(LucideIcons.plus, size: 13),
+                label: Text(tieneAnuncio ? 'Editar' : 'Emitir'),
                 onPressed: _abrirModalPublicarAnuncio,
               ),
             ],
@@ -2679,10 +2782,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final color = isHealthy ? AppTheme.accentGreen : AppTheme.alertRed;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
@@ -2691,36 +2794,50 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: color, size: 18),
+                child: Icon(icon, color: color, size: 16),
               ),
               const SizedBox(width: 8),
               Container(
-                width: 8,
-                height: 8,
+                width: 7,
+                height: 7,
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(width: 6),
-              Text(
-                statusText,
-                style: GoogleFonts.outfit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  color: color,
+              const SizedBox(width: 5),
+              Flexible(
+                child: Text(
+                  statusText,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700)),
-          Text(detail, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted)),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            detail,
+            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

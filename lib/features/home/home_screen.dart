@@ -304,7 +304,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 fontWeight: FontWeight.w800,
                                                 color: isDark ? Colors.white : AppTheme.textDark,
                                               ),
-                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                           const SizedBox(width: 8),
@@ -1247,7 +1248,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       Flexible(
                         child: Text(
                           _nombreBodega.isNotEmpty ? _nombreBodega : 'CajaYa POS',
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -1682,6 +1684,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w600,
                     color: isDark ? Colors.white70 : const Color(0xFF4C1D95),
                   ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
