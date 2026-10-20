@@ -45,3 +45,16 @@ CREATE INDEX IF NOT EXISTS idx_categorias_bodega_estado
 CREATE INDEX IF NOT EXISTS idx_proveedores_bodega_estado 
     ON proveedores(id_bodega, estado);
 
+-- 11. Búsqueda y agregación de líneas de venta por producto (Rotación y Analítica)
+CREATE INDEX IF NOT EXISTS idx_ventas_detalles_producto 
+    ON ventas_detalles(id_producto);
+
+-- 12. Búsqueda y trazabilidad de líneas de compra por producto
+CREATE INDEX IF NOT EXISTS idx_compras_detalles_producto 
+    ON compras_detalles(id_producto);
+
+-- 13. Aceleración de movimientos directos de Kardex por producto
+CREATE INDEX IF NOT EXISTS idx_mov_producto_fecha 
+    ON movimientos_inventario(id_producto, fecha_movimiento DESC);
+
+
