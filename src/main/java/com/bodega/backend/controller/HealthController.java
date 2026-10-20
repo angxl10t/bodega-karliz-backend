@@ -22,6 +22,7 @@ public class HealthController {
     private volatile long lastDbCheckTime = 0;
     private volatile String cachedDbStatus = "CONNECTED";
     private static final long DB_CHECK_INTERVAL_MS = 60000; // Máximo 1 consulta a la BD cada 60 segundos
+    private static final long START_TIME_MS = System.currentTimeMillis();
 
     public HealthController(UsuarioRepository usuarioRepository,
                             com.bodega.backend.repository.BodegaRepository bodegaRepository,
@@ -35,7 +36,7 @@ public class HealthController {
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<Map<String, Object>> diagnostico() {
         Map<String, Object> resp = new HashMap<>();
-        resp.put("version", "1.4.1-rls-fix");
+        resp.put("version", "1.4.2-enterprise");
         resp.put("row_level_security", "ENABLED");
         resp.put("scalability_engine", "OPTIMIZED_V4");
         try {
@@ -73,9 +74,8 @@ public class HealthController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> checkHealth() {
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("service", "bodega-karliz-backend");
-        response.put("version", "1.4.1-rls-fix");
+        response.put("service", "cajaya-pos-backend");
+        response.put("version", "1.4.2-enterprise");
         response.put("tenant_engine", "multitenant_enterprise_v4");
         response.put("timestamp", Instant.now().toString());
 
@@ -96,6 +96,24 @@ public class HealthController {
         }
 
         response.put("database", cachedDbStatus);
+        response.put("status", "CONNECTED".equals(cachedDbStatus) ? "UP" : "DEGRADED");
+
+        // Telemetría de diagnóstico JVM segura y ligera (sin credenciales ni paths sensibles)
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemMb = runtime.maxMemory() / (1024 * 1024);
+        long totalMemMb = runtime.totalMemory() / (1024 * 1024);
+        long freeMemMb = runtime.freeMemory() / (1024 * 1024);
+        long usedMemMb = totalMemMb - freeMemMb;
+        long uptimeSeconds = (now - START_TIME_MS) / 1000;
+
+        Map<String, Object> jvmStats = new HashMap<>();
+        jvmStats.put("used_memory_mb", usedMemMb);
+        jvmStats.put("total_memory_mb", totalMemMb);
+        jvmStats.put("max_memory_mb", maxMemMb);
+        jvmStats.put("uptime_seconds", uptimeSeconds);
+        jvmStats.put("active_threads", Thread.activeCount());
+        response.put("jvm", jvmStats);
+
         return ResponseEntity.ok(response);
     }
 }
