@@ -206,31 +206,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(7),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(10),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    LucideIcons.shieldCheck,
+                                    size: 18,
+                                    color: AppTheme.brandPrimary,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  LucideIcons.shieldCheck,
-                                  size: 18,
-                                  color: AppTheme.brandPrimary,
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: Text(
+                                    'Centro de Administración',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Centro de Administración',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : AppTheme.textDark,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           IconButton(
                             visualDensity: VisualDensity.compact,
                             icon: Icon(
@@ -1249,92 +1256,98 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 7),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.18) : AppTheme.surfaceTint,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.45) : AppTheme.borderTint,
-                            width: 1,
+                      if (screenWidth >= 440) ...[
+                        const SizedBox(width: 7),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.18) : AppTheme.surfaceTint,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.45) : AppTheme.borderTint,
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.accentGreen,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4.5),
+                              Text(
+                                'CLOUD POS',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                  color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 5,
-                              height: 5,
-                              decoration: const BoxDecoration(
-                                color: AppTheme.accentGreen,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 4.5),
-                            Text(
-                              'CLOUD POS',
-                              style: GoogleFonts.outfit(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 1),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Caja #01',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: Text(
-                          '•',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Caja #01',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      Text(
-                        'En Línea',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          color: AppTheme.accentGreen,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: Text(
-                          '•',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: Text(
+                            '•',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                            ),
                           ),
                         ),
-                      ),
-                      Text(
-                        'CajaYa',
-                        style: GoogleFonts.outfit(
-                          fontSize: 10.5,
-                          color: isDark ? const Color(0xFF38BDF8) : AppTheme.brandPrimary,
-                          fontWeight: FontWeight.w700,
+                        Text(
+                          'En Línea',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            color: AppTheme.accentGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5),
+                          child: Text(
+                            '•',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'CajaYa',
+                          style: GoogleFonts.outfit(
+                            fontSize: 10.5,
+                            color: isDark ? const Color(0xFF38BDF8) : AppTheme.brandPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

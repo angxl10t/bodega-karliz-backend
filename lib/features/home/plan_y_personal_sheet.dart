@@ -82,7 +82,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     try {
       final listFuture = _usuariosService.listarUsuarios().catchError((_) => <UsuarioItem>[]);
       final bodegaFuture = _bodegaService.obtenerMiBodega().catchError((_) => null);
-      final bodegasFuture = _bodegaService.listarTodas().catchError((_) => <BodegaInfo>[]);
+      final bodegasFuture = _userRol == 'SUPERADMIN'
+          ? _bodegaService.listarTodas().catchError((_) => <BodegaInfo>[])
+          : Future.value(<BodegaInfo>[]);
       final results = await Future.wait([listFuture, bodegaFuture, bodegasFuture]);
       if (mounted) {
         setState(() {
@@ -1822,46 +1824,55 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          isPro ? LucideIcons.sparkles : LucideIcons.store,
-                          color: isPro ? AppTheme.accentGreen : AppTheme.brandPrimary,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _userRol == 'SUPERADMIN' ? 'Consola Global & Bodegas' : 'Suscripción & Personal',
-                            style: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          Text(
-                            _userRol == 'SUPERADMIN'
-                                ? 'CajaYa Platform • ${_bodegasRegistradas.length} Bodegas Registradas'
-                                : widget.nombreBodega,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textMuted,
-                            ),
+                          child: Icon(
+                            isPro ? LucideIcons.sparkles : LucideIcons.store,
+                            color: isPro ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                            size: 22,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _userRol == 'SUPERADMIN' ? 'Consola Global & Bodegas' : 'Suscripción & Personal',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                _userRol == 'SUPERADMIN'
+                                    ? 'CajaYa Platform • ${_bodegasRegistradas.length} Bodegas Registradas'
+                                    : widget.nombreBodega,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textMuted,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white60 : AppTheme.textMuted),
                     onPressed: () => Navigator.pop(context),

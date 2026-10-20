@@ -613,7 +613,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          _plan == 'PRO' ? 'PLAN PRO' : 'PLAN BODEGA',
+                          _plan == 'PRO' ? 'PRO' : 'BÁSICO',
                           style: GoogleFonts.outfit(
                             color: Colors.white,
                             fontSize: 10,
@@ -874,19 +874,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Alerta de Quiebre de Stock Inminente',
+                      'Alerta de Quiebre de Stock',
                       style: GoogleFonts.outfit(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w800,
                         color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      '${criticos.length} productos con existencias en nivel crítico (≤ 5 unidades).',
+                      '${criticos.length} productos con stock crítico (≤ 5 u.)',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         color: isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -926,12 +930,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      p.nombre,
-                      style: GoogleFonts.outfit(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : AppTheme.textDark,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 140),
+                      child: Text(
+                        p.nombre,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -985,40 +994,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(LucideIcons.circleDollarSign, color: AppTheme.brandPrimary, size: 18),
                     ),
-                    child: const Icon(LucideIcons.circleDollarSign, color: AppTheme.brandPrimary, size: 18),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Flujo de Caja en Directo (Hoy)',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textDark,
-                        ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Flujo de Caja en Directo (Hoy)',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '$cantVentas cobros sincronizados • Total S/ ${totalVentas.toStringAsFixed(2)}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppTheme.textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      Text(
-                        '$cantVentas cobros sincronizados • Total S/ ${totalVentas.toStringAsFixed(2)}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: AppTheme.textMuted,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               TextButton.icon(
                 style: TextButton.styleFrom(
                   foregroundColor: AppTheme.brandPrimary,
@@ -1041,7 +1059,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             builder: (context, constraints) {
               final double tileWidth = constraints.maxWidth >= 700
                   ? (constraints.maxWidth - 30) / 4
-                  : (constraints.maxWidth > 380
+                  : (constraints.maxWidth >= 300
                       ? (constraints.maxWidth - 10) / 2
                       : constraints.maxWidth);
 
@@ -1154,6 +1172,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textMuted,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 1),
                 Text(
@@ -1163,6 +1183,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontWeight: FontWeight.w800,
                     color: isDark ? Colors.white : AppTheme.textDark,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   subtitle,
@@ -1171,6 +1193,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontWeight: FontWeight.w600,
                     color: accentColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

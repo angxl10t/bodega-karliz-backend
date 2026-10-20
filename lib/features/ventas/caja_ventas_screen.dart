@@ -1413,43 +1413,54 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+
+    final tabBar = TabBar(
+      controller: _tabController,
+      labelColor: AppTheme.brandPrimary,
+      unselectedLabelColor: AppTheme.textMuted,
+      indicatorColor: AppTheme.brandPrimary,
+      indicatorWeight: 2.5,
+      labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
+      unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
+      tabs: const [
+        Tab(icon: Icon(LucideIcons.banknote, size: 18), text: 'Cierre del Día'),
+        Tab(icon: Icon(LucideIcons.history, size: 18), text: 'Historial de Ventas'),
+      ],
+    );
 
     return Scaffold(
-      appBar: AppBar(
-        titleSpacing: 16,
-        elevation: 0,
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Arqueo de Caja & Ventas',
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.textDark,
+      appBar: canPop
+          ? AppBar(
+              titleSpacing: 16,
+              elevation: 0,
+              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Arqueo de Caja & Ventas',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                  Text(
+                    'Corte del día, histórico de jornadas y auditoría',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                  ),
+                ],
+              ),
+              bottom: tabBar,
+            )
+          : PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: Container(
+                color: isDark ? AppTheme.cardDark : Colors.white,
+                child: tabBar,
               ),
             ),
-            Text(
-              'Corte del día, histórico de jornadas y auditoría',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
-            ),
-          ],
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.brandPrimary,
-          unselectedLabelColor: AppTheme.textMuted,
-          indicatorColor: AppTheme.brandPrimary,
-          indicatorWeight: 2.5,
-          labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
-          unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
-          tabs: const [
-            Tab(icon: Icon(LucideIcons.banknote, size: 18), text: 'Cierre del Día'),
-            Tab(icon: Icon(LucideIcons.history, size: 18), text: 'Historial de Ventas'),
-          ],
-        ),
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
           : TabBarView(
