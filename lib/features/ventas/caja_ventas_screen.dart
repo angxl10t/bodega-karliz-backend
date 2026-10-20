@@ -22,6 +22,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   List<CierreCaja> _historialCierres = [];
   List<VentaRegistro> _ventas = [];
   bool _isLoading = true;
+  final TextEditingController _busquedaController = TextEditingController();
   String _busquedaVenta = '';
   String _userRol = 'CAJERO';
   bool get _esAdmin => _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
@@ -41,6 +42,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   void dispose() {
     VentaService.ventasRevision.removeListener(_onVentasRevisionChanged);
     _tabController.dispose();
+    _busquedaController.dispose();
     super.dispose();
   }
 
@@ -264,11 +266,19 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   }
 
   Future<void> _abrirSelectorFecha() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final firstDate = today.subtract(const Duration(days: 365));
+    final lastDate = today;
+    DateTime safeInitial = DateTime(_fechaSeleccionada.year, _fechaSeleccionada.month, _fechaSeleccionada.day);
+    if (safeInitial.isAfter(lastDate)) safeInitial = lastDate;
+    if (safeInitial.isBefore(firstDate)) safeInitial = firstDate;
+
     final seleccionada = await showDatePicker(
       context: context,
-      initialDate: _fechaSeleccionada,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
+      initialDate: safeInitial,
+      firstDate: firstDate,
+      lastDate: lastDate,
       builder: (context, child) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
@@ -1554,6 +1564,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                 borderRadius: BorderRadius.circular(20),
               ),
               child: TextField(
+                controller: _busquedaController,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -1563,6 +1574,15 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   hintText: 'Buscar por venta #ID, cliente o DNI...',
                   hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
                   prefixIcon: const Icon(LucideIcons.search, size: 18),
+                  suffixIcon: _busquedaVenta.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(LucideIcons.x, size: 16),
+                          onPressed: () {
+                            _busquedaController.clear();
+                            setState(() => _busquedaVenta = '');
+                          },
+                        )
+                      : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),

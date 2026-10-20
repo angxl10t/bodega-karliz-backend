@@ -73,5 +73,38 @@ void main() {
       expect(venta.vuelto, 25.00);
       expect(venta.etiquetaComprobante, 'Boleta B001-00000099');
     });
+
+    test('Date boundaries for date picker safely normalize time components and prevent assert failures', () {
+      final now = DateTime(2026, 10, 20, 9, 15, 30);
+      final today = DateTime(now.year, now.month, now.day);
+      final firstDate = today.subtract(const Duration(days: 365));
+      final lastDate = today;
+
+      // Case 1: Initial date from sale recorded later in the evening (18:00) of today
+      final eveningToday = DateTime(2026, 10, 20, 18, 45, 0);
+      DateTime safeInitial1 = DateTime(eveningToday.year, eveningToday.month, eveningToday.day);
+      if (safeInitial1.isAfter(lastDate)) safeInitial1 = lastDate;
+      if (safeInitial1.isBefore(firstDate)) safeInitial1 = firstDate;
+
+      expect(safeInitial1.isAfter(lastDate), isFalse);
+      expect(safeInitial1.isBefore(firstDate), isFalse);
+      expect(safeInitial1, today);
+
+      // Case 2: Future date requested
+      final futureDate = DateTime(2026, 10, 25);
+      DateTime safeInitial2 = DateTime(futureDate.year, futureDate.month, futureDate.day);
+      if (safeInitial2.isAfter(lastDate)) safeInitial2 = lastDate;
+      if (safeInitial2.isBefore(firstDate)) safeInitial2 = firstDate;
+
+      expect(safeInitial2, lastDate);
+
+      // Case 3: Distant past date requested (> 365 days ago)
+      final distantPast = DateTime(2024, 1, 1);
+      DateTime safeInitial3 = DateTime(distantPast.year, distantPast.month, distantPast.day);
+      if (safeInitial3.isAfter(lastDate)) safeInitial3 = lastDate;
+      if (safeInitial3.isBefore(firstDate)) safeInitial3 = firstDate;
+
+      expect(safeInitial3, firstDate);
+    });
   });
 }
