@@ -3,12 +3,14 @@ package com.bodega.backend.controller;
 import com.bodega.backend.dto.ProductoDTO;
 import com.bodega.backend.service.ProductoService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -26,9 +28,9 @@ public class ProductoController {
     }
 
     @GetMapping("/siguiente-codigo")
-    public ResponseEntity<java.util.Map<String, String>> siguienteCodigo(@RequestParam Long idCategoria) {
+    public ResponseEntity<Map<String, String>> siguienteCodigo(@RequestParam Long idCategoria) {
         String codigo = productoService.generarSiguienteCodigo(idCategoria);
-        return ResponseEntity.ok(java.util.Map.of("codigo", codigo));
+        return ResponseEntity.ok(Map.of("codigo", codigo));
     }
 
     @GetMapping("/{id}")
@@ -54,5 +56,15 @@ public class ProductoController {
     public ResponseEntity<Void> desactivar(@PathVariable Long id) {
         productoService.desactivar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/exportar-csv", produces = "text/csv; charset=UTF-8")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<byte[]> exportarCsv() {
+        byte[] csv = productoService.exportarCsv();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"catalogo_productos.csv\"")
+                .header(HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
+                .body(csv);
     }
 }

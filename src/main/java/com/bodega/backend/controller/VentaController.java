@@ -5,6 +5,7 @@ import com.bodega.backend.dto.VentaDTO;
 import com.bodega.backend.service.VentaService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,5 +64,17 @@ public class VentaController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<VentaDTO> reintentarSunat(@PathVariable Long id) {
         return ResponseEntity.ok(ventaService.reintentarEnvioSunat(id));
+    }
+
+    @GetMapping(value = "/exportar-csv", produces = "text/csv; charset=UTF-8")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<byte[]> exportarCsv(
+            @RequestParam(required = false) Integer mes,
+            @RequestParam(required = false) Integer anio) {
+        byte[] csv = ventaService.exportarCsv(mes, anio);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"reporte_ventas.csv\"")
+                .header(HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
+                .body(csv);
     }
 }

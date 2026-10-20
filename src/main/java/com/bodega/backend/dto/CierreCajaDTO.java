@@ -3,6 +3,8 @@ package com.bodega.backend.dto;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class CierreCajaDTO {
@@ -15,4 +17,10 @@ public class CierreCajaDTO {
     private BigDecimal totalTarjeta = BigDecimal.ZERO;
     private Integer cantidadVentas = 0;
     private OffsetDateTime fecha;
+
+    // Arqueo y Control de Turno
+    private BigDecimal fondoInicial = BigDecimal.ZERO;
+    private BigDecimal totalEgresos = BigDecimal.ZERO;
+    private BigDecimal totalEfectivoEsperado = BigDecimal.ZERO;
+    private List<EgresoCajaDTO> egresos = new ArrayList<>();
 }

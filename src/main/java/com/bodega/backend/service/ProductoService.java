@@ -382,4 +382,45 @@ public class ProductoService {
         dto.setEstado(producto.getEstado());
         return dto;
     }
+
+    @Transactional(readOnly = true)
+    public byte[] exportarCsv() {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        List<Producto> productos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Codigo,CodigoBarras,Nombre,Categoria,Marca,PrecioVenta,StockActual,StockMinimo,Estado\r\n");
+
+        for (Producto p : productos) {
+            sb.append(escapeCsv(p.getCodigo())).append(",")
+              .append(escapeCsv(p.getCodigoBarras())).append(",")
+              .append(escapeCsv(p.getNombre())).append(",")
+              .append(escapeCsv(p.getCategoria() != null ? p.getCategoria().getNombre() : "General")).append(",")
+              .append(escapeCsv(p.getMarca())).append(",")
+              .append(p.getPrecioVenta() != null ? p.getPrecioVenta().toPlainString() : "0.00").append(",")
+              .append(p.getStockActual() != null ? p.getStockActual().toPlainString() : "0.000").append(",")
+              .append(p.getStockMinimo() != null ? p.getStockMinimo().toPlainString() : "0.000").append(",")
+              .append(Boolean.TRUE.equals(p.getEstado()) ? "ACTIVO" : "INACTIVO")
+              .append("\r\n");
+        }
+
+        byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        byte[] content = sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] result = new byte[bom.length + content.length];
+        System.arraycopy(bom, 0, result, 0, bom.length);
+        System.arraycopy(content, 0, result, bom.length, content.length);
+        return result;
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        String clean = value.trim();
+        if (clean.startsWith("=") || clean.startsWith("+") || clean.startsWith("-") || clean.startsWith("@") || clean.startsWith("\t") || clean.startsWith("\r")) {
+            clean = "'" + clean;
+        }
+        if (clean.contains(",") || clean.contains("\"") || clean.contains("\n") || clean.contains("\r")) {
+            clean = "\"" + clean.replace("\"", "\"\"") + "\"";
+        }
+        return clean;
+    }
 }

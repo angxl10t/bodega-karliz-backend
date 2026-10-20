@@ -595,4 +595,60 @@ public class VentaService {
         }
         return (limpio.length() > maxLen) ? limpio.substring(0, maxLen) : limpio;
     }
+
+    @Transactional(readOnly = true)
+    public byte[] exportarCsv(Integer mes, Integer anio) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        List<Venta> ventas = ventaRepository.findByBodega_IdBodegaOrderByFechaVentaDesc(idBodega);
+
+        if (anio != null) {
+            ventas = ventas.stream().filter(v -> {
+                if (v.getFechaVenta() == null) return false;
+                boolean matchesYear = v.getFechaVenta().getYear() == anio;
+                boolean matchesMonth = (mes == null) || (v.getFechaVenta().getMonthValue() == mes);
+                return matchesYear && matchesMonth;
+            }).collect(Collectors.toList());
+        } else if (mes != null) {
+            ventas = ventas.stream().filter(v -> {
+                if (v.getFechaVenta() == null) return false;
+                return v.getFechaVenta().getMonthValue() == mes;
+            }).collect(Collectors.toList());
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("IDVenta,FechaHora,TipoComprobante,SerieNumero,Cliente,Documento,MetodoPago,Total,EstadoSUNAT,EstadoVenta\r\n");
+
+        for (Venta v : ventas) {
+            sb.append(v.getIdVenta()).append(",")
+              .append(v.getFechaVenta() != null ? v.getFechaVenta().toString() : "").append(",")
+              .append(escapeCsv(v.getTipoComprobante() != null ? v.getTipoComprobante() : "TICKET")).append(",")
+              .append(escapeCsv(v.getSerieCorrelativo() != null ? v.getSerieCorrelativo() : ("#" + v.getIdVenta()))).append(",")
+              .append(escapeCsv(v.getClienteNombre() != null ? v.getClienteNombre() : "Público General")).append(",")
+              .append(escapeCsv(v.getClienteDocumento() != null ? v.getClienteDocumento() : "-")).append(",")
+              .append(escapeCsv(v.getMetodoPago() != null ? v.getMetodoPago() : "Efectivo")).append(",")
+              .append(v.getTotal() != null ? v.getTotal().toPlainString() : "0.00").append(",")
+              .append(escapeCsv(v.getEstadoSunat() != null ? v.getEstadoSunat() : "NO_APLICA")).append(",")
+              .append(escapeCsv(v.getEstado() != null ? v.getEstado() : "COMPLETADA"))
+              .append("\r\n");
+        }
+
+        byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        byte[] content = sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] result = new byte[bom.length + content.length];
+        System.arraycopy(bom, 0, result, 0, bom.length);
+        System.arraycopy(content, 0, result, bom.length, content.length);
+        return result;
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        String clean = value.trim();
+        if (clean.startsWith("=") || clean.startsWith("+") || clean.startsWith("-") || clean.startsWith("@") || clean.startsWith("\t") || clean.startsWith("\r")) {
+            clean = "'" + clean;
+        }
+        if (clean.contains(",") || clean.contains("\"") || clean.contains("\n") || clean.contains("\r")) {
+            clean = "\"" + clean.replace("\"", "\"\"") + "\"";
+        }
+        return clean;
+    }
 }
