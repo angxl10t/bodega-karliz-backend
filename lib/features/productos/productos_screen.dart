@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'producto_model.dart';
@@ -11,6 +12,7 @@ import '../auth/auth_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
+import '../../core/csv_exporter.dart';
 
 class ProductosScreen extends StatefulWidget {
   const ProductosScreen({super.key});
@@ -156,6 +158,33 @@ class _ProductosScreenState extends State<ProductosScreen> {
     }
   }
 
+  Future<void> _exportarCsv() async {
+    if (_safeTodos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay productos en inventario para exportar.')),
+      );
+      return;
+    }
+    final now = DateTime.now();
+    final fechaStr = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
+    final nombreArchivo = 'catalogo_productos_$fechaStr.csv';
+    final csv = CsvExporter.generarCsvProductos(_safeTodos);
+    await CsvExporter.descargarOCompartirCsv(
+      nombreArchivo: nombreArchivo,
+      contenidoCsv: csv,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(kIsWeb
+              ? '¡Catálogo descargado como $nombreArchivo!'
+              : '¡Catálogo exportado y copiado al portapapeles!'),
+          backgroundColor: AppTheme.accentGreen,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -261,6 +290,45 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             const SizedBox(width: 5),
                             Text(
                               'Kardex',
+                              style: GoogleFonts.outfit(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white70 : AppTheme.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Botón Exportar Catálogo CSV
+                  const SizedBox(width: 6),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        _exportarCsv();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(LucideIcons.download, size: 13, color: AppTheme.accentGreen),
+                            const SizedBox(width: 4),
+                            Text(
+                              'CSV',
                               style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,

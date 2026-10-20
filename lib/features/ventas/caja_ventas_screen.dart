@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'venta_model.dart';
 import 'venta_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/theme.dart';
+import '../../core/csv_exporter.dart';
 
 class CajaVentasScreen extends StatefulWidget {
   const CajaVentasScreen({super.key});
@@ -23,9 +26,13 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   List<VentaRegistro> _ventas = [];
   bool _isLoading = true;
   final TextEditingController _busquedaController = TextEditingController();
+  final TextEditingController _conteoFisicoController = TextEditingController();
   String _busquedaVenta = '';
   String _userRol = 'CAJERO';
   bool get _esAdmin => _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
+  double? _efectivoContado;
+  String _nombreBodega = 'CajaYa POS';
+  String _username = 'Cajero';
 
   DateTime _fechaSeleccionada = DateTime.now();
   bool _filtrarVentasPorFecha = false;
@@ -43,6 +50,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     VentaService.ventasRevision.removeListener(_onVentasRevisionChanged);
     _tabController.dispose();
     _busquedaController.dispose();
+    _conteoFisicoController.dispose();
     super.dispose();
   }
 
@@ -224,18 +232,29 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     setState(() => _isLoading = true);
 
     try {
-      final cierreHoyFuture = _ventaService.getCierreCajaHoy();
+      final auth = AuthService();
+      final arqueoHoyFuture = _ventaService.getArqueoCompleto(_fechaSeleccionada);
       final ventasFuture = _ventaService.getVentas();
       final historialFuture = _ventaService.getHistorialCierres(dias: 30);
+      final rolFuture = auth.getUserRole();
+      final nombreBodegaFuture = auth.getNombreBodega();
+      final usernameFuture = auth.getUsername();
 
-      final rolFuture = AuthService().getUserRole();
+      final results = await Future.wait([
+        arqueoHoyFuture,
+        ventasFuture,
+        historialFuture,
+        rolFuture,
+        nombreBodegaFuture,
+        usernameFuture,
+      ]);
 
-      final results = await Future.wait([cierreHoyFuture, ventasFuture, historialFuture, rolFuture]);
-
-      final cierreHoy = results[0] as CierreCaja?;
+      final arqueoHoy = results[0] as CierreCaja?;
       final ventas = results[1] as List<VentaRegistro>;
       var historial = results[2] as List<CierreCaja>;
       final rol = results[3] as String;
+      final nombreBodega = (results[4] as String?) ?? 'CajaYa POS';
+      final username = (results[5] as String?) ?? 'Cajero';
 
       if (historial.isEmpty && ventas.isNotEmpty) {
         historial = _calcularHistorialDesdeVentas(ventas);
@@ -243,11 +262,13 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
 
       if (mounted) {
         setState(() {
-          _cierreHoy = cierreHoy;
+          _cierreHoy = arqueoHoy;
           _ventas = ventas;
           _historialCierres = historial;
-          _cierreCaja = _obtenerCierreParaFecha(_fechaSeleccionada, cierreHoy, historial, ventas);
+          _cierreCaja = arqueoHoy ?? _obtenerCierreParaFecha(_fechaSeleccionada, arqueoHoy, historial, ventas);
           _userRol = rol;
+          _nombreBodega = nombreBodega;
+          _username = username;
           _isLoading = false;
         });
       }
@@ -258,11 +279,18 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     }
   }
 
-  void _seleccionarFecha(DateTime fecha) {
+  void _seleccionarFecha(DateTime fecha) async {
     setState(() {
       _fechaSeleccionada = fecha;
-      _cierreCaja = _obtenerCierreParaFecha(fecha, _cierreHoy, _historialCierres, _ventas);
+      _conteoFisicoController.clear();
+      _efectivoContado = null;
     });
+    final arqueo = await _ventaService.getArqueoCompleto(fecha);
+    if (mounted) {
+      setState(() {
+        _cierreCaja = arqueo ?? _obtenerCierreParaFecha(fecha, _cierreHoy, _historialCierres, _ventas);
+      });
+    }
   }
 
   Future<void> _abrirSelectorFecha() async {
@@ -337,6 +365,811 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       _filtrarVentasPorFecha = true;
     });
     _tabController.animateTo(1);
+  }
+
+  Future<void> _exportarVentasCsv() async {
+    final ventasAExportar = _filtrarVentasPorFecha
+        ? _ventas.where((v) {
+            final f = v.fechaVenta;
+            return f != null && _esMismoDia(f, _fechaSeleccionada);
+          }).toList()
+        : _ventas;
+
+    if (ventasAExportar.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No hay ventas registradas para exportar.')),
+      );
+      return;
+    }
+
+    final now = DateTime.now();
+    final fechaStr = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
+    final nombreArchivo = 'ventas_cajaya_$fechaStr.csv';
+    final csv = CsvExporter.generarCsvVentas(ventasAExportar);
+    await CsvExporter.descargarOCompartirCsv(
+      nombreArchivo: nombreArchivo,
+      contenidoCsv: csv,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(kIsWeb
+              ? '¡Reporte descargado como $nombreArchivo!'
+              : '¡Reporte de ventas exportado y copiado al portapapeles!'),
+          backgroundColor: AppTheme.accentGreen,
+        ),
+      );
+    }
+  }
+
+  Future<void> _compartirArqueoWhatsApp() async {
+    final c = _cierreCaja;
+    final totalVendido = c?.totalVentas ?? 0.0;
+    final totalEfectivo = c?.totalEfectivo ?? 0.0;
+    final totalYape = c?.totalYape ?? 0.0;
+    final totalPlin = c?.totalPlin ?? 0.0;
+    final totalTarjeta = c?.totalTarjeta ?? 0.0;
+    final cantidadVentas = c?.cantidadVentas ?? 0;
+    final fondoInicial = c?.fondoInicial ?? 0.0;
+    final totalEgresos = c?.totalEgresos ?? 0.0;
+    final totalEsperado = c?.totalEfectivoEsperado ?? (fondoInicial + totalEfectivo - totalEgresos);
+
+    String estadoDif = 'PENDIENTE DE CONTEO';
+    if (_efectivoContado != null) {
+      final dif = _efectivoContado! - totalEsperado;
+      if (dif.abs() < 0.01) {
+        estadoDif = 'CUADRADO PERFECTO (S/ 0.00)';
+      } else if (dif < -0.01) {
+        estadoDif = 'FALTANTE: -S/ ${(-dif).toStringAsFixed(2)}';
+      } else {
+        estadoDif = 'SOBRANTE: +S/ ${dif.toStringAsFixed(2)}';
+      }
+    }
+
+    final msg = StringBuffer();
+    msg.writeln('📊 *ARQUEO DE CAJA - CAJAYA CLOUD POS*');
+    msg.writeln('🏪 *Bodega:* $_nombreBodega');
+    msg.writeln('📅 *Fecha:* ${_formatearFechaCompleta(_fechaSeleccionada)}');
+    msg.writeln('👤 *Cajero:* $_username');
+    msg.writeln('------------------------------------------');
+    msg.writeln('💵 *FLUJO DE EFECTIVO:*');
+    msg.writeln('• Base Inicial (Sencillo): S/ ${fondoInicial.toStringAsFixed(2)}');
+    msg.writeln('• (+) Ventas Efectivo: S/ ${totalEfectivo.toStringAsFixed(2)}');
+    msg.writeln('• (-) Egresos Caja Chica: S/ ${totalEgresos.toStringAsFixed(2)}');
+    msg.writeln('• (=) Efectivo Esperado: S/ ${totalEsperado.toStringAsFixed(2)}');
+    if (_efectivoContado != null) {
+      msg.writeln('• Efectivo Real Contado: S/ ${_efectivoContado!.toStringAsFixed(2)}');
+      msg.writeln('• 📌 *Diferencia:* $estadoDif');
+    }
+    msg.writeln('------------------------------------------');
+    msg.writeln('📱 *CANALES DIGITALES:*');
+    msg.writeln('• Yape: S/ ${totalYape.toStringAsFixed(2)}');
+    msg.writeln('• Plin: S/ ${totalPlin.toStringAsFixed(2)}');
+    msg.writeln('• Tarjetas: S/ ${totalTarjeta.toStringAsFixed(2)}');
+    msg.writeln('------------------------------------------');
+    msg.writeln('💰 *TOTAL RECAUDADO:* S/ ${totalVendido.toStringAsFixed(2)} ($cantidadVentas ventas)');
+
+    final encoded = Uri.encodeComponent(msg.toString());
+    final url = Uri.parse('https://wa.me/?text=$encoded');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir WhatsApp en este dispositivo.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _mostrarModalFondoInicial() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ctrl = TextEditingController(
+      text: (_cierreCaja?.fondoInicial ?? 0.0) > 0
+          ? _cierreCaja!.fondoInicial.toStringAsFixed(2)
+          : '50.00',
+    );
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(LucideIcons.banknote, color: Color(0xFF2563EB), size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Fondo Inicial de Caja',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ingresa el monto de sencillo o base con el que se abrió la gaveta al inicio de la jornada:',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: ctrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.brandPrimary,
+              ),
+              decoration: InputDecoration(
+                labelText: 'Monto Base (S/)',
+                prefixText: 'S/ ',
+                prefixStyle: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: AppTheme.brandPrimary),
+                filled: true,
+                fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancelar', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.brandPrimary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Guardar Base', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true) {
+      final monto = double.tryParse(ctrl.text.trim().replaceAll(',', '.')) ?? 0.0;
+      final ok = await _ventaService.registrarFondoInicial(monto, fecha: _fechaSeleccionada);
+      if (mounted) {
+        if (ok) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Fondo inicial de caja actualizado con éxito.'),
+              backgroundColor: AppTheme.accentGreen,
+            ),
+          );
+          _cargarDatos();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error al guardar el fondo inicial.'),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _mostrarModalRegistrarEgreso() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final montoCtrl = TextEditingController();
+    final motivoCtrl = TextEditingController();
+    String categoria = 'BOLSAS';
+    const categorias = ['BOLSAS', 'PANADERIA', 'HIELO', 'LIMPIEZA', 'PROVEEDOR', 'VARIOS'];
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE11D48).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.arrowDownRight, color: Color(0xFFE11D48), size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Registrar Egreso de Caja',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Registra salidas menores de efectivo del cajón para mantener el arqueo cuadrado:',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: montoCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  style: GoogleFonts.outfit(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFE11D48),
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Monto a retirar (S/)',
+                    prefixText: 'S/ ',
+                    prefixStyle: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: const Color(0xFFE11D48)),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Categoría de Gasto:',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: categorias.map((cat) {
+                    final sel = categoria == cat;
+                    return ChoiceChip(
+                      label: Text(cat, style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700)),
+                      selected: sel,
+                      selectedColor: const Color(0xFFE11D48).withValues(alpha: 0.2),
+                      onSelected: (_) => setModalState(() => categoria = cat),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: motivoCtrl,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    labelText: 'Motivo o Detalle',
+                    hintText: 'Ej. 50 bolsas plásticas grandes, hielo...',
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('Cancelar', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE11D48),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text('Registrar Egreso', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmado == true) {
+      final monto = double.tryParse(montoCtrl.text.trim().replaceAll(',', '.')) ?? 0.0;
+      if (monto <= 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('El monto debe ser mayor a cero.')),
+          );
+        }
+        return;
+      }
+      final motivo = motivoCtrl.text.trim().isNotEmpty ? motivoCtrl.text.trim() : 'Gasto de caja chica ($categoria)';
+      final ok = await _ventaService.registrarEgreso(monto: monto, motivo: motivo, categoriaGasto: categoria);
+      if (mounted) {
+        if (ok) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Egreso de S/ ${monto.toStringAsFixed(2)} registrado correctamente.'),
+              backgroundColor: AppTheme.accentGreen,
+            ),
+          );
+          _cargarDatos();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error al registrar el egreso en el servidor.'),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _anularEgreso(EgresoCajaItem egreso) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        title: Text('¿Anular Egreso?', style: GoogleFonts.outfit(fontWeight: FontWeight.w800)),
+        content: Text(
+          'Se anulará el egreso de S/ ${egreso.monto.toStringAsFixed(2)} ("${egreso.motivo}"). El dinero se restituirá al efectivo esperado.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.alertRed, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Anular'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true) {
+      final ok = await _ventaService.anularEgreso(egreso.idEgreso);
+      if (mounted) {
+        if (ok) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Egreso anulado con éxito.'), backgroundColor: AppTheme.accentGreen),
+          );
+          _cargarDatos();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error al anular el egreso.'), backgroundColor: AppTheme.alertRed),
+          );
+        }
+      }
+    }
+  }
+
+  Widget _buildMiniFlujoCard({
+    required String titulo,
+    required double monto,
+    required Color color,
+    required bool isDark,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF131B29) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                titulo,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+              if (actionLabel != null && onAction != null)
+                InkWell(
+                  onTap: onAction,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      actionLabel,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'S/ ${monto.toStringAsFixed(2)}',
+            style: GoogleFonts.outfit(
+              fontSize: 15.5,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppTheme.textDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiferenciaBadge(double dif, bool isDark) {
+    final bool cuadrado = dif.abs() < 0.01;
+    final bool faltante = dif < -0.01;
+    final Color color = cuadrado
+        ? AppTheme.accentGreen
+        : (faltante ? AppTheme.alertRed : const Color(0xFF2563EB));
+    final IconData icon = cuadrado
+        ? LucideIcons.checkCircle2
+        : (faltante ? LucideIcons.alertTriangle : LucideIcons.info);
+
+    final String texto = cuadrado
+        ? '¡CAJA CUADRADA PERFECTA! (S/ 0.00)'
+        : (faltante
+            ? 'FALTANTE EN CAJA: -S/ ${(-dif).toStringAsFixed(2)}'
+            : 'SOBRANTE EN CAJA: +S/ ${dif.toStringAsFixed(2)}');
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              texto,
+              style: GoogleFonts.outfit(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArqueoYCuadreCard(bool isDark) {
+    final fondo = _cierreCaja?.fondoInicial ?? 0.0;
+    final efectivoVentas = _cierreCaja?.totalEfectivo ?? 0.0;
+    final egresos = _cierreCaja?.totalEgresos ?? 0.0;
+    final esperado = _cierreCaja?.totalEfectivoEsperado ?? (fondo + efectivoVentas - egresos);
+    final contado = _efectivoContado;
+    final diferencia = (contado != null) ? (contado - esperado) : null;
+    final listaEgresos = _cierreCaja?.egresos ?? [];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(LucideIcons.scale, color: AppTheme.brandPrimary, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Arqueo de Turno & Cuadre',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        'Fondo de caja, gastos menores y cuadre físico',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.send, color: AppTheme.accentGreen, size: 20),
+                tooltip: 'Enviar Arqueo por WhatsApp',
+                onPressed: _compartirArqueoWhatsApp,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMiniFlujoCard(
+                  titulo: 'Base Inicial',
+                  monto: fondo,
+                  color: const Color(0xFF2563EB),
+                  isDark: isDark,
+                  actionLabel: 'Editar',
+                  onAction: _mostrarModalFondoInicial,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildMiniFlujoCard(
+                  titulo: '(+) Ventas Ef.',
+                  monto: efectivoVentas,
+                  color: AppTheme.accentGreen,
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildMiniFlujoCard(
+                  titulo: '(-) Egresos',
+                  monto: egresos,
+                  color: const Color(0xFFE11D48),
+                  isDark: isDark,
+                  actionLabel: '+ Egreso',
+                  onAction: _mostrarModalRegistrarEgreso,
+                ),
+              ),
+            ],
+          ),
+          if (listaEgresos.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF131B29) : const Color(0xFFFFF1F2),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFFE11D48).withValues(alpha: 0.25),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Egresos Menores del Turno (${listaEgresos.length})',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFE11D48),
+                        ),
+                      ),
+                      Text(
+                        '-S/ ${egresos.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFFE11D48),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...listaEgresos.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE11D48).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            e.categoriaGasto,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFE11D48),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            e.motivo,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          '-S/ ${e.monto.toStringAsFixed(2)}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        if (_esAdmin) ...[
+                          const SizedBox(width: 4),
+                          InkWell(
+                            onTap: () => _anularEgreso(e),
+                            child: const Icon(LucideIcons.x, size: 14, color: AppTheme.textMuted),
+                          ),
+                        ],
+                      ],
+                    ),
+                  )),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F2327) : const Color(0xFFE0F2FE),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'EFECTIVO ESPERADO EN GAVETA',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.brandPrimary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Text(
+                      'Base + Ventas Efectivo - Egresos',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                    ),
+                  ],
+                ),
+                Text(
+                  'S/ ${esperado.toStringAsFixed(2)}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.brandPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                flex: 3,
+                child: TextField(
+                  controller: _conteoFisicoController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Dinero contado en cajón (S/)',
+                    labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                    hintText: '0.00',
+                    prefixText: 'S/ ',
+                    prefixStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: AppTheme.brandPrimary),
+                    filled: true,
+                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
+                  onChanged: (val) {
+                    final parsed = double.tryParse(val.replaceAll(',', '.'));
+                    setState(() => _efectivoContado = parsed);
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentGreen,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                icon: const Icon(LucideIcons.send, size: 16),
+                label: Text(
+                  'WhatsApp',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 12),
+                ),
+                onPressed: _compartirArqueoWhatsApp,
+              ),
+            ],
+          ),
+          if (diferencia != null) ...[
+            const SizedBox(height: 12),
+            _buildDiferenciaBadge(diferencia, isDark),
+          ],
+        ],
+      ),
+    );
   }
 
   Future<void> _confirmarAnulacion(VentaRegistro venta) async {
@@ -927,6 +1760,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     );
                   },
                 ),
+                const SizedBox(height: 24),
+
+                // SECCIÓN: ARQUEO DE TURNO & CUADRE DE CAJA
+                _buildArqueoYCuadreCard(isDark),
                 const SizedBox(height: 24),
 
                 // SECCIÓN: HISTÓRICO DE DÍAS ANTERIORES
@@ -1550,6 +2387,24 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       ],
                     ),
                   ),
+                ),
+                const Spacer(),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(LucideIcons.fileSpreadsheet, size: 14, color: AppTheme.accentGreen),
+                  label: Text(
+                    'Exportar CSV',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                  onPressed: _exportarVentasCsv,
                 ),
               ],
             ),

@@ -138,4 +138,81 @@ class VentaService {
       return RegistroVentaResult(success: false, errorMessage: 'Error de conexión con el servidor al reintentar envío.');
     }
   }
+
+  /// Obtiene el arqueo completo con fondo inicial, ventas y egresos de caja chica
+  Future<CierreCaja?> getArqueoCompleto(DateTime fecha) async {
+    try {
+      final fechaStr =
+          "${fecha.year.toString().padLeft(4, '0')}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}";
+      final response = await _apiClient.get('/caja/arqueo?fecha=$fechaStr');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return CierreCaja.fromJson(data);
+      }
+      return await getCierreCajaPorFecha(fecha);
+    } catch (_) {
+      return await getCierreCajaPorFecha(fecha);
+    }
+  }
+
+  /// Registra un nuevo egreso menor de caja chica
+  Future<bool> registrarEgreso({
+    required double monto,
+    required String motivo,
+    String categoriaGasto = 'VARIOS',
+  }) async {
+    try {
+      final body = {
+        'monto': monto,
+        'motivo': motivo,
+        'categoriaGasto': categoriaGasto,
+      };
+      final response = await _apiClient.post('/caja/egresos', body);
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        notifyVentasChanged();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Anula un egreso de caja chica existente
+  Future<bool> anularEgreso(int idEgreso, {String? motivo}) async {
+    try {
+      final url = motivo != null && motivo.isNotEmpty
+          ? '/caja/egresos/$idEgreso?motivo=${Uri.encodeComponent(motivo)}'
+          : '/caja/egresos/$idEgreso';
+      final response = await _apiClient.delete(url);
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        notifyVentasChanged();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Registra o actualiza el fondo inicial (sencillo) de la caja
+  Future<bool> registrarFondoInicial(double monto, {DateTime? fecha}) async {
+    try {
+      final targetFecha = fecha ?? DateTime.now();
+      final fechaStr =
+          "${targetFecha.year.toString().padLeft(4, '0')}-${targetFecha.month.toString().padLeft(2, '0')}-${targetFecha.day.toString().padLeft(2, '0')}";
+      final body = {
+        'montoInicial': monto,
+        'fecha': fechaStr,
+      };
+      final response = await _apiClient.post('/caja/fondo-inicial', body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        notifyVentasChanged();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
 }

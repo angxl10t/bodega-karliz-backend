@@ -173,6 +173,44 @@ class VentaRegistro {
   }
 }
 
+class EgresoCajaItem {
+  final int idEgreso;
+  final double monto;
+  final String motivo;
+  final String categoriaGasto;
+  final DateTime? fechaEgreso;
+  final String? usuarioRegistro;
+  final bool estado;
+  final String? usuarioAnulacion;
+  final String? motivoAnulacion;
+
+  EgresoCajaItem({
+    required this.idEgreso,
+    required this.monto,
+    required this.motivo,
+    this.categoriaGasto = 'VARIOS',
+    this.fechaEgreso,
+    this.usuarioRegistro,
+    this.estado = true,
+    this.usuarioAnulacion,
+    this.motivoAnulacion,
+  });
+
+  factory EgresoCajaItem.fromJson(Map<String, dynamic> json) {
+    return EgresoCajaItem(
+      idEgreso: (json['idEgreso'] as num?)?.toInt() ?? 0,
+      monto: (json['monto'] as num?)?.toDouble() ?? 0.0,
+      motivo: json['motivo'] as String? ?? 'Gasto menor',
+      categoriaGasto: json['categoriaGasto'] as String? ?? 'VARIOS',
+      fechaEgreso: json['fechaEgreso'] != null ? DateTime.tryParse(json['fechaEgreso'].toString()) : null,
+      usuarioRegistro: json['usuarioRegistro'] as String?,
+      estado: json['estado'] as bool? ?? true,
+      usuarioAnulacion: json['usuarioAnulacion'] as String?,
+      motivoAnulacion: json['motivoAnulacion'] as String?,
+    );
+  }
+}
+
 /// Resumen financiero para Arqueo / Cierre de Caja
 class CierreCaja {
   final double totalVentas;
@@ -185,6 +223,12 @@ class CierreCaja {
   final int cantidadVentas;
   final DateTime? fecha;
 
+  // Nuevos campos de Arqueo y Control de Turno
+  final double fondoInicial;
+  final double totalEgresos;
+  final double totalEfectivoEsperado;
+  final List<EgresoCajaItem> egresos;
+
   CierreCaja({
     required this.totalVentas,
     required this.totalEfectivo,
@@ -195,10 +239,23 @@ class CierreCaja {
     required this.totalTarjeta,
     required this.cantidadVentas,
     this.fecha,
-  });
+    this.fondoInicial = 0.0,
+    this.totalEgresos = 0.0,
+    double? totalEfectivoEsperado,
+    this.egresos = const [],
+  }) : totalEfectivoEsperado = totalEfectivoEsperado ?? (fondoInicial + totalEfectivo - totalEgresos);
 
   factory CierreCaja.fromJson(Map<String, dynamic> json) {
     final double ef = (json['totalEfectivo'] as num?)?.toDouble() ?? 0.0;
+    final double fIni = (json['fondoInicial'] as num?)?.toDouble() ?? 0.0;
+    final double egr = (json['totalEgresos'] as num?)?.toDouble() ?? 0.0;
+    final double? esp = (json['totalEfectivoEsperado'] as num?)?.toDouble();
+
+    final List<EgresoCajaItem> listaEgresos = (json['egresos'] as List<dynamic>?)
+            ?.map((e) => EgresoCajaItem.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
     return CierreCaja(
       totalVentas: (json['totalVentas'] as num?)?.toDouble() ?? 0.0,
       totalEfectivo: ef,
@@ -209,6 +266,10 @@ class CierreCaja {
       totalTarjeta: (json['totalTarjeta'] as num?)?.toDouble() ?? 0.0,
       cantidadVentas: (json['cantidadVentas'] as num?)?.toInt() ?? 0,
       fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha'].toString()) : null,
+      fondoInicial: fIni,
+      totalEgresos: egr,
+      totalEfectivoEsperado: esp,
+      egresos: listaEgresos,
     );
   }
 }

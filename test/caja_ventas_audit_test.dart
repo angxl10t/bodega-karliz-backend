@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bodega_mobile/features/ventas/venta_model.dart';
+import 'package:bodega_mobile/core/csv_exporter.dart';
 
 void main() {
   group('CierreCaja & Arqueo Financial Reconciliation Tests', () {
@@ -105,6 +106,53 @@ void main() {
       if (safeInitial3.isBefore(firstDate)) safeInitial3 = firstDate;
 
       expect(safeInitial3, firstDate);
+    });
+
+    test('CierreCaja.fromJson correctly parses fondoInicial, egresos and totalEfectivoEsperado', () {
+      final json = {
+        'totalVentas': 450.00,
+        'totalEfectivo': 300.00,
+        'totalYape': 150.00,
+        'cantidadVentas': 10,
+        'fondoInicial': 50.00,
+        'totalEgresos': 25.00,
+        'totalEfectivoEsperado': 325.00,
+        'egresos': [
+          {
+            'idEgreso': 1,
+            'monto': 15.00,
+            'motivo': 'Compra de bolsas',
+            'categoriaGasto': 'BOLSAS',
+            'estado': true,
+          },
+          {
+            'idEgreso': 2,
+            'monto': 10.00,
+            'motivo': 'Hielo en bolsa',
+            'categoriaGasto': 'HIELO',
+            'estado': true,
+          }
+        ],
+      };
+
+      final cierre = CierreCaja.fromJson(json);
+
+      expect(cierre.fondoInicial, 50.00);
+      expect(cierre.totalEgresos, 25.00);
+      expect(cierre.totalEfectivoEsperado, 325.00);
+      expect(cierre.egresos.length, 2);
+      expect(cierre.egresos[0].motivo, 'Compra de bolsas');
+      expect(cierre.egresos[1].monto, 10.00);
+    });
+
+    test('CsvExporter safely escapes formula injection characters and formats properly', () {
+      final inputFormula = '=SUM(A1:A10)';
+      final inputPlus = '+cmd| /C calc';
+      final inputQuotes = 'Pan "Especial" Francés';
+
+      expect(CsvExporter.escapar(inputFormula), "'=SUM(A1:A10)");
+      expect(CsvExporter.escapar(inputPlus), "'+cmd| /C calc");
+      expect(CsvExporter.escapar(inputQuotes), '"Pan ""Especial"" Francés"');
     });
   });
 }
