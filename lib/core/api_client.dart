@@ -46,14 +46,23 @@ class ApiClient {
   }
 
   void _checkAuthStatus(http.Response response, String endpoint) async {
-    // HTTP 401 (No autenticado / Token expirado o revocado)
-    final isSessionInvalid = response.statusCode == 401;
+    // HTTP 401 (No autenticado / Token expirado o revocado) o HTTP 403 por bloqueo/desactivación de tenant o usuario
+    final bodyLower = response.body.toLowerCase();
+    final isDeactivated = response.statusCode == 403 &&
+        (bodyLower.contains('desactivad') ||
+         bodyLower.contains('deshabilitad') ||
+         bodyLower.contains('inactiv') ||
+         bodyLower.contains('bloquead'));
+    final isSessionInvalid = response.statusCode == 401 || isDeactivated;
 
     if (isSessionInvalid && !endpoint.contains('/auth/') && !endpoint.contains('/health')) {
       await SecureStorageService.clearAuth();
       onSessionExpired?.call();
     }
   }
+
+  @visibleForTesting
+  void checkAuthStatus(http.Response response, String endpoint) => _checkAuthStatus(response, endpoint);
 
   Uri _resolveUri(String endpoint) {
     final clean = endpoint.trim();

@@ -46,6 +46,46 @@ void main() {
       expect(shouldTriggerHealth, isFalse);
       expect(sessionExpiredCalled, isFalse);
     });
+
+    test('Triggers session expiry on 401 for non-auth endpoints', () async {
+      bool expiredCalled = false;
+      ApiClient.onSessionExpired = () {
+        expiredCalled = true;
+      };
+
+      final response = http.Response('{"error":"Token expired"}', 401);
+      client.checkAuthStatus(response, '/productos');
+      // Esperar microtasks para SecureStorageService
+      await Future.delayed(const Duration(milliseconds: 20));
+
+      expect(expiredCalled, isTrue);
+    });
+
+    test('Triggers session expiry on 403 when bodega or user is deactivated', () async {
+      bool expiredCalled = false;
+      ApiClient.onSessionExpired = () {
+        expiredCalled = true;
+      };
+
+      final response = http.Response('{"error":"Acceso denegado: La tienda o bodega asignada ha sido desactivada."}', 403);
+      client.checkAuthStatus(response, '/ventas');
+      await Future.delayed(const Duration(milliseconds: 20));
+
+      expect(expiredCalled, isTrue);
+    });
+
+    test('Does NOT trigger session expiry on 403 for normal permission denial', () async {
+      bool expiredCalled = false;
+      ApiClient.onSessionExpired = () {
+        expiredCalled = true;
+      };
+
+      final response = http.Response('{"error":"Acceso denegado: No tienes los privilegios necesarios."}', 403);
+      client.checkAuthStatus(response, '/usuarios');
+      await Future.delayed(const Duration(milliseconds: 20));
+
+      expect(expiredCalled, isFalse);
+    });
   });
 
   group('ApiClient extractErrorMessage Tests', () {
