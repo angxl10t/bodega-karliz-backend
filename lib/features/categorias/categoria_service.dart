@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../../core/api_client.dart';
 import 'categoria_model.dart';
 
@@ -9,9 +10,21 @@ class CategoriaService {
   static DateTime? _cacheTimestamp;
   static const Duration _cacheDuration = Duration(seconds: 60);
 
+  /// Notificador reactivo para que todas las vistas (Catálogo, POS, Filtros)
+  /// sincronicen sus listas cuando se agregue o actualice una categoría.
+  static final ValueNotifier<int> categoriasRevision = ValueNotifier<int>(0);
+
   static void invalidateCache() {
     _cachedCategorias = null;
     _cacheTimestamp = null;
+    categoriasRevision.value++;
+  }
+
+  /// Permite inyectar categorías en tests sin realizar llamadas HTTP de red
+  @visibleForTesting
+  static void setMockCategorias(List<Categoria> categorias) {
+    _cachedCategorias = List<Categoria>.from(categorias);
+    _cacheTimestamp = DateTime.now();
   }
 
   Future<List<Categoria>> getCategorias({bool forceRefresh = false}) async {

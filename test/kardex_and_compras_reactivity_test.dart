@@ -3,6 +3,8 @@ import 'package:bodega_mobile/features/compras/compra_service.dart';
 import 'package:bodega_mobile/features/movimientos/movimiento_model.dart';
 import 'package:bodega_mobile/features/ventas/venta_service.dart';
 import 'package:bodega_mobile/features/productos/producto_service.dart';
+import 'package:bodega_mobile/features/categorias/categoria_service.dart';
+import 'package:bodega_mobile/features/proveedores/proveedor_service.dart';
 
 void main() {
   group('Kardex & Compras Reactivity and Models Tests', () {
@@ -22,6 +24,18 @@ void main() {
       final initialVal = ProductoService.productosRevision.value;
       ProductoService.invalidateCache();
       expect(ProductoService.productosRevision.value, initialVal + 1);
+    });
+
+    test('CategoriaService.categoriasRevision increments on invalidateCache', () {
+      final initialVal = CategoriaService.categoriasRevision.value;
+      CategoriaService.invalidateCache();
+      expect(CategoriaService.categoriasRevision.value, initialVal + 1);
+    });
+
+    test('ProveedorService.proveedoresRevision increments on invalidateCache', () {
+      final initialVal = ProveedorService.proveedoresRevision.value;
+      ProveedorService.invalidateCache();
+      expect(ProveedorService.proveedoresRevision.value, initialVal + 1);
     });
 
     test('MovimientoInventario parses JSON correctly with full attributes', () {
