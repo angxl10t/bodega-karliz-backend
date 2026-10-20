@@ -18,11 +18,18 @@ public class UserSecurityProfile {
     private final String colorPrimario;
     private final String logoUrl;
     private final String lemaComercial;
+    private final Boolean estadoBodega;
     private final Instant cachedAt;
 
     public UserSecurityProfile(String username, String password, String rol, Boolean estado, OffsetDateTime fechaCambioClave,
                                Long idBodega, String nombreBodega, String plan,
                                String colorPrimario, String logoUrl, String lemaComercial) {
+        this(username, password, rol, estado, fechaCambioClave, idBodega, nombreBodega, plan, colorPrimario, logoUrl, lemaComercial, true);
+    }
+
+    public UserSecurityProfile(String username, String password, String rol, Boolean estado, OffsetDateTime fechaCambioClave,
+                               Long idBodega, String nombreBodega, String plan,
+                               String colorPrimario, String logoUrl, String lemaComercial, Boolean estadoBodega) {
         this.username = username;
         this.password = password;
         this.rol = rol;
@@ -34,6 +41,7 @@ public class UserSecurityProfile {
         this.colorPrimario = (colorPrimario != null && !colorPrimario.isBlank()) ? colorPrimario : "#2563EB";
         this.logoUrl = logoUrl;
         this.lemaComercial = lemaComercial;
+        this.estadoBodega = estadoBodega != null ? estadoBodega : true;
         this.cachedAt = Instant.now();
     }
 
@@ -79,6 +87,10 @@ public class UserSecurityProfile {
 
     public String getLemaComercial() {
         return lemaComercial;
+    }
+
+    public Boolean getEstadoBodega() {
+        return estadoBodega;
     }
 
     public boolean isExpired(long ttlSeconds) {

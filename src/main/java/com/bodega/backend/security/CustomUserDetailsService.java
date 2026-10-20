@@ -26,6 +26,10 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new org.springframework.security.authentication.DisabledException("Tu cuenta de usuario ha sido desactivada");
         }
 
+        if (usuario.getBodega() != null && Boolean.FALSE.equals(usuario.getBodega().getEstado()) && !"SUPERADMIN".equalsIgnoreCase(usuario.getRol())) {
+            throw new org.springframework.security.authentication.DisabledException("La tienda o bodega asignada se encuentra desactivada. Contacta al administrador.");
+        }
+
         return User.builder()
                 .username(usuario.getUsername())
                 .password(usuario.getPassword())

@@ -58,6 +58,8 @@ public class UserSecurityCacheService {
             String lemaComercial = (u.getBodega() != null) ? u.getBodega().getLemaComercial() 
                     : (esSuperAdmin ? "Consola Global de Administración de Bodegas" : null);
 
+            Boolean estadoBodega = (u.getBodega() != null) ? u.getBodega().getEstado() : true;
+
             UserSecurityProfile nuevo = new UserSecurityProfile(
                     u.getUsername(),
                     u.getPassword(),
@@ -69,7 +71,8 @@ public class UserSecurityCacheService {
                     plan,
                     colorPrimario,
                     logoUrl,
-                    lemaComercial
+                    lemaComercial,
+                    estadoBodega
             );
             cache.put(key, nuevo);
             purgeExpiredIfNeeded();

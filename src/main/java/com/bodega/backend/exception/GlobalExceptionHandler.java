@@ -96,11 +96,25 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
-    // Atrapa intentos de inicio de sesión con cuentas desactivadas
+    // Atrapa intentos de inicio de sesión con cuentas o tiendas desactivadas
     @ExceptionHandler(org.springframework.security.authentication.DisabledException.class)
     public ResponseEntity<Map<String, String>> handleDisabledAccount(org.springframework.security.authentication.DisabledException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", "Esta cuenta de usuario ha sido desactivada. Contacta al administrador del sistema.");
+        String msg = (ex.getMessage() != null && !ex.getMessage().isBlank()) 
+                ? ex.getMessage() 
+                : "Esta cuenta de usuario ha sido desactivada. Contacta al administrador del sistema.";
+        error.put("error", msg);
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    // Atrapa intentos de acceso con cuentas bloqueadas temporalmente por seguridad
+    @ExceptionHandler(org.springframework.security.authentication.LockedException.class)
+    public ResponseEntity<Map<String, String>> handleLockedAccount(org.springframework.security.authentication.LockedException ex) {
+        Map<String, String> error = new HashMap<>();
+        String msg = (ex.getMessage() != null && !ex.getMessage().isBlank()) 
+                ? ex.getMessage() 
+                : "Esta cuenta de usuario ha sido bloqueada temporalmente por seguridad. Contacta al administrador.";
+        error.put("error", msg);
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 

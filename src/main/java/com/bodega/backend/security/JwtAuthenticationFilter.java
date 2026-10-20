@@ -51,7 +51,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && claims != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserSecurityProfile usuario = userSecurityCacheService.getSecurityProfile(username).orElse(null);
 
-            if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) 
+            boolean esSuperAdmin = usuario != null && "SUPERADMIN".equalsIgnoreCase(usuario.getRol());
+            boolean bodegaActiva = esSuperAdmin || usuario == null || usuario.getEstadoBodega() == null || Boolean.TRUE.equals(usuario.getEstadoBodega());
+
+            if (usuario != null && Boolean.TRUE.equals(usuario.getEstado()) && bodegaActiva 
                     && username.equalsIgnoreCase(usuario.getUsername())) {
                 // Validación de revocación de sesión: si la contraseña cambió luego de emitir el token, se invalida
                 Date issuedAt = claims.getIssuedAt();

@@ -93,6 +93,11 @@ public class AuthController {
             nombreBodega = "CajaYa Cloud Platform";
             plan = "SUPERADMIN";
         } else {
+            if (usuario.getBodega() != null && Boolean.FALSE.equals(usuario.getBodega().getEstado())) {
+                throw new org.springframework.security.authentication.DisabledException(
+                    "La tienda o bodega asignada se encuentra desactivada. Contacta al administrador."
+                );
+            }
             idBodega = (usuario.getBodega() != null) ? usuario.getBodega().getIdBodega() : 1L;
             nombreBodega = (usuario.getBodega() != null && usuario.getBodega().getNombreComercial() != null) 
                     ? usuario.getBodega().getNombreComercial() 
