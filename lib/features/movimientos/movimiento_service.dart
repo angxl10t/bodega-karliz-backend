@@ -1,5 +1,6 @@
 import 'dart:convert';
 import '../../core/api_client.dart';
+import '../productos/producto_service.dart';
 import 'movimiento_model.dart';
 
 class MovimientoService {
@@ -47,7 +48,11 @@ class MovimientoService {
           'motivo': motivo,
         },
       );
-      return response.statusCode == 200;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ProductoService.invalidateCache();
+        return true;
+      }
+      return false;
     } catch (e) {
       return false;
     }

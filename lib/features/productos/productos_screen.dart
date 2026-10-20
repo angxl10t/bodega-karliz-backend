@@ -41,21 +41,25 @@ class _ProductosScreenState extends State<ProductosScreen> {
   List<Producto> get _safeTodos => _todosProductos;
   List<Producto> get _safeFiltrados => _productosFiltrados;
 
-  List<String> get _categoriasDisponibles {
+  List<String> _categoriasDisponibles = ['Todos'];
+  Map<String, int> _categoriaCounts = {'Todos': 0};
+
+  void _recalcularCategorias() {
+    final Map<String, int> counts = {'Todos': _safeTodos.length};
     final Set<String> cats = {};
     for (final p in _safeTodos) {
       final c = p.nombreCategoria?.trim();
-      if (c != null && c.isNotEmpty) {
-        cats.add(c);
-      }
+      final catKey = (c != null && c.isNotEmpty) ? c : 'General';
+      cats.add(catKey);
+      counts[catKey] = (counts[catKey] ?? 0) + 1;
     }
-    final list = cats.toList()..sort();
-    return ['Todos', ...list];
+    final sortedCats = cats.toList()..sort();
+    _categoriasDisponibles = ['Todos', ...sortedCats];
+    _categoriaCounts = counts;
   }
 
   int _getCountForCategoria(String cat) {
-    if (cat == 'Todos') return _safeTodos.length;
-    return _safeTodos.where((p) => (p.nombreCategoria?.trim() ?? 'General') == cat).length;
+    return _categoriaCounts[cat] ?? 0;
   }
 
   @override
@@ -96,6 +100,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
           _userRol = rol;
           _todosProductos = List<Producto>.from(prods);
           _bodegaInfo = bInfo;
+          _recalcularCategorias();
           _aplicarFiltros();
           _isLoading = false;
         });
@@ -117,6 +122,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       setState(() {
         _todosProductos = List<Producto>.from(productos);
         _bodegaInfo = bInfo;
+        _recalcularCategorias();
         _aplicarFiltros();
         _isLoading = false;
       });

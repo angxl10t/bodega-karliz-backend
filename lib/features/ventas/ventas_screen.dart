@@ -66,34 +66,42 @@ class _VentasScreenState extends State<VentasScreen> {
     return stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(2);
   }
 
-  List<String> get _tabletCategorias {
-    final list = <String>['⭐ Frecuentes', 'Todos'];
-    final uniqueCats = <String>{};
+  List<String> _tabletCategorias = ['⭐ Frecuentes', 'Todos'];
+  Map<String, int> _tabletCategoryCounts = {'⭐ Frecuentes': 0, 'Todos': 0};
+  List<Producto> _frecuentesProductos = [];
+
+  void _recalcularTabletCatalogCache() {
+    final copy = List<Producto>.from(_safeDisponibles);
+    copy.sort((a, b) => b.stockActual.compareTo(a.stockActual));
+    _frecuentesProductos = copy.take(16).toList();
+
+    final Map<String, int> counts = {
+      '⭐ Frecuentes': _frecuentesProductos.length,
+      'Todos': _safeDisponibles.length,
+    };
+    final Set<String> uniqueCats = {};
     for (final p in _safeDisponibles) {
       final cat = p.nombreCategoria?.trim();
-      if (cat != null && cat.isNotEmpty) {
-        uniqueCats.add(cat);
-      }
+      final catKey = (cat != null && cat.isNotEmpty) ? cat : 'General';
+      uniqueCats.add(catKey);
+      counts[catKey] = (counts[catKey] ?? 0) + 1;
     }
-    list.addAll(uniqueCats);
-    return list;
+    _tabletCategorias = ['⭐ Frecuentes', 'Todos', ...(uniqueCats.toList()..sort())];
+    _tabletCategoryCounts = counts;
   }
 
   List<Producto> get _filteredTabletProductos {
     if (_tabletSelectedCategoria == '⭐ Frecuentes') {
-      final copy = List<Producto>.from(_safeDisponibles);
-      copy.sort((a, b) => b.stockActual.compareTo(a.stockActual));
-      final frecuentes = copy.take(16).toList();
       if (_tabletSearchQuery.isNotEmpty) {
         final q = _tabletSearchQuery.toLowerCase().trim();
-        return frecuentes.where((p) =>
+        return _frecuentesProductos.where((p) =>
             p.nombre.toLowerCase().contains(q) ||
             _coincideCodigo(p, q) ||
             (p.codigoBarras ?? '').toLowerCase().contains(q) ||
             (p.marca ?? '').toLowerCase().contains(q)
         ).toList();
       }
-      return frecuentes;
+      return _frecuentesProductos;
     }
 
     return _safeDisponibles.where((p) {
@@ -114,9 +122,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   int _getCountForCategoria(String cat) {
-    if (cat == '⭐ Frecuentes') return _safeDisponibles.take(16).length;
-    if (cat == 'Todos') return _safeDisponibles.length;
-    return _safeDisponibles.where((p) => (p.nombreCategoria?.trim() ?? 'General') == cat).length;
+    return _tabletCategoryCounts[cat] ?? 0;
   }
 
   IconData _getCategoryIcon(String? categoryName) => CategoryHelper.getIcon(categoryName);
@@ -245,6 +251,7 @@ class _VentasScreenState extends State<VentasScreen> {
     if (mounted) {
       setState(() {
         _productosDisponibles = List<Producto>.from(productos.where((p) => p.stockActual > 0));
+        _recalcularTabletCatalogCache();
         _isLoading = false;
       });
     }
@@ -422,6 +429,7 @@ class _VentasScreenState extends State<VentasScreen> {
       if (mounted) {
         setState(() {
           _productosDisponibles = List<Producto>.from(productosFrescos.where((p) => p.stockActual > 0));
+          _recalcularTabletCatalogCache();
         });
       }
 
