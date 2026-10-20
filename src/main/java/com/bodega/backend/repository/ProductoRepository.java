@@ -20,6 +20,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @EntityGraph(attributePaths = {"categoria"})
     List<Producto> findByBodega_IdBodegaAndEstadoTrue(Long idBodega);
 
+    long countByBodega_IdBodegaAndEstadoTrue(Long idBodega);
+
     List<Producto> findByEstadoFalse();
     List<Producto> findByBodega_IdBodegaAndEstadoFalse(Long idBodega);
     

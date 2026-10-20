@@ -285,6 +285,20 @@ public class BodegaService {
         dto.setSerieFactura(b.getSerieFactura());
         dto.setUltimoCorrelativoBoleta(b.getUltimoCorrelativoBoleta());
         dto.setUltimoCorrelativoFactura(b.getUltimoCorrelativoFactura());
+
+        // Cuotas SaaS por Plan
+        long totalActivos = (productoRepository != null && b.getIdBodega() != null)
+                ? productoRepository.countByBodega_IdBodegaAndEstadoTrue(b.getIdBodega())
+                : 0L;
+        dto.setTotalProductosActivos(totalActivos);
+        if ("BASICO".equalsIgnoreCase(b.getPlan())) {
+            dto.setLimiteProductos(150);
+            dto.setLimiteAlcanzado(totalActivos >= 150);
+        } else {
+            dto.setLimiteProductos(null); // Ilimitado para PRO y otros planes superiores
+            dto.setLimiteAlcanzado(false);
+        }
+
         return dto;
     }
 

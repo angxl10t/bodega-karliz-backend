@@ -30,4 +30,9 @@ public class BodegaDTO {
     private String serieFactura;
     private Long ultimoCorrelativoBoleta;
     private Long ultimoCorrelativoFactura;
+
+    // Cuotas SaaS por Plan
+    private Integer limiteProductos;
+    private Long totalProductosActivos;
+    private Boolean limiteAlcanzado;
 }

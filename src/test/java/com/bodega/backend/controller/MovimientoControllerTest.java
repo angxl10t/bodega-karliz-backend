@@ -1,5 +1,6 @@
 package com.bodega.backend.controller;
 
+import com.bodega.backend.dto.AjusteInventarioDTO;
 import com.bodega.backend.dto.MovimientoInventarioDTO;
 import com.bodega.backend.service.MovimientoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,5 +62,23 @@ public class MovimientoControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertEquals(10L, response.getBody().get(0).getIdProducto());
+    }
+
+    @Test
+    void testRegistrarAjuste() {
+        AjusteInventarioDTO dto = new AjusteInventarioDTO();
+        dto.setIdProducto(10L);
+        dto.setCantidad(new BigDecimal("2.000"));
+        dto.setTipoAjuste("MERMA");
+        dto.setMotivo("Deterioro");
+
+        when(movimientoService.registrarAjuste(dto)).thenReturn(movDTO);
+
+        ResponseEntity<MovimientoInventarioDTO> response = movimientoController.registrarAjuste(dto);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(movDTO, response.getBody());
+        verify(movimientoService).registrarAjuste(dto);
     }
 }

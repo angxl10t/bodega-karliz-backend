@@ -1,6 +1,7 @@
 package com.bodega.backend.service;
 
 import com.bodega.backend.dto.ProductoDTO;
+import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.MovimientoInventario;
 import com.bodega.backend.entity.Presentacion;
@@ -142,6 +143,15 @@ public class ProductoService {
     @Transactional
     public ProductoDTO crear(ProductoDTO dto) {
         Long idBodega = tenantService.getCurrentBodegaId();
+
+        // Control de Cuotas SaaS por Plan
+        Bodega bodega = tenantService.getCurrentBodega();
+        if (bodega != null && "BASICO".equalsIgnoreCase(bodega.getPlan())) {
+            long totalActivos = productoRepository.countByBodega_IdBodegaAndEstadoTrue(idBodega);
+            if (totalActivos >= 150) {
+                throw new RuntimeException("Has alcanzado el límite de 150 productos activos para el Plan BÁSICO. Actualiza a Plan PRO para registrar productos ilimitados.");
+            }
+        }
 
         // Enlazar con la categoría dentro del mismo tenant
         Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(dto.getIdCategoria(), idBodega)

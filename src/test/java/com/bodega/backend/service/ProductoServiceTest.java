@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +52,7 @@ public class ProductoServiceTest {
         bodega = new Bodega();
         bodega.setIdBodega(3L);
         bodega.setNombreComercial("Bodega KARLIZ");
+        bodega.setPlan("BASICO");
 
         categoria = new Categoria();
         categoria.setIdCategoria(10L);
@@ -92,5 +94,50 @@ public class ProductoServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> productoService.obtenerPorId(999L));
         assertTrue(ex.getMessage().contains("Producto no encontrado con ID: 999"));
+    }
+
+    @Test
+    void testCrear_PlanBasico_ExcedeCuota150_LanzaExcepcion() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(3L);
+        when(tenantService.getCurrentBodega()).thenReturn(bodega);
+        when(productoRepository.countByBodega_IdBodegaAndEstadoTrue(3L)).thenReturn(150L);
+
+        ProductoDTO dto = new ProductoDTO();
+        dto.setIdCategoria(10L);
+        dto.setNombre("Nuevo Producto");
+        dto.setPrecioVenta(new BigDecimal("5.00"));
+        dto.setStockActual(new BigDecimal("10.0"));
+        dto.setStockMinimo(new BigDecimal("2.0"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> productoService.crear(dto));
+        assertTrue(ex.getMessage().contains("Has alcanzado el límite de 150 productos"));
+        verify(productoRepository, never()).save(any());
+    }
+
+    @Test
+    void testCrear_PlanBasico_DentroDeCuota_Exitoso() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(3L);
+        when(tenantService.getCurrentBodega()).thenReturn(bodega);
+        when(productoRepository.countByBodega_IdBodegaAndEstadoTrue(3L)).thenReturn(40L);
+        when(categoriaRepository.findByIdCategoriaAndBodega_IdBodega(10L, 3L)).thenReturn(Optional.of(categoria));
+        when(productoRepository.save(any(Producto.class))).thenAnswer(inv -> {
+            Producto p = inv.getArgument(0);
+            p.setIdProducto(200L);
+            return p;
+        });
+
+        ProductoDTO dto = new ProductoDTO();
+        dto.setIdCategoria(10L);
+        dto.setCodigo("BEB-0005");
+        dto.setNombre("Agua San Luis 625ml");
+        dto.setPrecioVenta(new BigDecimal("2.00"));
+        dto.setStockActual(new BigDecimal("24.0"));
+        dto.setStockMinimo(new BigDecimal("6.0"));
+
+        ProductoDTO creado = productoService.crear(dto);
+
+        assertNotNull(creado);
+        assertEquals("Agua San Luis 625ml", creado.getNombre());
+        verify(productoRepository).save(any(Producto.class));
     }
 }

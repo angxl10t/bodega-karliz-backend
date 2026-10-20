@@ -1,10 +1,12 @@
 package com.bodega.backend.service;
 
+import com.bodega.backend.dto.AjusteInventarioDTO;
 import com.bodega.backend.dto.MovimientoInventarioDTO;
 import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.entity.MovimientoInventario;
 import com.bodega.backend.entity.Producto;
 import com.bodega.backend.repository.MovimientoInventarioRepository;
+import com.bodega.backend.repository.ProductoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,8 +17,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +28,9 @@ public class MovimientoServiceTest {
 
     @Mock
     private MovimientoInventarioRepository movimientoRepository;
+
+    @Mock
+    private ProductoRepository productoRepository;
 
     @Mock
     private TenantService tenantService;
@@ -43,6 +50,8 @@ public class MovimientoServiceTest {
         producto = new Producto();
         producto.setIdProducto(100L);
         producto.setNombre("Arroz Costeño 1kg");
+        producto.setStockActual(new BigDecimal("20.000"));
+        producto.setEstado(true);
         producto.setBodega(bodega);
 
         movimiento = new MovimientoInventario();
@@ -94,5 +103,87 @@ public class MovimientoServiceTest {
         assertTrue(resNeg.isEmpty());
         verifyNoInteractions(tenantService);
         verifyNoInteractions(movimientoRepository);
+    }
+
+    @Test
+    void testRegistrarAjuste_SalidaMerma_Exitoso() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(productoRepository.findByIdForUpdateAndBodega(100L, 1L)).thenReturn(Optional.of(producto));
+        when(movimientoRepository.save(any(MovimientoInventario.class))).thenAnswer(inv -> {
+            MovimientoInventario m = inv.getArgument(0);
+            m.setIdMovimiento(15L);
+            return m;
+        });
+
+        AjusteInventarioDTO dto = new AjusteInventarioDTO();
+        dto.setIdProducto(100L);
+        dto.setCantidad(new BigDecimal("3.000"));
+        dto.setTipoAjuste("MERMA");
+        dto.setMotivo("Empaque roto y humedecido");
+
+        MovimientoInventarioDTO res = movimientoService.registrarAjuste(dto);
+
+        assertNotNull(res);
+        assertEquals("SALIDA", res.getTipoMovimiento());
+        assertEquals(new BigDecimal("3.000"), res.getCantidad());
+        assertEquals(new BigDecimal("17.000"), producto.getStockActual());
+        assertTrue(res.getMotivo().contains("[MERMA]"));
+        verify(productoRepository).save(producto);
+    }
+
+    @Test
+    void testRegistrarAjuste_StockInsuficiente_LanzaExcepcion() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(productoRepository.findByIdForUpdateAndBodega(100L, 1L)).thenReturn(Optional.of(producto));
+
+        AjusteInventarioDTO dto = new AjusteInventarioDTO();
+        dto.setIdProducto(100L);
+        dto.setCantidad(new BigDecimal("25.000")); // mayor a 20.000
+        dto.setTipoAjuste("ROTURA");
+        dto.setMotivo("Botella rota");
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> movimientoService.registrarAjuste(dto));
+        assertTrue(ex.getMessage().contains("Stock insuficiente"));
+        verify(productoRepository, never()).save(any());
+        verify(movimientoRepository, never()).save(any());
+    }
+
+    @Test
+    void testRegistrarAjuste_EntradaSobrante_Exitoso() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(productoRepository.findByIdForUpdateAndBodega(100L, 1L)).thenReturn(Optional.of(producto));
+        when(movimientoRepository.save(any(MovimientoInventario.class))).thenAnswer(inv -> {
+            MovimientoInventario m = inv.getArgument(0);
+            m.setIdMovimiento(16L);
+            return m;
+        });
+
+        AjusteInventarioDTO dto = new AjusteInventarioDTO();
+        dto.setIdProducto(100L);
+        dto.setCantidad(new BigDecimal("5.000"));
+        dto.setTipoAjuste("SOBRANTE");
+        dto.setMotivo("Recuento físico general");
+
+        MovimientoInventarioDTO res = movimientoService.registrarAjuste(dto);
+
+        assertNotNull(res);
+        assertEquals("ENTRADA", res.getTipoMovimiento());
+        assertEquals(new BigDecimal("25.000"), producto.getStockActual());
+        verify(productoRepository).save(producto);
+    }
+
+    @Test
+    void testRegistrarAjuste_ProductoInactivo_LanzaExcepcion() {
+        producto.setEstado(false);
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        when(productoRepository.findByIdForUpdateAndBodega(100L, 1L)).thenReturn(Optional.of(producto));
+
+        AjusteInventarioDTO dto = new AjusteInventarioDTO();
+        dto.setIdProducto(100L);
+        dto.setCantidad(new BigDecimal("1.000"));
+        dto.setTipoAjuste("MERMA");
+        dto.setMotivo("Producto en mal estado");
+
+        assertThrows(RuntimeException.class, () -> movimientoService.registrarAjuste(dto));
     }
 }
