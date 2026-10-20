@@ -23,13 +23,8 @@ class CompraService {
         notifyComprasChanged();
         return null; // Éxito
       }
-      try {
-        final errData = jsonDecode(utf8.decode(response.bodyBytes));
-        if (errData is Map && errData.containsKey('error')) {
-          return errData['error'].toString();
-        }
-      } catch (_) {}
-      return 'Error ${response.statusCode} al procesar la compra en el servidor.';
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al procesar la compra en el servidor');
+      return errorMsg;
     } catch (e) {
       return 'Error de conexión con el servidor. Verifica tu conexión a internet.';
     }

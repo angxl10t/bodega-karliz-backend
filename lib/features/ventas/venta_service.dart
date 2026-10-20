@@ -33,13 +33,8 @@ class VentaService {
         final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         return RegistroVentaResult(success: true, venta: VentaRegistro.fromJson(data));
       }
-      try {
-        final errData = jsonDecode(utf8.decode(response.bodyBytes));
-        if (errData is Map && errData.containsKey('error')) {
-          return RegistroVentaResult(success: false, errorMessage: errData['error'].toString());
-        }
-      } catch (_) {}
-      return RegistroVentaResult(success: false, errorMessage: 'Error ${response.statusCode} al procesar la venta en el servidor.');
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al procesar la venta en el servidor');
+      return RegistroVentaResult(success: false, errorMessage: errorMsg);
     } catch (e) {
       return RegistroVentaResult(success: false, errorMessage: 'Error de conexión con el servidor. Verifica tu conexión a internet.');
     }
@@ -116,13 +111,8 @@ class VentaService {
         notifyVentasChanged();
         return (ok: true, error: null);
       }
-      try {
-        final errData = jsonDecode(utf8.decode(response.bodyBytes));
-        if (errData is Map && errData.containsKey('error')) {
-          return (ok: false, error: errData['error'].toString());
-        }
-      } catch (_) {}
-      return (ok: false, error: 'Error ${response.statusCode} al anular la venta.');
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al anular la venta');
+      return (ok: false, error: errorMsg);
     } catch (e) {
       return (ok: false, error: 'Error de conexión con el servidor.');
     }
@@ -142,13 +132,8 @@ class VentaService {
         final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         return RegistroVentaResult(success: true, venta: VentaRegistro.fromJson(data));
       }
-      try {
-        final errData = jsonDecode(utf8.decode(response.bodyBytes));
-        if (errData is Map && errData.containsKey('error')) {
-          return RegistroVentaResult(success: false, errorMessage: errData['error'].toString());
-        }
-      } catch (_) {}
-      return RegistroVentaResult(success: false, errorMessage: 'Error ${response.statusCode} al reintentar envío a SUNAT.');
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al reintentar envío a SUNAT');
+      return RegistroVentaResult(success: false, errorMessage: errorMsg);
     } catch (e) {
       return RegistroVentaResult(success: false, errorMessage: 'Error de conexión con el servidor al reintentar envío.');
     }

@@ -143,16 +143,8 @@ class BodegaService {
       return info;
     }
 
-    try {
-      final err = jsonDecode(utf8.decode(response.bodyBytes));
-      if (err is Map && err.containsKey('error')) {
-        throw Exception(err['error']);
-      }
-    } catch (e) {
-      if (e is! FormatException && !e.toString().contains('error')) rethrow;
-    }
-
-    throw Exception('No se pudo guardar la configuración de la tienda.');
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo guardar la configuración de la tienda');
+    throw Exception(errorMsg);
   }
 
   /// Solución 1: Registrar y confirmar pago directo vía Yape / Plin (0% comisiones)
@@ -177,16 +169,8 @@ class BodegaService {
       return info;
     }
 
-    try {
-      final err = jsonDecode(utf8.decode(response.bodyBytes));
-      if (err is Map && err.containsKey('error')) {
-        throw Exception(err['error']);
-      }
-    } catch (e) {
-      if (e is! FormatException && !e.toString().contains('error')) rethrow;
-    }
-
-    throw Exception('No se pudo registrar el pago de la suscripción.');
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo registrar el pago de la suscripción');
+    throw Exception(errorMsg);
   }
 
   /// Solución 2: Configurar y activar el Módulo SUNAT (Exclusivo Administrador)
@@ -222,16 +206,8 @@ class BodegaService {
       return info;
     }
 
-    try {
-      final err = jsonDecode(utf8.decode(response.bodyBytes));
-      if (err is Map && err.containsKey('error')) {
-        throw Exception(err['error']);
-      }
-    } catch (e) {
-      if (e is! FormatException && !e.toString().contains('error')) rethrow;
-    }
-
-    throw Exception('No se pudo actualizar la configuración de SUNAT.');
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo actualizar la configuración de SUNAT');
+    throw Exception(errorMsg);
   }
 
   /// Consulta del Libro Mayor de Pagos y Renovaciones de la Bodega

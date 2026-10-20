@@ -56,13 +56,8 @@ class ProveedorService {
         } catch (_) {}
         return (ok: true, error: null, proveedor: creado);
       }
-      try {
-        final err = jsonDecode(utf8.decode(response.bodyBytes));
-        if (err is Map && err.containsKey('error')) {
-          return (ok: false, error: err['error'].toString(), proveedor: null);
-        }
-      } catch (_) {}
-      return (ok: false, error: 'Error ${response.statusCode} al registrar el proveedor.', proveedor: null);
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al registrar el proveedor');
+      return (ok: false, error: errorMsg, proveedor: null);
     } catch (e) {
       return (ok: false, error: 'Error de conexión al registrar proveedor.', proveedor: null);
     }

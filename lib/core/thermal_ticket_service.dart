@@ -154,7 +154,8 @@ class ThermalTicketService {
         : null;
     buffer.writeln(twoColumns('CLIENTE:', clienteNombre, width));
     if (docCli != null) {
-      buffer.writeln(twoColumns('DNI:', docCli, width));
+      final docLabel = docCli.length == 11 ? 'RUC:' : (docCli.length == 8 ? 'DNI:' : 'DOC:');
+      buffer.writeln(twoColumns(docLabel, docCli, width));
     }
     buffer.writeln(divider(width, '-'));
 

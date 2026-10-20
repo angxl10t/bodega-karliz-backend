@@ -7,6 +7,33 @@ import 'secure_storage_service.dart';
 class ApiClient {
   static void Function()? onSessionExpired;
 
+  /// Extrae el mensaje de error legible desde la respuesta HTTP del servidor
+  /// con soporte para campos estándar: 'error', 'message', 'mensaje', 'detail' y texto plano.
+  static String extractErrorMessage(http.Response response, [String fallback = 'Error al procesar la solicitud']) {
+    try {
+      final text = response.body.trim();
+      if (text.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(text);
+          if (decoded is Map) {
+            final msg = decoded['error'] ?? decoded['message'] ?? decoded['mensaje'] ?? decoded['detail'];
+            if (msg != null && msg.toString().trim().isNotEmpty) {
+              return msg.toString().trim();
+            }
+          } else if (decoded is String && decoded.trim().isNotEmpty) {
+            return decoded.trim();
+          }
+        } catch (_) {
+          // Si no es JSON pero es texto plano descriptivo (no HTML ni volcados masivos)
+          if (!text.startsWith('<') && text.length < 250) {
+            return text;
+          }
+        }
+      }
+    } catch (_) {}
+    return '$fallback (código ${response.statusCode})';
+  }
+
   Future<Map<String, String>> _getHeaders() async {
     final token = await SecureStorageService.read('jwt_token') ?? '';
     final headers = <String, String>{

@@ -66,13 +66,8 @@ class ProductoService {
         } catch (_) {}
         return (ok: true, error: null, producto: creado);
       }
-      try {
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        if (body is Map && body.containsKey('error')) {
-          return (ok: false, error: body['error'].toString(), producto: null);
-        }
-      } catch (_) {}
-      return (ok: false, error: 'Error del servidor (código ${response.statusCode})', producto: null);
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al registrar el producto');
+      return (ok: false, error: errorMsg, producto: null);
     } catch (e) {
       return (ok: false, error: 'Error de conexión', producto: null);
     }
@@ -94,13 +89,8 @@ class ProductoService {
         invalidateCache();
         return (ok: true, error: null);
       }
-      try {
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        if (body is Map && body.containsKey('error')) {
-          return (ok: false, error: body['error'].toString());
-        }
-      } catch (_) {}
-      return (ok: false, error: 'Error del servidor (código ${response.statusCode})');
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al actualizar el producto');
+      return (ok: false, error: errorMsg);
     } catch (e) {
       return (ok: false, error: 'Error de conexión');
     }

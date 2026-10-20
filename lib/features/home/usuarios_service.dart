@@ -64,30 +64,16 @@ class UsuariosService {
     }
     final response = await _client.post('/usuarios', body);
     if (response.statusCode != 200 && response.statusCode != 201) {
-      try {
-        final err = jsonDecode(utf8.decode(response.bodyBytes));
-        if (err is Map && err.containsKey('error')) {
-          throw Exception(err['error']);
-        }
-      } catch (e) {
-        if (e is! FormatException && !e.toString().contains('error')) rethrow;
-      }
-      throw Exception('No se pudo crear el usuario.');
+      final msg = ApiClient.extractErrorMessage(response, 'No se pudo crear el usuario');
+      throw Exception(msg);
     }
   }
 
   Future<void> cambiarEstado(int idUsuario, bool activo) async {
     final response = await _client.patch('/usuarios/$idUsuario/estado?activo=$activo', {});
     if (response.statusCode != 200) {
-      try {
-        final err = jsonDecode(utf8.decode(response.bodyBytes));
-        if (err is Map && err.containsKey('error')) {
-          throw Exception(err['error']);
-        }
-      } catch (e) {
-        if (e is! FormatException && !e.toString().contains('error')) rethrow;
-      }
-      throw Exception('No se pudo cambiar el estado del usuario.');
+      final msg = ApiClient.extractErrorMessage(response, 'No se pudo cambiar el estado del usuario');
+      throw Exception(msg);
     }
   }
 
@@ -96,15 +82,8 @@ class UsuariosService {
       'nuevaPassword': nuevaPassword,
     });
     if (response.statusCode != 200) {
-      try {
-        final err = jsonDecode(utf8.decode(response.bodyBytes));
-        if (err is Map && err.containsKey('error')) {
-          throw Exception(err['error']);
-        }
-      } catch (e) {
-        if (e is! FormatException && !e.toString().contains('error')) rethrow;
-      }
-      throw Exception('No se pudo restablecer la contraseña.');
+      final msg = ApiClient.extractErrorMessage(response, 'No se pudo restablecer la contraseña');
+      throw Exception(msg);
     }
   }
 }

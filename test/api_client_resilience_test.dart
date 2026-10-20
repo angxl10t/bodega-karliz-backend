@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:bodega_mobile/core/api_client.dart';
 import 'package:bodega_mobile/core/api_constants.dart';
+import 'package:bodega_mobile/core/thermal_ticket_service.dart';
 
 void main() {
   group('ApiClient Resilience and URI Normalization Tests', () {
@@ -33,7 +36,6 @@ void main() {
         sessionExpiredCalled = true;
       };
 
-      // Ensure that public paths like /auth/login or /health never trigger spurious logout
       const authEndpoint = '/auth/login';
       const healthEndpoint = '/health';
 
@@ -43,6 +45,66 @@ void main() {
       expect(shouldTriggerAuth, isFalse);
       expect(shouldTriggerHealth, isFalse);
       expect(sessionExpiredCalled, isFalse);
+    });
+  });
+
+  group('ApiClient extractErrorMessage Tests', () {
+    test('extracts error from json map with "error" key', () {
+      final res = http.Response(jsonEncode({'error': 'Stock insuficiente para el producto'}), 400);
+      expect(ApiClient.extractErrorMessage(res), 'Stock insuficiente para el producto');
+    });
+
+    test('extracts error from json map with "message" key', () {
+      final res = http.Response(jsonEncode({'message': 'Credenciales no válidas'}), 401);
+      expect(ApiClient.extractErrorMessage(res), 'Credenciales no válidas');
+    });
+
+    test('extracts error from json map with "mensaje" key', () {
+      final res = http.Response(jsonEncode({'mensaje': 'El proveedor ya está registrado'}), 409);
+      expect(ApiClient.extractErrorMessage(res), 'El proveedor ya está registrado');
+    });
+
+    test('extracts error from json map with "detail" key (RFC 7807)', () {
+      final res = http.Response(jsonEncode({'detail': 'Token de autenticación expirado'}), 403);
+      expect(ApiClient.extractErrorMessage(res), 'Token de autenticación expirado');
+    });
+
+    test('handles plain string body', () {
+      final res = http.Response('Servicio temporalmente fuera de línea', 503);
+      expect(ApiClient.extractErrorMessage(res), 'Servicio temporalmente fuera de línea');
+    });
+
+    test('returns fallback with status code when body is empty or invalid JSON', () {
+      final res = http.Response('<html><body>502 Bad Gateway</body></html>', 502);
+      expect(ApiClient.extractErrorMessage(res, 'Error de servidor'), contains('502'));
+    });
+  });
+
+  group('ThermalTicketService Document Label Tests', () {
+    test('formats DNI label for 8-digit client document', () {
+      final text = ThermalTicketService.generateReceiptText(
+        ticketId: 101,
+        clienteNombre: 'Juan Perez',
+        clienteDocumento: '71234567',
+        metodoPago: 'EFECTIVO',
+        items: [],
+        total: 10.0,
+      );
+      expect(text, contains('DNI:'));
+      expect(text, contains('71234567'));
+    });
+
+    test('formats RUC label for 11-digit client document', () {
+      final text = ThermalTicketService.generateReceiptText(
+        ticketId: 102,
+        clienteNombre: 'Comercial SAC',
+        clienteDocumento: '20601234567',
+        metodoPago: 'YAPE',
+        items: [],
+        total: 50.0,
+      );
+      expect(text, contains('RUC:'));
+      expect(text, contains('20601234567'));
     });
   });
 }

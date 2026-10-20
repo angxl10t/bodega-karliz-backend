@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../core/api_client.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
 
@@ -64,22 +65,16 @@ class AuthService {
         return AuthResult(success: true); // Login exitoso
       }
 
-      // Procesar mensaje específico de seguridad del backend (Rate Limiting 429, Desactivado 400, etc.)
-      try {
-        final errData = jsonDecode(utf8.decode(response.bodyBytes));
-        if (errData is Map && errData.containsKey('error')) {
-          return AuthResult(success: false, errorMessage: errData['error'].toString());
-        }
-      } catch (_) {}
-
       if (response.statusCode == 429) {
-        return AuthResult(
-          success: false,
-          errorMessage: 'Demasiados intentos fallidos. Acceso bloqueado temporalmente por seguridad.',
+        final rateMsg = ApiClient.extractErrorMessage(
+          response,
+          'Demasiados intentos fallidos. Acceso bloqueado temporalmente por seguridad.',
         );
+        return AuthResult(success: false, errorMessage: rateMsg);
       }
 
-      return AuthResult(success: false, errorMessage: 'Usuario o contraseña incorrectos');
+      final errorMsg = ApiClient.extractErrorMessage(response, 'Usuario o contraseña incorrectos');
+      return AuthResult(success: false, errorMessage: errorMsg);
     } catch (_) {
       return AuthResult(
         success: false,
@@ -247,14 +242,8 @@ class AuthService {
         return AuthResult(success: true);
       }
 
-      try {
-        final errData = jsonDecode(utf8.decode(response.bodyBytes));
-        if (errData is Map && errData.containsKey('error')) {
-          return AuthResult(success: false, errorMessage: errData['error'].toString());
-        }
-      } catch (_) {}
-
-      return AuthResult(success: false, errorMessage: 'No se pudo completar el registro de la bodega.');
+      final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo completar el registro de la bodega');
+      return AuthResult(success: false, errorMessage: errorMsg);
     } catch (_) {
       return AuthResult(
         success: false,
