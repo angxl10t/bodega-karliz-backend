@@ -77,6 +77,23 @@ void main() {
       expect(bodega.plan, 'PRO');
       expect(bodega.fechaVencimientoPlan, '2026-12-31T23:59:59Z');
     });
+
+    test('BodegaInfo calculates plan expiration days correctly', () {
+      final futureDate = DateTime.now().add(const Duration(days: 15)).toIso8601String();
+      final json = {
+        'idBodega': 9,
+        'nombreComercial': 'Bodega Esperanza',
+        'plan': 'BASICO',
+        'estado': true,
+        'fechaVencimientoPlan': futureDate,
+      };
+
+      final bodega = BodegaInfo.fromJson(json);
+      final exp = DateTime.parse(bodega.fechaVencimientoPlan!);
+      final diff = exp.difference(DateTime.now()).inDays;
+
+      expect(diff, inInclusiveRange(14, 15));
+    });
   });
 
   group('Superadmin Console Widget & Navigation Tests', () {

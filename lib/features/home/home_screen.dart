@@ -18,6 +18,7 @@ import '../../core/cajaya_vectors.dart';
 import '../../core/lock_service.dart';
 import '../../core/widgets/karliz_lock_screen.dart';
 import '../../core/responsive_layout.dart';
+import 'bodega_service.dart';
 import 'pixel_perfect_navbar.dart';
 import 'plan_y_personal_sheet.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
@@ -37,6 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String _userRol = 'ADMIN';
   String _nombreBodega = 'CajaYa POS';
   String _plan = 'PRO';
+  Map<String, dynamic> _anuncioGlobal = {};
+  bool _anuncioDismissed = false;
   Timer? _inactivityTimer;
   bool _orientationConfigured = false;
   bool _railCollapsed = false;
@@ -129,6 +132,11 @@ class _HomeScreenState extends State<HomeScreen> {
         _nombreBodega = results[2];
         _plan = results[3];
       });
+
+      try {
+        final anuncio = await BodegaService().obtenerAnuncioGlobal();
+        if (mounted) setState(() => _anuncioGlobal = anuncio);
+      } catch (_) {}
 
       // Si aún no ha configurado su PIN de caja, ofrecer configurarlo tras ingresar
       final hasPin = await LockService().hasPin();
@@ -1507,6 +1515,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           if (_userRol == 'SUPERADMIN')
             _buildSuperAdminAuditBanner(context, isDark),
+          if (!_anuncioDismissed && _anuncioGlobal.isNotEmpty && _anuncioGlobal['activo'] == true)
+            _buildAnuncioGlobalBanner(context, isDark),
           Expanded(
             child: Row(
               children: [
@@ -1679,6 +1689,68 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               minimumSize: const Size(0, 34),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnuncioGlobalBanner(BuildContext context, bool isDark) {
+    final tipo = _anuncioGlobal['tipo']?.toString() ?? 'INFO';
+    final mensaje = _anuncioGlobal['mensaje']?.toString() ?? '';
+    final Color barColor = tipo == 'URGENTE'
+        ? AppTheme.alertRed
+        : (tipo == 'WARNING' ? Colors.amber.shade800 : const Color(0xFF2563EB));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+      decoration: BoxDecoration(
+        color: barColor.withValues(alpha: isDark ? 0.22 : 0.1),
+        border: Border(
+          bottom: BorderSide(color: barColor.withValues(alpha: 0.35), width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            tipo == 'URGENTE'
+                ? LucideIcons.alertTriangle
+                : (tipo == 'WARNING' ? LucideIcons.bell : LucideIcons.info),
+            size: 16,
+            color: barColor,
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+            decoration: BoxDecoration(
+              color: barColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              tipo,
+              style: GoogleFonts.outfit(fontSize: 9.5, fontWeight: FontWeight.w900, color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              mensaje,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          InkWell(
+            onTap: () => setState(() => _anuncioDismissed = true),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(LucideIcons.x, size: 14, color: isDark ? Colors.white60 : AppTheme.textMuted),
             ),
           ),
         ],

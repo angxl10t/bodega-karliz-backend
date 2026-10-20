@@ -277,6 +277,61 @@ class BodegaService {
     } catch (_) {}
     return {};
   }
+
+  /// Provisionar una nueva bodega completa desde el Superadmin
+  Future<BodegaInfo> provisionarBodega(Map<String, dynamic> data) async {
+    final response = await _client.post('/bodegas/provisionar', data);
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final resData = jsonDecode(utf8.decode(response.bodyBytes));
+      return BodegaInfo.fromJson(resData);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo crear la bodega');
+    throw Exception(errorMsg);
+  }
+
+  /// Cambiar estado de un pago en el libro mayor de suscripciones (Superadmin)
+  Future<PagoSuscripcionItem> cambiarEstadoPago(int idPago, String nuevoEstado) async {
+    final response = await _client.put('/bodegas/pagos/$idPago/estado?estado=$nuevoEstado', {});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return PagoSuscripcionItem.fromJson(data);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo actualizar el estado del pago');
+    throw Exception(errorMsg);
+  }
+
+  /// Obtener comunicado global activo del SaaS
+  Future<Map<String, dynamic>> obtenerAnuncioGlobal() async {
+    try {
+      final response = await _client.get('/bodegas/anuncio-global');
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return {};
+  }
+
+  /// Publicar o actualizar comunicado global (Superadmin)
+  Future<Map<String, dynamic>> publicarAnuncioGlobal(String mensaje, {String tipo = 'INFO'}) async {
+    final response = await _client.post('/bodegas/anuncio-global', {
+      'mensaje': mensaje,
+      'tipo': tipo,
+    });
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    }
+    final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo publicar el anuncio');
+    throw Exception(errorMsg);
+  }
+
+  /// Eliminar comunicado global (Superadmin)
+  Future<void> eliminarAnuncioGlobal() async {
+    final response = await _client.delete('/bodegas/anuncio-global');
+    if (response.statusCode != 200) {
+      final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo eliminar el anuncio');
+      throw Exception(errorMsg);
+    }
+  }
 }
 
 class PagoSuscripcionItem {
