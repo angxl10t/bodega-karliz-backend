@@ -17,6 +17,7 @@ import '../../core/update_service.dart';
 import '../../core/cajaya_vectors.dart';
 import '../../core/lock_service.dart';
 import '../../core/widgets/karliz_lock_screen.dart';
+import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/responsive_layout.dart';
 import 'bodega_service.dart';
 import 'pixel_perfect_navbar.dart';
@@ -146,6 +147,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ConfigurarPinModal.show(context, onPinGuardado: () {
               if (mounted) setState(() {});
             });
+          }
+        });
+      } else if (mounted) {
+        // Mostrar Briefing de Turno ejecutivo/operativo al inicio de sesión
+        Future.delayed(const Duration(milliseconds: 650), () {
+          if (mounted && !LockService().isLocked) {
+            BriefingTurnoModal.showIfNeeded(
+              context,
+              username: _username,
+              userRol: _userRol,
+              nombreBodega: _nombreBodega,
+              onNavigateTab: (index) {
+                if (mounted) {
+                  setState(() {
+                    _selectedIndex = index;
+                    _loadedTabs.add(index);
+                  });
+                }
+              },
+            );
           }
         });
       }

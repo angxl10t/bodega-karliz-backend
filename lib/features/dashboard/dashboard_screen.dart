@@ -8,6 +8,7 @@ import '../productos/nuevo_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
 import '../auth/auth_service.dart';
 import '../home/plan_y_personal_sheet.dart';
+import '../../core/widgets/briefing_turno_modal.dart';
 import '../ventas/venta_model.dart';
 import '../ventas/venta_service.dart';
 
@@ -141,13 +142,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildStockAlertBanner(productosCriticos, isDark),
                       const SizedBox(height: 14),
                     ],
-
-                    // Banner Didáctico de Orientación
-                    const DidacticBanner(
-                      title: 'Consejo del Turno',
-                      description: 'Gestiona tu turno desde las 5 pestañas inferiores: cobra en POS, cuadra en Caja, y repón desde Stock o Compras.',
-                    ),
-                    const SizedBox(height: 20),
 
                     // Título de Métricas
                     Row(
@@ -658,6 +652,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+
+                  // Botón Acceso Rápido a Consejos de Turno (Modal Ejecutivo)
+                  InkWell(
+                    onTap: () {
+                      BriefingTurnoModal.show(
+                        context,
+                        username: _username,
+                        userRol: _userRol,
+                        nombreBodega: _nombreBodega,
+                        onNavigateTab: widget.onNavigateTab,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF38BDF8).withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF38BDF8).withValues(alpha: 0.45),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            LucideIcons.sparkles,
+                            size: 11,
+                            color: Color(0xFF38BDF8),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Consejos',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

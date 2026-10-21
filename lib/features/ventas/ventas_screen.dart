@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'documento_service.dart';
 import '../../core/secure_storage_service.dart';
+import '../../core/widgets/briefing_turno_modal.dart';
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -1656,19 +1657,19 @@ class _VentasScreenState extends State<VentasScreen> {
                       );
                     },
                   ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    style: IconButton.styleFrom(
+                      backgroundColor: isDark ? const Color(0xFF38BDF8).withValues(alpha: 0.15) : const Color(0xFFE0F2FE),
+                      foregroundColor: const Color(0xFF0284C7),
+                    ),
+                    tooltip: 'Consejos de Turno & Tips',
+                    icon: const Icon(LucideIcons.sparkles, size: 19),
+                    onPressed: () => BriefingTurnoModal.show(context),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
-
-              // Guía Didáctica POS
-              if (_carrito.isEmpty) ...[
-                const DidacticBanner(
-                  title: '¿Cómo cobrar una venta?',
-                  description: '1. Añade productos desde el Catálogo.\n2. Selecciona Efectivo, Yape, Plin o Tarjeta.\n3. Presiona Confirmar Cobro.',
-                  icon: LucideIcons.sparkles,
-                ),
-                const SizedBox(height: 12),
-              ],
 
               // Selector de Comprobante (Boleta de Venta, Ticket de Venta - Nuevo RUS)
               _buildTipoComprobanteSelector(isDark),

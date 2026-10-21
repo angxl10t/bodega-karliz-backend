@@ -8,6 +8,7 @@ import 'venta_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/theme.dart';
 import '../../core/csv_exporter.dart';
+import '../../core/widgets/briefing_turno_modal.dart';
 
 class CajaVentasScreen extends StatefulWidget {
   const CajaVentasScreen({super.key});
@@ -1452,6 +1453,13 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   ),
                 ],
               ),
+              actions: [
+                IconButton(
+                  tooltip: 'Consejos de Turno & Arqueo',
+                  icon: const Icon(LucideIcons.sparkles, size: 20),
+                  onPressed: () => BriefingTurnoModal.show(context),
+                ),
+              ],
               bottom: tabBar,
             )
           : PreferredSize(
@@ -1501,14 +1509,6 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Banner Didáctico
-                const DidacticBanner(
-                  title: 'Cuadre de Dinero & Histórico',
-                  description: 'Compara el Efectivo en Caja con tu cajón físico. Selecciona días pasados para auditar cortes anteriores de tu negocio.',
-                  icon: LucideIcons.calculator,
-                ),
-                const SizedBox(height: 14),
-
                 // Filtros Rápidos de Fecha (Hoy, Ayer, Anteayer, Calendario)
                 _buildFiltrosFecha(isDark),
                 const SizedBox(height: 14),
