@@ -61,7 +61,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/health/diagnostico").hasRole("SUPERADMIN")
                 // Monitores externos (UptimeRobot en plan gratuito) y Keep-Alive: permitir HEAD globalmente sin autenticacion
                 .requestMatchers(org.springframework.http.HttpMethod.HEAD, "/**").permitAll()
-                .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**", "/", "").permitAll()
+                .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**", "/").permitAll()
                 .requestMatchers("/error").permitAll()
                 // Bloqueo total y autenticación obligatoria para todo lo demás
                 .anyRequest().authenticated()
