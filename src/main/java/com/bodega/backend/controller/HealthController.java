@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping({"/api/health", "/health"})
+@RequestMapping({"/api/health", "/health", "/"})
 public class HealthController {
 
     private final UsuarioRepository usuarioRepository;
@@ -71,7 +71,10 @@ public class HealthController {
         return ResponseEntity.ok(resp);
     }
 
-    @GetMapping
+    @org.springframework.web.bind.annotation.RequestMapping(method = {
+        org.springframework.web.bind.annotation.RequestMethod.GET,
+        org.springframework.web.bind.annotation.RequestMethod.HEAD
+    })
     public ResponseEntity<Map<String, Object>> checkHealth() {
         Map<String, Object> response = new HashMap<>();
         response.put("service", "cajaya-pos-backend");

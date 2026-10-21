@@ -58,7 +58,8 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/login", "/api/auth/registrar-bodega").permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**").permitAll()
                 // Health check ultraligero público para monitor de Render (diagnóstico restringido a SUPERADMIN)
-                .requestMatchers("/api/health", "/health").permitAll()
+                .requestMatchers("/api/health/diagnostico").hasRole("SUPERADMIN")
+                .requestMatchers("/api/health", "/health", "/").permitAll()
                 .requestMatchers("/error").permitAll()
                 // Bloqueo total y autenticación obligatoria para todo lo demás
                 .anyRequest().authenticated()
