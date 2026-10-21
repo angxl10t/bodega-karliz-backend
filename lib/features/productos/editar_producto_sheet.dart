@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
+import '../../core/catalogo_imagenes_service.dart';
+import '../../core/widgets/product_image_widget.dart';
+import '../../core/widgets/catalogo_foto_picker_modal.dart';
 import '../categorias/categoria_model.dart';
 import '../categorias/categoria_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
@@ -47,6 +50,8 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
   bool _isLoadingCategorias = true;
   bool _isGuardando = false;
   late bool _controlaVencimiento;
+  String? _imagenUrl;
+  ProductoStudioFoto? _fotoSugerida;
 
   @override
   void initState() {
@@ -58,11 +63,56 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     _stockMinCtrl = TextEditingController(text: widget.producto.stockMinimo.toStringAsFixed(0));
     _controlaVencimiento = widget.producto.controlaVencimiento;
     _idCategoriaSeleccionada = widget.producto.idCategoria ?? 1;
+    _imagenUrl = widget.producto.imagenUrl;
+
+    if (_imagenUrl == null || _imagenUrl!.trim().isEmpty) {
+      _fotoSugerida = CatalogoImagenesService.buscarSugerencia(
+        codigoBarras: widget.producto.codigoBarras,
+        nombre: widget.producto.nombre,
+      );
+    }
+
+    _nombreCtrl.addListener(_onDatosCambiados);
+    _codigoBarrasCtrl.addListener(_onDatosCambiados);
+
     _cargarCategorias();
+  }
+
+  void _onDatosCambiados() {
+    final barcode = _codigoBarrasCtrl.text.trim();
+    final nombre = _nombreCtrl.text.trim();
+
+    final sugerencia = CatalogoImagenesService.buscarSugerencia(
+      codigoBarras: barcode.isNotEmpty ? barcode : null,
+      nombre: nombre.isNotEmpty ? nombre : null,
+    );
+
+    if (sugerencia != null) {
+      if (_fotoSugerida?.id != sugerencia.id) {
+        setState(() {
+          _fotoSugerida = sugerencia;
+        });
+      }
+    } else {
+      if (_fotoSugerida != null) {
+        setState(() {
+          _fotoSugerida = null;
+        });
+      }
+    }
+  }
+
+  String? get _categoriaSeleccionadaNombre {
+    if (_idCategoriaSeleccionada == null || _categorias.isEmpty) return null;
+    return _categorias
+        .firstWhere((c) => c.idCategoria == _idCategoriaSeleccionada, orElse: () => _categorias.first)
+        .nombre;
   }
 
   @override
   void dispose() {
+    _nombreCtrl.removeListener(_onDatosCambiados);
+    _codigoBarrasCtrl.removeListener(_onDatosCambiados);
     _nombreCtrl.dispose();
     _precioCtrl.dispose();
     _marcaCtrl.dispose();
@@ -127,6 +177,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
       stockActual: widget.producto.stockActual,
       stockMinimo: stockMin,
       controlaVencimiento: _controlaVencimiento,
+      imagenUrl: _imagenUrl,
     );
 
     final res = await _productoService.actualizarProductoConDetalle(actualizado);
@@ -300,6 +351,10 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                 ],
               ),
               const SizedBox(height: 18),
+
+              // Tarjeta de Fotografía de Estudio (Vista Frontal)
+              _buildFotoProductoCard(isDark, borderColor),
+              const SizedBox(height: 16),
 
               // Nombre
               Text(
@@ -581,6 +636,262 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFotoProductoCard(bool isDark, Color borderColor) {
+    final hasImg = _imagenUrl != null && _imagenUrl!.trim().isNotEmpty;
+    final catNombre = _categoriaSeleccionadaNombre;
+    final esOficialSugerida = _fotoSugerida != null && _imagenUrl == _fotoSugerida!.imagenUrl;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF131B2A) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: esOficialSugerida
+              ? AppTheme.brandPrimary.withValues(alpha: 0.5)
+              : borderColor,
+          width: esOficialSugerida ? 1.5 : 1.0,
+        ),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              // Visualizador 1:1 de Estudio
+              Stack(
+                children: [
+                  ProductImageWidget(
+                    imagenUrl: _imagenUrl,
+                    categoria: catNombre,
+                    size: 68,
+                    borderRadius: 16,
+                    isDark: isDark,
+                    padding: 6,
+                    onTap: _abrirSelectorFoto,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _abrirSelectorFoto,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPrimary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF131B2A) : Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                        child: const Icon(LucideIcons.camera, size: 11, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 14),
+
+              // Detalles y Estado
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          hasImg ? 'Foto Frontal Asignada' : 'Foto de Estudio Frontal',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        if (esOficialSugerida) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(LucideIcons.sparkles, size: 10, color: AppTheme.brandPrimary),
+                                const SizedBox(width: 2),
+                                Text(
+                                  'Oficial',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.brandPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      hasImg
+                          ? (esOficialSugerida
+                              ? 'Packshot oficial: ${_fotoSugerida!.nombre}'
+                              : 'Formato cuadrado 1:1 para POS y Catálogo')
+                          : 'Sugerida automáticamente al escribir o escanear',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: AppTheme.textMuted,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Acciones Rápidas
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: _abrirSelectorFoto,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(LucideIcons.image, size: 13, color: AppTheme.brandPrimary),
+                                const SizedBox(width: 5),
+                                Text(
+                                  hasImg ? 'Cambiar foto' : 'Elegir del catálogo',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.brandPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (hasImg) ...[
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                _imagenUrl = null;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(LucideIcons.x, size: 13, color: AppTheme.alertRed),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Quitar',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.alertRed,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Banner de foto sugerida disponible si no está aplicada
+          if (_fotoSugerida != null && _imagenUrl != _fotoSugerida!.imagenUrl) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.sparkles, size: 15, color: AppTheme.brandPrimary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Packshot sugerido: ${_fotoSugerida!.nombre}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.brandPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.brandPrimary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _imagenUrl = _fotoSugerida!.imagenUrl;
+                      });
+                    },
+                    child: Text(
+                      'Aplicar',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _abrirSelectorFoto() {
+    CatalogoFotoPickerModal.show(
+      context: context,
+      initialUrl: _imagenUrl,
+      productName: _nombreCtrl.text.trim().isNotEmpty ? _nombreCtrl.text.trim() : null,
+      categoryName: _categoriaSeleccionadaNombre,
+      onFotoSeleccionada: (url) {
+        setState(() {
+          _imagenUrl = url;
+        });
+      },
     );
   }
 }

@@ -56,7 +56,7 @@ class Producto {
       if (includeStock) 'stockActual': stockActual,
       'stockMinimo': stockMinimo,
       'controlaVencimiento': controlaVencimiento,
-      if (imagenUrl != null && imagenUrl!.trim().isNotEmpty) 'imagenUrl': imagenUrl!.trim(),
+      'imagenUrl': imagenUrl?.trim() ?? '',
       'estado': true,
     };
   }

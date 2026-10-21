@@ -15,6 +15,7 @@ import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import '../../core/csv_exporter.dart';
+import '../../core/widgets/product_image_widget.dart';
 
 class ProductosScreen extends StatefulWidget {
   const ProductosScreen({super.key});
@@ -811,21 +812,13 @@ class _ProductosScreenState extends State<ProductosScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Icono Temático por Categoría con Squircle suave
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: catColor.withValues(alpha: isDark ? 0.16 : 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      catIcon,
-                      color: catColor,
-                      size: 21,
-                    ),
-                  ),
+                // Packshot de Estudio Frontal o Icono de Categoría
+                ProductImageWidget(
+                  imagenUrl: p.imagenUrl,
+                  categoria: p.nombreCategoria,
+                  size: 46,
+                  borderRadius: 14,
+                  isDark: isDark,
                 ),
                 const SizedBox(width: 12),
 
@@ -1004,20 +997,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
               const SizedBox(height: 18),
               Row(
                 children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: catColor.withValues(alpha: isDark ? 0.2 : 0.12),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                        color: catColor.withValues(alpha: isDark ? 0.4 : 0.25),
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(catIcon, color: catColor, size: 26),
-                    ),
+                  // Packshot de Estudio Frontal o Icono de Categoría
+                  ProductImageWidget(
+                    imagenUrl: p.imagenUrl,
+                    categoria: p.nombreCategoria,
+                    size: 58,
+                    borderRadius: 18,
+                    isDark: isDark,
+                    padding: 6,
                   ),
                   const SizedBox(width: 14),
                   Expanded(

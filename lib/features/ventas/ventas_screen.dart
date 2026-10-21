@@ -12,6 +12,7 @@ import '../../core/thermal_ticket_service.dart';
 import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
+import '../../core/widgets/product_image_widget.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'documento_service.dart';
@@ -834,20 +835,33 @@ class _VentasScreenState extends State<VentasScreen> {
 
                               return ListTile(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                leading: Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    color: yaEnCarrito
-                                        ? AppTheme.brandPrimary.withValues(alpha: 0.15)
-                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Icon(
-                                    yaEnCarrito ? LucideIcons.check : LucideIcons.package2,
-                                    color: AppTheme.brandPrimary,
-                                    size: 20,
-                                  ),
+                                leading: Stack(
+                                  children: [
+                                    ProductImageWidget(
+                                      imagenUrl: p.imagenUrl,
+                                      categoria: p.nombreCategoria,
+                                      size: 44,
+                                      borderRadius: 14,
+                                      isDark: isDark,
+                                    ),
+                                    if (yaEnCarrito)
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(2.5),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.brandPrimary,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: isDark ? const Color(0xFF1E2430) : Colors.white,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: const Icon(LucideIcons.check, size: 9, color: Colors.white),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                                 title: Text(
                                   p.nombre,
@@ -2444,28 +2458,15 @@ class _VentasScreenState extends State<VentasScreen> {
                                 ),
                                 const SizedBox(height: 4),
 
-                                // Centro Visual: Squircle del icono de categoría con gradiente armónico
+                                // Centro Visual: Packshot de Estudio Frontal o Icono de Categoría
                                 Expanded(
                                   child: Center(
-                                    child: Container(
-                                      width: 42,
-                                      height: 42,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            catColor.withValues(alpha: isDark ? 0.28 : 0.16),
-                                            catColor.withValues(alpha: isDark ? 0.12 : 0.06),
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                        borderRadius: BorderRadius.circular(13),
-                                        border: Border.all(
-                                          color: catColor.withValues(alpha: isDark ? 0.4 : 0.25),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Icon(catIcon, size: 21, color: catColor),
+                                    child: ProductImageWidget(
+                                      imagenUrl: p.imagenUrl,
+                                      categoria: p.nombreCategoria,
+                                      size: 46,
+                                      borderRadius: 13,
+                                      isDark: isDark,
                                     ),
                                   ),
                                 ),
@@ -2687,15 +2688,13 @@ class _VentasScreenState extends State<VentasScreen> {
 
                       return Row(
                         children: [
-                          // Glyph de categoría en lista
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: catColor.withValues(alpha: isDark ? 0.2 : 0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(catIcon, size: 16, color: catColor),
+                          // Foto de estudio o glyph de categoría en lista de carrito
+                          ProductImageWidget(
+                            imagenUrl: item.producto.imagenUrl,
+                            categoria: item.producto.nombreCategoria,
+                            size: 34,
+                            borderRadius: 10,
+                            isDark: isDark,
                           ),
                           const SizedBox(width: 8),
 
