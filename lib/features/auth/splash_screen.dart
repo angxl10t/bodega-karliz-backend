@@ -52,6 +52,8 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _animController.forward();
+    // Inicia el precalentamiento del backend en la nube en segundo plano
+    AuthService().precalentarServidor();
     _navigateNext();
   }
 

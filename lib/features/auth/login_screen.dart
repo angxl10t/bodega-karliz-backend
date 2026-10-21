@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
 
   bool _isLoading = false;
+  bool _isColdStarting = false;
+  Timer? _coldStartTimer;
   bool _obscurePassword = true;
   bool _keepMeSignedIn = true;
   String _errorMessage = '';
@@ -41,12 +44,15 @@ class _LoginScreenState extends State<LoginScreen> {
       _sessionExpiredNotice = true;
       LoginScreen.sessionExpiredFlag = false;
     }
+    // Pre-calienta el servidor en segundo plano si estaba suspendido en la nube
+    _authService.precalentarServidor();
     // Limpia cualquier residuo de sesión anterior al abrir el login
     SecureStorageService.clearAuth();
   }
 
   @override
   void dispose() {
+    _coldStartTimer?.cancel();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -63,10 +69,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _isLoading = true;
+      _isColdStarting = false;
       _errorMessage = '';
     });
 
+    _coldStartTimer?.cancel();
+    _coldStartTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted && _isLoading) {
+        setState(() => _isColdStarting = true);
+      }
+    });
+
     final result = await _authService.login(user, pass);
+    _coldStartTimer?.cancel();
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -781,6 +796,38 @@ class _LoginScreenState extends State<LoginScreen> {
                   : const Text('INGRESAR AL SISTEMA'),
             ),
           ),
+
+          if (_isLoading && _isColdStarting) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2563EB)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Despertando servidor en la nube... Esto puede tomar unos segundos si estuvo inactivo.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           const SizedBox(height: 18),
 

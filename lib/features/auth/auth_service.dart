@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../core/api_client.dart';
@@ -18,7 +19,7 @@ class AuthService {
         Uri.parse('${ApiConstants.baseUrl}/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username, 'password': password}),
-      ).timeout(const Duration(seconds: 20));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -75,11 +76,26 @@ class AuthService {
 
       final errorMsg = ApiClient.extractErrorMessage(response, 'Usuario o contraseña incorrectos');
       return AuthResult(success: false, errorMessage: errorMsg);
+    } on TimeoutException {
+      return AuthResult(
+        success: false,
+        errorMessage: 'El servidor en la nube tardó en responder debido al arranque en frío. Por favor reintenta ingresar ahora que ya ha despertado.',
+      );
     } catch (_) {
       return AuthResult(
         success: false,
-        errorMessage: 'Error de conexión con el servidor. Verifica tu internet.',
+        errorMessage: 'Error de conexión con el servidor. Verifica tu internet o el estado del servicio.',
       );
+    }
+  }
+
+  /// Realiza un ping ligero en segundo plano para despertar el contenedor de Render
+  /// si se encontraba suspendido por inactividad.
+  Future<void> precalentarServidor() async {
+    try {
+      await http.get(Uri.parse('${ApiConstants.baseUrl}/health')).timeout(const Duration(seconds: 15));
+    } catch (_) {
+      // Silencioso: el único propósito es activar el contenedor en Render si estaba en suspensión
     }
   }
 
