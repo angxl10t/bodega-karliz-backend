@@ -219,6 +219,7 @@ public class ProductoService {
         
         // RN-09
         producto.setControlaVencimiento(dto.getControlaVencimiento() != null ? dto.getControlaVencimiento() : false);
+        producto.setImagenUrl(dto.getImagenUrl() != null && !dto.getImagenUrl().isBlank() ? dto.getImagenUrl().trim() : null);
 
         Producto guardado = productoRepository.save(producto);
 
@@ -333,6 +334,9 @@ public class ProductoService {
         if (dto.getControlaVencimiento() != null) {
             producto.setControlaVencimiento(dto.getControlaVencimiento());
         }
+        if (dto.getImagenUrl() != null) {
+            producto.setImagenUrl(dto.getImagenUrl().trim().isBlank() ? null : dto.getImagenUrl().trim());
+        }
 
         Producto actualizado = productoRepository.save(producto);
         return mapToDTO(actualizado);
@@ -389,6 +393,7 @@ public class ProductoService {
         dto.setStockActual(producto.getStockActual());
         dto.setStockMinimo(producto.getStockMinimo());
         dto.setControlaVencimiento(producto.getControlaVencimiento());
+        dto.setImagenUrl(producto.getImagenUrl());
         dto.setEstado(producto.getEstado());
         return dto;
     }

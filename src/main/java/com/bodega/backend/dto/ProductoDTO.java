@@ -42,5 +42,6 @@ public class ProductoDTO {
     private BigDecimal stockMinimo;
 
     private Boolean controlaVencimiento;
+    private String imagenUrl;
     private Boolean estado;
 }

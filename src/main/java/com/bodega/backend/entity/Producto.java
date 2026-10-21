@@ -57,6 +57,9 @@ public class Producto {
     @Column(name = "controla_vencimiento", nullable = false)
     private Boolean controlaVencimiento = false;
 
+    @Column(name = "imagen_url", length = 500)
+    private String imagenUrl;
+
     @Column(nullable = false)
     private Boolean estado = true;
 
