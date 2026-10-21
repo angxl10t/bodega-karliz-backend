@@ -103,16 +103,15 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // Restricción estricta de orígenes autorizados: GitHub Pages oficial y entornos locales de desarrollo/pruebas
         configuration.setAllowedOriginPatterns(List.of(
+            "*",
+            "https://*.onrender.com",
+            "https://cajaya-pos.onrender.com",
+            "https://bodega-karliz.onrender.com",
             "https://angxl10t.github.io",
-            "http://localhost",
-            "https://localhost",
             "http://localhost:*",
             "https://localhost:*",
-            "http://127.0.0.1",
-            "https://127.0.0.1",
             "http://127.0.0.1:*",
-            "https://127.0.0.1:*",
-            "http://10.0.2.2:*"
+            "https://127.0.0.1:*"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(List.of("*"));
