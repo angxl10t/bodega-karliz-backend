@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../api_constants.dart';
 import '../category_helper.dart';
 import '../theme.dart';
 
@@ -9,6 +11,7 @@ import '../theme.dart';
 /// - Contenedor neutral con safe-margin (padding) para no cortar siluetas ni etiquetas
 /// - Renderizado con BoxFit.contain para mantener proporciones fidedignas
 /// - Manejo inteligente de carga y errores de red
+/// - Proxy automático en Web para evitar al 100% bloqueos de CORS del navegador
 /// - Fallback estético al squircle temático de categoría (CategoryHelper)
 class ProductImageWidget extends StatelessWidget {
   final String? imagenUrl;
@@ -30,6 +33,20 @@ class ProductImageWidget extends StatelessWidget {
     this.onTap,
   });
 
+  String _resolverUrl(String rawUrl) {
+    final clean = rawUrl.trim();
+    if (kIsWeb) {
+      // En Web, los navegadores imponen CORS estricto sobre CanvasKit (Skia WebGL).
+      // Redirigir a través del proxy oficial de CajaYa API garantiza que la imagen
+      // se sirva siempre con Access-Control-Allow-Origin: * y cabeceras de caché.
+      if (!clean.contains('proxy-image')) {
+        final encoded = Uri.encodeComponent(clean);
+        return '${ApiConstants.baseUrl}/productos/proxy-image?url=$encoded';
+      }
+    }
+    return clean;
+  }
+
   @override
   Widget build(BuildContext context) {
     final catColor = CategoryHelper.getColor(categoria, isDark);
@@ -39,6 +56,8 @@ class ProductImageWidget extends StatelessWidget {
 
     Widget content;
     if (hasUrl) {
+      final effectiveUrl = _resolverUrl(imagenUrl!);
+
       content = Container(
         width: size,
         height: size,
@@ -62,7 +81,7 @@ class ProductImageWidget extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius - 2),
           child: Image.network(
-            imagenUrl!.trim(),
+            effectiveUrl,
             fit: BoxFit.contain,
             filterQuality: FilterQuality.medium,
             loadingBuilder: (context, child, loadingProgress) {
@@ -83,7 +102,8 @@ class ProductImageWidget extends StatelessWidget {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              // Fallback automático si la URL falla o no tiene internet
+              debugPrint('⚠️ Error al cargar imagen de producto ($effectiveUrl): $error');
+              // Si la URL falla o no tiene internet, recurre al squircle temático oficial
               return _buildCategoryFallback(catIcon, catColor);
             },
           ),

@@ -392,8 +392,8 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                 )
               : GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisExtent(
-                    crossAxisExtent: 130,
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 130,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
                     childAspectRatio: 0.78,

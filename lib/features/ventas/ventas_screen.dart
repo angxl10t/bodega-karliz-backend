@@ -2360,8 +2360,6 @@ class _VentasScreenState extends State<VentasScreen> {
                       final inCart = cartIdx != -1;
                       final inCartQty = inCart ? _carrito[cartIdx].cantidad : 0.0;
                       final isLowStock = p.stockActual <= (p.stockMinimo > 0 ? p.stockMinimo : 5.0);
-                      final catIcon = _getCategoryIcon(p.nombreCategoria);
-                      final catColor = _getCategoryColor(p.nombreCategoria, isDark);
 
                       return Material(
                         color: Colors.transparent,
@@ -2683,8 +2681,6 @@ class _VentasScreenState extends State<VentasScreen> {
                     ),
                     itemBuilder: (context, idx) {
                       final item = _carrito[idx];
-                      final catIcon = _getCategoryIcon(item.producto.nombreCategoria);
-                      final catColor = _getCategoryColor(item.producto.nombreCategoria, isDark);
 
                       return Row(
                         children: [

@@ -779,8 +779,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
         ? 'Crítico'
         : (stockBajo ? 'Bajo' : 'Óptimo');
 
-    final catColor = CategoryHelper.getColor(p.nombreCategoria, isDark);
-    final catIcon = CategoryHelper.getIcon(p.nombreCategoria);
     final categoriaNombre = p.nombreCategoria?.trim() ?? 'General';
 
     return Container(
@@ -967,7 +965,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final catColor = CategoryHelper.getColor(p.nombreCategoria, isDark);
-    final catIcon = CategoryHelper.getIcon(p.nombreCategoria);
     final categoriaNombre = p.nombreCategoria?.trim() ?? 'General';
 
     showModalBottomSheet(
