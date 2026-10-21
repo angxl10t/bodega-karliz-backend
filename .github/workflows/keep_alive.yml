@@ -11,16 +11,16 @@ jobs:
     name: Ping Backend & Database
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Bodega KARLIZ API
+      - name: Ping CajaYa POS API
         run: |
-          echo "Enviando ping a Bodega KARLIZ backend en Render..."
+          echo "Enviando ping a CajaYa POS backend en Render..."
           
           # Ping 1: Endpoint de Salud dedicado
-          STATUS_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" https://bodega-karliz-backend.onrender.com/api/health)
+          STATUS_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" https://cajaya-api.onrender.com/api/health)
           echo "Ping /api/health HTTP Status: $STATUS_HEALTH"
           
           # Ping 2: Endpoint Auth de respaldo
-          STATUS_AUTH=$(curl -s -X OPTIONS -o /dev/null -w "%{http_code}" https://bodega-karliz-backend.onrender.com/api/auth/login)
+          STATUS_AUTH=$(curl -s -X OPTIONS -o /dev/null -w "%{http_code}" https://cajaya-api.onrender.com/api/auth/login)
           echo "Ping /api/auth/login HTTP Status: $STATUS_AUTH"
           
           echo "✅ Servidor Render notificado. Contador de reposo de 15 minutos reseteado exitosamente."
