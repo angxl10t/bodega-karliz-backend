@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiConstants {
   // URL de producción oficial inmutable en la nube (Render)
-  static const String defaultBaseUrl = 'https://bodega-karliz-backend.onrender.com/api'; 
+  static const String defaultBaseUrl = 'https://cajaya-api.onrender.com/api'; 
   static String _baseUrl = defaultBaseUrl;
 
   static String get baseUrl {
