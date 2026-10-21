@@ -139,19 +139,9 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) setState(() => _anuncioGlobal = anuncio);
       } catch (_) {}
 
-      // Si aún no ha configurado su PIN de caja, ofrecer configurarlo tras ingresar
-      final hasPin = await LockService().hasPin();
-      if (!hasPin && mounted) {
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted && !LockService().isLocked) {
-            ConfigurarPinModal.show(context, onPinGuardado: () {
-              if (mounted) setState(() {});
-            });
-          }
-        });
-      } else if (mounted) {
+      if (mounted) {
         // Mostrar Briefing de Turno ejecutivo/operativo al inicio de sesión
-        Future.delayed(const Duration(milliseconds: 650), () {
+        Future.delayed(const Duration(milliseconds: 350), () {
           if (mounted && !LockService().isLocked) {
             BriefingTurnoModal.showIfNeeded(
               context,

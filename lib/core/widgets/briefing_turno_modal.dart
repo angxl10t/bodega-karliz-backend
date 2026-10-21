@@ -41,7 +41,7 @@ class BriefingTurnoModal extends StatefulWidget {
     this.onNavigateTab,
   });
 
-  /// Abre el briefing automáticamente sólo una vez al día / por turno
+  /// Abre el briefing automáticamente al iniciar sesión o turno
   static Future<void> showIfNeeded(
     BuildContext context, {
     String? username,
@@ -50,17 +50,15 @@ class BriefingTurnoModal extends StatefulWidget {
     Function(int tabIndex)? onNavigateTab,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final uname = username ?? await AuthService().getUsername();
+    final uname = (username != null && username.isNotEmpty)
+        ? username
+        : await AuthService().getUsername();
     final todayStr = DateTime.now().toIso8601String().substring(0, 10);
-    final key = 'briefing_turno_visto_v1_${uname}_$todayStr';
+    final keySilenciado = 'briefing_turno_silenciado_v2_${uname}_$todayStr';
 
-    final yaVisto = prefs.getBool(key) ?? false;
-    if (yaVisto) return;
-
-    if (!context.mounted) return;
-
-    // Marcamos como visto hoy para no interrumpir nuevamente
-    await prefs.setBool(key, true);
+    // Si el usuario marcó no mostrarlo más hoy, se respeta su preferencia
+    final yaSilenciado = prefs.getBool(keySilenciado) ?? false;
+    if (yaSilenciado) return;
 
     if (!context.mounted) return;
 
@@ -255,10 +253,15 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
   }
 
   Future<void> _guardarPreferenciaNoMostrar() async {
-    if (_noMostrarHoy && _username.isNotEmpty) {
+    if (_username.isNotEmpty) {
       final prefs = await SharedPreferences.getInstance();
       final todayStr = DateTime.now().toIso8601String().substring(0, 10);
-      await prefs.setBool('briefing_turno_visto_v1_${_username}_$todayStr', true);
+      final keySilenciado = 'briefing_turno_silenciado_v2_${_username}_$todayStr';
+      if (_noMostrarHoy) {
+        await prefs.setBool(keySilenciado, true);
+      } else {
+        await prefs.remove(keySilenciado);
+      }
     }
   }
 
