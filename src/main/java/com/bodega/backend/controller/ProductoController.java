@@ -67,4 +67,36 @@ public class ProductoController {
                 .header(HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
                 .body(csv);
     }
+
+    @GetMapping("/proxy-image")
+    public ResponseEntity<byte[]> proxyImage(@RequestParam("url") String targetUrl) {
+        try {
+            if (targetUrl == null || !targetUrl.startsWith("http")) {
+                return ResponseEntity.badRequest().build();
+            }
+            java.net.URI uri = new java.net.URI(targetUrl.trim());
+            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                    .followRedirects(java.net.http.HttpClient.Redirect.NORMAL)
+                    .connectTimeout(java.time.Duration.ofSeconds(6))
+                    .build();
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder(uri)
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .timeout(java.time.Duration.ofSeconds(8))
+                    .GET()
+                    .build();
+            java.net.http.HttpResponse<byte[]> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofByteArray());
+            if (res.statusCode() == 200) {
+                String contentType = res.headers().firstValue("content-type").orElse("image/jpeg");
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_TYPE, contentType)
+                        .header(HttpHeaders.CACHE_CONTROL, "public, max-age=604800")
+                        .header("Access-Control-Allow-Origin", "*")
+                        .header("Access-Control-Allow-Methods", "GET, OPTIONS")
+                        .body(res.body());
+            }
+            return ResponseEntity.status(res.statusCode()).build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

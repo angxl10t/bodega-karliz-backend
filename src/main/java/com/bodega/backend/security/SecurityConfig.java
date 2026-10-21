@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**").permitAll()
                 // Health check ultraligero público para monitor de Render (diagnóstico restringido a SUPERADMIN)
                 .requestMatchers("/api/health/diagnostico").hasRole("SUPERADMIN")
+                .requestMatchers("/api/productos/proxy-image", "/api/productos/proxy-image/**").permitAll()
                 // Monitores externos (UptimeRobot en plan gratuito) y Keep-Alive: permitir HEAD globalmente sin autenticacion
                 .requestMatchers(org.springframework.http.HttpMethod.HEAD, "/**").permitAll()
                 .requestMatchers("/api/health", "/api/health/**", "/health", "/health/**", "/").permitAll()
