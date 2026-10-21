@@ -71,10 +71,15 @@ public class HealthController {
         return ResponseEntity.ok(resp);
     }
 
-    @org.springframework.web.bind.annotation.RequestMapping(method = {
-        org.springframework.web.bind.annotation.RequestMethod.GET,
-        org.springframework.web.bind.annotation.RequestMethod.HEAD
-    })
+    @org.springframework.web.bind.annotation.RequestMapping(
+        value = {"", "/"},
+        method = org.springframework.web.bind.annotation.RequestMethod.HEAD
+    )
+    public ResponseEntity<Void> checkHealthHead() {
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = {"", "/"})
     public ResponseEntity<Map<String, Object>> checkHealth() {
         Map<String, Object> response = new HashMap<>();
         response.put("service", "cajaya-pos-backend");
