@@ -10,6 +10,7 @@ class Producto {
   final double stockActual;
   final double stockMinimo;
   final bool controlaVencimiento;
+  final String? imagenUrl;
 
   Producto({
     this.idProducto,
@@ -23,6 +24,7 @@ class Producto {
     required this.stockActual,
     this.stockMinimo = 5.0,
     this.controlaVencimiento = false,
+    this.imagenUrl,
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class Producto {
       stockActual: (json['stockActual'] as num?)?.toDouble() ?? 0.0,
       stockMinimo: (json['stockMinimo'] as num?)?.toDouble() ?? 5.0,
       controlaVencimiento: json['controlaVencimiento'] as bool? ?? false,
+      imagenUrl: json['imagenUrl'] as String? ?? json['imagen_url'] as String?,
     );
   }
 
@@ -53,6 +56,7 @@ class Producto {
       if (includeStock) 'stockActual': stockActual,
       'stockMinimo': stockMinimo,
       'controlaVencimiento': controlaVencimiento,
+      if (imagenUrl != null && imagenUrl!.trim().isNotEmpty) 'imagenUrl': imagenUrl!.trim(),
       'estado': true,
     };
   }
