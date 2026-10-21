@@ -35,16 +35,38 @@ class ProductImageWidget extends StatelessWidget {
 
   String _resolverUrl(String rawUrl) {
     final clean = rawUrl.trim();
+    final isPackshot = clean.contains('packshots/');
+
     if (kIsWeb) {
-      // En Web, los navegadores imponen CORS estricto sobre CanvasKit (Skia WebGL).
-      // Redirigir a través del proxy oficial de CajaYa API garantiza que la imagen
-      // se sirva siempre con Access-Control-Allow-Origin: * y cabeceras de caché.
-      if (!clean.contains('proxy-image')) {
+      // 1. Packshots estáticos alojados en la propia aplicación web (Same-Origin)
+      if (isPackshot) {
+        if (clean.startsWith('http://') || clean.startsWith('https://')) {
+          return clean;
+        }
+        // Ruta relativa para servir desde cajaya-pos.onrender.com
+        return clean.startsWith('/') ? clean.substring(1) : clean;
+      }
+
+      // 2. Si ya pertenece al dominio oficial o ya tiene proxy
+      if (clean.contains('cajaya-pos.onrender.com') || clean.contains('proxy-image')) {
+        return clean;
+      }
+
+      // 3. URLs externas (Unsplash, Cloudinary, etc.): canalizar por el proxy oficial con CORS abierto
+      if (clean.startsWith('http://') || clean.startsWith('https://')) {
         final encoded = Uri.encodeComponent(clean);
         return '${ApiConstants.baseUrl}/productos/proxy-image?url=$encoded';
       }
+
+      return clean;
+    } else {
+      // En dispositivos móviles (Android / iOS):
+      if (isPackshot && !clean.startsWith('http')) {
+        final path = clean.startsWith('/') ? clean.substring(1) : clean;
+        return 'https://cajaya-pos.onrender.com/$path';
+      }
+      return clean;
     }
-    return clean;
   }
 
   @override
