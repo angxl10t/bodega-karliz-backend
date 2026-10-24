@@ -60954,7 +60954,7 @@ r=A.j(20)
 q=s?B.k.B(0.5):b
 q=A.ab(q,B.m,s?1.5:1)
 p=g.gaov()
-o=A.rj(16,c,g.ch,a,p,6,68)
+o=A.rj(18,c,g.ch,a,p,6,80)
 n=t.p
 o=A.eA(B.bs,A.a([o,A.fd(0,A.i6(f,A.v(f,B.xP,B.i,f,f,new A.x(B.k,f,A.ab(a?B.jk:B.h,B.m,2),f,f,f,f,B.az),f,f,f,B.dS,f,f,f),B.H,!1,f,f,f,f,f,f,f,f,f,f,f,f,f,f,p,f,f,f,f,f,f),f,f,f,0,f,f)],n),B.v,B.bi,f)
 m=d?"Foto Frontal Asignada":"Foto de Estudio Frontal"
@@ -61375,7 +61375,7 @@ r=A.j(20)
 q=s?B.k.B(0.5):b
 q=A.ab(q,B.m,s?1.5:1)
 p=g.gajA()
-o=A.rj(16,c,g.dy,a,p,6,68)
+o=A.rj(18,c,g.dy,a,p,6,80)
 n=t.p
 o=A.eA(B.bs,A.a([o,A.fd(0,A.i6(f,A.v(f,B.xP,B.i,f,f,new A.x(B.k,f,A.ab(a?B.jk:B.h,B.m,2),f,f,f,f,B.az),f,f,f,B.dS,f,f,f),B.H,!1,f,f,f,f,f,f,f,f,f,f,f,f,f,f,p,f,f,f,f,f,f),f,f,f,0,f,f)],n),B.v,B.bi,f)
 m=d?"Foto Frontal Asignada":"Foto de Estudio Frontal"
@@ -61962,7 +61962,7 @@ i=A.a([],t.V)
 if(!a3)i.push(new A.b0(0,B.N,B.F.B(0.03),B.c4,8))
 h=A.j(18)
 g=A.j(18)
-r=A.rj(14,r,a2.Q,a3,a0,4,46)
+r=A.rj(16,r,a2.Q,a3,a0,4,62)
 f=A.Y(A.c(a2.f,1,B.I,a0,a0,A.k().$3$color$fontSize$fontWeight(a3?B.h:B.u,14.5,B.t),a0,a0,a0),1)
 e=B.f.L(a2.w,2)
 d=t.p
@@ -62193,7 +62193,7 @@ $S:0}
 A.aR4.prototype={
 $1(a){var s,r,q,p,o,n,m,l,k,j=this,i=null,h=j.b,g=h.x,f=h.w,e=j.c,d=e?B.a8:B.D
 d=A.bh(A.v(i,i,B.i,i,i,new A.x(d,i,i,A.j(10),i,i,i,B.l),i,5,i,i,i,i,44),i,i)
-s=A.rj(18,h.c,h.Q,e,i,6,58)
+s=A.rj(22,h.c,h.Q,e,i,8,96)
 r=A.c(h.f,i,i,i,i,A.k().$3$color$fontSize$fontWeight(e?B.h:B.u,18,B.o),i,i,i)
 q=j.d
 p=q.B(e?0.18:0.1)
@@ -66249,7 +66249,7 @@ A.aYi.prototype={
 $2(a,b){return A.um(this.a?B.J:B.D,1)},
 $S:67}
 A.aYh.prototype={
-$2(a,b){var s,r=this,q=null,p=r.b[b],o=r.a,n=B.c.le(o.w,new A.aY8(p),new A.aY9(p)).b,m=r.c,l=t.p,k=A.a([A.rj(14,p.c,p.Q,m,q,4,44)],l)
+$2(a,b){var s,r=this,q=null,p=r.b[b],o=r.a,n=B.c.le(o.w,new A.aY8(p),new A.aY9(p)).b,m=r.c,l=t.p,k=A.a([A.rj(14,p.c,p.Q,m,q,4,50)],l)
 if(n>0)k.push(A.fd(0,A.v(q,B.xF,B.i,q,q,new A.x(B.k,q,A.ab(m?B.vv:B.h,B.m,1.5),q,q,q,q,B.az),q,q,q,B.Sg,q,q,q),q,q,q,0,q,q))
 n=A.eA(B.bs,k,B.v,B.bi,q)
 k=A.c(p.f,q,q,q,q,A.k().$3$color$fontSize$fontWeight(m?B.h:B.u,14,B.t),q,q,q)
@@ -66567,7 +66567,7 @@ j=t.p
 k=A.a([A.v(e,A.c(b+" u.",e,e,e,e,A.T().$3$color$fontSize$fontWeight(r?B.z:B.jm,9.5,B.o),e,e,e),B.i,e,e,new A.x(l,e,e,k,e,e,e,B.l),e,e,e,B.pr,e,e,e)],j)
 if(a0){b=A.j(8)
 k.push(A.v(e,A.z(A.a([B.xF,B.rU,A.c("x"+B.f.ca(a1),e,e,e,e,A.T().$3$color$fontSize$fontWeight(B.h,9.5,B.a1),e,e,e)],j),B.j,B.d,B.B,0),B.i,e,e,new A.x(B.k,e,e,b,e,e,e,B.l),e,e,e,B.cC,e,e,e))}b=A.z(k,B.j,B.aa,B.e,0)
-l=A.Y(A.bh(A.rj(13,d.c,d.Q,q,e,4,46),e,e),1)
+l=A.Y(A.bh(A.rj(14,d.c,d.Q,q,e,2,78),e,e),1)
 k=A.c(d.f,2,B.I,e,e,A.k().$4$color$fontSize$fontWeight$height(f.d,11.5,B.t,1.15),e,e,e)
 i=A.Y(A.c("S/ "+B.f.L(d.w,2),e,e,e,e,A.T().$3$color$fontSize$fontWeight(B.k,14,B.a1),e,e,e),1)
 if(a0)h=B.k
@@ -131839,7 +131839,7 @@ B.nm=new A.c5(null,null,null,null)
 B.a9f=new A.Jh(null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.J3=new A.Yu(0,0,0,0,0,0,!1,!1,null,0)
 B.a9g=new A.Ji(130,12,12,0.78,null)
-B.a9h=new A.Ji(160,10,10,0.88,null)
+B.a9h=new A.Ji(160,10,10,0.82,null)
 B.a9i=new A.Ji(380,12,12,1,116)
 B.rX=new A.axh(0,"firstIsTop")
 B.rY=new A.YB(0,"disabled")
