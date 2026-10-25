@@ -51,6 +51,7 @@ public class SunatRestEmissionService {
         this(null, null);
     }
 
+    @Autowired
     public SunatRestEmissionService(
             @Autowired(required = false) VentaRepository ventaRepository,
             @Autowired(required = false) VentaDetalleRepository ventaDetalleRepository) {

@@ -48,6 +48,7 @@ public class VentaService {
              tenantService, bodegaRepository, sunatRestEmissionService, clienteRepository, null);
     }
 
+    @Autowired
     public VentaService(VentaRepository ventaRepository,
                         VentaDetalleRepository ventaDetalleRepository,
                         ProductoRepository productoRepository,
