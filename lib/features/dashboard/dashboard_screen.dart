@@ -14,6 +14,7 @@ import '../ventas/venta_service.dart';
 import '../clientes/cliente_model.dart';
 import '../clientes/cliente_service.dart';
 import '../compras/compras_screen.dart';
+import 'dashboard_bi_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -248,6 +249,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     // Tarjeta en Directo de Canales de Pago
                     _buildPaymentBreakdownCard(isDark),
+                    const SizedBox(height: 14),
+
+                    // Banner de Inteligencia de Negocio & BI
+                    _buildBiBanner(isDark),
                     const SizedBox(height: 24),
 
                     // Accesos Rápidos Inteligentes
@@ -334,6 +339,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => const KardexScreen()),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Analítica & BI',
+                              subtitle: 'Márgenes & Picos',
+                              icon: LucideIcons.trendingUp,
+                              color: const Color(0xFF6366F1),
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
                                 );
                               },
                             ),
@@ -1190,6 +1209,122 @@ class _DashboardScreenState extends State<DashboardScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBiBanner(bool isDark) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark
+                ? [
+                    const Color(0xFF1E293B),
+                    const Color(0xFF0F172A),
+                  ]
+                : [
+                    AppTheme.surfaceTint,
+                    const Color(0xFFE0E7FF),
+                  ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppTheme.borderDark : AppTheme.borderTint,
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.12 : 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                LucideIcons.trendingUp,
+                color: AppTheme.brandPrimary,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Analítica de Negocio & BI',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPrimary,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'NUEVO',
+                          style: GoogleFonts.outfit(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Margen bruto real, rotación de productos estrella/hueso y horas pico 24h.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.brandPrimary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                LucideIcons.chevronRight,
+                color: Colors.white,
+                size: 16,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

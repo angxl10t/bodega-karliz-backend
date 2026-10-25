@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../features/productos/producto_model.dart';
 import '../features/ventas/venta_model.dart';
 import '../features/clientes/cliente_model.dart';
+import '../features/dashboard/dashboard_bi_model.dart';
 
 import 'csv_downloader_stub.dart'
     if (dart.library.html) 'csv_downloader_web.dart' as downloader;
@@ -83,6 +84,70 @@ class CsvExporter {
       buffer.write('${c.creditoDisponible.toStringAsFixed(2)},');
       buffer.write('${c.tieneDeuda ? "CON_DEUDA" : "AL_DIA"},');
       buffer.writeln(escapar(c.notas ?? ""));
+    }
+
+    return buffer.toString();
+  }
+
+  /// Genera contenido CSV formateado para el Reporte Ejecutivo BI de Analítica de Negocio
+  static String generarCsvDashboardBi(DashboardBiData data) {
+    final buffer = StringBuffer();
+    buffer.writeln('=== REPORTE EJECUTIVO BI Y RENTABILIDAD CAJAYA ===');
+    buffer.writeln('Periodo Analizado (Dias),${data.diasAnalizados}');
+    buffer.writeln('Total Ventas Brutas (PEN),${data.totalVentas.toStringAsFixed(2)}');
+    buffer.writeln('Costo Total de Ventas (PEN),${data.totalCostos.toStringAsFixed(2)}');
+    buffer.writeln('Margen Bruto de Ganancia (PEN),${data.margenBrutoSoles.toStringAsFixed(2)}');
+    buffer.writeln('Margen Bruto Porcentual (%),${data.porcentajeMargenBruto.toStringAsFixed(1)}%');
+    buffer.writeln('Ticket Promedio Hoy (PEN),${data.ticketPromedioHoy.toStringAsFixed(2)}');
+    buffer.writeln('Ticket Promedio Semanal (PEN),${data.ticketPromedioSemanal.toStringAsFixed(2)}');
+    buffer.writeln('Ticket Promedio Periodo (PEN),${data.ticketPromedioPeriodo.toStringAsFixed(2)}');
+    buffer.writeln('Cantidad de Ventas en Periodo,${data.cantidadVentasPeriodo}');
+    buffer.writeln('Total Capital Inmovilizado en Huesos (PEN),${data.totalCapitalInmovilizado.toStringAsFixed(2)}');
+    buffer.writeln('Hora Pico Maxima,${escapar(data.horaPicoMaxima)}');
+    buffer.writeln('Hora Valle Minima,${escapar(data.horaValleMinima)}');
+    buffer.writeln('Recomendacion Turnos,${escapar(data.recomendacionTurnos)}');
+    buffer.writeln();
+
+    buffer.writeln('--- PRODUCTOS ESTRELLA (TOP RENTABILIDAD Y ROTACION) ---');
+    buffer.writeln('Ranking,Codigo,Nombre,Categoria,UnidadesVendidas,TotalVentasPEN,CostoTotalPEN,MargenSolesPEN,MargenPorcentaje');
+    for (int i = 0; i < data.productosEstrella.length; i++) {
+      final p = data.productosEstrella[i];
+      buffer.write('${i + 1},');
+      buffer.write('${escapar(p.codigo ?? "-")},');
+      buffer.write('${escapar(p.nombre)},');
+      buffer.write('${escapar(p.categoria)},');
+      buffer.write('${p.unidadesVendidas.toStringAsFixed(2)},');
+      buffer.write('${p.totalVentas.toStringAsFixed(2)},');
+      buffer.write('${p.costoTotal.toStringAsFixed(2)},');
+      buffer.write('${p.margenBrutoSoles.toStringAsFixed(2)},');
+      buffer.writeln('${p.porcentajeMargen.toStringAsFixed(1)}%');
+    }
+    buffer.writeln();
+
+    buffer.writeln('--- PRODUCTOS HUESO (SIN VENTAS / CAPITAL INMOVILIZADO) ---');
+    buffer.writeln('Ranking,Codigo,Nombre,Categoria,StockActual,PrecioCostoPEN,CapitalInmovilizadoPEN,DiasSinVentas,AccionRecomendada');
+    for (int i = 0; i < data.productosHueso.length; i++) {
+      final h = data.productosHueso[i];
+      buffer.write('${i + 1},');
+      buffer.write('${escapar(h.codigo ?? "-")},');
+      buffer.write('${escapar(h.nombre)},');
+      buffer.write('${escapar(h.categoria)},');
+      buffer.write('${h.stockActual.toStringAsFixed(2)},');
+      buffer.write('${h.precioCosto.toStringAsFixed(2)},');
+      buffer.write('${h.capitalInmovilizado.toStringAsFixed(2)},');
+      buffer.write('${h.diasSinVentas},');
+      buffer.writeln(escapar(h.accionRecomendada));
+    }
+    buffer.writeln();
+
+    buffer.writeln('--- DISTRIBUCION HORARIA Y AFLUENCIA (24 HORAS) ---');
+    buffer.writeln('Hora,RangoHorario,CantidadTickets,TotalVentasPEN,EsHoraPico');
+    for (final hp in data.distribucionHoraria) {
+      buffer.write('${hp.hora},');
+      buffer.write('${escapar(hp.etiquetaHora)},');
+      buffer.write('${hp.cantidadTickets},');
+      buffer.write('${hp.totalVentas.toStringAsFixed(2)},');
+      buffer.writeln(hp.esPico ? 'SI' : 'NO');
     }
 
     return buffer.toString();
