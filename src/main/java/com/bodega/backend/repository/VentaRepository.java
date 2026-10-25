@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -33,4 +34,23 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
     Optional<Venta> findByIdForUpdateAndBodega(@Param("id") Long id, @Param("idBodega") Long idBodega);
 
     Optional<Venta> findByBodega_IdBodegaAndIdempotencyKey(Long idBodega, String idempotencyKey);
+
+    // =========================================================================
+    // CONSULTAS AGREGADAS NATIVAS DE ALTO RENDIMIENTO (PREVENCIÓN OOM / HIKARI)
+    // =========================================================================
+
+    @Query("SELECT COALESCE(SUM(v.total), 0) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.fechaVenta >= :start")
+    BigDecimal sumTotalVentasByPeriodo(@Param("idBodega") Long idBodega, @Param("start") OffsetDateTime start);
+
+    @Query("SELECT COUNT(v) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.fechaVenta >= :start")
+    long countVentasByPeriodo(@Param("idBodega") Long idBodega, @Param("start") OffsetDateTime start);
+
+    @Query(value = "SELECT EXTRACT(HOUR FROM (v.fecha_venta AT TIME ZONE 'America/Lima'))\\:\\:int as hora, " +
+            "COUNT(v.id_venta) as tickets, " +
+            "COALESCE(SUM(v.total), 0) as ventas " +
+            "FROM ventas v " +
+            "WHERE v.id_bodega = :idBodega AND v.estado != 'ANULADA' AND v.fecha_venta >= :start " +
+            "GROUP BY hora " +
+            "ORDER BY hora", nativeQuery = true)
+    List<Object[]> findDistribucionHorariaNative(@Param("idBodega") Long idBodega, @Param("start") OffsetDateTime start);
 }

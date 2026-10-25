@@ -56,6 +56,9 @@ public class VentaServiceTest {
     @Mock
     private ClienteRepository clienteRepository;
 
+    @Mock
+    private AnalyticsService analyticsService;
+
     @InjectMocks
     private VentaService ventaService;
 

@@ -4,22 +4,20 @@ import com.bodega.backend.dto.DashboardBiDTO;
 import com.bodega.backend.dto.HorarioPicoDTO;
 import com.bodega.backend.dto.ProductoEstrellaDTO;
 import com.bodega.backend.dto.ProductoHuesoDTO;
-import com.bodega.backend.entity.Producto;
-import com.bodega.backend.entity.Venta;
-import com.bodega.backend.entity.VentaDetalle;
 import com.bodega.backend.repository.ProductoRepository;
 import com.bodega.backend.repository.VentaDetalleRepository;
 import com.bodega.backend.repository.VentaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AnalyticsService {
@@ -28,6 +26,24 @@ public class AnalyticsService {
     private final VentaDetalleRepository ventaDetalleRepository;
     private final ProductoRepository productoRepository;
     private final TenantService tenantService;
+
+    // Caché en memoria de 120 segundos para evitar saturación de la BD y del pool de conexiones
+    private static final long CACHE_TTL_SECONDS = 120;
+    private final ConcurrentHashMap<String, CachedBiEntry> biCache = new ConcurrentHashMap<>();
+
+    private static class CachedBiEntry {
+        final DashboardBiDTO data;
+        final Instant timestamp;
+
+        CachedBiEntry(DashboardBiDTO data) {
+            this.data = data;
+            this.timestamp = Instant.now();
+        }
+
+        boolean isValid() {
+            return Instant.now().minusSeconds(CACHE_TTL_SECONDS).isBefore(timestamp);
+        }
+    }
 
     public AnalyticsService(VentaRepository ventaRepository,
                             VentaDetalleRepository ventaDetalleRepository,
@@ -39,126 +55,52 @@ public class AnalyticsService {
         this.tenantService = tenantService;
     }
 
+    public void invalidateCache(Long idBodega) {
+        if (idBodega == null) return;
+        String prefix = idBodega + "_";
+        biCache.keySet().removeIf(k -> k.startsWith(prefix));
+    }
+
     @Transactional(readOnly = true)
     public DashboardBiDTO obtenerDashboardBi(int dias) {
         if (dias <= 0) dias = 30;
         Long idBodega = tenantService.getCurrentBodegaId();
+
+        // 1. Comprobar caché en memoria
+        String cacheKey = idBodega + "_" + dias;
+        CachedBiEntry cached = biCache.get(cacheKey);
+        if (cached != null && cached.isValid()) {
+            return cached.data;
+        }
+
         ZoneId zonePeru = ZoneId.of("America/Lima");
         OffsetDateTime now = OffsetDateTime.now(zonePeru);
         OffsetDateTime startPeriodo = now.minusDays(dias).withHour(0).withMinute(0).withSecond(0).withNano(0);
         OffsetDateTime startHoy = now.withHour(0).withMinute(0).withSecond(0).withNano(0);
         OffsetDateTime startSemanal = now.minusDays(7).withHour(0).withMinute(0).withSecond(0).withNano(0);
 
-        // 1. Obtener ventas completadas del periodo para la bodega
-        List<Venta> ventasPeriodo = ventaRepository.findByBodega_IdBodegaAndFechaVentaBetweenOrderByFechaVentaDesc(idBodega, startPeriodo, now)
-                .stream()
-                .filter(v -> !"ANULADA".equalsIgnoreCase(v.getEstado()))
-                .collect(Collectors.toList());
+        // 2. Ventas agregadas en Base de Datos (0 entidades cargadas en RAM)
+        BigDecimal totalVentas = ventaRepository.sumTotalVentasByPeriodo(idBodega, startPeriodo);
+        long cantidadVentasPeriodo = ventaRepository.countVentasByPeriodo(idBodega, startPeriodo);
 
-        BigDecimal totalVentas = BigDecimal.ZERO;
-        BigDecimal totalVentasHoy = BigDecimal.ZERO;
-        BigDecimal totalVentasSemana = BigDecimal.ZERO;
-        int cantidadVentasHoy = 0;
-        int cantidadVentasSemana = 0;
+        BigDecimal totalVentasHoy = ventaRepository.sumTotalVentasByPeriodo(idBodega, startHoy);
+        long cantidadVentasHoy = ventaRepository.countVentasByPeriodo(idBodega, startHoy);
 
-        List<Long> idsVenta = new ArrayList<>();
-        Map<Integer, Integer> ticketsPorHora = new HashMap<>();
-        Map<Integer, BigDecimal> ventasPorHora = new HashMap<>();
-        for (int h = 0; h < 24; h++) {
-            ticketsPorHora.put(h, 0);
-            ventasPorHora.put(h, BigDecimal.ZERO);
-        }
+        BigDecimal totalVentasSemana = ventaRepository.sumTotalVentasByPeriodo(idBodega, startSemanal);
+        long cantidadVentasSemana = ventaRepository.countVentasByPeriodo(idBodega, startSemanal);
 
-        for (Venta v : ventasPeriodo) {
-            BigDecimal monto = v.getTotal() != null ? v.getTotal() : BigDecimal.ZERO;
-            totalVentas = totalVentas.add(monto);
-            idsVenta.add(v.getIdVenta());
+        // 3. Costos totales del periodo calculados por el motor SQL
+        BigDecimal totalCostos = ventaDetalleRepository.sumTotalCostosByPeriodo(idBodega, startPeriodo);
 
-            if (v.getFechaVenta() != null) {
-                if (!v.getFechaVenta().isBefore(startHoy)) {
-                    totalVentasHoy = totalVentasHoy.add(monto);
-                    cantidadVentasHoy++;
-                }
-                if (!v.getFechaVenta().isBefore(startSemanal)) {
-                    totalVentasSemana = totalVentasSemana.add(monto);
-                    cantidadVentasSemana++;
-                }
-
-                int hora = v.getFechaVenta().atZoneSameInstant(zonePeru).getHour();
-                ticketsPorHora.put(hora, ticketsPorHora.get(hora) + 1);
-                ventasPorHora.put(hora, ventasPorHora.get(hora).add(monto));
-            }
-        }
-
-        // 2. Calcular costos reales y agregación de productos estrella a partir de los detalles
-        BigDecimal totalCostos = BigDecimal.ZERO;
-        Map<Long, ProductoEstrellaDTO> acumuladorEstrellas = new HashMap<>();
-        Set<Long> productosVendidosIds = new HashSet<>();
-
-        if (!idsVenta.isEmpty()) {
-            List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta_IdVentaIn(idsVenta);
-            for (VentaDetalle d : detalles) {
-                if (d.getProducto() == null) continue;
-                Producto p = d.getProducto();
-                Long idProd = p.getIdProducto();
-                productosVendidosIds.add(idProd);
-
-                BigDecimal cant = d.getCantidad() != null ? d.getCantidad() : BigDecimal.ZERO;
-                BigDecimal subtotal = d.getSubtotal() != null ? d.getSubtotal() : BigDecimal.ZERO;
-
-                // Determinar costo unitario: precioCosto real o fallback a 75% del precio unitario de venta
-                BigDecimal costoUnit;
-                if (p.getPrecioCosto() != null && p.getPrecioCosto().compareTo(BigDecimal.ZERO) > 0) {
-                    costoUnit = p.getPrecioCosto();
-                } else if (d.getPrecioUnitario() != null) {
-                    costoUnit = d.getPrecioUnitario().multiply(new BigDecimal("0.75"));
-                } else {
-                    costoUnit = BigDecimal.ZERO;
-                }
-
-                BigDecimal costoDetalle = costoUnit.multiply(cant);
-                totalCostos = totalCostos.add(costoDetalle);
-
-                // Acumulador de Producto Estrella
-                ProductoEstrellaDTO estrella = acumuladorEstrellas.computeIfAbsent(idProd, k -> ProductoEstrellaDTO.builder()
-                        .idProducto(idProd)
-                        .nombre(p.getNombre())
-                        .codigo(p.getCodigo())
-                        .categoria(p.getCategoria() != null ? p.getCategoria().getNombre() : "General")
-                        .imagenUrl(p.getImagenUrl())
-                        .unidadesVendidas(BigDecimal.ZERO)
-                        .totalVentas(BigDecimal.ZERO)
-                        .costoTotal(BigDecimal.ZERO)
-                        .margenBrutoSoles(BigDecimal.ZERO)
-                        .porcentajeMargen(BigDecimal.ZERO)
-                        .build());
-
-                estrella.setUnidadesVendidas(estrella.getUnidadesVendidas().add(cant));
-                estrella.setTotalVentas(estrella.getTotalVentas().add(subtotal));
-                estrella.setCostoTotal(estrella.getCostoTotal().add(costoDetalle));
-            }
-        }
-
-        // Calcular margen para cada producto estrella y ordenar Top 10
-        List<ProductoEstrellaDTO> rankingEstrellas = new ArrayList<>(acumuladorEstrellas.values());
-        for (ProductoEstrellaDTO e : rankingEstrellas) {
-            BigDecimal margenSoles = e.getTotalVentas().subtract(e.getCostoTotal());
-            e.setMargenBrutoSoles(margenSoles);
-            if (e.getTotalVentas().compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal pct = margenSoles.multiply(new BigDecimal("100")).divide(e.getTotalVentas(), 1, RoundingMode.HALF_UP);
-                e.setPorcentajeMargen(pct);
-            }
-        }
-        rankingEstrellas.sort((a, b) -> b.getMargenBrutoSoles().compareTo(a.getMargenBrutoSoles()));
-        List<ProductoEstrellaDTO> topEstrellas = rankingEstrellas.stream().limit(10).collect(Collectors.toList());
-
-        // 3. Rentabilidad General y Tickets Promedio
+        // 4. Margen Bruto
         BigDecimal margenBrutoSoles = totalVentas.subtract(totalCostos);
         BigDecimal porcentajeMargenBruto = BigDecimal.ZERO;
         if (totalVentas.compareTo(BigDecimal.ZERO) > 0) {
-            porcentajeMargenBruto = margenBrutoSoles.multiply(new BigDecimal("100")).divide(totalVentas, 1, RoundingMode.HALF_UP);
+            porcentajeMargenBruto = margenBrutoSoles.multiply(new BigDecimal("100"))
+                    .divide(totalVentas, 1, RoundingMode.HALF_UP);
         }
 
+        // 5. Tickets Promedio
         BigDecimal ticketPromedioHoy = cantidadVentasHoy > 0
                 ? totalVentasHoy.divide(BigDecimal.valueOf(cantidadVentasHoy), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
@@ -167,64 +109,122 @@ public class AnalyticsService {
                 ? totalVentasSemana.divide(BigDecimal.valueOf(cantidadVentasSemana), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        BigDecimal ticketPromedioPeriodo = !ventasPeriodo.isEmpty()
-                ? totalVentas.divide(BigDecimal.valueOf(ventasPeriodo.size()), 2, RoundingMode.HALF_UP)
+        BigDecimal ticketPromedioPeriodo = cantidadVentasPeriodo > 0
+                ? totalVentas.divide(BigDecimal.valueOf(cantidadVentasPeriodo), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        // 4. Reporte de Productos Hueso (Sin rotación en el periodo y con stock inmovilizado)
-        List<Producto> todosProductos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega);
-        List<ProductoHuesoDTO> productosHueso = new ArrayList<>();
-        BigDecimal totalCapitalInmovilizado = BigDecimal.ZERO;
+        // 6. Top 10 Productos Estrella (Ejecutado y paginado en BD)
+        List<Object[]> rawEstrellas = ventaDetalleRepository.findTopEstrellasByPeriodo(
+                idBodega, startPeriodo, PageRequest.of(0, 10));
 
-        for (Producto p : todosProductos) {
-            BigDecimal stock = p.getStockActual() != null ? p.getStockActual() : BigDecimal.ZERO;
-            if (stock.compareTo(BigDecimal.ZERO) > 0 && !productosVendidosIds.contains(p.getIdProducto())) {
-                BigDecimal costo = p.getPrecioCosto() != null && p.getPrecioCosto().compareTo(BigDecimal.ZERO) > 0
-                        ? p.getPrecioCosto()
-                        : (p.getPrecioVenta() != null ? p.getPrecioVenta().multiply(new BigDecimal("0.75")) : BigDecimal.ZERO);
-
-                BigDecimal capitalInmov = stock.multiply(costo);
-                totalCapitalInmovilizado = totalCapitalInmovilizado.add(capitalInmov);
-
-                String accion = "Oferta 2x1 o Liquidación";
-                if (capitalInmov.compareTo(new BigDecimal("50")) > 0) {
-                    accion = "Armar Combo con Producto Estrella";
-                } else if (p.getFechaVencimiento() != null) {
-                    accion = "Revisar Caducidad y Remate Inmediato";
-                }
-
-                productosHueso.add(ProductoHuesoDTO.builder()
-                        .idProducto(p.getIdProducto())
-                        .nombre(p.getNombre())
-                        .codigo(p.getCodigo())
-                        .categoria(p.getCategoria() != null ? p.getCategoria().getNombre() : "General")
-                        .imagenUrl(p.getImagenUrl())
-                        .stockActual(stock)
-                        .precioCosto(costo.setScale(2, RoundingMode.HALF_UP))
-                        .capitalInmovilizado(capitalInmov.setScale(2, RoundingMode.HALF_UP))
-                        .diasSinVentas(dias)
-                        .accionRecomendada(accion)
-                        .build());
+        List<ProductoEstrellaDTO> topEstrellas = new ArrayList<>();
+        for (Object[] row : rawEstrellas) {
+            Long idProd = ((Number) row[0]).longValue();
+            String nombre = (String) row[1];
+            String codigo = (String) row[2];
+            String cat = (String) row[3];
+            String img = (String) row[4];
+            BigDecimal cant = row[5] != null ? new BigDecimal(row[5].toString()) : BigDecimal.ZERO;
+            BigDecimal ventas = row[6] != null ? new BigDecimal(row[6].toString()) : BigDecimal.ZERO;
+            BigDecimal costo = row[7] != null ? new BigDecimal(row[7].toString()) : BigDecimal.ZERO;
+            BigDecimal margen = ventas.subtract(costo);
+            BigDecimal pct = BigDecimal.ZERO;
+            if (ventas.compareTo(BigDecimal.ZERO) > 0) {
+                pct = margen.multiply(new BigDecimal("100")).divide(ventas, 1, RoundingMode.HALF_UP);
             }
-        }
-        productosHueso.sort((a, b) -> b.getCapitalInmovilizado().compareTo(a.getCapitalInmovilizado()));
-        List<ProductoHuesoDTO> topHuesos = productosHueso.stream().limit(12).collect(Collectors.toList());
 
-        // 5. Mapa de Calor de Horarios Pico (Distribución 24 horas)
+            topEstrellas.add(ProductoEstrellaDTO.builder()
+                    .idProducto(idProd)
+                    .nombre(nombre)
+                    .codigo(codigo)
+                    .categoria(cat != null ? cat : "General")
+                    .imagenUrl(img)
+                    .unidadesVendidas(cant.setScale(0, RoundingMode.HALF_UP))
+                    .totalVentas(ventas.setScale(2, RoundingMode.HALF_UP))
+                    .costoTotal(costo.setScale(2, RoundingMode.HALF_UP))
+                    .margenBrutoSoles(margen.setScale(2, RoundingMode.HALF_UP))
+                    .porcentajeMargen(pct)
+                    .build());
+        }
+
+        // 7. Productos Hueso (Anti-join indexado en BD)
+        List<Object[]> rawHuesos = productoRepository.findProductosHuesoByPeriodo(
+                idBodega, startPeriodo, PageRequest.of(0, 15));
+
+        List<ProductoHuesoDTO> topHuesos = new ArrayList<>();
+        for (Object[] row : rawHuesos) {
+            Long idProd = ((Number) row[0]).longValue();
+            String nombre = (String) row[1];
+            String codigo = (String) row[2];
+            String cat = (String) row[3];
+            String img = (String) row[4];
+            BigDecimal stock = row[5] != null ? new BigDecimal(row[5].toString()) : BigDecimal.ZERO;
+            BigDecimal costoUnit = row[6] != null ? new BigDecimal(row[6].toString()) : BigDecimal.ZERO;
+            BigDecimal capitalInmov = row[7] != null ? new BigDecimal(row[7].toString()) : BigDecimal.ZERO;
+            Object fechaVenc = row[8];
+
+            String accion = "Oferta 2x1 o Liquidación";
+            if (capitalInmov.compareTo(new BigDecimal("50")) > 0) {
+                accion = "Armar Combo con Producto Estrella";
+            } else if (fechaVenc != null) {
+                accion = "Revisar Caducidad y Remate Inmediato";
+            }
+
+            topHuesos.add(ProductoHuesoDTO.builder()
+                    .idProducto(idProd)
+                    .nombre(nombre)
+                    .codigo(codigo)
+                    .categoria(cat != null ? cat : "General")
+                    .imagenUrl(img)
+                    .stockActual(stock)
+                    .precioCosto(costoUnit.setScale(2, RoundingMode.HALF_UP))
+                    .capitalInmovilizado(capitalInmov.setScale(2, RoundingMode.HALF_UP))
+                    .diasSinVentas(dias)
+                    .accionRecomendada(accion)
+                    .build());
+        }
+
+        // Totales de Hueso y Capital Inmovilizado
+        BigDecimal totalCapitalInmovilizado = BigDecimal.ZERO;
+        int totalProductosHueso = 0;
+        List<Object[]> capitalRaw = productoRepository.calculateCapitalInmovilizado(idBodega, startPeriodo);
+        if (!capitalRaw.isEmpty() && capitalRaw.get(0) != null) {
+            Object[] cr = capitalRaw.get(0);
+            if (cr[0] != null) totalCapitalInmovilizado = new BigDecimal(cr[0].toString());
+            if (cr[1] != null) totalProductosHueso = ((Number) cr[1]).intValue();
+        }
+
+        // 8. Mapa de Calor 24 Horas
+        Map<Integer, Integer> ticketsPorHora = new HashMap<>();
+        Map<Integer, BigDecimal> ventasPorHora = new HashMap<>();
+        for (int h = 0; h < 24; h++) {
+            ticketsPorHora.put(h, 0);
+            ventasPorHora.put(h, BigDecimal.ZERO);
+        }
+
+        List<Object[]> rawHoras = ventaRepository.findDistribucionHorariaNative(idBodega, startPeriodo);
         int maxTickets = 0;
         int horaPicoIdx = 19;
         int minTicketsNoCero = Integer.MAX_VALUE;
         int horaValleIdx = 14;
 
-        for (int h = 0; h < 24; h++) {
-            int t = ticketsPorHora.get(h);
-            if (t > maxTickets) {
-                maxTickets = t;
-                horaPicoIdx = h;
-            }
-            if (t > 0 && t < minTicketsNoCero && h >= 7 && h <= 22) {
-                minTicketsNoCero = t;
-                horaValleIdx = h;
+        for (Object[] rh : rawHoras) {
+            if (rh[0] != null) {
+                int h = ((Number) rh[0]).intValue();
+                int t = rh[1] != null ? ((Number) rh[1]).intValue() : 0;
+                BigDecimal v = rh[2] != null ? new BigDecimal(rh[2].toString()) : BigDecimal.ZERO;
+
+                ticketsPorHora.put(h, t);
+                ventasPorHora.put(h, v);
+
+                if (t > maxTickets) {
+                    maxTickets = t;
+                    horaPicoIdx = h;
+                }
+                if (t > 0 && t < minTicketsNoCero && h >= 7 && h <= 22) {
+                    minTicketsNoCero = t;
+                    horaValleIdx = h;
+                }
             }
         }
 
@@ -250,7 +250,7 @@ public class AnalyticsService {
         String recomendacion = String.format("Horario pico detectado entre %s con %d transacciones. Se recomienda contar con apoyo en caja y verificar reposición de bebidas frías y abarrotes de alta rotación.",
                 horaPicoMaxima, maxTickets);
 
-        return DashboardBiDTO.builder()
+        DashboardBiDTO dto = DashboardBiDTO.builder()
                 .diasAnalizados(dias)
                 .totalVentas(totalVentas.setScale(2, RoundingMode.HALF_UP))
                 .totalCostos(totalCostos.setScale(2, RoundingMode.HALF_UP))
@@ -259,16 +259,20 @@ public class AnalyticsService {
                 .ticketPromedioHoy(ticketPromedioHoy)
                 .ticketPromedioSemanal(ticketPromedioSemanal)
                 .ticketPromedioPeriodo(ticketPromedioPeriodo)
-                .cantidadVentasHoy(cantidadVentasHoy)
-                .cantidadVentasPeriodo(ventasPeriodo.size())
+                .cantidadVentasHoy((int) cantidadVentasHoy)
+                .cantidadVentasPeriodo((int) cantidadVentasPeriodo)
                 .productosEstrella(topEstrellas)
                 .productosHueso(topHuesos)
                 .totalCapitalInmovilizado(totalCapitalInmovilizado.setScale(2, RoundingMode.HALF_UP))
-                .totalProductosHueso(productosHueso.size())
+                .totalProductosHueso(totalProductosHueso)
                 .distribucionHoraria(distribucionHoraria)
                 .horaPicoMaxima(horaPicoMaxima)
                 .horaValleMinima(horaValleMinima)
                 .recomendacionTurnos(recomendacion)
                 .build();
+
+        // Almacenar en caché en memoria
+        biCache.put(cacheKey, new CachedBiEntry(dto));
+        return dto;
     }
 }

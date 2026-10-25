@@ -3,12 +3,17 @@ package com.bodega.backend.service;
 import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.entity.Venta;
 import com.bodega.backend.entity.VentaDetalle;
+import com.bodega.backend.repository.VentaDetalleRepository;
+import com.bodega.backend.repository.VentaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -39,12 +44,45 @@ public class SunatRestEmissionService {
     private boolean modoPruebas;
 
     private final RestTemplate restTemplate;
+    private final VentaRepository ventaRepository;
+    private final VentaDetalleRepository ventaDetalleRepository;
 
     public SunatRestEmissionService() {
+        this(null, null);
+    }
+
+    public SunatRestEmissionService(
+            @Autowired(required = false) VentaRepository ventaRepository,
+            @Autowired(required = false) VentaDetalleRepository ventaDetalleRepository) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(4000); // 4 segundos de conexión
         factory.setReadTimeout(6000);    // 6 segundos de lectura
         this.restTemplate = new RestTemplate(factory);
+        this.ventaRepository = ventaRepository;
+        this.ventaDetalleRepository = ventaDetalleRepository;
+    }
+
+    /**
+     * Despacho asíncrono desacoplado para no bloquear la transacción principal del cajero,
+     * los bloqueos pesimistas de inventario ni las conexiones del pool HikariCP.
+     */
+    @Async
+    @Transactional
+    public void despacharComprobanteAsync(Long idVenta) {
+        if (idVenta == null || ventaRepository == null || ventaDetalleRepository == null) {
+            return;
+        }
+        try {
+            Optional<Venta> opt = ventaRepository.findById(idVenta);
+            if (opt.isEmpty()) return;
+            Venta venta = opt.get();
+            List<VentaDetalle> detalles = ventaDetalleRepository.findByVenta(venta);
+            despacharComprobante(venta, detalles, venta.getBodega());
+            ventaRepository.save(venta);
+            log.info("[SUNAT ASYNC] Venta #{} procesada telemáticamente. Estado: {}", idVenta, venta.getEstadoSunat());
+        } catch (Exception ex) {
+            log.error("[SUNAT ASYNC] Error en despacho asíncrono para venta #{}: {}", idVenta, ex.getMessage());
+        }
     }
 
     /**
@@ -85,7 +123,7 @@ public class SunatRestEmissionService {
         // 1. Si no hay token de API real configurado
         if (token.isBlank()) {
             if (modoPruebas) {
-                // Simulación oficial de entorno SUNAT Beta
+                // Simulación oficial de entorno SUNAT Beta (cálculo en memoria inmediato)
                 String hashSimulado = generarHashSimulado(venta, bodega);
                 venta.setEstadoSunat("ACEPTADO_BETA");
                 venta.setSunatHash(hashSimulado);

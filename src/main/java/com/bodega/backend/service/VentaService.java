@@ -5,8 +5,11 @@ import com.bodega.backend.dto.VentaDTO;
 import com.bodega.backend.dto.VentaDetalleDTO;
 import com.bodega.backend.entity.*;
 import com.bodega.backend.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -31,6 +34,7 @@ public class VentaService {
     private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
     private final SunatRestEmissionService sunatRestEmissionService;
     private final ClienteRepository clienteRepository;
+    private final AnalyticsService analyticsService;
 
     public VentaService(VentaRepository ventaRepository,
                         VentaDetalleRepository ventaDetalleRepository,
@@ -40,6 +44,19 @@ public class VentaService {
                         com.bodega.backend.repository.BodegaRepository bodegaRepository,
                         SunatRestEmissionService sunatRestEmissionService,
                         ClienteRepository clienteRepository) {
+        this(ventaRepository, ventaDetalleRepository, productoRepository, movimientoInventarioRepository,
+             tenantService, bodegaRepository, sunatRestEmissionService, clienteRepository, null);
+    }
+
+    public VentaService(VentaRepository ventaRepository,
+                        VentaDetalleRepository ventaDetalleRepository,
+                        ProductoRepository productoRepository,
+                        MovimientoInventarioRepository movimientoInventarioRepository,
+                        TenantService tenantService,
+                        com.bodega.backend.repository.BodegaRepository bodegaRepository,
+                        SunatRestEmissionService sunatRestEmissionService,
+                        ClienteRepository clienteRepository,
+                        @Autowired(required = false) AnalyticsService analyticsService) {
         this.ventaRepository = ventaRepository;
         this.ventaDetalleRepository = ventaDetalleRepository;
         this.productoRepository = productoRepository;
@@ -48,6 +65,7 @@ public class VentaService {
         this.bodegaRepository = bodegaRepository;
         this.sunatRestEmissionService = sunatRestEmissionService;
         this.clienteRepository = clienteRepository;
+        this.analyticsService = analyticsService;
     }
 
     @Transactional
@@ -210,9 +228,6 @@ public class VentaService {
                 : null;
 
         boolean sunatActivo = bodega != null && Boolean.TRUE.equals(bodega.getFacturacionSunatActiva());
-        String regimen = (bodega != null && bodega.getRegimenTributario() != null) 
-                ? bodega.getRegimenTributario().toUpperCase() 
-                : "NUEVO_RUS";
 
         boolean esFactura = "FACTURA_ELECTRONICA".equals(tipoSolicitado) || "FACTURA".equals(tipoSolicitado);
 
@@ -250,8 +265,19 @@ public class VentaService {
             venta.setTipoComprobante(tipo);
             venta.setSerieCorrelativo(String.format("%s-%08d", serie, correlativo));
 
-            // Despacho telemático REST a SUNAT / OSE / PSE (tolerante a fallos de red)
-            sunatRestEmissionService.despacharComprobante(venta, detallesGuardados, bodegaLocked);
+            String token = (bodegaLocked.getSunatTokenApi() != null && !bodegaLocked.getSunatTokenApi().isBlank())
+                    ? bodegaLocked.getSunatTokenApi().trim()
+                    : "";
+
+            // Si no hay token de API configurado, calcular inmediatamente en memoria (simulación Beta SUNAT sin HTTP)
+            if (token.isBlank()) {
+                sunatRestEmissionService.despacharComprobante(venta, detallesGuardados, bodegaLocked);
+            } else {
+                // Si hay token real de SUNAT/OSE, marcar PENDIENTE_ENVIO y delegar al worker asíncrono
+                // tras confirmar la transacción, para no bloquear la caja ni retener conexiones del pool
+                venta.setEstadoSunat("PENDIENTE_ENVIO");
+                venta.setSunatMensaje("Comprobante encolado para transmisión telemática.");
+            }
         } else {
             String tipo = ("BOLETA_ELECTRONICA".equals(tipoSolicitado) || "BOLETA".equals(tipoSolicitado)) 
                     ? "BOLETA" 
@@ -268,6 +294,26 @@ public class VentaService {
             det.setVenta(cabeceraGuardada);
         }
         ventaDetalleRepository.saveAll(detallesGuardados);
+
+        // Invalidar caché de métricas BI de la bodega de forma inmediata
+        if (analyticsService != null) {
+            analyticsService.invalidateCache(idBodega);
+        }
+
+        // Si hay token SUNAT real, ejecutar la transmisión telemática asíncrona una vez commiteada la transacción
+        if (sunatActivo && bodega != null && bodega.getSunatTokenApi() != null && !bodega.getSunatTokenApi().isBlank()) {
+            final Long idVentaCommit = cabeceraGuardada.getIdVenta();
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        sunatRestEmissionService.despacharComprobanteAsync(idVentaCommit);
+                    }
+                });
+            } else {
+                sunatRestEmissionService.despacharComprobanteAsync(idVentaCommit);
+            }
+        }
 
         return mapToDTO(cabeceraGuardada, detallesGuardados);
     }
@@ -539,6 +585,11 @@ public class VentaService {
         }
 
         ventaRepository.save(venta);
+
+        // Invalidar caché de métricas BI para reflejar la anulación
+        if (analyticsService != null) {
+            analyticsService.invalidateCache(idBodega);
+        }
     }
 
     /**
@@ -654,20 +705,20 @@ public class VentaService {
     @Transactional(readOnly = true)
     public byte[] exportarCsv(Integer mes, Integer anio) {
         Long idBodega = tenantService.getCurrentBodegaId();
-        List<Venta> ventas = ventaRepository.findByBodega_IdBodegaOrderByFechaVentaDesc(idBodega);
+        List<Venta> ventas;
 
         if (anio != null) {
-            ventas = ventas.stream().filter(v -> {
-                if (v.getFechaVenta() == null) return false;
-                boolean matchesYear = v.getFechaVenta().getYear() == anio;
-                boolean matchesMonth = (mes == null) || (v.getFechaVenta().getMonthValue() == mes);
-                return matchesYear && matchesMonth;
-            }).collect(Collectors.toList());
-        } else if (mes != null) {
-            ventas = ventas.stream().filter(v -> {
-                if (v.getFechaVenta() == null) return false;
-                return v.getFechaVenta().getMonthValue() == mes;
-            }).collect(Collectors.toList());
+            int mInicio = (mes != null) ? mes : 1;
+            int mFin = (mes != null) ? mes : 12;
+            ZoneId zonePeru = ZoneId.of("America/Lima");
+            LocalDate dInicio = LocalDate.of(anio, mInicio, 1);
+            LocalDate dFin = LocalDate.of(anio, mFin, dInicio.withMonth(mFin).lengthOfMonth());
+            OffsetDateTime inicio = dInicio.atStartOfDay(zonePeru).toOffsetDateTime();
+            OffsetDateTime fin = dFin.atTime(java.time.LocalTime.MAX).atZone(zonePeru).toOffsetDateTime();
+            ventas = ventaRepository.findByBodega_IdBodegaAndFechaVentaBetweenOrderByFechaVentaDesc(idBodega, inicio, fin);
+        } else {
+            // Protección de memoria: limitar a las últimas 150 ventas si no se especifica año
+            ventas = ventaRepository.findTop150ByBodega_IdBodegaOrderByFechaVentaDesc(idBodega);
         }
 
         StringBuilder sb = new StringBuilder();
