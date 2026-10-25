@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../features/productos/producto_model.dart';
 import '../features/ventas/venta_model.dart';
+import '../features/clientes/cliente_model.dart';
 
 import 'csv_downloader_stub.dart'
     if (dart.library.html) 'csv_downloader_web.dart' as downloader;
@@ -62,6 +63,26 @@ class CsvExporter {
       buffer.write('${v.total.toStringAsFixed(2)},');
       buffer.write('${escapar(v.estadoSunat ?? "NO_APLICA")},');
       buffer.writeln(escapar(v.estado));
+    }
+
+    return buffer.toString();
+  }
+
+  /// Genera contenido CSV formateado para libreta de clientes y cuentas fiadas
+  static String generarCsvClientes(List<Cliente> clientes) {
+    final buffer = StringBuffer();
+    buffer.writeln('NombreCompleto,Documento,Telefono,Direccion,LimiteCredito,SaldoDeudor,CreditoDisponible,EstadoDeuda,Notas');
+
+    for (final c in clientes) {
+      buffer.write('${escapar(c.nombreCompleto)},');
+      buffer.write('${escapar(c.documento ?? "-")},');
+      buffer.write('${escapar(c.telefono ?? "-")},');
+      buffer.write('${escapar(c.direccion ?? "-")},');
+      buffer.write('${c.limiteCredito.toStringAsFixed(2)},');
+      buffer.write('${c.saldoDeudor.toStringAsFixed(2)},');
+      buffer.write('${c.creditoDisponible.toStringAsFixed(2)},');
+      buffer.write('${c.tieneDeuda ? "CON_DEUDA" : "AL_DIA"},');
+      buffer.writeln(escapar(c.notas ?? ""));
     }
 
     return buffer.toString();

@@ -22,6 +22,11 @@ import '../../core/responsive_layout.dart';
 import 'bodega_service.dart';
 import 'pixel_perfect_navbar.dart';
 import 'plan_y_personal_sheet.dart';
+import 'configuracion_ticket_modal.dart';
+import '../clientes/clientes_screen.dart';
+import '../../core/offline/offline_sync_manager.dart';
+import '../../core/offline/offline_queue_sheet.dart';
+import '../../core/offline/offline_models.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -66,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    OfflineSyncManager.instance.init();
     _cargarDatosUsuario();
     _resetInactivityTimer();
     _screens = [
@@ -82,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       const VentasScreen(),
       const CajaVentasScreen(),
       const ProductosScreen(),
-      const ComprasScreen(),
+      const ClientesScreen(),
     ];
   }
 
@@ -574,6 +580,280 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 10),
 
+                      // Libreta de Fiados & Clientes
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(bottomSheetContext);
+                          setState(() {
+                            _selectedIndex = 4;
+                            _loadedTabs.add(4);
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(18),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.bookUser,
+                                  color: Color(0xFFD97706),
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Libreta de Fiados & Clientes',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            'TAB 5',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: const Color(0xFFD97706),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      'Cuentas por cobrar, abonos y recordatorios WhatsApp',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                LucideIcons.chevronRight,
+                                size: 18,
+                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Sincronización Offline (Local-First)
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(bottomSheetContext);
+                          OfflineQueueSheet.show(context);
+                        },
+                        borderRadius: BorderRadius.circular(18),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.cloudOff,
+                                  color: Color(0xFFD97706),
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Sincronización Offline (Local-First)',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        ValueListenableBuilder<List<OfflineVenta>>(
+                                          valueListenable: OfflineSyncManager.instance.pendingSalesNotifier,
+                                          builder: (context, ventas, _) {
+                                            if (ventas.isEmpty) {
+                                              return Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  'AL DÍA',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppTheme.accentGreen,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                '${ventas.length} PENDIENTES',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: const Color(0xFFD97706),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      'Cola de ventas desconectadas y catálogo local en memoria',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                LucideIcons.chevronRight,
+                                size: 18,
+                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Compras & Proveedores (Ingreso de Lotes)
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(bottomSheetContext);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ComprasScreen()),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(18),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.truck,
+                                  color: Color(0xFF0284C7),
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Compras & Proveedores',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF0284C7).withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            'INGRESOS',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: const Color(0xFF0284C7),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      'Registro de compras, facturas y stock por lotes',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                LucideIcons.chevronRight,
+                                size: 18,
+                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
                       // Plan de Suscripción & Personal de la Bodega
                       InkWell(
                         onTap: () {
@@ -665,7 +945,69 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 10),
 
-                      // 4. Botón de Ayuda
+                      // 4. Configuración de Impresora Térmica & Tickets (ESC/POS)
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(bottomSheetContext);
+                          ConfiguracionTicketModal.show(context);
+                        },
+                        borderRadius: BorderRadius.circular(18),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.printer,
+                                  color: AppTheme.brandPrimary,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Impresora Térmica & Tickets',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                      ),
+                                    ),
+                                    Text(
+                                      'ESC/POS 58/80 mm, gaveta de dinero y QR Yape/Plin',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                LucideIcons.chevronRight,
+                                size: 18,
+                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // 5. Botón de Ayuda
                       InkWell(
                         onTap: () {
                           Navigator.pop(bottomSheetContext);
@@ -1608,8 +1950,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: Text('Stock'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(LucideIcons.truck),
-                        label: Text('Compras'),
+                        icon: Icon(LucideIcons.bookUser),
+                        label: Text('Fiados'),
                       ),
                     ],
                   ),

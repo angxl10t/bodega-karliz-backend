@@ -1182,8 +1182,8 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                   ProductImageWidget(
                     imagenUrl: _imagenUrl,
                     categoria: catNombre,
-                    size: 68,
-                    borderRadius: 16,
+                    size: 80,
+                    borderRadius: 18,
                     isDark: isDark,
                     padding: 6,
                     onTap: _abrirSelectorFoto,

@@ -61,6 +61,36 @@ class Producto {
     };
   }
 
+  Producto copyWith({
+    int? idProducto,
+    int? idCategoria,
+    String? nombreCategoria,
+    String? codigo,
+    String? codigoBarras,
+    String? nombre,
+    String? marca,
+    double? precioVenta,
+    double? stockActual,
+    double? stockMinimo,
+    bool? controlaVencimiento,
+    String? imagenUrl,
+  }) {
+    return Producto(
+      idProducto: idProducto ?? this.idProducto,
+      idCategoria: idCategoria ?? this.idCategoria,
+      nombreCategoria: nombreCategoria ?? this.nombreCategoria,
+      codigo: codigo ?? this.codigo,
+      codigoBarras: codigoBarras ?? this.codigoBarras,
+      nombre: nombre ?? this.nombre,
+      marca: marca ?? this.marca,
+      precioVenta: precioVenta ?? this.precioVenta,
+      stockActual: stockActual ?? this.stockActual,
+      stockMinimo: stockMinimo ?? this.stockMinimo,
+      controlaVencimiento: controlaVencimiento ?? this.controlaVencimiento,
+      imagenUrl: imagenUrl ?? this.imagenUrl,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

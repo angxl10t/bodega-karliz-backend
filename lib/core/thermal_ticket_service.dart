@@ -1,11 +1,39 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+import 'configuracion_ticket_service.dart';
+
+/// Resultado del intento de impresión térmica
+class PrintResult {
+  final bool exito;
+  final String mensaje;
+  final bool necesitaRawBt;
+
+  const PrintResult({
+    required this.exito,
+    required this.mensaje,
+    this.necesitaRawBt = false,
+  });
+}
 
 /// Servicio de formateo y generación de tickets para impresoras térmicas ESC/POS (58mm y 80mm).
-/// Prepara el texto y bytes con alineaciones monoespacio, sanitización de caracteres y comandos estándar.
+/// Prepara el texto y bytes con alineaciones monoespacio, sanitización de caracteres,
+/// comandos de apertura de cajón monedero, códigos QR de Yape/Plin/SUNAT y dispatch directo.
 class ThermalTicketService {
   /// Ancho estándar de papel: 58mm = 32 columnas | 80mm = 48 columnas
   static const int width58mm = 32;
   static const int width80mm = 48;
+
+  /// Pulso ESC/POS para abrir gaveta de dinero (Pin 2 y Pin 5: ESC p 0 25 250)
+  static List<int> get openDrawerBytes => const [
+        0x1B, 0x70, 0x00, 0x19, 0xFA, // Pin 2
+        0x1B, 0x70, 0x01, 0x19, 0xFA, // Pin 5
+      ];
+
+  /// Comando de corte parcial / total de papel (GS V 66 0)
+  static List<int> get cutPaperBytes => const [
+        0x1D, 0x56, 0x42, 0x00,
+      ];
 
   /// Sanitiza el texto reemplazando tildes y caracteres especiales para evitar
   /// impresión de caracteres corruptos en impresoras térmicas de tabla CP437/ASCII básica.
@@ -65,6 +93,41 @@ class ThermalTicketService {
     return safeLeft + pad + cleanRight;
   }
 
+  /// Genera la secuencia binaria estándar ESC/POS para imprimir un código QR (GS ( k)
+  /// Compatible con impresoras térmicas Epson, Xprinter, Sunmi, Goojprt y Zjiang.
+  static List<int> generateEscPosQrBytes(String qrData, {int moduleSize = 5}) {
+    if (qrData.trim().isEmpty) return [];
+    final List<int> qrBytes = [];
+    final data = utf8.encode(qrData.trim());
+    final dataLen = data.length + 3;
+    final pL = dataLen % 256;
+    final pH = dataLen ~/ 256;
+
+    // 1. Alineación Centrada para el QR (ESC a 1)
+    qrBytes.addAll([0x1B, 0x61, 0x01]);
+
+    // 2. Seleccionar modelo QR (Modelo 2 estándar: GS ( k 4 0 49 65 50 0)
+    qrBytes.addAll([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]);
+
+    // 3. Ajustar tamaño del módulo de punto (GS ( k 3 0 49 67 size)
+    qrBytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, moduleSize.clamp(3, 8)]);
+
+    // 4. Ajustar nivel de corrección de error (Nivel M = 15%: GS ( k 3 0 49 69 49)
+    qrBytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x31]);
+
+    // 5. Almacenar datos del código QR en el buffer de la impresora
+    qrBytes.addAll([0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30]);
+    qrBytes.addAll(data);
+
+    // 6. Imprimir el código QR almacenado (GS ( k 3 0 49 81 48)
+    qrBytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
+
+    // 7. Salto de línea y volver a alineación izquierda
+    qrBytes.addAll([0x0A, 0x1B, 0x61, 0x00]);
+
+    return qrBytes;
+  }
+
   /// Genera el texto completo del comprobante de venta en formato texto monoespacio
   static String generateReceiptText({
     required int? ticketId,
@@ -88,11 +151,14 @@ class ThermalTicketService {
     String? estadoSunat,
     String? sunatHash,
     String? regimenTributario,
+    ConfiguracionTicket? configTicket,
   }) {
+    final cfg = configTicket ?? ConfiguracionTicketService.actual;
     final buffer = StringBuffer();
     final fechaVenta = fecha ?? DateTime.now();
     final d = fechaVenta;
-    final dateStr = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}:${d.second.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}:${d.second.toString().padLeft(2, '0')}';
 
     // Cabecera de la Bodega (Nivel 1 & 2)
     if (nombreComercio.isNotEmpty) {
@@ -180,7 +246,6 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Totales y Liquidación de Pago
-    // Nota Tributaria: En el Nuevo RUS la ley prohíbe discriminar IGV (el precio es precio cerrado al consumidor)
     if (esFactura && regimenTributario != 'NUEVO_RUS') {
       final opGravada = total / 1.18;
       final igv = total - opGravada;
@@ -199,7 +264,7 @@ class ThermalTicketService {
 
     buffer.writeln(divider(width, '-'));
 
-    // Pie de Ticket y Agradecimiento
+    // Información SUNAT si aplica
     if (esSunat) {
       if (sunatHash != null && sunatHash.trim().isNotEmpty) {
         final shortHash = sunatHash.trim().length > 16 ? '${sunatHash.trim().substring(0, 16)}...' : sunatHash.trim();
@@ -210,8 +275,42 @@ class ThermalTicketService {
       buffer.writeln(center('Autorizado mediante Resolucion SUNAT', width));
       buffer.writeln(divider(width, '-'));
     }
-    buffer.writeln(center('¡Gracias por su compra!', width));
-    buffer.writeln(center('Conserve su comprobante', width));
+
+    // Código QR de Cobro / SUNAT (Pie de Ticket)
+    if (cfg.mostrarQr) {
+      final qrType = cfg.tipoQr.toUpperCase();
+      final qrData = cfg.numeroQr.trim().isNotEmpty ? cfg.numeroQr.trim() : (telefono ?? '');
+
+      if (qrType == 'YAPE' || qrType == 'PLIN') {
+        buffer.writeln(center('PAGA CON $qrType ESCANEANDO:', width));
+        if (qrData.isNotEmpty) {
+          buffer.writeln(center('Numero: $qrData', width));
+        }
+        if (cfg.titularQr.trim().isNotEmpty) {
+          buffer.writeln(center('Titular: ${cfg.titularQr.trim()}', width));
+        }
+        // Etiqueta interpretable por RawBT / drivers térmicos
+        buffer.writeln(center('[qr]$qrData[/qr]', width));
+        buffer.writeln(divider(width, '-'));
+      } else if (qrType == 'SUNAT' && esSunat) {
+        buffer.writeln(center('[qr:SUNAT-VERIFY][/qr]', width));
+        buffer.writeln(divider(width, '-'));
+      }
+    }
+
+    // Pie de Ticket Personalizado
+    if (cfg.mensajeAgradecimiento.isNotEmpty) {
+      buffer.writeln(center(cfg.mensajeAgradecimiento, width));
+    }
+    if (cfg.mensajeSecundario.isNotEmpty) {
+      buffer.writeln(center(cfg.mensajeSecundario, width));
+    }
+    if (cfg.horarioAtencion.isNotEmpty) {
+      buffer.writeln(center(cfg.horarioAtencion, width));
+    }
+    if (cfg.redesSociales.isNotEmpty) {
+      buffer.writeln(center(cfg.redesSociales, width));
+    }
     buffer.writeln(center('CajaYa Cloud POS', width));
     buffer.writeln(); // Avance de papel
 
@@ -219,7 +318,7 @@ class ThermalTicketService {
   }
 
   /// Genera los bytes nativos con secuencias de escape ESC/POS estándar
-  /// listos para ser enviados mediante Bluetooth, USB o Red a cualquier impresora térmica.
+  /// listos para ser enviados mediante Bluetooth SPP/BLE, USB o Red a cualquier impresora térmica.
   static List<int> generateEscPosBytes({
     required int? ticketId,
     required String clienteNombre,
@@ -242,23 +341,33 @@ class ThermalTicketService {
     String? estadoSunat,
     String? sunatHash,
     String? regimenTributario,
+    ConfiguracionTicket? configTicket,
+    bool? forzarAperturaGaveta,
   }) {
+    final cfg = configTicket ?? ConfiguracionTicketService.actual;
     final List<int> bytes = [];
 
-    // 1. Inicializar impresora (ESC @)
+    // 1. Apertura de gaveta de dinero si está configurado o forzado
+    final bool debeAbrirGaveta = forzarAperturaGaveta ??
+        (cfg.abrirGaveta && metodoPago.toLowerCase().contains('efectivo'));
+    if (debeAbrirGaveta) {
+      bytes.addAll(openDrawerBytes);
+    }
+
+    // 2. Inicializar impresora (ESC @)
     bytes.addAll([0x1B, 0x40]);
 
-    // 2. Establecer alineación centrada para encabezado (ESC a 1)
+    // 3. Establecer alineación centrada para encabezado (ESC a 1)
     bytes.addAll([0x1B, 0x61, 0x01]);
 
-    // 3. Negrita activada (ESC E 1) y Doble Altura (ESC ! 16) para el título
+    // 4. Negrita activada (ESC E 1) y Doble Altura (ESC ! 16) para el nombre del comercio
     bytes.addAll([0x1B, 0x45, 0x01, 0x1B, 0x21, 0x10]);
     bytes.addAll(utf8.encode('${sanitize(nombreComercio)}\n'));
 
-    // 4. Restaurar fuente normal (ESC ! 0) y negrita desactivada (ESC E 0)
+    // 5. Restaurar fuente normal (ESC ! 0) y negrita desactivada (ESC E 0)
     bytes.addAll([0x1B, 0x21, 0x00, 0x1B, 0x45, 0x00]);
 
-    // 5. Contenido completo del ticket
+    // 6. Contenido del comprobante formateado
     final receiptText = generateReceiptText(
       ticketId: ticketId,
       clienteNombre: clienteNombre,
@@ -281,19 +390,124 @@ class ThermalTicketService {
       estadoSunat: estadoSunat,
       sunatHash: sunatHash,
       regimenTributario: regimenTributario,
+      configTicket: cfg,
     );
 
     // Volver a alineación izquierda (ESC a 0)
     bytes.addAll([0x1B, 0x61, 0x00]);
     bytes.addAll(utf8.encode(receiptText));
 
-    // 6. Avance de 4 líneas de papel (ESC d 4)
+    // 7. Si hay código QR activo, imprimir el código QR binario nativo ESC/POS
+    if (cfg.mostrarQr) {
+      final qrType = cfg.tipoQr.toUpperCase();
+      String qrPayload = cfg.numeroQr.trim().isNotEmpty ? cfg.numeroQr.trim() : (telefono ?? '');
+
+      if (qrType == 'YAPE') {
+        qrPayload = 'https://yape.pe/p/$qrPayload';
+      } else if (qrType == 'PLIN') {
+        qrPayload = 'https://plin.pe/p/$qrPayload';
+      } else if (qrType == 'SUNAT' && sunatHash != null && sunatHash.isNotEmpty) {
+        qrPayload = '$rucDni|$tipoComprobante|${serieCorrelativo ?? ""}|$total|$sunatHash';
+      }
+
+      if (qrPayload.isNotEmpty) {
+        final qrBytes = generateEscPosQrBytes(qrPayload, moduleSize: width == width58mm ? 4 : 6);
+        bytes.addAll(qrBytes);
+      }
+    }
+
+    // 8. Avance de 4 líneas de papel (ESC d 4)
     bytes.addAll([0x1B, 0x64, 0x04]);
 
-    // 7. Corte de papel parcial/total si la impresora lo soporta (GS V 66 0)
-    bytes.addAll([0x1D, 0x56, 0x42, 0x00]);
+    // 9. Corte de papel parcial / total (GS V 66 0)
+    bytes.addAll(cutPaperBytes);
 
     return bytes;
+  }
+
+  /// Despacha la impresión directa al hardware (vía RawBT en móvil/web, servidor local HTTP o fallback)
+  static Future<PrintResult> imprimirTicketDirecto({
+    required List<int> escPosBytes,
+    required String receiptText,
+    ConfiguracionTicket? config,
+  }) async {
+    final cfg = config ?? ConfiguracionTicketService.actual;
+
+    // Modo 1: RawBT (Bluetooth SPP/BLE, USB y Network)
+    if (cfg.modoConexion == 'rawbt') {
+      try {
+        final b64 = base64Encode(escPosBytes);
+        final rawbtUri = Uri.parse('rawbt:data:application/octet-stream;base64,$b64');
+
+        final launched = await launchUrl(rawbtUri, mode: LaunchMode.externalApplication);
+        if (launched) {
+          return const PrintResult(
+            exito: true,
+            mensaje: 'Ticket enviado a la impresora térmica vía RawBT.',
+          );
+        }
+      } catch (_) {}
+
+      // Intentar fallback al servidor local de RawBT (http://127.0.0.1:40213/)
+      try {
+        final response = await http
+            .post(
+              Uri.parse(cfg.servidorLocalUrl),
+              body: escPosBytes,
+              headers: {'Content-Type': 'application/octet-stream'},
+            )
+            .timeout(const Duration(milliseconds: 1800));
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return const PrintResult(
+            exito: true,
+            mensaje: 'Ticket impreso directamente vía RawBT Local Bridge.',
+          );
+        }
+      } catch (_) {}
+
+      return const PrintResult(
+        exito: false,
+        mensaje: 'No se detectó el servicio de impresión RawBT. Instala RawBT en Android o activa el servidor local.',
+        necesitaRawBt: true,
+      );
+    }
+
+    // Modo 2: Servidor Local HTTP de Impresión (ej. 127.0.0.1:40213 o IP de red local)
+    if (cfg.modoConexion == 'servidor_local') {
+      try {
+        final response = await http
+            .post(
+              Uri.parse(cfg.servidorLocalUrl),
+              body: escPosBytes,
+              headers: {'Content-Type': 'application/octet-stream'},
+            )
+            .timeout(const Duration(seconds: 3));
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          return const PrintResult(
+            exito: true,
+            mensaje: 'Comando enviado con éxito al servidor local de impresión.',
+          );
+        } else {
+          return PrintResult(
+            exito: false,
+            mensaje: 'El servidor local de impresión respondió con código ${response.statusCode}.',
+          );
+        }
+      } catch (e) {
+        return PrintResult(
+          exito: false,
+          mensaje: 'No se pudo conectar al servidor de impresión en ${cfg.servidorLocalUrl}. Revisa que esté activo.',
+        );
+      }
+    }
+
+    // Modo 3: Navegador Web / Fallback Estándar
+    return const PrintResult(
+      exito: true,
+      mensaje: 'Ticket generado para vista o impresión desde el navegador.',
+    );
   }
 }
 

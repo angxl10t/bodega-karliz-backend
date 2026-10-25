@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../../core/api_client.dart';
+import '../../core/offline/offline_catalog_service.dart';
+import '../../core/offline/offline_sync_manager.dart';
 import 'producto_model.dart';
 
 class ProductoService {
@@ -30,6 +32,8 @@ class ProductoService {
 
   /// Lista los productos disponibles. Si hay una copia en memoria reciente (< 45s) y no se
   /// solicita forceRefresh, la retorna de forma instantánea sin demora de red.
+  /// Si el backend no responde o no hay internet, recurre automáticamente al catálogo
+  /// persistente local de contingencia (Local-First).
   Future<List<Producto>> getProductos({bool forceRefresh = false}) async {
     if (!forceRefresh && _cachedProductos != null && _cacheTimestamp != null) {
       if (DateTime.now().difference(_cacheTimestamp!) < _cacheDuration) {
@@ -44,10 +48,30 @@ class ProductoService {
         final prods = jsonList.map((json) => Producto.fromJson(json)).toList();
         _cachedProductos = prods;
         _cacheTimestamp = DateTime.now();
+
+        // Almacenar en caché local persistente para contingencias offline
+        OfflineCatalogService().saveCatalog(prods);
+        OfflineSyncManager.instance.isOfflineNotifier.value = false;
+
         return List<Producto>.from(prods);
+      }
+
+      // Fallback resiliente al catálogo local
+      final localProds = await OfflineCatalogService().getCachedCatalog();
+      if (localProds.isNotEmpty) {
+        _cachedProductos = localProds;
+        OfflineSyncManager.instance.isOfflineNotifier.value = true;
+        return List<Producto>.from(localProds);
       }
       return _cachedProductos != null ? List<Producto>.from(_cachedProductos!) : [];
     } catch (e) {
+      // Fallback resiliente ante cortes de red o caídas de servidor
+      final localProds = await OfflineCatalogService().getCachedCatalog();
+      if (localProds.isNotEmpty) {
+        _cachedProductos = localProds;
+        OfflineSyncManager.instance.isOfflineNotifier.value = true;
+        return List<Producto>.from(localProds);
+      }
       return _cachedProductos != null ? List<Producto>.from(_cachedProductos!) : [];
     }
   }

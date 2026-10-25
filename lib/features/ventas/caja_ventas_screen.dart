@@ -411,6 +411,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final totalYape = c?.totalYape ?? 0.0;
     final totalPlin = c?.totalPlin ?? 0.0;
     final totalTarjeta = c?.totalTarjeta ?? 0.0;
+    final totalCredito = c?.totalCredito ?? 0.0;
     final cantidadVentas = c?.cantidadVentas ?? 0;
     final fondoInicial = c?.fondoInicial ?? 0.0;
     final totalEgresos = c?.totalEgresos ?? 0.0;
@@ -448,6 +449,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     msg.writeln('• Yape: S/ ${totalYape.toStringAsFixed(2)}');
     msg.writeln('• Plin: S/ ${totalPlin.toStringAsFixed(2)}');
     msg.writeln('• Tarjetas: S/ ${totalTarjeta.toStringAsFixed(2)}');
+    if (totalCredito > 0) {
+      msg.writeln('• Fiados / Crédito: S/ ${totalCredito.toStringAsFixed(2)}');
+    }
     msg.writeln('------------------------------------------');
     msg.writeln('💰 *TOTAL RECAUDADO:* S/ ${totalVendido.toStringAsFixed(2)} ($cantidadVentas ventas)');
 
@@ -1490,6 +1494,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final totalYape = c?.totalYape ?? 0.0;
     final totalPlin = c?.totalPlin ?? 0.0;
     final totalTarjeta = c?.totalTarjeta ?? 0.0;
+    final totalCredito = c?.totalCredito ?? 0.0;
     final cantidadVentas = c?.cantidadVentas ?? 0;
     final esHoy = _esMismoDia(_fechaSeleccionada, DateTime.now());
 
@@ -1768,6 +1773,16 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                           isDark: isDark,
                           descripcion: 'Cobros débito / crédito',
                         ),
+                        if (totalCredito > 0)
+                          _buildCanalPagoTile(
+                            width: tileWidth,
+                            titulo: 'Crédito / Fiados',
+                            monto: totalCredito,
+                            icon: LucideIcons.handCoins,
+                            color: const Color(0xFFD97706),
+                            isDark: isDark,
+                            descripcion: 'Pendiente de cobro en Libreta',
+                          ),
                       ],
                     );
                   },

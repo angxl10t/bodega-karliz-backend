@@ -810,13 +810,49 @@ class _ProductosScreenState extends State<ProductosScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Packshot de Estudio Frontal o Icono de Categoría
-                ProductImageWidget(
-                  imagenUrl: p.imagenUrl,
-                  categoria: p.nombreCategoria,
-                  size: 46,
-                  borderRadius: 14,
-                  isDark: isDark,
+                // Packshot de Estudio Frontal (72 px) con Botón Info (i)
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ProductImageWidget(
+                      imagenUrl: p.imagenUrl,
+                      categoria: p.nombreCategoria,
+                      size: 72,
+                      borderRadius: 18,
+                      isDark: isDark,
+                      padding: 4,
+                    ),
+                    Positioned(
+                      top: -3,
+                      right: -3,
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.1),
+                              blurRadius: 3,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            LucideIcons.info,
+                            size: 10.5,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(width: 12),
 
@@ -993,15 +1029,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
               ),
               const SizedBox(height: 18),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Packshot de Estudio Frontal o Icono de Categoría
+                  // Packshot de Estudio Frontal en Gran Detalle (130 px)
                   ProductImageWidget(
                     imagenUrl: p.imagenUrl,
                     categoria: p.nombreCategoria,
-                    size: 58,
-                    borderRadius: 18,
+                    size: 130,
+                    borderRadius: 24,
                     isDark: isDark,
-                    padding: 6,
+                    padding: 8,
                   ),
                   const SizedBox(width: 14),
                   Expanded(

@@ -11,6 +11,9 @@ import '../home/plan_y_personal_sheet.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../ventas/venta_model.dart';
 import '../ventas/venta_service.dart';
+import '../clientes/cliente_model.dart';
+import '../clientes/cliente_service.dart';
+import '../compras/compras_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -27,8 +30,10 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final ProductoService _productoService = ProductoService();
   final VentaService _ventaService = VentaService();
+  final ClienteService _clienteService = ClienteService();
   List<Producto> _productos = [];
   CierreCaja? _cierreHoy;
+  ResumenCreditos? _resumenCreditos;
   String _nombreBodega = 'CajaYa POS';
   String _username = 'Usuario';
   String _userRol = 'ADMIN';
@@ -85,6 +90,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       auth.getRucBodega(),
       auth.getTelefonoBodega(),
       auth.getDireccionBodega(),
+      _clienteService.obtenerResumenCreditos(),
     ]);
     if (mounted) {
       setState(() {
@@ -97,6 +103,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _ruc = (results[6] as String?) ?? '';
         _telefono = (results[7] as String?) ?? '';
         _direccion = (results[8] as String?) ?? '';
+        _resumenCreditos = results[9] as ResumenCreditos?;
         _isLoading = false;
       });
     }
@@ -183,6 +190,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               accentColor: AppTheme.accentGreen,
                               isDark: isDark,
                               onTap: () => widget.onNavigateTab(2), // Tab Arqueo
+                            ),
+                            _buildMetricTile(
+                              constraints: constraints,
+                              title: 'Fiados & Vecinos',
+                              value: 'S/ ${(_resumenCreditos?.totalDeuda ?? 0.0).toStringAsFixed(2)}',
+                              subtitle: '${_resumenCreditos?.clientesConDeuda ?? 0} con saldo pendiente',
+                              icon: LucideIcons.bookUser,
+                              accentColor: const Color(0xFFD97706),
+                              isDark: isDark,
+                              onTap: () => widget.onNavigateTab(4), // Tab Fiados
                             ),
                             _buildMetricTile(
                               constraints: constraints,
@@ -276,6 +293,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             _buildQuickActionBtn(
                               width: btnWidth,
+                              title: 'Libreta de Fiados',
+                              subtitle: 'Cobros & WhatsApp',
+                              icon: LucideIcons.bookUser,
+                              color: const Color(0xFFD97706),
+                              isDark: isDark,
+                              onTap: () => widget.onNavigateTab(4), // Tab Fiados
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
                               title: 'Ver Inventario',
                               subtitle: 'Stock & Filtros',
                               icon: LucideIcons.boxes,
@@ -290,7 +316,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.truck,
                               color: const Color(0xFF0284C7),
                               isDark: isDark,
-                              onTap: () => widget.onNavigateTab(4), // Tab Compras
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const ComprasScreen()),
+                                );
+                              },
                             ),
                             _buildQuickActionBtn(
                               width: btnWidth,
@@ -1152,6 +1183,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   buildChannelBox('Yape', yp, const Color(0xFF732283), LucideIcons.smartphone),
                   buildChannelBox('Plin', pl, const Color(0xFF0084FF), LucideIcons.smartphone),
                   buildChannelBox('Tarjeta', tj, const Color(0xFF6366F1), LucideIcons.creditCard),
+                  if ((_cierreHoy?.totalCredito ?? 0.0) > 0)
+                    buildChannelBox('Crédito', _cierreHoy!.totalCredito, const Color(0xFFD97706), LucideIcons.handCoins),
                 ],
               );
             },

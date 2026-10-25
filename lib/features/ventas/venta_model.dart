@@ -13,6 +13,7 @@ class VentaDetalleEnvio {
 }
 
 class VentaEnvio {
+  final int? idCliente;
   final String? clienteDocumento;
   final String clienteNombre;
   final String metodoPago;
@@ -22,6 +23,7 @@ class VentaEnvio {
   final double? montoRecibido;
 
   VentaEnvio({
+    this.idCliente,
     this.clienteDocumento,
     required this.clienteNombre,
     required this.metodoPago,
@@ -32,6 +34,7 @@ class VentaEnvio {
   });
 
   Map<String, dynamic> toJson() => {
+        if (idCliente != null) 'idCliente': idCliente,
         'clienteDocumento': clienteDocumento,
         'clienteNombre': clienteNombre,
         'metodoPago': metodoPago,
@@ -85,6 +88,7 @@ class VentaDetalleItem {
 /// Venta histórica retornada por la API
 class VentaRegistro {
   final int idVenta;
+  final int? idCliente;
   final String? clienteDocumento;
   final String? clienteNombre;
   final String metodoPago;
@@ -109,6 +113,7 @@ class VentaRegistro {
 
   VentaRegistro({
     required this.idVenta,
+    this.idCliente,
     this.clienteDocumento,
     this.clienteNombre,
     required this.metodoPago,
@@ -145,6 +150,7 @@ class VentaRegistro {
   factory VentaRegistro.fromJson(Map<String, dynamic> json) {
     return VentaRegistro(
       idVenta: (json['idVenta'] as num?)?.toInt() ?? 0,
+      idCliente: (json['idCliente'] as num?)?.toInt(),
       clienteDocumento: json['clienteDocumento'] as String?,
       clienteNombre: json['clienteNombre'] as String? ?? 'Público General',
       metodoPago: json['metodoPago'] as String? ?? 'Efectivo',
@@ -220,6 +226,7 @@ class CierreCaja {
   final double totalYape;
   final double totalPlin;
   final double totalTarjeta;
+  final double totalCredito;
   final int cantidadVentas;
   final DateTime? fecha;
 
@@ -237,6 +244,7 @@ class CierreCaja {
     required this.totalYape,
     required this.totalPlin,
     required this.totalTarjeta,
+    this.totalCredito = 0.0,
     required this.cantidadVentas,
     this.fecha,
     this.fondoInicial = 0.0,
@@ -264,6 +272,7 @@ class CierreCaja {
       totalYape: (json['totalYape'] as num?)?.toDouble() ?? 0.0,
       totalPlin: (json['totalPlin'] as num?)?.toDouble() ?? 0.0,
       totalTarjeta: (json['totalTarjeta'] as num?)?.toDouble() ?? 0.0,
+      totalCredito: (json['totalCredito'] as num?)?.toDouble() ?? 0.0,
       cantidadVentas: (json['cantidadVentas'] as num?)?.toInt() ?? 0,
       fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha'].toString()) : null,
       fondoInicial: fIni,

@@ -61,9 +61,8 @@ class KarlizPixelPerfectNavBar extends StatefulWidget {
       label: 'Stock',
     ),
     KarlizNavItem(
-      iconWidgetBuilder: (c, s) => KarlizTruckIcon(color: c, size: s),
-      icon: LucideIcons.truck,
-      label: 'Compras',
+      icon: LucideIcons.bookUser,
+      label: 'Fiados',
     ),
   ];
 
