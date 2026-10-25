@@ -12,7 +12,8 @@ import java.time.OffsetDateTime;
     @Index(name = "idx_ventas_bodega_fecha", columnList = "id_bodega, fecha_venta DESC"),
     @Index(name = "idx_ventas_bodega_idemp", columnList = "id_bodega, idempotency_key"),
     @Index(name = "idx_ventas_fecha", columnList = "fecha_venta DESC"),
-    @Index(name = "idx_ventas_estado", columnList = "estado")
+    @Index(name = "idx_ventas_estado", columnList = "estado"),
+    @Index(name = "idx_ventas_cliente", columnList = "id_cliente")
 })
 public class Venta {
     @Id
@@ -88,6 +89,10 @@ public class Venta {
     // Idempotencia para prevenir doble cobro o duplicidad por reintentos de red
     @Column(name = "idempotency_key", length = 64)
     private String idempotencyKey;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_cliente")
+    private Cliente cliente;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_bodega")

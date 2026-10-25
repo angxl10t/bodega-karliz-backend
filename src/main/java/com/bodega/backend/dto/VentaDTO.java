@@ -13,13 +13,15 @@ import java.util.List;
 public class VentaDTO {
     private Long idVenta;
 
+    private Long idCliente;
+
     @Size(max = 20, message = "El documento del cliente no puede exceder los 20 caracteres")
     private String clienteDocumento;
 
     @Size(max = 150, message = "El nombre del cliente no puede exceder los 150 caracteres")
     private String clienteNombre;
 
-    @Pattern(regexp = "(?i)^(Efectivo|Yape|Plin|Tarjeta)$", message = "El método de pago debe ser: Efectivo, Yape, Plin o Tarjeta")
+    @Pattern(regexp = "(?i)^(Efectivo|Yape|Plin|Tarjeta|Crédito|Credito|Fiado)$", message = "El método de pago debe ser: Efectivo, Yape, Plin, Tarjeta o Crédito")
     @Size(max = 50, message = "El método de pago no puede exceder los 50 caracteres")
     private String metodoPago;
     private BigDecimal montoRecibido;

@@ -8,6 +8,7 @@ import com.bodega.backend.repository.MovimientoInventarioRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import com.bodega.backend.repository.VentaDetalleRepository;
 import com.bodega.backend.repository.VentaRepository;
+import com.bodega.backend.repository.ClienteRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,9 @@ public class VentaServiceTest {
 
     @Mock
     private SunatRestEmissionService sunatRestEmissionService;
+
+    @Mock
+    private ClienteRepository clienteRepository;
 
     @InjectMocks
     private VentaService ventaService;

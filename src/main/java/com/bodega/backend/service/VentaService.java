@@ -30,6 +30,7 @@ public class VentaService {
     private final TenantService tenantService;
     private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
     private final SunatRestEmissionService sunatRestEmissionService;
+    private final ClienteRepository clienteRepository;
 
     public VentaService(VentaRepository ventaRepository,
                         VentaDetalleRepository ventaDetalleRepository,
@@ -37,7 +38,8 @@ public class VentaService {
                         MovimientoInventarioRepository movimientoInventarioRepository,
                         TenantService tenantService,
                         com.bodega.backend.repository.BodegaRepository bodegaRepository,
-                        SunatRestEmissionService sunatRestEmissionService) {
+                        SunatRestEmissionService sunatRestEmissionService,
+                        ClienteRepository clienteRepository) {
         this.ventaRepository = ventaRepository;
         this.ventaDetalleRepository = ventaDetalleRepository;
         this.productoRepository = productoRepository;
@@ -45,6 +47,7 @@ public class VentaService {
         this.tenantService = tenantService;
         this.bodegaRepository = bodegaRepository;
         this.sunatRestEmissionService = sunatRestEmissionService;
+        this.clienteRepository = clienteRepository;
     }
 
     @Transactional
@@ -70,6 +73,18 @@ public class VentaService {
         }
         String docCliente = sanitizarTextoImpresion(dto.getClienteDocumento(), 20, null);
         String nomCliente = sanitizarTextoImpresion(dto.getClienteNombre(), 150, "Público General");
+
+        if (dto.getIdCliente() != null) {
+            Cliente c = clienteRepository.findByIdClienteAndBodega_IdBodega(dto.getIdCliente(), idBodega)
+                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + dto.getIdCliente()));
+            venta.setCliente(c);
+            if (nomCliente == null || "Público General".equals(nomCliente)) {
+                nomCliente = c.getNombreCompleto();
+            }
+            if (docCliente == null && c.getDocumento() != null) {
+                docCliente = c.getDocumento();
+            }
+        }
 
         venta.setClienteDocumento(docCliente);
         venta.setClienteNombre(nomCliente);
@@ -158,6 +173,26 @@ public class VentaService {
         }
 
         venta.setTotal(totalVenta);
+
+        boolean esCredito = "Crédito".equalsIgnoreCase(dto.getMetodoPago()) ||
+                            "Credito".equalsIgnoreCase(dto.getMetodoPago()) ||
+                            "Fiado".equalsIgnoreCase(dto.getMetodoPago());
+        if (esCredito) {
+            if (venta.getCliente() == null) {
+                throw new RuntimeException("Para registrar una venta al Crédito (Fiado) es obligatorio seleccionar o registrar un Cliente.");
+            }
+            Cliente cliente = venta.getCliente();
+            BigDecimal saldoActual = cliente.getSaldoDeudor() != null ? cliente.getSaldoDeudor() : BigDecimal.ZERO;
+            BigDecimal nuevoSaldo = saldoActual.add(totalVenta);
+            BigDecimal limite = cliente.getLimiteCredito() != null ? cliente.getLimiteCredito() : new BigDecimal("200.00");
+
+            if (nuevoSaldo.compareTo(limite) > 0) {
+                throw new RuntimeException("Límite de crédito excedido para " + cliente.getNombreCompleto() +
+                        ". Límite: S/ " + limite.toPlainString() + ", Saldo resultante: S/ " + nuevoSaldo.toPlainString());
+            }
+            cliente.setSaldoDeudor(nuevoSaldo);
+            clienteRepository.save(cliente);
+        }
 
         // Auditoría de Caja: Monto recibido en efectivo y vuelto entregado
         if (dto.getMontoRecibido() != null && dto.getMontoRecibido().compareTo(BigDecimal.ZERO) > 0) {
@@ -349,6 +384,7 @@ public class VentaService {
         BigDecimal totalYape = BigDecimal.ZERO;
         BigDecimal totalPlin = BigDecimal.ZERO;
         BigDecimal totalTarjeta = BigDecimal.ZERO;
+        BigDecimal totalCredito = BigDecimal.ZERO;
         int cantidadVentasValidas = 0;
 
         if (ventas != null) {
@@ -369,6 +405,8 @@ public class VentaService {
                     totalPlin = totalPlin.add(tot);
                 } else if (metodo.contains("tarjeta") || metodo.contains("pos") || metodo.contains("card")) {
                     totalTarjeta = totalTarjeta.add(tot);
+                } else if (metodo.contains("crédito") || metodo.contains("credito") || metodo.contains("fiado")) {
+                    totalCredito = totalCredito.add(tot);
                 } else {
                     totalEfectivo = totalEfectivo.add(tot);
                     BigDecimal recibido = v.getMontoRecibido() != null ? v.getMontoRecibido() : tot;
@@ -387,6 +425,7 @@ public class VentaService {
         resumen.setTotalYape(totalYape);
         resumen.setTotalPlin(totalPlin);
         resumen.setTotalTarjeta(totalTarjeta);
+        resumen.setTotalCredito(totalCredito);
 
         return resumen;
     }
@@ -484,6 +523,21 @@ public class VentaService {
             venta.setSunatMensaje(msgPrevio.isEmpty() ? avisoSunat : msgPrevio + " | " + avisoSunat);
         }
 
+        // Revertir saldo deudor del cliente si fue venta a crédito
+        if (venta.getCliente() != null) {
+            boolean esCredito = "Crédito".equalsIgnoreCase(venta.getMetodoPago()) ||
+                                "Credito".equalsIgnoreCase(venta.getMetodoPago()) ||
+                                "Fiado".equalsIgnoreCase(venta.getMetodoPago());
+            if (esCredito) {
+                Cliente c = venta.getCliente();
+                BigDecimal saldoActual = c.getSaldoDeudor() != null ? c.getSaldoDeudor() : BigDecimal.ZERO;
+                BigDecimal nuevoSaldo = saldoActual.subtract(venta.getTotal());
+                if (nuevoSaldo.compareTo(BigDecimal.ZERO) < 0) nuevoSaldo = BigDecimal.ZERO;
+                c.setSaldoDeudor(nuevoSaldo);
+                clienteRepository.save(c);
+            }
+        }
+
         ventaRepository.save(venta);
     }
 
@@ -537,6 +591,7 @@ public class VentaService {
     private VentaDTO mapToDTO(Venta venta, List<VentaDetalle> detalles) {
         VentaDTO dto = new VentaDTO();
         dto.setIdVenta(venta.getIdVenta());
+        dto.setIdCliente(venta.getCliente() != null ? venta.getCliente().getIdCliente() : null);
         dto.setClienteDocumento(venta.getClienteDocumento());
         dto.setClienteNombre(venta.getClienteNombre());
         dto.setMetodoPago(venta.getMetodoPago());

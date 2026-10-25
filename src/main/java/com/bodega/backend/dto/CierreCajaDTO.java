@@ -15,6 +15,7 @@ public class CierreCajaDTO {
     private BigDecimal totalYape = BigDecimal.ZERO;
     private BigDecimal totalPlin = BigDecimal.ZERO;
     private BigDecimal totalTarjeta = BigDecimal.ZERO;
+    private BigDecimal totalCredito = BigDecimal.ZERO;
     private Integer cantidadVentas = 0;
     private OffsetDateTime fecha;
 
