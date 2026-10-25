@@ -24,4 +24,10 @@ public class CierreCajaDTO {
     private BigDecimal totalEgresos = BigDecimal.ZERO;
     private BigDecimal totalEfectivoEsperado = BigDecimal.ZERO;
     private List<EgresoCajaDTO> egresos = new ArrayList<>();
+
+    // Cobranza de Fiados / Deudas de Clientes (Abonos)
+    private BigDecimal totalAbonosCobrados = BigDecimal.ZERO;
+    private BigDecimal totalAbonosEfectivo = BigDecimal.ZERO;
+    private BigDecimal totalAbonosDigitales = BigDecimal.ZERO;
+    private Integer cantidadAbonos = 0;
 }

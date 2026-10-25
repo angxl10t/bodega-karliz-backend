@@ -129,7 +129,9 @@ public class ClienteService {
     @Transactional
     public AbonoCreditoDTO registrarAbono(Long idCliente, RegistrarAbonoDTO dto) {
         Long idBodega = tenantService.getCurrentBodegaId();
-        Cliente c = clienteRepository.findByIdClienteAndBodega_IdBodega(idCliente, idBodega)
+        // Bloqueo pesimista exclusivo (SELECT ... FOR UPDATE) para evitar condiciones de carrera (Lost Update)
+        // con ventas concurrentes al crédito o abonos simultáneos del mismo cliente
+        Cliente c = clienteRepository.findByIdForUpdateAndBodega(idCliente, idBodega)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + idCliente));
 
         if (Boolean.FALSE.equals(c.getEstado())) {

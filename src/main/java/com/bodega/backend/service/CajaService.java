@@ -3,12 +3,15 @@ package com.bodega.backend.service;
 import com.bodega.backend.dto.CierreCajaDTO;
 import com.bodega.backend.dto.EgresoCajaDTO;
 import com.bodega.backend.dto.FondoCajaDTO;
+import com.bodega.backend.entity.AbonoCredito;
 import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.entity.EgresoCaja;
 import com.bodega.backend.entity.FondoCaja;
+import com.bodega.backend.repository.AbonoCreditoRepository;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.EgresoCajaRepository;
 import com.bodega.backend.repository.FondoCajaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -31,17 +34,29 @@ public class CajaService {
     private final BodegaRepository bodegaRepository;
     private final TenantService tenantService;
     private final VentaService ventaService;
+    private final AbonoCreditoRepository abonoCreditoRepository;
 
     public CajaService(EgresoCajaRepository egresoCajaRepository,
                        FondoCajaRepository fondoCajaRepository,
                        BodegaRepository bodegaRepository,
                        TenantService tenantService,
                        VentaService ventaService) {
+        this(egresoCajaRepository, fondoCajaRepository, bodegaRepository, tenantService, ventaService, null);
+    }
+
+    @Autowired
+    public CajaService(EgresoCajaRepository egresoCajaRepository,
+                       FondoCajaRepository fondoCajaRepository,
+                       BodegaRepository bodegaRepository,
+                       TenantService tenantService,
+                       VentaService ventaService,
+                       @Autowired(required = false) AbonoCreditoRepository abonoCreditoRepository) {
         this.egresoCajaRepository = egresoCajaRepository;
         this.fondoCajaRepository = fondoCajaRepository;
         this.bodegaRepository = bodegaRepository;
         this.tenantService = tenantService;
         this.ventaService = ventaService;
+        this.abonoCreditoRepository = abonoCreditoRepository;
     }
 
     private String getUsuarioActual() {
@@ -175,12 +190,48 @@ public class CajaService {
 
         BigDecimal fondoInicial = fondoDTO.getMontoInicial() != null ? fondoDTO.getMontoInicial() : BigDecimal.ZERO;
         BigDecimal efectivoVentas = cierre.getTotalEfectivo() != null ? cierre.getTotalEfectivo() : BigDecimal.ZERO;
-        BigDecimal totalEfectivoEsperado = fondoInicial.add(efectivoVentas).subtract(totalEgresos);
+
+        // Conciliación contable de Cobranza de Fiados (Abonos recibidos en el turno)
+        BigDecimal totalAbonosCobrados = BigDecimal.ZERO;
+        BigDecimal totalAbonosEfectivo = BigDecimal.ZERO;
+        BigDecimal totalAbonosDigitales = BigDecimal.ZERO;
+        int cantidadAbonos = 0;
+
+        if (abonoCreditoRepository != null) {
+            Long idBodega = tenantService.getCurrentBodegaId();
+            OffsetDateTime inicio = targetFecha.atStartOfDay(ZONE_PERU).toOffsetDateTime();
+            OffsetDateTime fin = targetFecha.atTime(23, 59, 59, 999999999).atZone(ZONE_PERU).toOffsetDateTime();
+
+            List<AbonoCredito> abonos = abonoCreditoRepository
+                    .findByBodega_IdBodegaAndFechaAbonoBetweenOrderByFechaAbonoDesc(idBodega, inicio, fin);
+
+            if (abonos != null) {
+                cantidadAbonos = abonos.size();
+                for (AbonoCredito a : abonos) {
+                    BigDecimal monto = a.getMonto() != null ? a.getMonto() : BigDecimal.ZERO;
+                    totalAbonosCobrados = totalAbonosCobrados.add(monto);
+                    String metodo = a.getMetodoPago() != null ? a.getMetodoPago().toLowerCase().trim() : "efectivo";
+                    if (metodo.contains("efectivo") || "cash".equals(metodo)) {
+                        totalAbonosEfectivo = totalAbonosEfectivo.add(monto);
+                    } else {
+                        totalAbonosDigitales = totalAbonosDigitales.add(monto);
+                    }
+                }
+            }
+        }
+
+        // El efectivo físico esperado en la gaveta = Fondo Inicial + Ventas en Efectivo + Cobros de Fiados en Efectivo - Gastos/Egresos
+        BigDecimal totalEfectivoEsperado = fondoInicial.add(efectivoVentas).add(totalAbonosEfectivo).subtract(totalEgresos);
 
         cierre.setFondoInicial(fondoInicial);
         cierre.setTotalEgresos(totalEgresos);
         cierre.setTotalEfectivoEsperado(totalEfectivoEsperado);
         cierre.setEgresos(egresos);
+
+        cierre.setTotalAbonosCobrados(totalAbonosCobrados);
+        cierre.setTotalAbonosEfectivo(totalAbonosEfectivo);
+        cierre.setTotalAbonosDigitales(totalAbonosDigitales);
+        cierre.setCantidadAbonos(cantidadAbonos);
 
         return cierre;
     }

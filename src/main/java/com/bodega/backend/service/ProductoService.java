@@ -11,6 +11,7 @@ import com.bodega.backend.repository.MovimientoInventarioRepository;
 import com.bodega.backend.repository.PresentacionRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,17 +27,30 @@ public class ProductoService {
     private final MovimientoInventarioRepository movimientoInventarioRepository;
     private final PresentacionRepository presentacionRepository;
     private final TenantService tenantService;
+    private final AnalyticsService analyticsService;
 
     public ProductoService(ProductoRepository productoRepository, 
                            CategoriaRepository categoriaRepository,
                            MovimientoInventarioRepository movimientoInventarioRepository,
                            PresentacionRepository presentacionRepository,
                            TenantService tenantService) {
+        this(productoRepository, categoriaRepository, movimientoInventarioRepository,
+             presentacionRepository, tenantService, null);
+    }
+
+    @Autowired
+    public ProductoService(ProductoRepository productoRepository, 
+                           CategoriaRepository categoriaRepository,
+                           MovimientoInventarioRepository movimientoInventarioRepository,
+                           PresentacionRepository presentacionRepository,
+                           TenantService tenantService,
+                           @Autowired(required = false) AnalyticsService analyticsService) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.presentacionRepository = presentacionRepository;
         this.tenantService = tenantService;
+        this.analyticsService = analyticsService;
     }
 
     @PostConstruct
@@ -241,6 +255,11 @@ public class ProductoService {
             movimientoInventarioRepository.save(mov);
         }
 
+        // Invalidar caché de métricas BI para reflejar nuevo producto en inventario
+        if (analyticsService != null) {
+            analyticsService.invalidateCache(idBodega);
+        }
+
         return mapToDTO(guardado);
     }
 
@@ -351,6 +370,12 @@ public class ProductoService {
         }
 
         Producto actualizado = productoRepository.save(producto);
+
+        // Invalidar caché de métricas BI para reflejar cambios de precio o stock
+        if (analyticsService != null) {
+            analyticsService.invalidateCache(idBodega);
+        }
+
         return mapToDTO(actualizado);
     }
 
@@ -381,6 +406,11 @@ public class ProductoService {
         for (Presentacion p : presentaciones) {
             p.setEstado(false);
             presentacionRepository.save(p);
+        }
+
+        // Invalidar caché de métricas BI para reflejar producto dado de baja
+        if (analyticsService != null) {
+            analyticsService.invalidateCache(idBodega);
         }
     }
 

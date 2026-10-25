@@ -197,10 +197,15 @@ public class VentaService {
                             "Credito".equalsIgnoreCase(dto.getMetodoPago()) ||
                             "Fiado".equalsIgnoreCase(dto.getMetodoPago());
         if (esCredito) {
-            if (venta.getCliente() == null) {
+            if (venta.getCliente() == null && dto.getIdCliente() == null) {
                 throw new RuntimeException("Para registrar una venta al Crédito (Fiado) es obligatorio seleccionar o registrar un Cliente.");
             }
-            Cliente cliente = venta.getCliente();
+            Long idCliente = dto.getIdCliente() != null ? dto.getIdCliente() : venta.getCliente().getIdCliente();
+            // Bloqueo pesimista exclusivo (SELECT ... FOR UPDATE) para garantizar consistencia atómica del saldo y límite de crédito
+            Cliente cliente = clienteRepository.findByIdForUpdateAndBodega(idCliente, idBodega)
+                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado para crédito con ID: " + idCliente));
+            venta.setCliente(cliente);
+
             BigDecimal saldoActual = cliente.getSaldoDeudor() != null ? cliente.getSaldoDeudor() : BigDecimal.ZERO;
             BigDecimal nuevoSaldo = saldoActual.add(totalVenta);
             BigDecimal limite = cliente.getLimiteCredito() != null ? cliente.getLimiteCredito() : new BigDecimal("200.00");
@@ -570,13 +575,15 @@ public class VentaService {
             venta.setSunatMensaje(msgPrevio.isEmpty() ? avisoSunat : msgPrevio + " | " + avisoSunat);
         }
 
-        // Revertir saldo deudor del cliente si fue venta a crédito
+        // Revertir saldo deudor del cliente si fue venta a crédito con bloqueo pesimista
         if (venta.getCliente() != null) {
             boolean esCredito = "Crédito".equalsIgnoreCase(venta.getMetodoPago()) ||
                                 "Credito".equalsIgnoreCase(venta.getMetodoPago()) ||
                                 "Fiado".equalsIgnoreCase(venta.getMetodoPago());
             if (esCredito) {
-                Cliente c = venta.getCliente();
+                Long idCliente = venta.getCliente().getIdCliente();
+                Cliente c = clienteRepository.findByIdForUpdateAndBodega(idCliente, idBodega)
+                        .orElse(venta.getCliente());
                 BigDecimal saldoActual = c.getSaldoDeudor() != null ? c.getSaldoDeudor() : BigDecimal.ZERO;
                 BigDecimal nuevoSaldo = saldoActual.subtract(venta.getTotal());
                 if (nuevoSaldo.compareTo(BigDecimal.ZERO) < 0) nuevoSaldo = BigDecimal.ZERO;

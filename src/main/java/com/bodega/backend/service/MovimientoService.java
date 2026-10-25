@@ -6,6 +6,7 @@ import com.bodega.backend.entity.MovimientoInventario;
 import com.bodega.backend.entity.Producto;
 import com.bodega.backend.repository.MovimientoInventarioRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +20,23 @@ public class MovimientoService {
     private final MovimientoInventarioRepository movimientoRepository;
     private final ProductoRepository productoRepository;
     private final TenantService tenantService;
+    private final AnalyticsService analyticsService;
 
     public MovimientoService(MovimientoInventarioRepository movimientoRepository,
                              ProductoRepository productoRepository,
                              TenantService tenantService) {
+        this(movimientoRepository, productoRepository, tenantService, null);
+    }
+
+    @Autowired
+    public MovimientoService(MovimientoInventarioRepository movimientoRepository,
+                             ProductoRepository productoRepository,
+                             TenantService tenantService,
+                             @Autowired(required = false) AnalyticsService analyticsService) {
         this.movimientoRepository = movimientoRepository;
         this.productoRepository = productoRepository;
         this.tenantService = tenantService;
+        this.analyticsService = analyticsService;
     }
 
     @Transactional(readOnly = true)
@@ -123,6 +134,12 @@ public class MovimientoService {
         mov.setBodega(producto.getBodega());
 
         MovimientoInventario guardado = movimientoRepository.save(mov);
+
+        // Invalidar caché de métricas BI para reflejar mermas y ajustes de stock
+        if (analyticsService != null) {
+            analyticsService.invalidateCache(idBodega);
+        }
+
         return mapToDTO(guardado);
     }
 
