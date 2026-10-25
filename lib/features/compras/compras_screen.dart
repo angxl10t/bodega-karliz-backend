@@ -295,9 +295,42 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   Expanded(
                     child: proveedoresFiltrados.isEmpty
                         ? Center(
-                            child: Text(
-                              'No se encontraron proveedores',
-                              style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.1),
+                                    ),
+                                    child: const Icon(LucideIcons.truck, size: 24, color: AppTheme.brandPrimary),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    filtro.isEmpty
+                                        ? 'No hay proveedores registrados'
+                                        : 'Sin coincidencias para "$filtro"',
+                                    style: GoogleFonts.outfit(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Agrega distribuidoras (Backus, Alicorp, Gloria) para asociar comprobantes.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                         : ListView.separated(
@@ -471,9 +504,42 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   Expanded(
                     child: prodsFiltrados.isEmpty
                         ? Center(
-                            child: Text(
-                              'No se encontraron productos',
-                              style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFF0D9488).withValues(alpha: isDark ? 0.2 : 0.1),
+                                    ),
+                                    child: const Icon(LucideIcons.packageSearch, size: 24, color: Color(0xFF0D9488)),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    filtro.isEmpty
+                                        ? 'No hay productos en inventario'
+                                        : 'Sin coincidencias para "$filtro"',
+                                    style: GoogleFonts.outfit(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Prueba buscando por nombre o código de barras.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                         : ListView.separated(
@@ -1261,7 +1327,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     // Lista de Productos en la Canasta
                     if (_canastaCompras.isEmpty)
                       Container(
-                        padding: const EdgeInsets.all(22),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
                           borderRadius: BorderRadius.circular(18),
@@ -1272,22 +1338,40 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         child: Center(
                           child: Column(
                             children: [
-                              Icon(LucideIcons.shoppingBag, size: 36, color: AppTheme.textMuted.withValues(alpha: 0.6)),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Aún no has agregado productos a esta compra.',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 13,
-                                  color: isDark ? Colors.white70 : AppTheme.textDark,
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.18 : 0.09),
+                                  border: Border.all(
+                                    color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.35 : 0.2),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: Icon(LucideIcons.shoppingBag, size: 24, color: AppTheme.brandPrimary),
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 12),
                               Text(
-                                'Pulsa el botón naranja para seleccionar múltiples productos, fijar sus costos y cantidades.',
+                                'Aún no has agregado productos a esta compra',
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Pulsa "Catálogo" o "Escanear" para agregar mercadería, actualizar costos de adquisición y abastecer el stock.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  height: 1.4,
+                                  color: AppTheme.textMuted,
+                                ),
                               ),
                             ],
                           ),

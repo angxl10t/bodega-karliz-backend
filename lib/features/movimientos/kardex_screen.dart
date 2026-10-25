@@ -237,23 +237,7 @@ class _KardexScreenState extends State<KardexScreen> {
                   // Lista de Movimientos
                   Expanded(
                     child: filtrados.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(LucideIcons.fileSpreadsheet, size: 42, color: AppTheme.textMuted),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Sin movimientos registrados',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15,
-                                    color: isDark ? Colors.white70 : AppTheme.textDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
+                        ? _buildEmptyState(isDark)
                         : ListView.separated(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             itemCount: filtrados.length,
@@ -267,6 +251,147 @@ class _KardexScreenState extends State<KardexScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    final bool esFiltro = _filtroTexto.isNotEmpty || _filtroTipo != 'TODOS';
+    final Color badgeColor = esFiltro ? AppTheme.brandPrimary : const Color(0xFF0D9488); // Teal
+    final IconData icon = esFiltro ? LucideIcons.fileSearch : LucideIcons.fileSpreadsheet;
+
+    final String title = esFiltro
+        ? 'Sin movimientos para este filtro'
+        : 'Kardex de Inventario Automatizado';
+
+    final String subtitle = esFiltro
+        ? 'No se encontraron operaciones de inventario con los criterios o texto ingresados.'
+        : 'Cada venta en caja POS, recepción de compra, ajuste por merma o anulación se audita aquí en tiempo real.';
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Dual-Ring Badge
+              Container(
+                width: 74,
+                height: 74,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: badgeColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                  border: Border.all(
+                    color: badgeColor.withValues(alpha: isDark ? 0.35 : 0.22),
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: badgeColor.withValues(alpha: isDark ? 0.25 : 0.14),
+                    ),
+                    child: Icon(icon, size: 24, color: badgeColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  height: 1.45,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Didactic Audit Card
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('📊', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Control Contable y Fiscal: El Kardex valorizado refleja las existencias exactas y el costo promedio de tu mercadería, blindando tu bodega contra mermas invisibles.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+
+              if (esFiltro)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                  ),
+                  icon: const Icon(LucideIcons.rotateCcw, size: 16),
+                  label: Text(
+                    'Restablecer Filtros',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _filtroTipo = 'TODOS';
+                      _filtroTexto = '';
+                      _searchController.clear();
+                    });
+                  },
+                )
+              else
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(LucideIcons.refreshCw, size: 16),
+                  label: Text(
+                    'Actualizar Movimientos',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                  ),
+                  onPressed: () => _cargarMovimientos(),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

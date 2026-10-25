@@ -1616,6 +1616,24 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  elevation: 0,
+                ),
+              ),
+              const SizedBox(height: 10),
+            ] else if (_esAdmin) ...[
+              ElevatedButton.icon(
+                onPressed: () => NuevoProductoSheet.show(context, _cargarProductos),
+                icon: const Icon(LucideIcons.plus, size: 16),
+                label: Text(
+                  'Registrar Primer Producto',
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+                  elevation: 0,
                 ),
               ),
               const SizedBox(height: 10),

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'venta_model.dart';
 import 'venta_service.dart';
 import '../auth/auth_service.dart';
+import '../home/configuracion_ticket_modal.dart';
+import '../../core/configuracion_ticket_service.dart';
+import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
@@ -33,6 +37,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   bool get _esAdmin => _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
   double? _efectivoContado;
   String _nombreBodega = 'CajaYa POS';
+  String _rucBodega = '';
+  String _direccionBodega = '';
+  String _telefonoBodega = '';
+  String _lemaBodega = '';
   String _username = 'Cajero';
 
   DateTime _fechaSeleccionada = DateTime.now();
@@ -241,6 +249,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       final rolFuture = auth.getUserRole();
       final nombreBodegaFuture = auth.getNombreBodega();
       final usernameFuture = auth.getUsername();
+      final rucFuture = auth.getRucBodega();
+      final direccionFuture = auth.getDireccionBodega();
+      final telefonoFuture = auth.getTelefonoBodega();
+      final lemaFuture = auth.getLemaComercial();
 
       final results = await Future.wait([
         arqueoHoyFuture,
@@ -249,6 +261,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
         rolFuture,
         nombreBodegaFuture,
         usernameFuture,
+        rucFuture,
+        direccionFuture,
+        telefonoFuture,
+        lemaFuture,
       ]);
 
       final arqueoHoy = results[0] as CierreCaja?;
@@ -257,6 +273,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       final rol = results[3] as String;
       final nombreBodega = (results[4] as String?) ?? 'CajaYa POS';
       final username = (results[5] as String?) ?? 'Cajero';
+      final ruc = (results[6] as String?) ?? '';
+      final direccion = (results[7] as String?) ?? '';
+      final telefono = (results[8] as String?) ?? '';
+      final lema = (results[9] as String?) ?? '';
 
       if (historial.isEmpty && ventas.isNotEmpty) {
         historial = _calcularHistorialDesdeVentas(ventas);
@@ -271,6 +291,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           _userRol = rol;
           _nombreBodega = nombreBodega;
           _username = username;
+          _rucBodega = ruc;
+          _direccionBodega = direccion;
+          _telefonoBodega = telefono;
+          _lemaBodega = lema;
           _isLoading = false;
         });
       }
@@ -2547,27 +2571,97 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             child: filtradas.isEmpty
                 ? SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    child: SizedBox(
-                      height: 350,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(LucideIcons.receipt, size: 40, color: AppTheme.textMuted),
-                            const SizedBox(height: 12),
-                            Text(
-                              _filtrarVentasPorFecha
-                                  ? 'No hay boletas en ${_formatearFechaCorta(_fechaSeleccionada)}'
-                                  : 'No hay ventas registradas',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: isDark ? Colors.white70 : AppTheme.textDark,
-                              ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Dual-ring glowing icon badge
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.15 : 0.08),
+                            border: Border.all(
+                              color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.35 : 0.22),
+                              width: 1.5,
                             ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.22 : 0.10),
+                                blurRadius: 24,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              LucideIcons.receiptText,
+                              size: 38,
+                              color: isDark ? const Color(0xFF60A5FA) : AppTheme.brandPrimary,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 18),
+                        Text(
+                          _busquedaVenta.isNotEmpty
+                              ? 'Sin resultados para "$_busquedaVenta"'
+                              : (_filtrarVentasPorFecha
+                                  ? 'Sin ventas en ${_formatearFechaCorta(_fechaSeleccionada)}'
+                                  : 'No hay ventas registradas'),
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 340),
+                          child: Text(
+                            _busquedaVenta.isNotEmpty
+                                ? 'Prueba verificando el número de comprobante o el nombre del cliente.'
+                                : 'Cada venta cobrada en caja se registrará aquí con su desglose de productos, vuelto y reimpresión de comprobante.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        // Didactic Tip Card
+                        Container(
+                          constraints: const BoxConstraints(maxWidth: 380),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFDBEAFE),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(LucideIcons.lightbulb, size: 18, color: Color(0xFF2563EB)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Tip de Caja: Los arqueos diarios guardan el histórico exacto de cada turno para evitar diferencias al fin de mes.',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.separated(
@@ -2760,21 +2854,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     ),
                     const SizedBox(width: 6),
                   ],
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Text(
-                      v.metodoPago,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: v.isAnulada ? AppTheme.textMuted : AppTheme.brandPrimary,
-                      ),
-                    ),
-                  ),
+                  _buildMetodoPagoBadge(v.metodoPago, v.isAnulada, isDark),
                 ],
               ),
             ],
@@ -2873,23 +2953,38 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             ),
           const SizedBox(height: 12),
 
-          // Pie con Total y Botón Anular Venta (Exclusivo Administrador y solo si no está anulada)
+          // Pie con Total y Botones de Acción (Ticket térmico, Reenvío SUNAT y Anulación)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              Wrap(
+                spacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
+                  if (!v.isAnulada)
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(LucideIcons.printer, size: 14),
+                      label: Text(
+                        'Ticket',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                      ),
+                      onPressed: () => _mostrarTicketVentaDialog(v),
+                    ),
                   if (_esAdmin && !v.isAnulada)
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         foregroundColor: AppTheme.alertRed,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      icon: const Icon(LucideIcons.undo2, size: 15),
+                      icon: const Icon(LucideIcons.undo2, size: 14),
                       label: Text(
-                        'Anular Venta',
+                        'Anular',
                         style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
                       ),
                       onPressed: () => _confirmarAnulacion(v),
@@ -2901,7 +2996,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       style: TextButton.styleFrom(
                         foregroundColor: const Color(0xFFF59E0B),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       icon: const Icon(LucideIcons.send, size: 14),
                       label: Text(
@@ -2918,7 +3013,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                         const Icon(LucideIcons.rotateCcw, size: 13, color: AppTheme.accentGreen),
                         const SizedBox(width: 5),
                         Text(
-                          'Stock devuelto a bodega',
+                          'Stock devuelto',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -2954,6 +3049,419 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMetodoPagoBadge(String metodo, bool isAnulada, bool isDark) {
+    if (isAnulada) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppTheme.borderLight.withValues(alpha: 0.3)),
+        ),
+        child: Text(
+          metodo,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textMuted,
+          ),
+        ),
+      );
+    }
+
+    final m = metodo.toUpperCase();
+    final Color fg;
+    final Color bg;
+    final IconData icon;
+
+    if (m.contains('YAPE')) {
+      fg = const Color(0xFF7C3AED);
+      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
+      icon = LucideIcons.smartphone;
+    } else if (m.contains('PLIN')) {
+      fg = const Color(0xFF0284C7);
+      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
+      icon = LucideIcons.zap;
+    } else if (m.contains('EFECTIVO')) {
+      fg = const Color(0xFF059669);
+      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
+      icon = LucideIcons.banknote;
+    } else if (m.contains('CREDITO') || m.contains('FIADO')) {
+      fg = const Color(0xFFD97706);
+      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
+      icon = LucideIcons.bookOpen;
+    } else if (m.contains('TARJETA')) {
+      fg = const Color(0xFF2563EB);
+      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
+      icon = LucideIcons.creditCard;
+    } else {
+      fg = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+      bg = fg.withValues(alpha: isDark ? 0.20 : 0.10);
+      icon = LucideIcons.arrowRightLeft;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: fg.withValues(alpha: isDark ? 0.35 : 0.22)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: fg),
+          const SizedBox(width: 4),
+          Text(
+            metodo,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarTicketVentaDialog(VentaRegistro v) {
+    int anchoSeleccionado = ConfiguracionTicketService.actual.anchoPapel;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+            final items = v.detalles
+                .map((d) => TicketItem(
+                      nombre: d.nombreProducto,
+                      cantidad: d.cantidad,
+                      precioUnitario: d.precioUnitario,
+                      subtotal: d.subtotal,
+                    ))
+                .toList();
+
+            final ticketText = ThermalTicketService.generateReceiptText(
+              ticketId: v.idVenta,
+              clienteNombre: v.clienteNombre ?? 'Público General',
+              clienteDocumento: v.clienteDocumento,
+              metodoPago: v.metodoPago,
+              items: items,
+              total: v.total,
+              pagadoCon: v.montoRecibido,
+              vuelto: v.vuelto,
+              cajero: v.usuarioRegistro ?? _username,
+              fecha: v.fechaVenta,
+              width: anchoSeleccionado,
+              nombreComercio: _nombreBodega,
+              rucDni: _rucBodega.isNotEmpty ? _rucBodega : null,
+              direccion: _direccionBodega.isNotEmpty ? _direccionBodega : null,
+              telefono: _telefonoBodega.isNotEmpty ? _telefonoBodega : null,
+              lemaComercial: _lemaBodega.isNotEmpty ? _lemaBodega : null,
+              tipoComprobante: v.tipoComprobante,
+              serieCorrelativo: v.serieCorrelativo,
+              estadoSunat: v.estadoSunat,
+              sunatHash: v.sunatHash,
+            );
+
+            return Dialog(
+              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 460, maxHeight: 680),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(9),
+                          decoration: BoxDecoration(
+                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(LucideIcons.printer, color: AppTheme.brandPrimary, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                v.etiquetaComprobante,
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 17,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                'Reimpresión térmica ESC/POS',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.x, size: 20),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Selector de Ancho (58mm / 80mm) y acceso a ajustes
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setDialogState(() {
+                                        anchoSeleccionado = ThermalTicketService.width58mm;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: anchoSeleccionado == ThermalTicketService.width58mm
+                                            ? (isDark ? AppTheme.brandPrimary : Colors.white)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: anchoSeleccionado == ThermalTicketService.width58mm
+                                            ? [
+                                                BoxShadow(
+                                                  color: Colors.black.withValues(alpha: 0.06),
+                                                  blurRadius: 4,
+                                                )
+                                              ]
+                                            : null,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '58 mm (Portátil)',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: anchoSeleccionado == ThermalTicketService.width58mm
+                                                ? (isDark ? Colors.white : AppTheme.brandPrimary)
+                                                : AppTheme.textMuted,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setDialogState(() {
+                                        anchoSeleccionado = ThermalTicketService.width80mm;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: anchoSeleccionado == ThermalTicketService.width80mm
+                                            ? (isDark ? AppTheme.brandPrimary : Colors.white)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: anchoSeleccionado == ThermalTicketService.width80mm
+                                            ? [
+                                                BoxShadow(
+                                                  color: Colors.black.withValues(alpha: 0.06),
+                                                  blurRadius: 4,
+                                                )
+                                              ]
+                                            : null,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '80 mm (Mostrador)',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: anchoSeleccionado == ThermalTicketService.width80mm
+                                                ? (isDark ? Colors.white : AppTheme.brandPrimary)
+                                                : AppTheme.textMuted,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          tooltip: 'Ajustes de Impresora y QR',
+                          style: IconButton.styleFrom(
+                            backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: const Icon(LucideIcons.settings2, size: 18),
+                          onPressed: () {
+                            ConfiguracionTicketModal.show(context, onSaved: () {
+                              setDialogState(() {
+                                anchoSeleccionado = ConfiguracionTicketService.actual.anchoPapel;
+                              });
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Previsualización monospacio del ticket estilo papel térmico
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFAFAFA),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                          ),
+                        ),
+                        child: SingleChildScrollView(
+                          child: SelectableText(
+                            ticketText,
+                            style: GoogleFonts.firaCode(
+                              fontSize: 11.5,
+                              height: 1.35,
+                              color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Acciones
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              side: BorderSide(
+                                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                              ),
+                            ),
+                            icon: const Icon(LucideIcons.copy, size: 16),
+                            label: Text(
+                              'Copiar',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                            onPressed: () async {
+                              await Clipboard.setData(ClipboardData(text: ticketText));
+                              if (dialogCtx.mounted) {
+                                ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('¡Texto del comprobante copiado al portapapeles!'),
+                                    backgroundColor: AppTheme.accentGreen,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.brandPrimary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            icon: const Icon(LucideIcons.printer, size: 16),
+                            label: Text(
+                              'Imprimir Ticket',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                              ),
+                            ),
+                            onPressed: () async {
+                              final escPosBytes = ThermalTicketService.generateEscPosBytes(
+                                ticketId: v.idVenta,
+                                clienteNombre: v.clienteNombre ?? 'Público General',
+                                clienteDocumento: v.clienteDocumento,
+                                metodoPago: v.metodoPago,
+                                items: items,
+                                total: v.total,
+                                pagadoCon: v.montoRecibido,
+                                vuelto: v.vuelto,
+                                cajero: v.usuarioRegistro ?? _username,
+                                fecha: v.fechaVenta,
+                                width: anchoSeleccionado,
+                                nombreComercio: _nombreBodega,
+                                rucDni: _rucBodega.isNotEmpty ? _rucBodega : null,
+                                direccion: _direccionBodega.isNotEmpty ? _direccionBodega : null,
+                                telefono: _telefonoBodega.isNotEmpty ? _telefonoBodega : null,
+                                lemaComercial: _lemaBodega.isNotEmpty ? _lemaBodega : null,
+                                tipoComprobante: v.tipoComprobante,
+                                serieCorrelativo: v.serieCorrelativo,
+                                estadoSunat: v.estadoSunat,
+                                sunatHash: v.sunatHash,
+                              );
+
+                              final res = await ThermalTicketService.imprimirTicketDirecto(
+                                escPosBytes: escPosBytes,
+                                receiptText: ticketText,
+                              );
+
+                              if (dialogCtx.mounted) {
+                                ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                                  SnackBar(
+                                    content: Text(res.mensaje),
+                                    backgroundColor: res.exito ? AppTheme.accentGreen : AppTheme.alertRed,
+                                  ),
+                                );
+                                Navigator.pop(ctx);
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

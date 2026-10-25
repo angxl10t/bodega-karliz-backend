@@ -847,29 +847,169 @@ class _ClientesScreenState extends State<ClientesScreen> {
   }
 
   Widget _buildEmptyState(bool isDark) {
+    final esBusqueda = _filtroTexto.isNotEmpty;
+    final soloConDeuda = _filtroEstado == 'CON_DEUDA';
+
+    final Color badgeColor = soloConDeuda
+        ? AppTheme.accentGreen
+        : (esBusqueda ? AppTheme.brandPrimary : const Color(0xFFD97706));
+
+    final IconData icon = soloConDeuda
+        ? LucideIcons.badgeCheck
+        : (esBusqueda ? LucideIcons.searchX : LucideIcons.bookOpen);
+
+    final String title = esBusqueda
+        ? 'Sin resultados para "$_filtroTexto"'
+        : (soloConDeuda
+            ? '¡Excelente! Nadie tiene deudas pendientes'
+            : 'Tu Libreta de Fiados Inteligente');
+
+    final String subtitle = esBusqueda
+        ? 'Verifica que el nombre, DNI o celular esté bien escrito o limpia la búsqueda.'
+        : (soloConDeuda
+            ? 'Todos los fiados y compras al crédito han sido cancelados. La cartera de cobranzas está 100% al día.'
+            : 'Lleva el control de los vecinos de confianza, sus límites de crédito y comprobantes de abono para que nunca pierdas capital.');
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(LucideIcons.users, size: 48, color: AppTheme.textMuted.withValues(alpha: 0.5)),
-            const SizedBox(height: 12),
-            Text(
-              _filtroTexto.isEmpty
-                  ? 'No hay vecinos registrados en la libreta'
-                  : 'No se encontraron resultados para "$_filtroTexto"',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
-            ),
-            const SizedBox(height: 14),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.brandPrimary, foregroundColor: Colors.white),
-              icon: const Icon(LucideIcons.userPlus, size: 16),
-              label: const Text('Registrar Vecino'),
-              onPressed: () => _abrirNuevoCliente(),
-            ),
-          ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Dual-Ring Badge con resplandor
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: badgeColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                  border: Border.all(
+                    color: badgeColor.withValues(alpha: isDark ? 0.35 : 0.22),
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: badgeColor.withValues(alpha: isDark ? 0.25 : 0.14),
+                    ),
+                    child: Icon(icon, size: 26, color: badgeColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  height: 1.45,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Caja didáctica "Tip de Negocio" para la bodega
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('💡', style: TextStyle(fontSize: 16)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        soloConDeuda
+                            ? 'Tip de Finanzas: Un balance en cero te da liquidez inmediata para negociar mejores precios al por mayor con tus proveedores de abarrotes.'
+                            : 'Tip de Bodega: Fiar con límite de S/ 50 a S/ 100 fideliza al vecino del barrio. Puedes imprimirle su ticket térmico con el saldo pendiente tras cada compra.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+
+              // Botón de acción principal
+              if (esBusqueda)
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                  ),
+                  icon: const Icon(LucideIcons.x, size: 16),
+                  label: Text(
+                    'Limpiar Búsqueda',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                  onPressed: () {
+                    _searchCtrl.clear();
+                    setState(() => _filtroTexto = '');
+                  },
+                )
+              else if (soloConDeuda)
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(LucideIcons.users, size: 16),
+                  label: Text(
+                    'Ver Todos los Vecinos',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                  ),
+                  onPressed: () => setState(() => _filtroEstado = 'TODOS'),
+                )
+              else
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(LucideIcons.userPlus, size: 16),
+                  label: Text(
+                    'Registrar Primer Vecino',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                  ),
+                  onPressed: () => _abrirNuevoCliente(),
+                ),
+            ],
+          ),
         ),
       ),
     );

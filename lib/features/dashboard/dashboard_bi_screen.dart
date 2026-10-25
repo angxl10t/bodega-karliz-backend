@@ -1015,15 +1015,40 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
 
     if (estrellas.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Center(
           child: Column(
             children: [
-              const Icon(LucideIcons.starOff, size: 40, color: AppTheme.textMuted),
-              const SizedBox(height: 8),
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.2 : 0.1),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.35 : 0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(LucideIcons.sparkles, size: 24, color: Color(0xFFF59E0B)),
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
-                'No hay productos estrella en este periodo.',
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                'Aún sin productos estrella en este periodo',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Conforme cobres en el POS, aquí se listarán los productos con mayor margen bruto y frecuencia de venta.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 12),
               ),
             ],
           ),
@@ -1149,15 +1174,40 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
 
     if (huesos.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Center(
           child: Column(
             children: [
-              const Icon(LucideIcons.checkCircle, size: 40, color: AppTheme.accentGreen),
-              const SizedBox(height: 8),
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.2 : 0.1),
+                  border: Border.all(
+                    color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.35 : 0.2),
+                    width: 1.5,
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(LucideIcons.shieldCheck, size: 24, color: AppTheme.accentGreen),
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
-                '¡Excelente! No tienes productos inmovilizados sin venta.',
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.accentGreen, fontSize: 13),
+                '¡Rotación Óptima! Cero productos inmovilizados',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'No tienes mercadería estancada por más de 30 días. Todo tu capital invertido está circulando con fluidez.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 12),
               ),
             ],
           ),
