@@ -219,6 +219,12 @@ public class ProductoService {
         
         // RN-09
         producto.setControlaVencimiento(dto.getControlaVencimiento() != null ? dto.getControlaVencimiento() : false);
+        producto.setFechaVencimiento(dto.getFechaVencimiento());
+        if (dto.getPrecioCosto() != null) {
+            producto.setPrecioCosto(dto.getPrecioCosto());
+        } else if (dto.getPrecioVenta() != null) {
+            producto.setPrecioCosto(dto.getPrecioVenta().multiply(new BigDecimal("0.75")).setScale(2, java.math.RoundingMode.HALF_UP));
+        }
         producto.setImagenUrl(dto.getImagenUrl() != null && !dto.getImagenUrl().isBlank() ? dto.getImagenUrl().trim() : null);
 
         Producto guardado = productoRepository.save(producto);
@@ -334,6 +340,12 @@ public class ProductoService {
         if (dto.getControlaVencimiento() != null) {
             producto.setControlaVencimiento(dto.getControlaVencimiento());
         }
+        if (dto.getFechaVencimiento() != null) {
+            producto.setFechaVencimiento(dto.getFechaVencimiento());
+        }
+        if (dto.getPrecioCosto() != null) {
+            producto.setPrecioCosto(dto.getPrecioCosto());
+        }
         if (dto.getImagenUrl() != null) {
             producto.setImagenUrl(dto.getImagenUrl().trim().isBlank() ? null : dto.getImagenUrl().trim());
         }
@@ -393,6 +405,8 @@ public class ProductoService {
         dto.setStockActual(producto.getStockActual());
         dto.setStockMinimo(producto.getStockMinimo());
         dto.setControlaVencimiento(producto.getControlaVencimiento());
+        dto.setFechaVencimiento(producto.getFechaVencimiento());
+        dto.setPrecioCosto(producto.getPrecioCosto() != null ? producto.getPrecioCosto() : (producto.getPrecioVenta() != null ? producto.getPrecioVenta().multiply(new BigDecimal("0.75")).setScale(2, java.math.RoundingMode.HALF_UP) : null));
         dto.setImagenUrl(producto.getImagenUrl());
         dto.setEstado(producto.getEstado());
         return dto;

@@ -42,6 +42,8 @@ public class ProductoDTO {
     private BigDecimal stockMinimo;
 
     private Boolean controlaVencimiento;
+    private java.time.LocalDate fechaVencimiento;
+    private BigDecimal precioCosto;
     private String imagenUrl;
     private Boolean estado;
 }

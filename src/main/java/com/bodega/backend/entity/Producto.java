@@ -57,6 +57,12 @@ public class Producto {
     @Column(name = "controla_vencimiento", nullable = false)
     private Boolean controlaVencimiento = false;
 
+    @Column(name = "fecha_vencimiento")
+    private java.time.LocalDate fechaVencimiento;
+
+    @Column(name = "precio_costo", precision = 12, scale = 2)
+    private BigDecimal precioCosto;
+
     @Column(name = "imagen_url", length = 500)
     private String imagenUrl;
 
