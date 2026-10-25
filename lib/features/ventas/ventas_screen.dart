@@ -1176,9 +1176,48 @@ class _VentasScreenState extends State<VentasScreen> {
                   Expanded(
                     child: filtrados.isEmpty
                         ? Center(
-                            child: Text(
-                              'No se encontraron productos disponibles',
-                              style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.1),
+                                      border: Border.all(
+                                        color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.35 : 0.2),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(LucideIcons.packageSearch, size: 24, color: AppTheme.brandPrimary),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    query.isEmpty
+                                        ? 'No hay productos en catálogo'
+                                        : 'Sin coincidencias para "$query"',
+                                    style: GoogleFonts.outfit(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Intenta escanear el código de barras o buscar por otra palabra clave.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                         : ListView.separated(
@@ -3093,25 +3132,67 @@ class _VentasScreenState extends State<VentasScreen> {
           Expanded(
             child: productos.isEmpty
                 ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(LucideIcons.packageSearch, size: 48, color: AppTheme.textMuted),
-                        const SizedBox(height: 12),
-                        Text(
-                          'No se encontraron productos disponibles',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
-                            color: isDark ? Colors.white70 : AppTheme.textDark,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 68,
+                            height: 68,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.18 : 0.09),
+                              border: Border.all(
+                                color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.35 : 0.2),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: const Center(
+                              child: Icon(LucideIcons.packageSearch, size: 28, color: AppTheme.brandPrimary),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Intenta con otra búsqueda o filtro de categoría',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
-                        ),
-                      ],
+                          const SizedBox(height: 14),
+                          Text(
+                            _tabletSearchCtrl.text.isNotEmpty
+                                ? 'Sin coincidencias para "${_tabletSearchCtrl.text}"'
+                                : 'No hay productos en esta categoría',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Intenta con otra palabra clave o restablece los filtros.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+                          ),
+                          if (_tabletSearchCtrl.text.isNotEmpty || _tabletSelectedCategoria != 'Todos') ...[
+                            const SizedBox(height: 14),
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                              ),
+                              icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                              label: Text(
+                                'Restablecer Catálogo',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _tabletSearchCtrl.clear();
+                                  _tabletSearchQuery = '';
+                                  _tabletSelectedCategoria = 'Todos';
+                                });
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   )
                 : GridView.builder(
@@ -4089,10 +4170,10 @@ class _VentasScreenState extends State<VentasScreen> {
     Color methodColor;
     switch (metodo) {
       case 'Yape':
-        methodColor = const Color(0xFF742284);
+        methodColor = const Color(0xFF7C3AED);
         break;
       case 'Plin':
-        methodColor = const Color(0xFF0891B2);
+        methodColor = const Color(0xFF0284C7);
         break;
       case 'Tarjeta':
         methodColor = const Color(0xFF2563EB);
@@ -4102,7 +4183,7 @@ class _VentasScreenState extends State<VentasScreen> {
         break;
       case 'Efectivo':
       default:
-        methodColor = AppTheme.brandPrimary;
+        methodColor = const Color(0xFF059669);
         break;
     }
 
@@ -4941,15 +5022,31 @@ class _VentasScreenState extends State<VentasScreen> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(LucideIcons.users, size: 40, color: AppTheme.textMuted.withValues(alpha: 0.5)),
-                                  const SizedBox(height: 10),
+                                  Container(
+                                    width: 58,
+                                    height: 58,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFFD97706).withValues(alpha: isDark ? 0.2 : 0.1),
+                                      border: Border.all(
+                                        color: const Color(0xFFD97706).withValues(alpha: isDark ? 0.35 : 0.2),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(LucideIcons.users, size: 24, color: Color(0xFFD97706)),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
                                   Text(
-                                    'No se encontraron vecinos',
-                                    style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700),
+                                    searchCtrl.text.isNotEmpty
+                                        ? 'Sin coincidencias para "${searchCtrl.text}"'
+                                        : 'No hay vecinos en la libreta',
+                                    style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w700),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    'Registra un nuevo cliente con el botón superior para fiarle.',
+                                    'Pulsa "+ Nuevo Vecino" arriba para registrarlo al instante con su límite de crédito.',
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
                                   ),
@@ -5203,10 +5300,10 @@ class _VentasScreenState extends State<VentasScreen> {
             ),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.brandPrimary,
+            backgroundColor: const Color(0xFF059669),
             foregroundColor: Colors.white,
             elevation: 4,
-            shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
+            shadowColor: const Color(0xFF059669).withValues(alpha: 0.35),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
           ),
         ),
@@ -5219,13 +5316,13 @@ class _VentasScreenState extends State<VentasScreen> {
     IconData btnIcon = LucideIcons.checkCheck;
 
     if (_metodoPago == 'Yape') {
-      btnColor = const Color(0xFF742284);
+      btnColor = const Color(0xFF7C3AED);
       btnLabel = 'CONFIRMAR PAGO YAPE • S/ ${_totalVenta.toStringAsFixed(2)}';
       btnIcon = LucideIcons.smartphone;
     } else if (_metodoPago == 'Plin') {
-      btnColor = const Color(0xFF0891B2);
+      btnColor = const Color(0xFF0284C7);
       btnLabel = 'CONFIRMAR PAGO PLIN • S/ ${_totalVenta.toStringAsFixed(2)}';
-      btnIcon = LucideIcons.smartphone;
+      btnIcon = LucideIcons.zap;
     } else if (_metodoPago == 'Tarjeta') {
       btnColor = const Color(0xFF2563EB);
       btnLabel = 'CONFIRMAR POS TARJETA • S/ ${_totalVenta.toStringAsFixed(2)}';

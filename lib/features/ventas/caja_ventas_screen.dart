@@ -1214,6 +1214,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     hintText: '0.00',
                     prefixText: 'S/ ',
                     prefixStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: AppTheme.brandPrimary),
+                    suffixIcon: IconButton(
+                      tooltip: 'Contar billetes y monedas',
+                      icon: const Icon(LucideIcons.calculator, size: 20, color: AppTheme.brandPrimary),
+                      onPressed: () => _mostrarCalculadoraConteoBilletes(esperado),
+                    ),
                     filled: true,
                     fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
@@ -1249,6 +1254,394 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             const SizedBox(height: 12),
             _buildDiferenciaBadge(diferencia, isDark),
           ],
+        ],
+      ),
+    );
+  }
+
+  void _mostrarCalculadoraConteoBilletes(double esperado) {
+    final Map<double, int> conteo = {
+      200.0: 0,
+      100.0: 0,
+      50.0: 0,
+      20.0: 0,
+      10.0: 0,
+      5.0: 0,
+      2.0: 0,
+      1.0: 0,
+      0.50: 0,
+      0.20: 0,
+      0.10: 0,
+    };
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setModalState) {
+            final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+            final double total = conteo.entries.fold(0.0, (acc, e) => acc + (e.key * e.value));
+            final double dif = total - esperado;
+
+            Color difColor = AppTheme.textMuted;
+            String difLabel = 'Exacto (S/ 0.00)';
+            IconData difIcon = LucideIcons.checkCheck;
+
+            if (dif.abs() < 0.01) {
+              difColor = AppTheme.accentGreen;
+              difLabel = 'Cuadre Exacto (S/ 0.00)';
+              difIcon = LucideIcons.badgeCheck;
+            } else if (dif > 0) {
+              difColor = const Color(0xFF0284C7);
+              difLabel = 'Sobrante (+ S/ ${dif.toStringAsFixed(2)})';
+              difIcon = LucideIcons.trendingUp;
+            } else {
+              difColor = AppTheme.alertRed;
+              difLabel = 'Faltante (- S/ ${dif.abs().toStringAsFixed(2)})';
+              difIcon = LucideIcons.trendingDown;
+            }
+
+            return Container(
+              height: MediaQuery.of(dialogCtx).size.height * 0.85,
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDark : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 10, bottom: 6),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(LucideIcons.calculator, size: 20, color: AppTheme.brandPrimary),
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Desglose de Efectivo',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                  ),
+                                ),
+                                Text(
+                                  'Conteo físico de billetes y monedas',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setModalState(() {
+                              for (final k in conteo.keys) {
+                                conteo[k] = 0;
+                              }
+                            });
+                          },
+                          child: Text(
+                            'Limpiar',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'TOTAL CONTADO',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'S/ ${total.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: isDark ? Colors.white : AppTheme.brandPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: difColor.withValues(alpha: isDark ? 0.2 : 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: difColor.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(difIcon, size: 14, color: difColor),
+                              const SizedBox(width: 5),
+                              Text(
+                                difLabel,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: difColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Text(
+                            'BILLETES',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                        ),
+                        ...[200.0, 100.0, 50.0, 20.0, 10.0].map((d) => _buildDenominacionRow(
+                              valor: d,
+                              cantidad: conteo[d] ?? 0,
+                              esBillete: true,
+                              isDark: isDark,
+                              onChanged: (nuevaCant) {
+                                setModalState(() {
+                                  conteo[d] = nuevaCant;
+                                });
+                              },
+                            )),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Text(
+                            'MONEDAS',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                        ),
+                        ...[5.0, 2.0, 1.0, 0.50, 0.20, 0.10].map((d) => _buildDenominacionRow(
+                              valor: d,
+                              cantidad: conteo[d] ?? 0,
+                              esBillete: false,
+                              isDark: isDark,
+                              onChanged: (nuevaCant) {
+                                setModalState(() {
+                                  conteo[d] = nuevaCant;
+                                });
+                              },
+                            )),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF101622) : Colors.white,
+                      border: Border(
+                        top: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                      ),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.brandPrimary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        icon: const Icon(LucideIcons.check, size: 18),
+                        label: Text(
+                          'Aplicar S/ ${total.toStringAsFixed(2)} al Arqueo',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _conteoFisicoController.text = total.toStringAsFixed(2);
+                            _efectivoContado = total;
+                          });
+                          Navigator.pop(sheetCtx);
+                          if (dialogCtx.mounted) {
+                            ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                              SnackBar(
+                                content: Text('¡Conteo físico de S/ ${total.toStringAsFixed(2)} registrado en caja!'),
+                                backgroundColor: AppTheme.accentGreen,
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDenominacionRow({
+    required double valor,
+    required int cantidad,
+    required bool esBillete,
+    required bool isDark,
+    required ValueChanged<int> onChanged,
+  }) {
+    final double subtotal = valor * cantidad;
+    final String label = valor >= 1.0 ? 'S/ ${valor.toStringAsFixed(0)}' : 'S/ ${valor.toStringAsFixed(2)}';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: cantidad > 0
+              ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.4 : 0.3)
+              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 58,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            decoration: BoxDecoration(
+              color: esBillete
+                  ? const Color(0xFF059669).withValues(alpha: isDark ? 0.2 : 0.1)
+                  : const Color(0xFFD97706).withValues(alpha: isDark ? 0.2 : 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: esBillete ? const Color(0xFF059669) : const Color(0xFFD97706),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(LucideIcons.minus, size: 14),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  onPressed: cantidad > 0 ? () => onChanged(cantidad - 1) : null,
+                ),
+                Container(
+                  constraints: const BoxConstraints(minWidth: 34),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$cantidad',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.plus, size: 14),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  onPressed: () => onChanged(cantidad + 1),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Text(
+            'S/ ${subtotal.toStringAsFixed(2)}',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: subtotal > 0
+                  ? (isDark ? Colors.white : AppTheme.brandPrimary)
+                  : AppTheme.textMuted,
+            ),
+          ),
         ],
       ),
     );

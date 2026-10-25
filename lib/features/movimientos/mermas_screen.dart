@@ -219,25 +219,111 @@ class _MermasScreenState extends State<MermasScreen> {
                 Expanded(
                   child: filtradas.isEmpty
                       ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(LucideIcons.packageCheck, size: 48, color: AppTheme.accentGreen.withValues(alpha: 0.6)),
-                              const SizedBox(height: 12),
-                              Text(
-                                '¡Sin bajas ni mermas en este filtro!',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white70 : AppTheme.textDark,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 68,
+                                  height: 68,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.2 : 0.1),
+                                    border: Border.all(
+                                      color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.4 : 0.25),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(LucideIcons.packageCheck, size: 28, color: Color(0xFFF59E0B)),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Usa el botón "+ Registrar Merma" para dar de baja mercadería.',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
-                              ),
-                            ],
+                                const SizedBox(height: 16),
+                                Text(
+                                  _filtroMotivo != 'TODOS'
+                                      ? 'Sin mermas registradas por $_filtroMotivo'
+                                      : 'Cero Pérdidas Registradas',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Registra aquí productos vencidos, rotos o de consumo del personal para reflejar el costo contable exacto sin alterar las ventas.',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    height: 1.45,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('📋', style: TextStyle(fontSize: 15)),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Deducción Contable: Registrar mermas formalmente te permite justificar faltantes de inventario ante SUNAT como desmedro deducible.',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            height: 1.4,
+                                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                if (_filtroMotivo != 'TODOS')
+                                  OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      side: BorderSide(color: borderColor),
+                                    ),
+                                    icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                                    label: Text(
+                                      'Ver Todas las Bajas',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _filtroMotivo = 'TODOS';
+                                      });
+                                    },
+                                  )
+                                else
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.brandPrimary,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 0,
+                                    ),
+                                    icon: const Icon(LucideIcons.plus, size: 16),
+                                    label: Text(
+                                      'Registrar Merma o Baja',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800),
+                                    ),
+                                    onPressed: _mostrarRegistrarMermaModal,
+                                  ),
+                              ],
+                            ),
                           ),
                         )
                       : ListView.separated(

@@ -522,7 +522,116 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
 
           // Lista de ítems
           Expanded(
-            child: ListView.separated(
+            child: filtrados.isEmpty
+                ? Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 68,
+                            height: 68,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: (_modoConciliacionRevelado ? const Color(0xFF0284C7) : AppTheme.brandPrimary)
+                                  .withValues(alpha: isDark ? 0.2 : 0.1),
+                              border: Border.all(
+                                color: (_modoConciliacionRevelado ? const Color(0xFF0284C7) : AppTheme.brandPrimary)
+                                    .withValues(alpha: isDark ? 0.4 : 0.25),
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                _modoConciliacionRevelado ? LucideIcons.fileCheck2 : LucideIcons.scanLine,
+                                size: 28,
+                                color: _modoConciliacionRevelado ? const Color(0xFF0284C7) : AppTheme.brandPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _modoConciliacionRevelado
+                                ? (_filtroDiscrepancia == 'FALTANTES'
+                                    ? '¡Excelente! Sin productos faltantes'
+                                    : (_filtroDiscrepancia == 'SOBRANTES'
+                                        ? 'Sin productos sobrantes'
+                                        : 'Sin discrepancias en este filtro'))
+                                : (_filtroTexto.isNotEmpty
+                                    ? 'Sin coincidencias para "$_filtroTexto"'
+                                    : 'Inicia el Conteo Físico en Góndola'),
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.outfit(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _modoConciliacionRevelado
+                                ? 'El conteo físico de los colaboradores coincide exactamente con el inventario esperado del sistema.'
+                                : 'Escanea el código de barras o busca productos por nombre para anotar las unidades reales contadas.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              height: 1.45,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('🛡️', style: TextStyle(fontSize: 15)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Auditoría Ciega: Al ocultar el stock del sistema, se previene que el personal invente conteos, detectando fugas de mercadería y robos hormiga.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      height: 1.4,
+                                      color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (_filtroDiscrepancia != 'TODOS' || _filtroTexto.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                side: BorderSide(color: borderColor),
+                              ),
+                              icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                              label: Text(
+                                'Ver Todos los Ítems',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _filtroDiscrepancia = 'TODOS';
+                                  _filtroTexto = '';
+                                });
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  )
+                : ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: filtrados.length,
               separatorBuilder: (_, _) => const SizedBox(height: 10),
