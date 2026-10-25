@@ -52,6 +52,8 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
   bool _isGuardando = false;
   bool _mostrarOpcionesAvanzadas = false;
   bool _controlaVencimiento = false;
+  DateTime? _fechaVencimiento;
+  final _precioCostoCtrl = TextEditingController();
   String? _categoriaDetectadaAuto;
   bool _categoriaModificadaManualmente = false;
   String? _imagenUrl;
@@ -312,6 +314,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
     _precioCtrl.dispose();
     _stockCtrl.dispose();
     _stockMinCtrl.dispose();
+    _precioCostoCtrl.dispose();
     super.dispose();
   }
 
@@ -472,6 +475,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
     setState(() => _isGuardando = true);
 
     final barcodeClean = _codigoBarrasCtrl.text.trim().replaceAll(RegExp(r'[\r\n\t]'), '');
+    final costo = double.tryParse(_precioCostoCtrl.text.trim().replaceAll(',', '.'));
     final nuevo = Producto(
       idCategoria: _idCategoriaSeleccionada ?? 1,
       codigo: _codigoCtrl.text.trim(),
@@ -482,6 +486,8 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
       stockActual: stock,
       stockMinimo: stockMin,
       controlaVencimiento: _controlaVencimiento,
+      fechaVencimiento: _controlaVencimiento ? _fechaVencimiento : null,
+      precioCosto: costo,
       imagenUrl: _imagenUrl,
     );
 
@@ -1114,6 +1120,122 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                     ],
                   ),
                 ),
+
+                if (_controlaVencimiento) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(LucideIcons.calendar, size: 16, color: AppTheme.brandPrimary),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Fecha de Caducidad de Lote',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : AppTheme.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: () async {
+                            final now = DateTime.now();
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _fechaVencimiento ?? now.add(const Duration(days: 30)),
+                              firstDate: now.subtract(const Duration(days: 365)),
+                              lastDate: now.add(const Duration(days: 365 * 5)),
+                            );
+                            if (picked != null) {
+                              setState(() => _fechaVencimiento = picked);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppTheme.cardDark : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _fechaVencimiento != null ? AppTheme.brandPrimary : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  LucideIcons.calendarCheck,
+                                  size: 16,
+                                  color: _fechaVencimiento != null ? AppTheme.brandPrimary : AppTheme.textMuted,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    _fechaVencimiento != null
+                                        ? '${_fechaVencimiento!.day.toString().padLeft(2, '0')}/${_fechaVencimiento!.month.toString().padLeft(2, '0')}/${_fechaVencimiento!.year}'
+                                        : 'Seleccionar fecha (opcional)',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: _fechaVencimiento != null ? FontWeight.w700 : FontWeight.w500,
+                                      color: _fechaVencimiento != null ? (isDark ? Colors.white : AppTheme.textDark) : AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ),
+                                if (_fechaVencimiento != null)
+                                  IconButton(
+                                    icon: const Icon(LucideIcons.x, size: 16),
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: () => setState(() => _fechaVencimiento = null),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(LucideIcons.tag, size: 16, color: AppTheme.accentGreen),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Costo de Compra / Proveedor (S/.)',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : AppTheme.textDark,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _precioCostoCtrl,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: InputDecoration(
+                            hintText: 'Ej. 2.50 (Opcional, para margen y mermas)',
+                            prefixIcon: const Icon(LucideIcons.coins, size: 16),
+                            filled: true,
+                            fillColor: isDark ? AppTheme.cardDark : Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
 
               const SizedBox(height: 22),

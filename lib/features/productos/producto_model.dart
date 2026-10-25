@@ -1,3 +1,11 @@
+enum SemaforoVencimiento {
+  sinControl,
+  critico, // 🔴 Vencidos o por vencer en menos de 7 días
+  atencion, // 🟡 Por vencer en 15 a 30 días (para ponerlos en oferta o remate)
+  vigente, // 🟢 Vigentes (> 60 días)
+  regular, // 31 a 60 días (rotación regular)
+}
+
 class Producto {
   final int? idProducto;
   final int? idCategoria;
@@ -10,6 +18,8 @@ class Producto {
   final double stockActual;
   final double stockMinimo;
   final bool controlaVencimiento;
+  final DateTime? fechaVencimiento;
+  final double? precioCosto;
   final String? imagenUrl;
 
   Producto({
@@ -24,10 +34,40 @@ class Producto {
     required this.stockActual,
     this.stockMinimo = 5.0,
     this.controlaVencimiento = false,
+    this.fechaVencimiento,
+    this.precioCosto,
     this.imagenUrl,
   });
 
+  /// Días restantes para el vencimiento (negativo si ya expiró)
+  int? get diasParaVencer {
+    if (fechaVencimiento == null) return null;
+    final now = DateTime.now();
+    final hoy = DateTime(now.year, now.month, now.day);
+    final venc = DateTime(fechaVencimiento!.year, fechaVencimiento!.month, fechaVencimiento!.day);
+    return venc.difference(hoy).inDays;
+  }
+
+  /// Estado semáforo de caducidad según la regla de negocio
+  SemaforoVencimiento get semaforoVencimiento {
+    final dias = diasParaVencer;
+    if (dias == null || !controlaVencimiento) return SemaforoVencimiento.sinControl;
+    if (dias <= 7) return SemaforoVencimiento.critico;
+    if (dias <= 30) return SemaforoVencimiento.atencion;
+    if (dias > 60) return SemaforoVencimiento.vigente;
+    return SemaforoVencimiento.regular;
+  }
+
+  /// Costo estimado de adquisición para cálculos contables de merma y auditoría
+  double get costoUnitarioEstimado => precioCosto ?? (precioVenta * 0.75);
+
   factory Producto.fromJson(Map<String, dynamic> json) {
+    DateTime? parseFecha(dynamic raw) {
+      if (raw == null) return null;
+      if (raw is DateTime) return raw;
+      return DateTime.tryParse(raw.toString());
+    }
+
     return Producto(
       idProducto: (json['idProducto'] as num?)?.toInt(),
       idCategoria: (json['idCategoria'] as num?)?.toInt(),
@@ -40,6 +80,8 @@ class Producto {
       stockActual: (json['stockActual'] as num?)?.toDouble() ?? 0.0,
       stockMinimo: (json['stockMinimo'] as num?)?.toDouble() ?? 5.0,
       controlaVencimiento: json['controlaVencimiento'] as bool? ?? false,
+      fechaVencimiento: parseFecha(json['fechaVencimiento'] ?? json['fecha_vencimiento']),
+      precioCosto: (json['precioCosto'] as num?)?.toDouble() ?? (json['precio_costo'] as num?)?.toDouble(),
       imagenUrl: json['imagenUrl'] as String? ?? json['imagen_url'] as String?,
     );
   }
@@ -56,6 +98,10 @@ class Producto {
       if (includeStock) 'stockActual': stockActual,
       'stockMinimo': stockMinimo,
       'controlaVencimiento': controlaVencimiento,
+      if (fechaVencimiento != null)
+        'fechaVencimiento':
+            '${fechaVencimiento!.year.toString().padLeft(4, '0')}-${fechaVencimiento!.month.toString().padLeft(2, '0')}-${fechaVencimiento!.day.toString().padLeft(2, '0')}',
+      if (precioCosto != null) 'precioCosto': precioCosto,
       'imagenUrl': imagenUrl?.trim() ?? '',
       'estado': true,
     };
@@ -73,6 +119,8 @@ class Producto {
     double? stockActual,
     double? stockMinimo,
     bool? controlaVencimiento,
+    DateTime? fechaVencimiento,
+    double? precioCosto,
     String? imagenUrl,
   }) {
     return Producto(
@@ -87,6 +135,8 @@ class Producto {
       stockActual: stockActual ?? this.stockActual,
       stockMinimo: stockMinimo ?? this.stockMinimo,
       controlaVencimiento: controlaVencimiento ?? this.controlaVencimiento,
+      fechaVencimiento: fechaVencimiento ?? this.fechaVencimiento,
+      precioCosto: precioCosto ?? this.precioCosto,
       imagenUrl: imagenUrl ?? this.imagenUrl,
     );
   }

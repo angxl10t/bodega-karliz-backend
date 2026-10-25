@@ -9,6 +9,9 @@ import 'nuevo_producto_sheet.dart';
 import 'editar_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
 import '../movimientos/ajuste_stock_sheet.dart';
+import '../movimientos/vencimientos_screen.dart';
+import '../movimientos/mermas_screen.dart';
+import '../movimientos/auditoria_ciega_screen.dart';
 import '../home/bodega_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
@@ -151,10 +154,12 @@ class _ProductosScreenState extends State<ProductosScreen> {
           if (cat != _selectedCategoria) return false;
         }
 
-        // 3. Filtro por Estado de Stock (basado en el stock mínimo configurado para cada producto)
+        // 3. Filtro por Estado de Stock / Vencimiento
         final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
         if (_estadoStockFiltro == 'bajo_stock') {
           return p.stockActual <= umbralMinimo;
+        } else if (_estadoStockFiltro == 'vencen_pronto') {
+          return p.controlaVencimiento && p.semaforoVencimiento == SemaforoVencimiento.critico;
         } else if (_estadoStockFiltro == 'con_stock') {
           return p.stockActual > umbralMinimo;
         }
@@ -215,6 +220,9 @@ class _ProductosScreenState extends State<ProductosScreen> {
       final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
       return p.stockActual <= umbralMinimo;
     }).length;
+    final int vencenProntoCount = items
+        .where((p) => p.controlaVencimiento && p.semaforoVencimiento == SemaforoVencimiento.critico)
+        .length;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -294,45 +302,230 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     ),
                   ),
 
-                  // Botón Kardex como herramienta de auditoría de alto nivel
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        HapticFeedback.selectionClick();
+                  // Menú Integral de Inventario y Auditoría
+                  PopupMenuButton<String>(
+                    tooltip: 'Herramientas de Inventario',
+                    offset: const Offset(0, 42),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    elevation: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(LucideIcons.boxes, size: 14, color: AppTheme.brandPrimary),
+                              if (_safeTodos.any((p) => p.controlaVencimiento && p.semaforoVencimiento == SemaforoVencimiento.critico))
+                                Positioned(
+                                  top: -2,
+                                  right: -2,
+                                  child: Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFEF4444),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Inventario',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Icon(LucideIcons.chevronDown, size: 12, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                        ],
+                      ),
+                    ),
+                    onSelected: (val) {
+                      HapticFeedback.selectionClick();
+                      if (val == 'vencimientos') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const VencimientosScreen()),
+                        ).then((_) => _cargarProductos());
+                      } else if (val == 'mermas') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MermasScreen()),
+                        ).then((_) => _cargarProductos());
+                      } else if (val == 'auditoria') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
+                        ).then((_) => _cargarProductos());
+                      } else if (val == 'kardex') {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const KardexScreen()),
                         );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
-                            width: 0.8,
-                          ),
-                        ),
+                      }
+                    },
+                    itemBuilder: (ctx) => [
+                      PopupMenuItem(
+                        value: 'vencimientos',
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(LucideIcons.fileSpreadsheet, size: 14, color: AppTheme.brandPrimary),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Kardex',
-                              style: GoogleFonts.outfit(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white70 : AppTheme.textDark,
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(LucideIcons.calendarClock, size: 15, color: Color(0xFFEF4444)),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Control de Vencimientos',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Alertas semáforo 🔴 🟡 🟢',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
+                      PopupMenuItem(
+                        value: 'mermas',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDC2626).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(LucideIcons.trash2, size: 15, color: Color(0xFFDC2626)),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Registro de Mermas',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Bajas por rotura o caducidad',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'auditoria',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(LucideIcons.clipboardCheck, size: 15, color: Color(0xFF6366F1)),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Auditoría Ciega (Conteo)',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Conteo físico y cuadre de stock',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'kardex',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(LucideIcons.fileSpreadsheet, size: 15, color: AppTheme.brandPrimary),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Kardex de Movimientos',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Historial detallado de entradas y salidas',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
 
                   // Botón Exportar Catálogo CSV
@@ -582,6 +775,78 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             ),
                           ),
                         ),
+
+                        // Chip de Alerta Prioritaria: Vencen Pronto (Rojo Semáforo)
+                        if (vencenProntoCount > 0 || _estadoStockFiltro == 'vencen_pronto') ...[
+                          const SizedBox(width: 6),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() {
+                                  if (_estadoStockFiltro == 'vencen_pronto') {
+                                    _estadoStockFiltro = 'todos';
+                                  } else {
+                                    _estadoStockFiltro = 'vencen_pronto';
+                                  }
+                                  _aplicarFiltros();
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: _estadoStockFiltro == 'vencen_pronto'
+                                      ? const Color(0xFFDC2626)
+                                      : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _estadoStockFiltro == 'vencen_pronto'
+                                        ? const Color(0xFFDC2626)
+                                        : const Color(0xFFEF4444),
+                                    width: 1.0,
+                                  ),
+                                  boxShadow: _estadoStockFiltro == 'vencen_pronto'
+                                      ? [
+                                          BoxShadow(
+                                            color: const Color(0xFFDC2626).withValues(alpha: 0.28),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      LucideIcons.calendarX,
+                                      size: 13,
+                                      color: _estadoStockFiltro == 'vencen_pronto'
+                                          ? Colors.white
+                                          : const Color(0xFFEF4444),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Vencen Pronto ($vencenProntoCount)',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        fontWeight: _estadoStockFiltro == 'vencen_pronto'
+                                            ? FontWeight.w800
+                                            : FontWeight.w700,
+                                        color: _estadoStockFiltro == 'vencen_pronto'
+                                            ? Colors.white
+                                            : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B)),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                         const SizedBox(width: 8),
 
                         // Separador Vertical Sutil
