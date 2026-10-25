@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/configuracion_ticket_service.dart';
+import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
 import 'cliente_model.dart';
 import 'cliente_service.dart';
@@ -48,6 +50,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
 
   String _metodoPago = 'Efectivo';
   bool _isGuardando = false;
+  bool _imprimiendo = false;
   String? _errorMsg;
   AbonoCredito? _abonoCreado;
 
@@ -133,6 +136,70 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
 
     final uri = Uri.parse('https://wa.me/$tel?text=${Uri.encodeComponent(mensaje)}');
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _imprimirComprobanteTermico() async {
+    if (_abonoCreado == null || _imprimiendo) return;
+    setState(() => _imprimiendo = true);
+
+    try {
+      final config = ConfiguracionTicketService.actual;
+      final bytes = ThermalTicketService.generateAbonoEscPosBytes(
+        comprobanteNumero: _abonoCreado!.comprobanteNumero ?? 'AB-${_abonoCreado!.idAbono}',
+        clienteNombre: widget.cliente.nombreCompleto,
+        clienteDocumento: widget.cliente.documento,
+        montoAbonado: _abonoCreado!.monto,
+        saldoAnterior: _abonoCreado!.saldoAnterior,
+        saldoRestante: _abonoCreado!.saldoRestante,
+        metodoPago: _abonoCreado!.metodoPago,
+        notas: _abonoCreado!.notas,
+        cajero: _abonoCreado!.usuarioRegistro,
+        nombreComercio: widget.nombreBodega.isNotEmpty ? widget.nombreBodega : 'CajaYa POS',
+        width: config.anchoPapel == 80 ? ThermalTicketService.width80mm : ThermalTicketService.width58mm,
+        configTicket: config,
+      );
+
+      final text = ThermalTicketService.generateAbonoReceiptText(
+        comprobanteNumero: _abonoCreado!.comprobanteNumero ?? 'AB-${_abonoCreado!.idAbono}',
+        clienteNombre: widget.cliente.nombreCompleto,
+        clienteDocumento: widget.cliente.documento,
+        montoAbonado: _abonoCreado!.monto,
+        saldoAnterior: _abonoCreado!.saldoAnterior,
+        saldoRestante: _abonoCreado!.saldoRestante,
+        metodoPago: _abonoCreado!.metodoPago,
+        notas: _abonoCreado!.notas,
+        cajero: _abonoCreado!.usuarioRegistro,
+        nombreComercio: widget.nombreBodega.isNotEmpty ? widget.nombreBodega : 'CajaYa POS',
+        width: config.anchoPapel == 80 ? ThermalTicketService.width80mm : ThermalTicketService.width58mm,
+        configTicket: config,
+      );
+
+      final res = await ThermalTicketService.imprimirTicketDirecto(
+        escPosBytes: bytes,
+        receiptText: text,
+        config: config,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(res.mensaje),
+            backgroundColor: res.exito ? AppTheme.accentGreen : AppTheme.alertRed,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al imprimir comprobante: $e'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _imprimiendo = false);
+    }
   }
 
   @override
@@ -508,7 +575,29 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          if (tieneTelefono)
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.brandPrimary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            onPressed: _imprimiendo ? null : _imprimirComprobanteTermico,
+            icon: _imprimiendo
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(LucideIcons.printer, size: 18),
+            label: Text(
+              _imprimiendo ? 'Imprimiendo comprobante...' : 'Imprimir Ticket Térmico (ESC/POS)',
+              style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (tieneTelefono) ...[
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF25D366),
@@ -524,7 +613,8 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                 style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
               ),
             ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          ],
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(

@@ -210,5 +210,55 @@ void main() {
       // Comienza con ESC @ (0x1B, 0x40), no con pulso de cajón
       expect(bytesYape.sublist(0, 2), equals([0x1B, 0x40]));
     });
+
+    test('generateAbonoReceiptText formats credit debt voucher correctly', () {
+      final text = ThermalTicketService.generateAbonoReceiptText(
+        comprobanteNumero: 'AB-000042',
+        clienteNombre: 'Don Pepe Lujan',
+        clienteDocumento: '12345678',
+        montoAbonado: 50.00,
+        saldoAnterior: 150.00,
+        saldoRestante: 100.00,
+        metodoPago: 'Efectivo',
+        notas: 'Abono semanal',
+        cajero: 'cajero1',
+        nombreComercio: 'Bodega Central',
+      );
+
+      expect(text, contains('BODEGA CENTRAL'));
+      expect(text, contains('RECIBO DE ABONO / COBRANZA'));
+      expect(text, contains('AB-000042'));
+      expect(text, contains('Don Pepe Lujan'));
+      expect(text, contains('DNI:'));
+      expect(text, contains('12345678'));
+      expect(text, contains('DEUDA ANTERIOR:'));
+      expect(text, contains('150.00'));
+      expect(text, contains('MONTO ABONADO:'));
+      expect(text, contains('50.00'));
+      expect(text, contains('SALDO PENDIENTE:'));
+      expect(text, contains('100.00'));
+      expect(text, contains('FIRMA / CONFORMIDAD CLIENTE'));
+    });
+
+    test('generateAbonoEscPosBytes generates ESC/POS bytes with drawer opening on cash payment', () {
+      const config = ConfiguracionTicket(abrirGaveta: true);
+
+      final bytesCash = ThermalTicketService.generateAbonoEscPosBytes(
+        comprobanteNumero: 'AB-000099',
+        clienteNombre: 'Maria Ramos',
+        clienteDocumento: null,
+        montoAbonado: 30.00,
+        saldoAnterior: 30.00,
+        saldoRestante: 0.00,
+        metodoPago: 'Efectivo',
+        configTicket: config,
+      );
+
+      expect(bytesCash.sublist(0, 5), equals([0x1B, 0x70, 0x00, 0x19, 0xFA]));
+      expect(bytesCash.sublist(bytesCash.length - 4), equals([0x1D, 0x56, 0x42, 0x00]));
+
+      final textDecoded = utf8.decode(bytesCash, allowMalformed: true);
+      expect(textDecoded, contains('DEUDA CANCELADA'));
+    });
   });
 }

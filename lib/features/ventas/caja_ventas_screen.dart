@@ -415,7 +415,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final cantidadVentas = c?.cantidadVentas ?? 0;
     final fondoInicial = c?.fondoInicial ?? 0.0;
     final totalEgresos = c?.totalEgresos ?? 0.0;
-    final totalEsperado = c?.totalEfectivoEsperado ?? (fondoInicial + totalEfectivo - totalEgresos);
+    final totalAbonosEf = c?.totalAbonosEfectivo ?? 0.0;
+    final totalAbonosDig = c?.totalAbonosDigitales ?? 0.0;
+    final totalAbonosCobrados = c?.totalAbonosCobrados ?? 0.0;
+    final cantidadAbonos = c?.cantidadAbonos ?? 0;
+    final totalEsperado = c?.totalEfectivoEsperado ?? (fondoInicial + totalEfectivo + totalAbonosEf - totalEgresos);
 
     String estadoDif = 'PENDIENTE DE CONTEO';
     if (_efectivoContado != null) {
@@ -438,6 +442,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     msg.writeln('💵 *FLUJO DE EFECTIVO:*');
     msg.writeln('• Base Inicial (Sencillo): S/ ${fondoInicial.toStringAsFixed(2)}');
     msg.writeln('• (+) Ventas Efectivo: S/ ${totalEfectivo.toStringAsFixed(2)}');
+    if (totalAbonosEf > 0) {
+      msg.writeln('• (+) Cobro Fiados (Efectivo): S/ ${totalAbonosEf.toStringAsFixed(2)} ($cantidadAbonos abonos)');
+    }
     msg.writeln('• (-) Egresos Caja Chica: S/ ${totalEgresos.toStringAsFixed(2)}');
     msg.writeln('• (=) Efectivo Esperado: S/ ${totalEsperado.toStringAsFixed(2)}');
     if (_efectivoContado != null) {
@@ -449,11 +456,17 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     msg.writeln('• Yape: S/ ${totalYape.toStringAsFixed(2)}');
     msg.writeln('• Plin: S/ ${totalPlin.toStringAsFixed(2)}');
     msg.writeln('• Tarjetas: S/ ${totalTarjeta.toStringAsFixed(2)}');
+    if (totalAbonosDig > 0) {
+      msg.writeln('• Cobro Fiados por Yape/Plin: S/ ${totalAbonosDig.toStringAsFixed(2)}');
+    }
     if (totalCredito > 0) {
-      msg.writeln('• Fiados / Crédito: S/ ${totalCredito.toStringAsFixed(2)}');
+      msg.writeln('• Fiados / Crédito Otorgado: S/ ${totalCredito.toStringAsFixed(2)}');
     }
     msg.writeln('------------------------------------------');
     msg.writeln('💰 *TOTAL RECAUDADO:* S/ ${totalVendido.toStringAsFixed(2)} ($cantidadVentas ventas)');
+    if (totalAbonosCobrados > 0) {
+      msg.writeln('🤝 *Cobranza de Deudas:* S/ ${totalAbonosCobrados.toStringAsFixed(2)} ($cantidadAbonos abonos)');
+    }
 
     final encoded = Uri.encodeComponent(msg.toString());
     final url = Uri.parse('https://wa.me/?text=$encoded');
@@ -886,7 +899,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final fondo = _cierreCaja?.fondoInicial ?? 0.0;
     final efectivoVentas = _cierreCaja?.totalEfectivo ?? 0.0;
     final egresos = _cierreCaja?.totalEgresos ?? 0.0;
-    final esperado = _cierreCaja?.totalEfectivoEsperado ?? (fondo + efectivoVentas - egresos);
+    final abonosEf = _cierreCaja?.totalAbonosEfectivo ?? 0.0;
+    final cantAbonos = _cierreCaja?.cantidadAbonos ?? 0;
+    final esperado = _cierreCaja?.totalEfectivoEsperado ?? (fondo + efectivoVentas + abonosEf - egresos);
     final contado = _efectivoContado;
     final diferencia = (contado != null) ? (contado - esperado) : null;
     final listaEgresos = _cierreCaja?.egresos ?? [];
@@ -987,6 +1002,43 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               ),
             ],
           ),
+          if (abonosEf > 0) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F231D) : const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppTheme.accentGreen.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.banknote, color: AppTheme.accentGreen, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Cobranza de Fiados en Efectivo ($cantAbonos)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '+S/ ${abonosEf.toStringAsFixed(2)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (listaEgresos.isNotEmpty) ...[
             const SizedBox(height: 14),
             Container(

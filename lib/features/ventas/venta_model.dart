@@ -236,6 +236,12 @@ class CierreCaja {
   final double totalEfectivoEsperado;
   final List<EgresoCajaItem> egresos;
 
+  // Cobranza de Fiados / Deudas de Clientes (Abonos)
+  final double totalAbonosCobrados;
+  final double totalAbonosEfectivo;
+  final double totalAbonosDigitales;
+  final int cantidadAbonos;
+
   CierreCaja({
     required this.totalVentas,
     required this.totalEfectivo,
@@ -251,13 +257,22 @@ class CierreCaja {
     this.totalEgresos = 0.0,
     double? totalEfectivoEsperado,
     this.egresos = const [],
-  }) : totalEfectivoEsperado = totalEfectivoEsperado ?? (fondoInicial + totalEfectivo - totalEgresos);
+    this.totalAbonosCobrados = 0.0,
+    this.totalAbonosEfectivo = 0.0,
+    this.totalAbonosDigitales = 0.0,
+    this.cantidadAbonos = 0,
+  }) : totalEfectivoEsperado = totalEfectivoEsperado ?? (fondoInicial + totalEfectivo + totalAbonosEfectivo - totalEgresos);
 
   factory CierreCaja.fromJson(Map<String, dynamic> json) {
     final double ef = (json['totalEfectivo'] as num?)?.toDouble() ?? 0.0;
     final double fIni = (json['fondoInicial'] as num?)?.toDouble() ?? 0.0;
     final double egr = (json['totalEgresos'] as num?)?.toDouble() ?? 0.0;
     final double? esp = (json['totalEfectivoEsperado'] as num?)?.toDouble();
+
+    final double abonosCobrados = (json['totalAbonosCobrados'] as num?)?.toDouble() ?? 0.0;
+    final double abonosEf = (json['totalAbonosEfectivo'] as num?)?.toDouble() ?? 0.0;
+    final double abonosDig = (json['totalAbonosDigitales'] as num?)?.toDouble() ?? 0.0;
+    final int cantAbonos = (json['cantidadAbonos'] as num?)?.toInt() ?? 0;
 
     final List<EgresoCajaItem> listaEgresos = (json['egresos'] as List<dynamic>?)
             ?.map((e) => EgresoCajaItem.fromJson(e as Map<String, dynamic>))
@@ -279,6 +294,10 @@ class CierreCaja {
       totalEgresos: egr,
       totalEfectivoEsperado: esp,
       egresos: listaEgresos,
+      totalAbonosCobrados: abonosCobrados,
+      totalAbonosEfectivo: abonosEf,
+      totalAbonosDigitales: abonosDig,
+      cantidadAbonos: cantAbonos,
     );
   }
 }

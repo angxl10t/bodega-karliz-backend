@@ -425,6 +425,159 @@ class ThermalTicketService {
     return bytes;
   }
 
+  /// Genera el texto monoespaciado para el comprobante de cobranza / abono de fiado
+  static String generateAbonoReceiptText({
+    required String comprobanteNumero,
+    required String clienteNombre,
+    required String? clienteDocumento,
+    required double montoAbonado,
+    required double saldoAnterior,
+    required double saldoRestante,
+    required String metodoPago,
+    String? notas,
+    String? cajero,
+    DateTime? fecha,
+    int width = width58mm,
+    String nombreComercio = 'CajaYa POS',
+    String? rucDni,
+    String? direccion = 'Av. Principal 123 - Lima',
+    String? telefono = 'Tel: 987 654 321',
+    ConfiguracionTicket? configTicket,
+  }) {
+    final cfg = configTicket ?? ConfiguracionTicketService.actual;
+    final buffer = StringBuffer();
+    final d = fecha ?? DateTime.now();
+    final dateStr = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+
+    // 1. Datos del Comercio
+    if (nombreComercio.isNotEmpty) {
+      buffer.writeln(center(nombreComercio.toUpperCase(), width));
+    }
+    if (rucDni != null && rucDni.isNotEmpty) {
+      buffer.writeln(center(rucDni, width));
+    }
+    if (direccion != null && direccion.isNotEmpty) {
+      buffer.writeln(center(direccion, width));
+    }
+    if (telefono != null && telefono.isNotEmpty) {
+      buffer.writeln(center(telefono, width));
+    }
+
+    buffer.writeln(divider(width, '='));
+    buffer.writeln(center('RECIBO DE ABONO / COBRANZA', width));
+    buffer.writeln(center('CONTROL DE FIADOS Y DEUDAS', width));
+    buffer.writeln(divider(width, '='));
+
+    buffer.writeln(twoColumns('COMPROBANTE:', comprobanteNumero, width));
+    buffer.writeln(twoColumns('FECHA:', dateStr, width));
+    if (cajero != null && cajero.isNotEmpty) {
+      buffer.writeln(twoColumns('COBRADO POR:', cajero, width));
+    }
+    buffer.writeln(divider(width, '-'));
+
+    buffer.writeln(twoColumns('CLIENTE:', clienteNombre, width));
+    if (clienteDocumento != null && clienteDocumento.isNotEmpty) {
+      final docLabel = clienteDocumento.length == 8 ? 'DNI:' : 'DOC:';
+      buffer.writeln(twoColumns(docLabel, clienteDocumento, width));
+    }
+    buffer.writeln(twoColumns('MEDIO DE PAGO:', metodoPago.toUpperCase(), width));
+    if (notas != null && notas.trim().isNotEmpty) {
+      buffer.writeln(twoColumns('NOTAS:', notas.trim(), width));
+    }
+    buffer.writeln(divider(width, '-'));
+
+    // Resumen de Deuda y Amortización
+    buffer.writeln(twoColumns('DEUDA ANTERIOR:', 'S/ ${saldoAnterior.toStringAsFixed(2)}', width));
+    buffer.writeln(twoColumns('MONTO ABONADO:', 'S/ ${montoAbonado.toStringAsFixed(2)}', width));
+    buffer.writeln(divider(width, '-'));
+    final estadoDeuda = saldoRestante <= 0.01 ? 'DEUDA CANCELADA 🎉' : 'S/ ${saldoRestante.toStringAsFixed(2)}';
+    buffer.writeln(twoColumns('SALDO PENDIENTE:', estadoDeuda, width));
+    buffer.writeln(divider(width, '='));
+
+    // Firma de conformidad
+    buffer.writeln();
+    buffer.writeln(center('________________________________', width));
+    buffer.writeln(center('FIRMA / CONFORMIDAD CLIENTE', width));
+    buffer.writeln();
+
+    if (cfg.mensajeAgradecimiento.isNotEmpty) {
+      buffer.writeln(center(cfg.mensajeAgradecimiento, width));
+    }
+    buffer.writeln(center('CajaYa Cloud POS', width));
+    buffer.writeln();
+
+    return buffer.toString();
+  }
+
+  /// Genera los bytes ESC/POS estándar para comprobantes térmicos de abono de crédito
+  static List<int> generateAbonoEscPosBytes({
+    required String comprobanteNumero,
+    required String clienteNombre,
+    required String? clienteDocumento,
+    required double montoAbonado,
+    required double saldoAnterior,
+    required double saldoRestante,
+    required String metodoPago,
+    String? notas,
+    String? cajero,
+    DateTime? fecha,
+    int width = width58mm,
+    String nombreComercio = 'CajaYa POS',
+    String? rucDni,
+    String? direccion = 'Av. Principal 123 - Lima',
+    String? telefono = 'Tel: 987 654 321',
+    ConfiguracionTicket? configTicket,
+    bool? forzarAperturaGaveta,
+  }) {
+    final cfg = configTicket ?? ConfiguracionTicketService.actual;
+    final List<int> bytes = [];
+
+    // 1. Abrir gaveta si el pago fue en efectivo
+    final bool debeAbrirGaveta = forzarAperturaGaveta ??
+        (cfg.abrirGaveta && metodoPago.toLowerCase().contains('efectivo'));
+    if (debeAbrirGaveta) {
+      bytes.addAll(openDrawerBytes);
+    }
+
+    // 2. Inicializar impresora (ESC @)
+    bytes.addAll([0x1B, 0x40]);
+
+    // 3. Encabezado en negrita y doble altura
+    bytes.addAll([0x1B, 0x61, 0x01]);
+    bytes.addAll([0x1B, 0x45, 0x01, 0x1B, 0x21, 0x10]);
+    bytes.addAll(utf8.encode('${sanitize(nombreComercio)}\n'));
+    bytes.addAll([0x1B, 0x21, 0x00, 0x1B, 0x45, 0x00]);
+
+    // 4. Contenido
+    final abonoText = generateAbonoReceiptText(
+      comprobanteNumero: comprobanteNumero,
+      clienteNombre: clienteNombre,
+      clienteDocumento: clienteDocumento,
+      montoAbonado: montoAbonado,
+      saldoAnterior: saldoAnterior,
+      saldoRestante: saldoRestante,
+      metodoPago: metodoPago,
+      notas: notas,
+      cajero: cajero,
+      fecha: fecha,
+      width: width,
+      nombreComercio: '',
+      rucDni: rucDni,
+      direccion: direccion,
+      telefono: telefono,
+      configTicket: cfg,
+    );
+
+    bytes.addAll([0x1B, 0x61, 0x00]);
+    bytes.addAll(utf8.encode(abonoText));
+
+    // 5. Avance de papel y corte
+    bytes.addAll([0x1B, 0x64, 0x04]);
+    bytes.addAll(cutPaperBytes);
+
+    return bytes;
+  }
+
   /// Despacha la impresión directa al hardware (vía RawBT en móvil/web, servidor local HTTP o fallback)
   static Future<PrintResult> imprimirTicketDirecto({
     required List<int> escPosBytes,
