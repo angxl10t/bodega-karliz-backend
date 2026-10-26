@@ -467,7 +467,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isDark ? 'Modo Oscuro (Warm Titanium)' : 'Modo Claro Pro (Porcelana)',
+                                    isDark ? 'Modo Oscuro (Obsidian Slate)' : 'Modo Claro Pro (Porcelana)',
                                     style: GoogleFonts.outfit(
                                       fontSize: 14.5,
                                       fontWeight: FontWeight.w700,

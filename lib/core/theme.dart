@@ -36,16 +36,18 @@ class AppTheme {
   static const Color textDark = Color(0xFF0F172A);
   static const Color textMuted = Color(0xFF64748B);
 
-  // Superficies Modo Oscuro (Warm Titanium & Satin Zinc - Anti-fatiga)
-  static const Color bgDark = Color(0xFF18181B); // Zinc 900 / Warm Titanium Canvas
-  static const Color cardDark = Color(0xFF27272A); // Zinc 800 / Titanium Card (Elevación 1)
-  static const Color cardDarkElevated = Color(0xFF323238); // Zinc Elevado (Elevación 2)
-  static const Color borderDark = Color(0xFF3F3F46); // Zinc 700 / Borde Nítido Cálido
-  static const Color surfaceTintDark = Color(0xFF202633); // Contenedor Cobalto Suave Dark
-  static const Color borderTintDark = Color(0xFF2D3748); // Borde Cobalto Dark
-  static const Color textDarkPrimary = Color(0xFFFAFAFA); // Blanco Perla Cálido (Sin encandilamiento)
-  static const Color textDarkSecondary = Color(0xFFA1A1AA); // Plata / Zinc 400
-  static const Color textDarkMuted = Color(0xFF71717A); // Zinc 500
+  // Superficies Modo Oscuro (Option A: Fintech Cobalt & Deep Slate Obsidian)
+  static const Color bgDark = Color(0xFF0B0F19); // Obsidian Deep Canvas (Fondo ultra-profundo de alta fidelidad)
+  static const Color cardDark = Color(0xFF111827); // Rich Charcoal / Slate 900 (Elevación 1 - Tarjetas y Superficies Principales)
+  static const Color cardDarkElevated = Color(0xFF1E293B); // Slate 800 (Elevación 2 - Modales, Diálogos, BottomSheets)
+  static const Color cardDarkHighlight = Color(0xFF243247); // Slate 750 (Elevación 3 - Inputs activos, Chips seleccionados)
+  static const Color borderDark = Color(0xFF1F2937); // Slate 800 / Borde Sutil y Sofisticado
+  static const Color borderDarkElevated = Color(0xFF334155); // Slate 700 / Borde Nítido Elevado
+  static const Color surfaceTintDark = Color(0xFF0F1E36); // Contenedor Cobalto Suave Dark
+  static const Color borderTintDark = Color(0xFF1E3A8A); // Borde Cobalto Dark
+  static const Color textDarkPrimary = Color(0xFFF8FAFC); // Slate 50 (Blanco Perla de Alta Claridad sin deslumbramiento)
+  static const Color textDarkSecondary = Color(0xFF94A3B8); // Slate 400 (Gris Neutro Suave y Equilibrado)
+  static const Color textDarkMuted = Color(0xFF64748B); // Slate 500 (Metadatos elegantes)
 
   // ============================================
   // TIPOGRAFÍA DE MARCA UNIFICADA
@@ -214,7 +216,10 @@ class AppTheme {
         secondary: brandLight,
         surface: cardDark,
         surfaceContainer: cardDarkElevated,
+        surfaceContainerHighest: cardDarkHighlight,
         onSurface: textDarkPrimary,
+        outline: borderDark,
+        outlineVariant: borderDarkElevated,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: cardDark,
@@ -229,6 +234,7 @@ class AppTheme {
           letterSpacing: -0.4,
         ),
         iconTheme: const IconThemeData(color: Colors.white70),
+        shape: const Border(bottom: BorderSide(color: borderDark, width: 1)),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
@@ -240,27 +246,69 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: cardDark,
+        backgroundColor: cardDarkElevated,
         surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          side: BorderSide(color: borderDarkElevated, width: 1),
+        ),
       ),
-      dialogTheme: const DialogThemeData(
-        backgroundColor: cardDark,
+      dialogTheme: DialogThemeData(
+        backgroundColor: cardDarkElevated,
         surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: borderDarkElevated, width: 1),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: borderDark,
+        thickness: 1,
+        space: 1,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: const Color(0xFF162032),
+        selectedColor: primary.withValues(alpha: 0.22),
+        secondarySelectedColor: primary,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: borderDark, width: 1),
+        ),
+        labelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: textDarkPrimary,
+        ),
+        secondaryLabelStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: brandLight,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: cardDarkElevated,
+        contentTextStyle: GoogleFonts.plusJakartaSans(color: textDarkPrimary, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: borderDarkElevated, width: 1),
+        ),
+        behavior: SnackBarBehavior.floating,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cardDarkElevated,
+        fillColor: const Color(0xFF0F172A),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: borderDark, width: 1),
+          borderSide: const BorderSide(color: borderDark, width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: brandLight, width: 1.8),
+          borderSide: const BorderSide(color: brandPrimary, width: 2.0),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
         labelStyle: GoogleFonts.plusJakartaSans(color: textDarkSecondary, fontSize: 13.5),

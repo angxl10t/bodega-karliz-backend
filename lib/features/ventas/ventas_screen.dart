@@ -6,6 +6,7 @@ import '../productos/producto_service.dart';
 import 'venta_model.dart';
 import 'venta_service.dart';
 import 'caja_ventas_screen.dart';
+import '../../core/widgets/egreso_caja_modal.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/karliz_sound_service.dart';
 import '../../core/thermal_ticket_service.dart';
@@ -2460,6 +2461,16 @@ class _VentasScreenState extends State<VentasScreen> {
                   const SizedBox(width: 8),
                   IconButton.filledTonal(
                     style: IconButton.styleFrom(
+                      backgroundColor: isDark ? const Color(0xFF4C0519) : const Color(0xFFFFE4E6),
+                      foregroundColor: const Color(0xFFE11D48),
+                    ),
+                    tooltip: 'Egreso Rápido de Caja Chica',
+                    icon: const Icon(LucideIcons.arrowDownRight, size: 19),
+                    onPressed: () => EgresoCajaModal.show(context),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    style: IconButton.styleFrom(
                       backgroundColor: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.15) : AppTheme.surfaceTint,
                       foregroundColor: AppTheme.brandPrimary,
                     ),
@@ -3031,6 +3042,39 @@ class _VentasScreenState extends State<VentasScreen> {
                 tooltip: 'Actualizar Catálogo & Stock',
                 icon: const Icon(LucideIcons.refreshCw, size: 18),
                 onPressed: () => _cargarProductos(forceRefresh: true),
+              ),
+              const SizedBox(width: 6),
+
+              // Botón Egreso Rápido de Caja Chica
+              IconButton.filledTonal(
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark ? const Color(0xFF4C0519) : const Color(0xFFFFE4E6),
+                  foregroundColor: const Color(0xFFE11D48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  minimumSize: const Size(44, 44),
+                ),
+                tooltip: 'Egreso Rápido de Caja Chica',
+                icon: const Icon(LucideIcons.arrowDownRight, size: 19),
+                onPressed: () => EgresoCajaModal.show(context),
+              ),
+              const SizedBox(width: 6),
+
+              // Botón Cierre de Caja & Ventas
+              IconButton.filledTonal(
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.15) : AppTheme.surfaceTint,
+                  foregroundColor: AppTheme.brandPrimary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  minimumSize: const Size(44, 44),
+                ),
+                tooltip: 'Cierre del Día & Ventas',
+                icon: const Icon(LucideIcons.receiptText, size: 19),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CajaVentasScreen()),
+                  );
+                },
               ),
             ],
           ),
