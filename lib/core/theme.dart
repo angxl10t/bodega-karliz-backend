@@ -34,11 +34,11 @@ class AppTheme {
   static const Color cardLight = Colors.white;
   static const Color borderLight = Color(0xFFE2E8F0);
   static const Color textDark = Color(0xFF0F172A);
-  static const Color textMuted = Color(0xFF64748B);
+  static const Color textMuted = Color(0xFF475569); // Slate 600 - Máximo Contraste WCAG AAA en Modo Claro
 
   // ============================================
-  // MODO OSCURO DE ÉLITE: VELVET OBSIDIAN & ELECTRIC COBALT
-  // Diseñado con contraste volumétrico, micro-bordes luminosos y ergonomía visual anti-fatiga.
+  // MODO OSCURO DE ÉLITE: VELVET OBSIDIAN & HIGH-CONTRAST TEXT
+  // Optimizado con WCAG AAA (>7:1) para personas mayores y pantallas con brillo bajo.
   // ============================================
   static const Color bgDark = Color(0xFF090A0F); // Canvas Velvet Obsidian (Espacio profundo puro)
   static const Color cardDark = Color(0xFF141724); // Tarjeta Primaria (Contraste palpable y silueta definida)
@@ -49,9 +49,18 @@ class AppTheme {
   static const Color borderDarkElevated = Color(0xFF384362); // Borde de realce en superficies flotantes
   static const Color surfaceTintDark = Color(0xFF131D31); // Glow cobalto suave de fondo
   static const Color borderTintDark = Color(0xFF1E3A8A); // Borde cobalto de acento
-  static const Color textDarkPrimary = Color(0xFFF8FAFC); // Blanco Perla Cristalino (100% legibilidad)
-  static const Color textDarkSecondary = Color(0xFFCBD5E1); // Slate 300 (Gris Claro Suave - No opaco)
-  static const Color textDarkMuted = Color(0xFF94A3B8); // Slate 400 (Metadatos claros)
+  static const Color textDarkPrimary = Color(0xFFFFFFFF); // 100% Blanco Puro Nítido (21:1 Máximo Contraste)
+  static const Color textDarkSecondary = Color(0xFFF1F5F9); // Slate 100 (95% Luminancia - Blanco suave de lectura fácil)
+  static const Color textDarkMuted = Color(0xFFE2E8F0); // Slate 200 (89% Luminancia - Ultra visible con bajo brillo)
+
+  /// Retorna un color de texto atenuado/secundario según el tema con alto contraste WCAG AAA
+  static Color getAdaptiveMutedText(bool isDark) => isDark ? textDarkMuted : textMuted;
+
+  /// Retorna un color de texto secundario nítido según el tema
+  static Color getAdaptiveSecondaryText(bool isDark) => isDark ? textDarkSecondary : const Color(0xFF334155);
+
+  /// Retorna un color de texto primario de alto contraste según el tema
+  static Color getAdaptivePrimaryText(bool isDark) => isDark ? textDarkPrimary : textDark;
 
   // ============================================
   // TIPOGRAFÍA DE MARCA UNIFICADA
@@ -231,6 +240,7 @@ class AppTheme {
         surfaceContainer: cardDarkElevated,
         surfaceContainerHighest: cardDarkHighlight,
         onSurface: textDarkPrimary,
+        onSurfaceVariant: textDarkSecondary,
         outline: borderDark,
         outlineVariant: borderDarkElevated,
       ),
@@ -246,7 +256,7 @@ class AppTheme {
           color: textDarkPrimary,
           letterSpacing: -0.4,
         ),
-        iconTheme: const IconThemeData(color: Colors.white70),
+        iconTheme: const IconThemeData(color: Colors.white),
         shape: const Border(bottom: BorderSide(color: borderDark, width: 1)),
       ),
       cardTheme: CardThemeData(
@@ -354,14 +364,14 @@ class AppTheme {
           if (states.contains(WidgetState.selected)) {
             return const IconThemeData(color: Colors.white, size: 20);
           }
-          return const IconThemeData(color: textDarkSecondary, size: 20);
+          return const IconThemeData(color: Colors.white, size: 20);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
           return GoogleFonts.outfit(
             fontSize: 11.5,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-            color: isSelected ? brandLight : textDarkSecondary,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+            color: isSelected ? brandLight : Colors.white,
           );
         }),
       ),

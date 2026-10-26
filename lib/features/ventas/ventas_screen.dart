@@ -846,7 +846,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       IconButton(
                         onPressed: () => Navigator.pop(ctx),
                         icon: const Icon(LucideIcons.x, size: 20),
-                        color: isDark ? Colors.white60 : Colors.black45,
+                        color: isDark ? Colors.white : Colors.black54,
                         visualDensity: VisualDensity.compact,
                       ),
                     ],
@@ -1959,7 +1959,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : AppTheme.textDark,
+                          color: isDark ? Colors.white : AppTheme.textDark,
                         ),
                       ),
                     ],
@@ -1986,8 +1986,8 @@ class _VentasScreenState extends State<VentasScreen> {
                         'Total Cobrado:',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                         ),
                       ),
                       Text(
@@ -2033,8 +2033,9 @@ class _VentasScreenState extends State<VentasScreen> {
                               Text(
                                 'Pagó con S/ ${pagadoCon.toStringAsFixed(2)}',
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  color: AppTheme.textMuted,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                                 ),
                               ),
                             ],
@@ -2485,7 +2486,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         ),
                         Text(
                           'Cobro rápido con descuento de stock en vivo',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                         ),
                       ],
                     ),
@@ -2493,7 +2494,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   IconButton.filledTonal(
                     style: IconButton.styleFrom(
                       backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                      foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
+                      foregroundColor: isDark ? Colors.white : const Color(0xFF475569),
                     ),
                     tooltip: 'Sincronizar Productos & Stock',
                     icon: _isLoading
@@ -2637,20 +2638,20 @@ class _VentasScreenState extends State<VentasScreen> {
                         child: Center(
                           child: Column(
                             children: [
-                              Icon(LucideIcons.shoppingBag, size: 36, color: AppTheme.textMuted),
+                              Icon(LucideIcons.shoppingBag, size: 36, color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted),
                               const SizedBox(height: 10),
                               Text(
                                 'La canasta está vacía',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white70 : AppTheme.textDark,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Añade productos para cobrar la venta',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                               ),
                             ],
                           ),
@@ -2687,7 +2688,8 @@ class _VentasScreenState extends State<VentasScreen> {
                                       'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u  •  Disp: ${_formatStock(item.producto.stockActual)}',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11.5,
-                                        color: AppTheme.textMuted,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                                       ),
                                     ),
                                   ],
@@ -2893,9 +2895,9 @@ class _VentasScreenState extends State<VentasScreen> {
                               Text(
                                 'TOTAL A COBRAR',
                                 style: GoogleFonts.outfit(
-                                  color: AppTheme.textMuted,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w900,
                                   letterSpacing: 0.8,
                                 ),
                               ),
@@ -2904,9 +2906,9 @@ class _VentasScreenState extends State<VentasScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  color: AppTheme.textMuted,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                  color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -3046,7 +3048,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     fontWeight: FontWeight.w800,
                     color: enabled
                         ? (isDark ? AppTheme.brandLight : AppTheme.brandPrimary)
-                        : (isDark ? Colors.white30 : const Color(0xFF94A3B8)),
+                        : (isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8)),
                   ),
                 ),
               ),
@@ -3055,8 +3057,8 @@ class _VentasScreenState extends State<VentasScreen> {
                 icon,
                 size: 11,
                 color: enabled
-                    ? (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569))
-                    : (isDark ? Colors.white24 : const Color(0xFF94A3B8)),
+                    ? (isDark ? Colors.white : const Color(0xFF334155))
+                    : (isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8)),
               ),
               const SizedBox(width: 3),
               Text(
@@ -3065,8 +3067,8 @@ class _VentasScreenState extends State<VentasScreen> {
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: enabled
-                      ? (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569))
-                      : (isDark ? Colors.white24 : const Color(0xFF94A3B8)),
+                      ? (isDark ? Colors.white : const Color(0xFF334155))
+                      : (isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8)),
                 ),
               ),
             ],
@@ -3125,7 +3127,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       hintText: 'Buscar producto, marca o código de barras...',
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted,
                       ),
                       prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppTheme.brandPrimary),
                       suffixIcon: _tabletSearchQuery.isNotEmpty
@@ -3164,7 +3166,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white70 : AppTheme.textDark,
+                        color: isDark ? Colors.white : AppTheme.textDark,
                       ),
                     ),
                   ],
@@ -3301,7 +3303,7 @@ class _VentasScreenState extends State<VentasScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                                color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
                               ),
                             ),
                             const SizedBox(width: 5),
@@ -3318,7 +3320,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w800,
-                                  color: isSelected ? Colors.white : AppTheme.textMuted,
+                                  color: isSelected ? Colors.white : (isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                                 ),
                               ),
                             ),
@@ -3371,7 +3373,7 @@ class _VentasScreenState extends State<VentasScreen> {
                           Text(
                             'Intenta con otra palabra clave o restablece los filtros.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                           ),
                           if (_tabletSearchCtrl.text.isNotEmpty || _tabletSelectedCategoria != 'Todos') ...[
                             const SizedBox(height: 14),
@@ -3479,7 +3481,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                         style: GoogleFonts.outfit(
                                           fontSize: 9.5,
                                           fontWeight: FontWeight.w800,
-                                          color: isLowStock ? AppTheme.alertRed : const Color(0xFF0F766E),
+                                          color: isLowStock ? AppTheme.alertRed : (isDark ? const Color(0xFF2DD4BF) : const Color(0xFF0F766E)),
                                         ),
                                       ),
                                     ),
@@ -3558,7 +3560,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                                   child: Icon(
                                                     LucideIcons.info,
                                                     size: 11.5,
-                                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                                   ),
                                                 ),
                                               ),
@@ -3612,7 +3614,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                       child: Icon(
                                         LucideIcons.plus,
                                         size: 13,
-                                        color: inCart ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF334155)),
+                                        color: inCart ? Colors.white : (isDark ? Colors.white : const Color(0xFF334155)),
                                       ),
                                     ),
                                   ],
@@ -3694,9 +3696,9 @@ class _VentasScreenState extends State<VentasScreen> {
                           ? 'Listo para escanear'
                           : '$_totalUnidades u. • ${_carrito.length} productos',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: AppTheme.textMuted,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 11.5,
+                        color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -3764,8 +3766,9 @@ class _VentasScreenState extends State<VentasScreen> {
                               'Pasa el lector láser o toca productos del catálogo para agregarlos a la venta.',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                color: AppTheme.textMuted,
+                                fontSize: 11.5,
+                                color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                fontWeight: FontWeight.w600,
                                 height: 1.3,
                               ),
                             ),
@@ -3813,8 +3816,9 @@ class _VentasScreenState extends State<VentasScreen> {
                                 Text(
                                   'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
-                                    color: AppTheme.textMuted,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                                   ),
                                 ),
                               ],
@@ -3836,9 +3840,9 @@ class _VentasScreenState extends State<VentasScreen> {
                                     HapticFeedback.selectionClick();
                                     _decrementarCantidad(idx);
                                   },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                    child: Icon(LucideIcons.minus, size: 12),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                    child: Icon(LucideIcons.minus, size: 12, color: isDark ? Colors.white : AppTheme.textDark),
                                   ),
                                 ),
                                 InkWell(
@@ -3963,7 +3967,8 @@ class _VentasScreenState extends State<VentasScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
-                          color: Colors.white70,
+                          color: AppTheme.textDarkSecondary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -4075,7 +4080,7 @@ class _VentasScreenState extends State<VentasScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            color: isDark ? Colors.white : const Color(0xFF334155),
                           ),
                         ),
                       ),
@@ -4247,7 +4252,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: isTablet ? 7 : 9),
                     hintText: 'DNI (8 d.)',
-                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted),
                     filled: true,
                     fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
@@ -4286,7 +4291,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     isDense: true,
                     contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: isTablet ? 7 : 9),
                     hintText: 'Nombre del Cliente',
-                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted),
                     filled: true,
                     fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
@@ -4370,87 +4375,87 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   Widget _buildPaymentChip(String metodo, IconData icon, bool isDark) {
-    final bool isSelected = _metodoPago == metodo;
-    Color methodColor;
-    switch (metodo) {
-      case 'Yape':
-        methodColor = const Color(0xFF7C3AED);
-        break;
-      case 'Plin':
-        methodColor = const Color(0xFF0284C7);
-        break;
-      case 'Tarjeta':
-        methodColor = const Color(0xFF2563EB);
-        break;
-      case 'Crédito':
-        methodColor = const Color(0xFFD97706);
-        break;
-      case 'Efectivo':
-      default:
-        methodColor = const Color(0xFF059669);
-        break;
-    }
+  final bool isSelected = _metodoPago == metodo;
+  Color methodColor;
+  switch (metodo) {
+    case 'Yape':
+      methodColor = const Color(0xFF7C3AED); // Púrpura Yape
+      break;
+    case 'Plin':
+      methodColor = const Color(0xFF0284C7); // Celeste Plin
+      break;
+    case 'Tarjeta':
+      methodColor = const Color(0xFF2563EB); // Azul Cobalto
+      break;
+    case 'Crédito':
+      methodColor = const Color(0xFFD97706); // Ámbar
+      break;
+    case 'Efectivo':
+    default:
+      methodColor = const Color(0xFF059669); // Esmeralda Fintech
+      break;
+  }
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          setState(() {
-            _metodoPago = metodo;
-            _pagoConController.clear();
-          });
-          HapticFeedback.selectionClick();
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
+  return Material(
+    color: Colors.transparent,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        setState(() {
+          _metodoPago = metodo;
+          _pagoConController.clear();
+        });
+        HapticFeedback.selectionClick();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? methodColor
+              : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF5F6F8)),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
             color: isSelected
                 ? methodColor
-                : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF5F6F8)),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isSelected
-                  ? methodColor
-                  : (isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0)),
-              width: isSelected ? 1.4 : 1.0,
+                : (isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0)),
+            width: isSelected ? 1.4 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: methodColor.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? Colors.white : (isDark ? Colors.white : methodColor),
             ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: methodColor.withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected ? Colors.white : (isDark ? Colors.white70 : methodColor),
+            const SizedBox(width: 8),
+            Text(
+              metodo,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white : const Color(0xFF334155)),
               ),
-              const SizedBox(width: 8),
-              Text(
-                metodo,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected
-                      ? Colors.white
-                      : (isDark ? Colors.white70 : const Color(0xFF475569)),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildVueltoCard(bool isDark, {bool isTablet = false}) {
     if (_montoRecibido <= 0) {
@@ -4483,16 +4488,17 @@ class _VentasScreenState extends State<VentasScreen> {
                   Text(
                     'Efectivo no especificado',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: isTablet ? 11 : 12,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white70 : AppTheme.textDark,
+                      fontSize: isTablet ? 11.5 : 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
                     ),
                   ),
                   Text(
                     'Toca un billete o pulsa Pagar Exacto',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: isTablet ? 9.5 : 10.5,
-                      color: AppTheme.textMuted,
+                      fontSize: isTablet ? 10 : 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                     ),
                   ),
                 ],
@@ -4575,7 +4581,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white70 : const Color(0xFF7F1D1D),
+                      color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D),
                     ),
                   ),
                 ],
@@ -4625,7 +4631,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       fontSize: 10.5,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
-                      color: const Color(0xFF2563EB),
+                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
                     ),
                   ),
                   Text(
@@ -4633,7 +4639,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white70 : const Color(0xFF1E3A8A),
+                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E3A8A),
                     ),
                   ),
                 ],
@@ -4644,7 +4650,7 @@ class _VentasScreenState extends State<VentasScreen> {
               style: GoogleFonts.outfit(
                 fontSize: isTablet ? 12 : 13,
                 fontWeight: FontWeight.w900,
-                color: const Color(0xFF2563EB),
+                color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
                 letterSpacing: 0.5,
               ),
             ),
@@ -4690,7 +4696,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     fontSize: 10.5,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.8,
-                    color: const Color(0xFF065F46),
+                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF065F46),
                   ),
                 ),
                 Text(
@@ -4698,7 +4704,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : const Color(0xFF065F46),
+                    color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46),
                   ),
                 ),
               ],
@@ -4709,7 +4715,7 @@ class _VentasScreenState extends State<VentasScreen> {
             style: GoogleFonts.outfit(
               fontSize: isTablet ? 18 : 22,
               fontWeight: FontWeight.w900,
-              color: const Color(0xFF047857),
+              color: isDark ? const Color(0xFF34D399) : const Color(0xFF047857),
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
@@ -4778,9 +4784,9 @@ class _VentasScreenState extends State<VentasScreen> {
                       isDense: true,
                       labelText: 'Efectivo recibido',
                       labelStyle: GoogleFonts.plusJakartaSans(
-                        fontSize: isTablet ? 11.5 : 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textMuted,
+                        fontSize: isTablet ? 12 : 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                       ),
                       prefixText: 'S/ ',
                       prefixStyle: GoogleFonts.outfit(
@@ -4849,9 +4855,9 @@ class _VentasScreenState extends State<VentasScreen> {
                             ? 'Cobro Plin: Verifica la transferencia recibida en tu cuenta bancaria.'
                             : 'Cobro Tarjeta: Desliza o inserta la tarjeta en tu terminal POS.'),
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: isTablet ? 10.5 : 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white70 : const Color(0xFF334155),
+                      fontSize: isTablet ? 11 : 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : const Color(0xFF334155),
                     ),
                   ),
                 ),
@@ -4901,8 +4907,9 @@ class _VentasScreenState extends State<VentasScreen> {
                       Text(
                         'Selecciona un vecino de la libreta para cargar la cuenta.',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: isDark ? Colors.white70 : const Color(0xFF78350F),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF78350F),
                         ),
                       ),
                     ],
@@ -5069,7 +5076,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   children: [
                     Text(
                       'DEUDA ACTUAL',
-                      style: GoogleFonts.outfit(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppTheme.textMuted),
+                      style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                     ),
                     Text(
                       'S/ ${c.saldoDeudor.toStringAsFixed(2)}',
@@ -5082,11 +5089,11 @@ class _VentasScreenState extends State<VentasScreen> {
                   children: [
                     Text(
                       'LÍMITE',
-                      style: GoogleFonts.outfit(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppTheme.textMuted),
+                      style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                     ),
                     Text(
                       'S/ ${c.limiteCredito.toStringAsFixed(2)}',
-                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: isDark ? Colors.white70 : AppTheme.textDark),
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800, color: isDark ? Colors.white : AppTheme.textDark),
                     ),
                   ],
                 ),
@@ -5338,7 +5345,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                         c.nombreCompleto.isNotEmpty ? c.nombreCompleto[0].toUpperCase() : 'C',
                                         style: GoogleFonts.outfit(
                                           fontWeight: FontWeight.w900,
-                                          color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                                          color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
                                         ),
                                       ),
                                     ),
@@ -5458,7 +5465,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
-            foregroundColor: AppTheme.textMuted,
+            foregroundColor: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(height / 2)),
           ),
         ),
@@ -5718,7 +5725,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : AppTheme.textMuted,
+                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                   ),
                 ),
               ),
@@ -5806,7 +5813,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 Icon(
                   icon,
                   size: 14,
-                  color: isSelected ? Colors.white : (isDark ? Colors.white60 : AppTheme.textMuted),
+                  color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textMuted),
                 ),
                 const SizedBox(width: 5),
                 Flexible(
@@ -5816,8 +5823,8 @@ class _VentasScreenState extends State<VentasScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textMuted),
+                      fontWeight: FontWeight.w800,
+                      color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textMuted),
                     ),
                   ),
                 ),

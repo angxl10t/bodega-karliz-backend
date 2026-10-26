@@ -1124,7 +1124,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             e.motivo,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
-                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1690,7 +1690,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : AppTheme.textDark,
+                    color: isDark ? Colors.white : AppTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -1760,7 +1760,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                    color: isDark ? Colors.white : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -2154,7 +2154,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white70 : AppTheme.textDark,
+                          color: isDark ? Colors.white : AppTheme.textDark,
                         ),
                       ),
                       if (!esHoy && cantidadVentas > 0) ...[
@@ -2320,7 +2320,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -2465,7 +2465,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             Icon(
               icon,
               size: 15,
-              color: selected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+              color: selected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
             ),
             const SizedBox(width: 6),
             Text(
@@ -2473,7 +2473,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                color: selected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
               ),
             ),
           ],
@@ -2844,7 +2844,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                         fontWeight: FontWeight.w700,
                         color: !_filtrarVentasPorFecha
                             ? Colors.white
-                            : (isDark ? Colors.white70 : AppTheme.textDark),
+                            : (isDark ? Colors.white : AppTheme.textDark),
                       ),
                     ),
                   ),
@@ -2880,7 +2880,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             fontWeight: FontWeight.w700,
                             color: _filtrarVentasPorFecha
                                 ? Colors.white
-                                : (isDark ? Colors.white70 : AppTheme.textDark),
+                                : (isDark ? Colors.white : AppTheme.textDark),
                           ),
                         ),
                       ],
@@ -3103,7 +3103,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.5,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? color : (isDark ? Colors.white70 : AppTheme.textDark),
+                color: isSelected ? color : (isDark ? Colors.white : AppTheme.textDark),
               ),
             ),
           ],
@@ -3258,7 +3258,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white70 : const Color(0xFF475569),
+              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
             ),
           ),
           const SizedBox(height: 8),
@@ -3294,7 +3294,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             'Motivo: "${v.motivoAnulacion}"',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
-                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                           ),
                       ],
@@ -3326,7 +3326,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                           ),
                         ),

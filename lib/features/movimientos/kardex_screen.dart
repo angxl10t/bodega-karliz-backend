@@ -343,7 +343,7 @@ class _KardexScreenState extends State<KardexScreen> {
                           fontSize: 11.5,
                           height: 1.4,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                     ),
@@ -436,7 +436,7 @@ class _KardexScreenState extends State<KardexScreen> {
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 12,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? AppTheme.brandPrimary : (isDark ? Colors.white70 : const Color(0xFF475569)),
+        color: isSelected ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
       ),
       selectedColor: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.2) : AppTheme.surfaceTint,
       backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
@@ -554,7 +554,7 @@ class _KardexScreenState extends State<KardexScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white60 : const Color(0xFF475569),
+                                color: isDark ? AppTheme.textDarkMuted : const Color(0xFF334155),
                               ),
                             ),
                           ],

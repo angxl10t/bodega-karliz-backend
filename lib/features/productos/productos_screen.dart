@@ -347,11 +347,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             style: GoogleFonts.outfit(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                           ),
                           const SizedBox(width: 3),
-                          Icon(LucideIcons.chevronDown, size: 12, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                          Icon(LucideIcons.chevronDown, size: 12, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                         ],
                       ),
                     ),
@@ -558,7 +558,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white70 : AppTheme.textDark,
+                                color: isDark ? Colors.white : AppTheme.textDark,
                               ),
                             ),
                           ],
@@ -694,7 +694,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             style: GoogleFonts.outfit(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                           ),
                         ),
@@ -919,7 +919,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11.5,
                                           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                          color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                                          color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
                                         ),
                                       ),
                                       const SizedBox(width: 5),
@@ -1183,7 +1183,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 text: '  •  ${p.codigoBarras!}',
                                 style: GoogleFonts.outfit(
                                   fontSize: 10.5,
-                                  color: isDark ? Colors.white38 : AppTheme.textMuted,
+                                  color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted,
                                 ),
                               ),
                           ],
@@ -1242,7 +1242,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white38 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted,
                                 letterSpacing: 0.4,
                               ),
                               maxLines: 1,
@@ -1264,7 +1264,6 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   void _mostrarDetalleProducto(Producto p) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final catColor = CategoryHelper.getColor(p.nombreCategoria, isDark);
     final categoriaNombre = p.nombreCategoria?.trim() ?? 'General';
 

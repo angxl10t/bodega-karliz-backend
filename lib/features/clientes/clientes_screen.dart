@@ -372,7 +372,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white70 : AppTheme.textDark,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
                                 ),
                               ),
                             ],
@@ -404,7 +404,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           child: Icon(
                             LucideIcons.refreshCw,
                             size: 13,
-                            color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                           ),
                         ),
                       ),
@@ -832,7 +832,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 11.5,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+        color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
       ),
       selectedColor: AppTheme.brandPrimary,
       backgroundColor: isDark ? AppTheme.cardDarkHighlight : Colors.white,
@@ -949,7 +949,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           fontSize: 11.5,
                           height: 1.4,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                     ),
