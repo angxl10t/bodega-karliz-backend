@@ -4391,34 +4391,64 @@ class _VentasScreenState extends State<VentasScreen> {
         break;
     }
 
-    return ChoiceChip(
-      showCheckmark: false,
-      avatar: Icon(
-        icon,
-        size: 15,
-        color: isSelected ? Colors.white : (isDark ? Colors.white70 : methodColor),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          setState(() {
+            _metodoPago = metodo;
+            _pagoConController.clear();
+          });
+          HapticFeedback.selectionClick();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? methodColor
+                : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF5F6F8)),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? methodColor
+                  : (isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0)),
+              width: isSelected ? 1.4 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: methodColor.withValues(alpha: 0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected ? Colors.white : (isDark ? Colors.white70 : methodColor),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                metodo,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      label: Text(metodo),
-      selected: isSelected,
-      labelStyle: GoogleFonts.plusJakartaSans(
-        fontSize: 12,
-        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
-      ),
-      selectedColor: methodColor,
-      backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF5F6F8),
-      side: BorderSide(
-        color: isSelected ? methodColor : (isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0)),
-        width: isSelected ? 1.4 : 1.0,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      onSelected: (_) {
-        setState(() {
-          _metodoPago = metodo;
-          _pagoConController.clear();
-        });
-        HapticFeedback.selectionClick();
-      },
     );
   }
 

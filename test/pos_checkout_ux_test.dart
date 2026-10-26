@@ -113,7 +113,7 @@ void main() {
       expect(find.text('CANASTA VACÍA'), findsOneWidget);
     });
 
-    testWidgets('Payment method chips have showCheckmark: false and light up representative color', (WidgetTester tester) async {
+    testWidgets('Payment method chips light up representative color without any checkmark or circular shadow', (WidgetTester tester) async {
       tester.view.physicalSize = const Size(1280, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -129,31 +129,24 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      // Buscar todos los ChoiceChip de métodos de pago
-      final choiceChips = tester.widgetList<ChoiceChip>(find.byType(ChoiceChip));
-      final paymentChips = choiceChips.where((c) => 
-        (c.label as Text).data == 'Efectivo' ||
-        (c.label as Text).data == 'Yape' ||
-        (c.label as Text).data == 'Plin' ||
-        (c.label as Text).data == 'Tarjeta' ||
-        (c.label as Text).data == 'Crédito'
-      ).toList();
+      expect(find.text('Efectivo'), findsOneWidget);
+      expect(find.text('Yape'), findsOneWidget);
+      expect(find.text('Plin'), findsOneWidget);
+      expect(find.text('Tarjeta'), findsOneWidget);
+      expect(find.text('Crédito'), findsOneWidget);
 
-      expect(paymentChips.length, 5);
-      for (final chip in paymentChips) {
-        expect(chip.showCheckmark, isFalse, reason: 'El chip de pago no debe mostrar sombra circular ni check');
-      }
+      // Probar seleccionar Tarjeta
+      await tester.tap(find.text('Tarjeta'));
+      await tester.pumpAndSettle();
+
+      // Comprobar que NO existe ningún icono check en los chips de método de pago
+      expect(find.byIcon(Icons.check), findsNothing);
+      expect(find.text('Tarjeta'), findsOneWidget);
 
       // Probar seleccionar Yape
       await tester.tap(find.text('Yape'));
       await tester.pumpAndSettle();
-
-      final yapeChip = tester.widget<ChoiceChip>(
-        find.ancestor(of: find.text('Yape'), matching: find.byType(ChoiceChip))
-      );
-      expect(yapeChip.selected, isTrue);
-      expect(yapeChip.showCheckmark, isFalse);
-      expect(yapeChip.selectedColor, const Color(0xFF7C3AED));
+      expect(find.byIcon(Icons.check), findsNothing);
     });
   });
 }
