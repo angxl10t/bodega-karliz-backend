@@ -112,5 +112,48 @@ void main() {
       expect(find.text('TOTAL A COBRAR'), findsOneWidget);
       expect(find.text('CANASTA VACÍA'), findsOneWidget);
     });
+
+    testWidgets('Payment method chips have showCheckmark: false and light up representative color', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: VentasScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Buscar todos los ChoiceChip de métodos de pago
+      final choiceChips = tester.widgetList<ChoiceChip>(find.byType(ChoiceChip));
+      final paymentChips = choiceChips.where((c) => 
+        (c.label as Text).data == 'Efectivo' ||
+        (c.label as Text).data == 'Yape' ||
+        (c.label as Text).data == 'Plin' ||
+        (c.label as Text).data == 'Tarjeta' ||
+        (c.label as Text).data == 'Crédito'
+      ).toList();
+
+      expect(paymentChips.length, 5);
+      for (final chip in paymentChips) {
+        expect(chip.showCheckmark, isFalse, reason: 'El chip de pago no debe mostrar sombra circular ni check');
+      }
+
+      // Probar seleccionar Yape
+      await tester.tap(find.text('Yape'));
+      await tester.pumpAndSettle();
+
+      final yapeChip = tester.widget<ChoiceChip>(
+        find.ancestor(of: find.text('Yape'), matching: find.byType(ChoiceChip))
+      );
+      expect(yapeChip.selected, isTrue);
+      expect(yapeChip.showCheckmark, isFalse);
+      expect(yapeChip.selectedColor, const Color(0xFF7C3AED));
+    });
   });
 }

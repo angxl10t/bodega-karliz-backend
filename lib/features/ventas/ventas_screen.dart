@@ -4392,6 +4392,7 @@ class _VentasScreenState extends State<VentasScreen> {
     }
 
     return ChoiceChip(
+      showCheckmark: false,
       avatar: Icon(
         icon,
         size: 15,
