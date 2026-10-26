@@ -207,7 +207,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -227,7 +227,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       width: 44,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -272,7 +272,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: TextField(
@@ -400,7 +400,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       builder: (ctx) {
         String filtro = searchCtrl.text;
         return StatefulBuilder(
@@ -423,7 +423,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       width: 44,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -469,7 +469,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   const SizedBox(height: 14),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: TextField(
@@ -668,7 +668,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           final subtotal = cant * costo;
 
           return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
             title: Row(
               children: [
@@ -1128,7 +1128,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
@@ -1193,7 +1193,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+                            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -1329,7 +1329,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                          color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
                             color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
@@ -1592,7 +1592,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
               borderRadius: BorderRadius.circular(20),
             ),
             child: TextField(
@@ -1713,7 +1713,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Column(

@@ -307,15 +307,15 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     tooltip: 'Herramientas de Inventario',
                     offset: const Offset(0, 42),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                     elevation: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
                       decoration: BoxDecoration(
-                        color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                        color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                          color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                           width: 0.8,
                         ),
                       ),
@@ -625,7 +625,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         child: Container(
                           height: 42,
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+                            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
@@ -682,10 +682,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         height: 42,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                          color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                            color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                           ),
                         ),
                         child: Center(
@@ -731,12 +731,12 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               decoration: BoxDecoration(
                                 color: _estadoStockFiltro == 'bajo_stock'
                                     ? const Color(0xFFD97706)
-                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                                    : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC)),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: _estadoStockFiltro == 'bajo_stock'
                                       ? const Color(0xFFD97706)
-                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                      : (isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0)),
                                   width: 1.0,
                                 ),
                                 boxShadow: _estadoStockFiltro == 'bajo_stock'
@@ -800,7 +800,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 decoration: BoxDecoration(
                                   color: _estadoStockFiltro == 'vencen_pronto'
                                       ? const Color(0xFFDC2626)
-                                      : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
+                                      : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC)),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: _estadoStockFiltro == 'vencen_pronto'
@@ -885,7 +885,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? AppTheme.brandPrimary
-                                        : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+                                        : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC)),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: isSelected
@@ -928,7 +928,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                         decoration: BoxDecoration(
                                           color: isSelected
                                               ? Colors.white.withValues(alpha: 0.25)
-                                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                              : (isDark ? AppTheme.cardDarkElevated : const Color(0xFFE2E8F0)),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
@@ -1094,10 +1094,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         width: 20,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          color: isDark ? AppTheme.cardDarkHighlight : Colors.white,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                            color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                             width: 1.2,
                           ),
                           boxShadow: [
@@ -1273,7 +1273,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      backgroundColor: cardBg,
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       builder: (ctx) {
         final double valorTotal = p.stockActual * p.precioVenta;
         return Padding(
@@ -1287,7 +1287,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   width: 44,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -1414,7 +1414,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FA),
+                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
@@ -1708,7 +1708,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       builder: (ctx) => Padding(
         padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
         child: Column(
@@ -1720,7 +1720,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                 width: 44,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -1757,7 +1757,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
               ),

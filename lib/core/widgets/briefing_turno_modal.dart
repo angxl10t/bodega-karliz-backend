@@ -268,7 +268,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
     final bool isAdmin = _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
     final List<_ConsejoItem> tips = isAdmin ? _consejosAdmin : _consejosCajero;
@@ -280,6 +280,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.2),
@@ -310,7 +311,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                         width: 42,
                         height: 4.5,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF3F3F46) : const Color(0xFFCBD5E1),
+                          color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -602,7 +603,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
         color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
           width: 0.8,
         ),
       ),

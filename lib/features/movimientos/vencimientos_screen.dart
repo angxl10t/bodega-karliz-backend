@@ -238,7 +238,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                         child: Container(
                           height: 42,
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(color: borderColor),
                           ),
@@ -338,7 +338,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(color: borderColor),
                                   ),

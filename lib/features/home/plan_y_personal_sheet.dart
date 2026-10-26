@@ -865,7 +865,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+                        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -1813,7 +1813,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
               width: 44,
               height: 4.5,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),

@@ -516,7 +516,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final confirmado = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
@@ -564,7 +564,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                 prefixText: 'S/ ',
                 prefixStyle: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: AppTheme.brandPrimary),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -626,7 +626,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => AlertDialog(
-          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(
             children: [
@@ -675,7 +675,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     prefixText: 'S/ ',
                     prefixStyle: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: const Color(0xFFE11D48)),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -709,7 +709,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     labelText: 'Motivo o Detalle',
                     hintText: 'Ej. 50 bolsas plásticas grandes, hielo...',
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -776,7 +776,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final confirmado = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
         title: Text('¿Anular Egreso?', style: GoogleFonts.outfit(fontWeight: FontWeight.w800)),
         content: Text(
           'Se anulará el egreso de S/ ${egreso.monto.toStringAsFixed(2)} ("${egreso.motivo}"). El dinero se restituirá al efectivo esperado.',
@@ -1220,7 +1220,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       onPressed: () => _mostrarCalculadoraConteoBilletes(esperado),
                     ),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -1316,7 +1316,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                      color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1382,7 +1382,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
@@ -1498,7 +1498,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF101622) : Colors.white,
+                      color: isDark ? AppTheme.cardDarkSunken : Colors.white,
                       border: Border(
                         top: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
                       ),
@@ -1596,7 +1596,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           const SizedBox(width: 12),
           Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -1655,7 +1655,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       resultado = await showDialog<({bool confirmar, String motivo})>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(
             children: [
@@ -1697,7 +1697,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
                   ),
@@ -1772,7 +1772,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     hintText: 'Ej. Error en cobro, cliente desistió, duplicado...',
                     hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -1908,7 +1908,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           ? AppBar(
               titleSpacing: 16,
               elevation: 0,
-              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+              backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1992,7 +1992,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
@@ -2928,7 +2928,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: TextField(
@@ -3310,7 +3310,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
@@ -3450,7 +3450,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+          color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppTheme.borderLight.withValues(alpha: 0.3)),
         ),
@@ -3563,7 +3563,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             );
 
             return Dialog(
-              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+              backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: Container(
@@ -3622,7 +3622,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                           child: Container(
                             padding: const EdgeInsets.all(3),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Row(
@@ -3732,7 +3732,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       child: Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFFAFAFA),
+                          color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFFAFAFA),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isDark ? AppTheme.borderDark : AppTheme.borderLight,

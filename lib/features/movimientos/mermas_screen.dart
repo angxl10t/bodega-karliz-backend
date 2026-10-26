@@ -265,7 +265,7 @@ class _MermasScreenState extends State<MermasScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(color: borderColor),
                                   ),
@@ -702,7 +702,7 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.88,
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.bgDark : Colors.white,
+        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: _isLoading

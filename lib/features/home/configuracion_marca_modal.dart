@@ -143,8 +143,11 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Dialog(
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: isDark ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1.2) : BorderSide.none,
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
         child: Padding(
@@ -469,7 +472,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? preset.color.withValues(alpha: isDark ? 0.25 : 0.1)
-                                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                                        : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9)),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: isSelected ? preset.color : Colors.transparent,

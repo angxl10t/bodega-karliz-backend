@@ -197,8 +197,11 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
     return Dialog(
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: isDark ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1.2) : BorderSide.none,
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620, maxHeight: 720),
         child: _isLoading

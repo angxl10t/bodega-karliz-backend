@@ -180,7 +180,7 @@ class _KardexScreenState extends State<KardexScreen> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDark : Colors.white,
+                            color: isDark ? AppTheme.cardDarkSunken : Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isDark ? AppTheme.borderDark : AppTheme.borderLight,

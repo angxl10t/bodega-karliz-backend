@@ -196,6 +196,15 @@ class AppTheme {
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: const Color(0xFF0F172A),
+        contentTextStyle: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Color(0xFF1E293B), width: 1),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 

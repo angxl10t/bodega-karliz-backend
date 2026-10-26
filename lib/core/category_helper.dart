@@ -79,7 +79,7 @@ class CategoryHelper {
 
   static Color getColor(String? categoryName, bool isDark) {
     if (categoryName == null) {
-      return isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+      return isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted;
     }
     final cat = categoryName.toLowerCase().trim();
     if (cat.contains('frecuente') || cat.contains('estrella')) {

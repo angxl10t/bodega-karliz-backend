@@ -163,7 +163,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       builder: (dlgCtx) => StatefulBuilder(
         builder: (_, setModalState) {
           return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: Row(
               children: [
@@ -475,7 +475,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       builder: (dlgCtx) => StatefulBuilder(
         builder: (_, setModalState) {
           return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: Row(
               children: [
@@ -607,7 +607,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
@@ -690,7 +690,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       builder: (dlgCtx) => StatefulBuilder(
         builder: (_, setModalState) {
           return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: Row(
               children: [
@@ -851,7 +851,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       builder: (dlgCtx) => StatefulBuilder(
         builder: (_, setDlgState) {
           return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: Row(
               children: [
@@ -978,7 +978,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
@@ -1026,15 +1026,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? AppTheme.bgDark : const Color(0xFFF8FAFC),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(68),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF111827) : Colors.white,
+            color: isDark ? AppTheme.cardDark : Colors.white,
             border: Border(
               bottom: BorderSide(
-                color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0),
+                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
                 width: 1,
               ),
             ),
@@ -1133,7 +1133,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                   ),
@@ -1257,7 +1257,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
                   // Barra de Navegación por Módulos
                   Container(
-                    color: isDark ? const Color(0xFF111827) : Colors.white,
+                    color: isDark ? AppTheme.cardDark : Colors.white,
                     child: TabBar(
                       controller: _tabController,
                       isScrollable: true,
@@ -1324,7 +1324,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
         border: Border(
           bottom: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
         ),
@@ -1395,7 +1395,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       constraints: const BoxConstraints(minWidth: 160, maxWidth: 220),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
         boxShadow: [
@@ -1522,7 +1522,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                   ),
@@ -1617,8 +1617,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
   Widget _buildBodegaCard(BodegaInfo b, bool isDark) {
     final esPro = b.plan.toUpperCase() == 'PRO';
-    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final borderColor = isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0);
 
     int? diasRestantes;
     bool vencido = false;
@@ -1737,7 +1737,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: borderColor),
                 ),
@@ -1822,7 +1822,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: borderColor),
             ),
@@ -1952,7 +1952,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                   ),
@@ -2031,7 +2031,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
@@ -2148,7 +2148,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                    color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                   ),
@@ -2209,7 +2209,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     return Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        color: isDark ? AppTheme.cardDark : Colors.white,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                       ),
@@ -2419,7 +2419,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              color: isDark ? AppTheme.cardDark : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
@@ -2527,7 +2527,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              color: isDark ? AppTheme.cardDark : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
@@ -2597,7 +2597,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
@@ -2650,7 +2650,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 width: 135,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
                 ),
@@ -2696,7 +2696,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
@@ -2799,7 +2799,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),

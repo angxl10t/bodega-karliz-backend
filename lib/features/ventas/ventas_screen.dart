@@ -146,6 +146,38 @@ class _VentasScreenState extends State<VentasScreen> {
   void _handleHardwareKey(KeyEvent event) {
     if (event is! KeyDownEvent) return;
 
+    // Fast-keys comerciales de caja (F2, F4, F9, F12, Escape)
+    if (event.logicalKey == LogicalKeyboardKey.f2) {
+      _tabletSearchFocusNode.requestFocus();
+      HapticFeedback.lightImpact();
+      return;
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.f4 || event.logicalKey == LogicalKeyboardKey.f12) {
+      if (_carrito.isNotEmpty && !_isProcesando) {
+        HapticFeedback.mediumImpact();
+        _ejecutarCobroRapido();
+      }
+      return;
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.f9) {
+      _alternarTipoComprobante();
+      return;
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.escape) {
+      if (_tabletSearchFocusNode.hasFocus || _tabletSearchCtrl.text.isNotEmpty) {
+        _tabletSearchCtrl.clear();
+        setState(() => _tabletSearchQuery = '');
+        _tabletSearchFocusNode.unfocus();
+        _screenFocusNode.requestFocus();
+      } else if (_carrito.isNotEmpty) {
+        _vaciarCarrito();
+      }
+      return;
+    }
+
     // Si el usuario está escribiendo en campos de texto editables (nombre/DNI/pago), no interceptar
     final primaryFocus = FocusManager.instance.primaryFocus;
     if (primaryFocus != null && primaryFocus.context != null) {
@@ -293,6 +325,24 @@ class _VentasScreenState extends State<VentasScreen> {
     return recibido - _totalVenta;
   }
 
+  void _ejecutarCobroRapido() {
+    if (_carrito.isEmpty || _isProcesando) return;
+    if (_metodoPago == 'Efectivo' && _montoRecibido < _totalVenta) {
+      setState(() {
+        _pagoConController.text = _totalVenta.toStringAsFixed(2);
+      });
+    }
+    _procesarVenta();
+  }
+
+  void _alternarTipoComprobante() {
+    setState(() {
+      _tipoComprobante = (_tipoComprobante == 'BOLETA_ELECTRONICA') ? 'TICKET' : 'BOLETA_ELECTRONICA';
+      _verificarNormativaSunat700();
+    });
+    HapticFeedback.lightImpact();
+  }
+
   void _verificarNormativaSunat700() {
     if (_tipoComprobante == 'BOLETA_ELECTRONICA' && _totalVenta >= 700.0) {
       if (!_identificarCliente) {
@@ -353,6 +403,7 @@ class _VentasScreenState extends State<VentasScreen> {
     if (playSound) {
       KarlizSoundService.instance.playBarcodeBeep();
     }
+    HapticFeedback.lightImpact();
 
     final totalAnterior = _totalVenta;
     setState(() {
@@ -368,6 +419,7 @@ class _VentasScreenState extends State<VentasScreen> {
   void _incrementarCantidad(int index) {
     final item = _carrito[index];
     if (item.cantidad < item.producto.stockActual) {
+      HapticFeedback.selectionClick();
       final totalAnterior = _totalVenta;
       setState(() {
         item.cantidad += 1;
@@ -385,6 +437,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   void _decrementarCantidad(int index) {
+    HapticFeedback.selectionClick();
     final totalAnterior = _totalVenta;
     setState(() {
       if (_carrito[index].cantidad > 1) {
@@ -397,6 +450,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   void _eliminarDelCarrito(int index) {
+    HapticFeedback.lightImpact();
     final totalAnterior = _totalVenta;
     setState(() {
       _carrito.removeAt(index);
@@ -405,6 +459,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   void _vaciarCarrito() {
+    HapticFeedback.mediumImpact();
     setState(() {
       _carrito.clear();
       _pagoConController.clear();
@@ -580,7 +635,7 @@ class _VentasScreenState extends State<VentasScreen> {
     showDialog(
       context: context,
       builder: (dlgCtx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
@@ -755,7 +810,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       width: 44,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -836,7 +891,7 @@ class _VentasScreenState extends State<VentasScreen> {
                           color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                            color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                             width: 0.8,
                           ),
                         ),
@@ -856,7 +911,7 @@ class _VentasScreenState extends State<VentasScreen> {
                             color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                              color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                               width: 0.8,
                             ),
                           ),
@@ -876,7 +931,7 @@ class _VentasScreenState extends State<VentasScreen> {
                             color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                              color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                               width: 0.8,
                             ),
                           ),
@@ -1096,7 +1151,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     width: 44,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -1721,7 +1776,7 @@ class _VentasScreenState extends State<VentasScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         contentPadding: const EdgeInsets.all(24),
         content: Column(
@@ -1867,7 +1922,7 @@ class _VentasScreenState extends State<VentasScreen> {
               constraints: const BoxConstraints(maxHeight: 140),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
               ),
@@ -2231,7 +2286,7 @@ class _VentasScreenState extends State<VentasScreen> {
           );
 
           return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             title: Row(
               children: [
@@ -2276,7 +2331,7 @@ class _VentasScreenState extends State<VentasScreen> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
                 ),
@@ -2572,7 +2627,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FB),
+                          color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
                             color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
@@ -2923,6 +2978,104 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
+  Widget _buildFastKeysBar(bool isDark) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildKeyBadge('F2', 'Buscar', LucideIcons.search, isDark, () {
+            _tabletSearchFocusNode.requestFocus();
+            HapticFeedback.lightImpact();
+          }),
+          const SizedBox(width: 6),
+          _buildKeyBadge('F4', 'Cobrar', LucideIcons.creditCard, isDark, _carrito.isEmpty ? null : () {
+            HapticFeedback.mediumImpact();
+            _ejecutarCobroRapido();
+          }),
+          const SizedBox(width: 6),
+          _buildKeyBadge('F9', _tipoComprobante == 'BOLETA_ELECTRONICA' ? 'Boleta' : 'Ticket', LucideIcons.fileText, isDark, () {
+            _alternarTipoComprobante();
+          }),
+          const SizedBox(width: 6),
+          _buildKeyBadge('Esc', 'Limpiar', LucideIcons.trash2, isDark, _carrito.isEmpty ? null : () {
+            _vaciarCarrito();
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeyBadge(String keyLabel, String actionLabel, IconData icon, bool isDark, VoidCallback? onTap) {
+    final enabled = onTap != null;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? (enabled ? AppTheme.cardDarkHighlight : AppTheme.cardDark)
+                      : (enabled ? const Color(0xFFE2E8F0) : const Color(0xFFF8FAFC)),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  keyLabel,
+                  style: GoogleFonts.outfit(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: enabled
+                        ? (isDark ? AppTheme.brandLight : AppTheme.brandPrimary)
+                        : (isDark ? Colors.white30 : const Color(0xFF94A3B8)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Icon(
+                icon,
+                size: 11,
+                color: enabled
+                    ? (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569))
+                    : (isDark ? Colors.white24 : const Color(0xFF94A3B8)),
+              ),
+              const SizedBox(width: 3),
+              Text(
+                actionLabel,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: enabled
+                      ? (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569))
+                      : (isDark ? Colors.white24 : const Color(0xFF94A3B8)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTabletCatalogoPanel(bool isDark, Color cardBg, Color borderColor, Color labelColor) {
     final cats = _tabletCategorias;
     final productos = _filteredTabletProductos;
@@ -3080,7 +3233,12 @@ class _VentasScreenState extends State<VentasScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+
+          // Atajos rápidos de teclado para cajero (Fast-keys F2, F4, F9, Esc)
+          _buildFastKeysBar(isDark),
+
+          const SizedBox(height: 8),
 
           // Pestañas de categorías estilizadas estilo POS (con icono y cantidad)
           if (cats.length > 1)
@@ -4977,7 +5135,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     width: 40,
                     height: 4.5,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                      color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -5503,7 +5661,7 @@ class _VentasScreenState extends State<VentasScreen> {
           margin: const EdgeInsets.only(bottom: 6),
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
           ),

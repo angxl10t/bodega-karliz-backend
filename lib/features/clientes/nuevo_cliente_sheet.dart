@@ -177,8 +177,9 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
         constraints: const BoxConstraints(maxWidth: 560),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDark : Colors.white,
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -206,7 +207,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
                   width: 44,
                   height: 4.5,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -301,12 +302,12 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
                       height: 52,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                          backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                           foregroundColor: isDark ? Colors.white : AppTheme.brandPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
-                            side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                            side: BorderSide(color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1)),
                           ),
                         ),
                         onPressed: _isConsultandoDoc ? null : _consultarDocumento,

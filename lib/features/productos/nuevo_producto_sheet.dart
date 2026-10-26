@@ -355,7 +355,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
       final result = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: Row(
             children: [
@@ -382,7 +382,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
               hintText: 'Ej. Lácteos, Snacks, Abarrotes...',
               hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
               filled: true,
-              fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -1129,7 +1129,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                       color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                         width: 1,
                       ),
                     ),

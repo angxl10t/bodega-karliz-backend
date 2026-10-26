@@ -84,10 +84,10 @@ class ProductImageWidget extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E2430) : const Color(0xFFF8FAFC),
+          color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
             width: 1.0,
           ),
           boxShadow: [

@@ -487,7 +487,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                   child: Container(
                     height: 42,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: borderColor),
                     ),
@@ -748,7 +748,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(

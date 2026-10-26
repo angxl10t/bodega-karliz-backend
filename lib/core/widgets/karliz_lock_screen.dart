@@ -255,7 +255,7 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
                                   shape: BoxShape.circle,
                                   color: filled
                                       ? AppTheme.brandPrimary
-                                      : (isDark ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)),
+                                      : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFCBD5E1)),
                                   border: Border.all(
                                     color: filled
                                         ? AppTheme.brandPrimary
@@ -355,7 +355,7 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
     final disabled = _cooldownSeconds > 0;
     final bg = disabled
         ? (isDark ? const Color(0xFF0F141F) : const Color(0xFFE2E8F0))
-        : (isDark ? const Color(0xFF141C2B) : Colors.white);
+        : (isDark ? AppTheme.cardDark : Colors.white);
     final fg = disabled
         ? (isDark ? Colors.white30 : const Color(0xFF94A3B8))
         : (isDark ? Colors.white : AppTheme.brandInk);
@@ -373,7 +373,7 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
             color: bg,
             shape: BoxShape.circle,
             border: Border.all(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
               width: 1.2,
             ),
             boxShadow: [

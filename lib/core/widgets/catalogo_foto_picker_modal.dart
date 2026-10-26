@@ -99,7 +99,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
     return Container(
@@ -107,6 +107,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
       ),
       child: Column(
         children: [
@@ -116,7 +117,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             width: 44,
             height: 5,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -172,7 +173,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(14),
             ),
             child: TabBar(
@@ -240,7 +241,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
               border: Border(top: BorderSide(color: borderColor)),
             ),
             child: Row(
@@ -316,7 +317,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                     )
                   : null,
               filled: true,
-              fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
               contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -539,7 +540,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                     )
                   : null,
               filled: true,
-              fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(color: borderColor),

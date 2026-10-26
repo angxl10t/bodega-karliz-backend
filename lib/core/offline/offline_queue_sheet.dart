@@ -30,8 +30,9 @@ class OfflineQueueSheet extends StatelessWidget {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDark : Colors.white,
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.25),
@@ -55,7 +56,7 @@ class OfflineQueueSheet extends StatelessWidget {
                       width: 44,
                       height: 4.5,
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),

@@ -215,8 +215,9 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
         constraints: const BoxConstraints(maxWidth: 540),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDark : Colors.white,
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -242,7 +243,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                 width: 44,
                 height: 4.5,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -299,10 +300,10 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1A22) : const Color(0xFFFEF2F2),
+                color: isDark ? const Color(0xFF2A1215) : const Color(0xFFFEF2F2),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
+                  color: isDark ? const Color(0xFF991B1B).withValues(alpha: 0.6) : const Color(0xFFFECACA),
                 ),
               ),
               child: Row(
@@ -493,8 +494,9 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
         constraints: const BoxConstraints(maxWidth: 540),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDark : Colors.white,
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),

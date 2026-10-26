@@ -127,12 +127,12 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final inputBg = isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8);
+    final inputBg = isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8);
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
@@ -161,7 +161,7 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                   width: 44,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -224,7 +224,7 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : const Color(0xFF334155),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -284,7 +284,7 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : const Color(0xFF334155),
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                 ),
               ),
               const SizedBox(height: 6),
@@ -318,7 +318,7 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : const Color(0xFF334155),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -350,7 +350,7 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : const Color(0xFF334155),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 6),

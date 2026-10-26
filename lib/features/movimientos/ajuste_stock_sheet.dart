@@ -25,7 +25,7 @@ class AjusteStockSheet extends StatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
@@ -218,7 +218,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -306,7 +306,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? col.withValues(alpha: isDark ? 0.28 : 0.12)
-                            : (isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FA)),
+                            : (isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA)),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: isSelected ? col : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -344,7 +344,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: stockInvalido
@@ -429,7 +429,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             children: [
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
-                  backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 icon: const Icon(LucideIcons.minus, size: 18),
@@ -450,7 +450,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FA),
+                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(
@@ -464,7 +464,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
               const SizedBox(width: 10),
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
-                  backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                  backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 icon: const Icon(LucideIcons.plus, size: 18),
@@ -505,7 +505,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                   ),
                   backgroundColor: isSelected
                       ? AppTheme.brandPrimary
-                      : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                      : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9)),
                   onPressed: () => setState(() => _motivoCtrl.text = mot),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   side: BorderSide.none,
@@ -522,7 +522,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
               hintText: 'Describe la razón del ajuste para auditoría...',
               hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
               filled: true,
-              fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8F9FA),
+              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
