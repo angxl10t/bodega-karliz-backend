@@ -1792,8 +1792,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),

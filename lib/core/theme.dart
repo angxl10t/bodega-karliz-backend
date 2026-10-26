@@ -36,18 +36,22 @@ class AppTheme {
   static const Color textDark = Color(0xFF0F172A);
   static const Color textMuted = Color(0xFF64748B);
 
-  // Superficies Modo Oscuro (Option A: Fintech Cobalt & Deep Slate Obsidian)
-  static const Color bgDark = Color(0xFF0B0F19); // Obsidian Deep Canvas (Fondo ultra-profundo de alta fidelidad)
-  static const Color cardDark = Color(0xFF111827); // Rich Charcoal / Slate 900 (Elevación 1 - Tarjetas y Superficies Principales)
-  static const Color cardDarkElevated = Color(0xFF1E293B); // Slate 800 (Elevación 2 - Modales, Diálogos, BottomSheets)
-  static const Color cardDarkHighlight = Color(0xFF243247); // Slate 750 (Elevación 3 - Inputs activos, Chips seleccionados)
-  static const Color borderDark = Color(0xFF1F2937); // Slate 800 / Borde Sutil y Sofisticado
-  static const Color borderDarkElevated = Color(0xFF334155); // Slate 700 / Borde Nítido Elevado
-  static const Color surfaceTintDark = Color(0xFF0F1E36); // Contenedor Cobalto Suave Dark
-  static const Color borderTintDark = Color(0xFF1E3A8A); // Borde Cobalto Dark
-  static const Color textDarkPrimary = Color(0xFFF8FAFC); // Slate 50 (Blanco Perla de Alta Claridad sin deslumbramiento)
-  static const Color textDarkSecondary = Color(0xFF94A3B8); // Slate 400 (Gris Neutro Suave y Equilibrado)
-  static const Color textDarkMuted = Color(0xFF64748B); // Slate 500 (Metadatos elegantes)
+  // ============================================
+  // MODO OSCURO DE ÉLITE: VELVET OBSIDIAN & ELECTRIC COBALT
+  // Diseñado con contraste volumétrico, micro-bordes luminosos y ergonomía visual anti-fatiga.
+  // ============================================
+  static const Color bgDark = Color(0xFF090A0F); // Canvas Velvet Obsidian (Espacio profundo puro)
+  static const Color cardDark = Color(0xFF141724); // Tarjeta Primaria (Contraste palpable y silueta definida)
+  static const Color cardDarkElevated = Color(0xFF1E2436); // Superficie Flotante (Modales, Hojas, Diálogos, Sheets)
+  static const Color cardDarkHighlight = Color(0xFF283149); // Superficie Activa (Chips seleccionados, Hover, Botones tonales)
+  static const Color cardDarkSunken = Color(0xFF0D0F17); // Superficie Hundida Inset (Inputs, Buscadores, Celdas)
+  static const Color borderDark = Color(0xFF262E44); // Micro-borde perimetral 1px nítido
+  static const Color borderDarkElevated = Color(0xFF384362); // Borde de realce en superficies flotantes
+  static const Color surfaceTintDark = Color(0xFF131D31); // Glow cobalto suave de fondo
+  static const Color borderTintDark = Color(0xFF1E3A8A); // Borde cobalto de acento
+  static const Color textDarkPrimary = Color(0xFFF8FAFC); // Blanco Perla Cristalino (100% legibilidad)
+  static const Color textDarkSecondary = Color(0xFFCBD5E1); // Slate 300 (Gris Claro Suave - No opaco)
+  static const Color textDarkMuted = Color(0xFF94A3B8); // Slate 400 (Metadatos claros)
 
   // ============================================
   // TIPOGRAFÍA DE MARCA UNIFICADA
@@ -267,7 +271,7 @@ class AppTheme {
         space: 1,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: const Color(0xFF162032),
+        backgroundColor: cardDarkHighlight,
         selectedColor: primary.withValues(alpha: 0.22),
         secondarySelectedColor: primary,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -297,7 +301,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF0F172A),
+        fillColor: cardDarkSunken,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,

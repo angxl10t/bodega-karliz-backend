@@ -115,8 +115,8 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     // Paleta ejecutiva adaptada al modo claro y oscuro
-    final barBg = isDark ? AppTheme.cardDark : Colors.white;
-    final barBorder = isDark ? AppTheme.borderDark : const Color(0xFFE4E4E7);
+    final barBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
+    final barBorder = isDark ? AppTheme.borderDarkElevated : const Color(0xFFE4E4E7);
     final activeColor = isDark ? AppTheme.brandLight : AppTheme.brandPrimary;
     final inactiveColor = isDark ? AppTheme.textDarkSecondary : const Color(0xFFA1A1AA);
 

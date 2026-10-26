@@ -539,7 +539,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
@@ -568,7 +568,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                   width: 44,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -693,7 +693,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                     child: DropdownButton<int>(
                       value: _idCategoriaSeleccionada,
                       isExpanded: true,
-                      dropdownColor: isDark ? AppTheme.cardDark : Colors.white,
+                      dropdownColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
                       items: _categorias.isNotEmpty
                           ? _categorias.map((cat) {
                               return DropdownMenuItem<int>(
@@ -1283,7 +1283,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF131B2A) : const Color(0xFFF8FAFC),
+        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: esOficialSugerida

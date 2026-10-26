@@ -27,9 +27,9 @@ void main() {
       expect(AppTheme.brandDark, const Color(0xFF1D4ED8));
       expect(AppTheme.brandLight, const Color(0xFF60A5FA));
       expect(AppTheme.brandInk, const Color(0xFF0B0F19)); // Obsidian Dark
-      expect(AppTheme.bgDark, const Color(0xFF0B0F19)); // Obsidian Deep Slate Canvas
-      expect(AppTheme.cardDark, const Color(0xFF111827)); // Rich Charcoal / Slate 900
-      expect(AppTheme.cardDarkElevated, const Color(0xFF1E293B)); // Slate 800 Elevated
+      expect(AppTheme.bgDark, const Color(0xFF090A0F)); // Velvet Obsidian Canvas
+      expect(AppTheme.cardDark, const Color(0xFF141724)); // Tarjeta Primaria Velvet
+      expect(AppTheme.cardDarkElevated, const Color(0xFF1E2436)); // Superficie Flotante Velvet
     });
 
     test('ThemeProvider initializes with default Cobalt and updates dynamically', () async {

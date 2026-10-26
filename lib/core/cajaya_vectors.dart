@@ -316,10 +316,10 @@ class CajaYaHeroGraphic extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                  color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -366,7 +366,7 @@ class CajaYaHeroGraphic extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+        color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(5),
       ),
       child: Text(
@@ -374,7 +374,7 @@ class CajaYaHeroGraphic extends StatelessWidget {
         style: TextStyle(
           fontSize: 8,
           fontWeight: FontWeight.w800,
-          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
         ),
       ),
     );

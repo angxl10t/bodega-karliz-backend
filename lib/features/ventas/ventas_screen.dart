@@ -1085,8 +1085,9 @@ class _VentasScreenState extends State<VentasScreen> {
             return Container(
               height: MediaQuery.of(context).size.height * 0.78,
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDark : Colors.white,
+                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
               ),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
               child: Column(
@@ -1140,8 +1141,9 @@ class _VentasScreenState extends State<VentasScreen> {
                   const SizedBox(height: 14),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
                       borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
                     ),
                     child: TextField(
                       controller: searchCtrl,
@@ -2949,7 +2951,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
@@ -3034,8 +3036,8 @@ class _VentasScreenState extends State<VentasScreen> {
               // Botón Actualizar
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
-                  backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                  foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
+                  backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
+                  foregroundColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   minimumSize: const Size(44, 44),
                 ),
@@ -3109,7 +3111,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         decoration: BoxDecoration(
                           color: isSelected
                               ? AppTheme.brandPrimary
-                              : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+                              : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC)),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
@@ -3150,7 +3152,7 @@ class _VentasScreenState extends State<VentasScreen> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? Colors.white.withValues(alpha: 0.25)
-                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                                    : (isDark ? AppTheme.cardDarkElevated : const Color(0xFFE2E8F0)),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -3277,13 +3279,13 @@ class _VentasScreenState extends State<VentasScreen> {
                           child: Ink(
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? (inCart ? const Color(0xFF132A30) : const Color(0xFF0F172A))
+                                  ? (inCart ? const Color(0xFF1E293B) : const Color(0xFF1B2030))
                                   : (inCart ? const Color(0xFFF0FDFA) : const Color(0xFFF8FAFC)),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: inCart
                                     ? AppTheme.brandPrimary
-                                    : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                                    : (isDark ? const Color(0xFF2C354C) : const Color(0xFFE2E8F0)),
                                 width: inCart ? 1.8 : 1.0,
                               ),
                               boxShadow: inCart
@@ -3581,10 +3583,10 @@ class _VentasScreenState extends State<VentasScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                                color: isDark ? AppTheme.surfaceTintDark : const Color(0xFFF1F5F9),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                                  color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
                                 ),
                               ),
                               child: const Icon(LucideIcons.scanLine, size: 28, color: AppTheme.brandPrimary),
@@ -3664,9 +3666,9 @@ class _VentasScreenState extends State<VentasScreen> {
                           // Steppers compactos táctiles
                           Container(
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                              color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                              border: Border.all(color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0)),
                             ),
                             child: Row(
                               children: [
@@ -3758,7 +3760,7 @@ class _VentasScreenState extends State<VentasScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [const Color(0xFF0B0F19), const Color(0xFF1E293B)]
+                    ? [const Color(0xFF090A0F), const Color(0xFF141724)]
                     : [const Color(0xFF0F172A), const Color(0xFF1E3A8A)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -4089,7 +4091,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     hintText: 'DNI (8 d.)',
                     hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -4128,7 +4130,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     hintText: 'Nombre del Cliente',
                     hintStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
                     filled: true,
-                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -4191,7 +4193,7 @@ class _VentasScreenState extends State<VentasScreen> {
           ? primaryColor
           : (isExacto
               ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFD1FAE5))
-              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))),
+              : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9))),
       side: BorderSide(
         color: isSelected
             ? primaryColor
@@ -4245,9 +4247,9 @@ class _VentasScreenState extends State<VentasScreen> {
         color: isSelected ? Colors.white : (isDark ? Colors.white70 : const Color(0xFF475569)),
       ),
       selectedColor: methodColor,
-      backgroundColor: isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8),
+      backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF5F6F8),
       side: BorderSide(
-        color: isSelected ? methodColor : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+        color: isSelected ? methodColor : (isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0)),
         width: isSelected ? 1.4 : 1.0,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

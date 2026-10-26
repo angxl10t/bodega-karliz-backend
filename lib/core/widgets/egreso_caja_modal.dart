@@ -130,8 +130,11 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Dialog(
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: isDark ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1) : BorderSide.none,
+      ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
@@ -224,7 +227,7 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                     color: const Color(0xFFE11D48).withValues(alpha: 0.3),
                   ),
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                  fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
@@ -255,10 +258,10 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                            color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                              color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
                             ),
                           ),
                           child: Center(
@@ -267,7 +270,7 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white70 : const Color(0xFF334155),
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                               ),
                             ),
                           ),
@@ -306,12 +309,12 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFFE11D48).withValues(alpha: 0.15)
-                            : (isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC)),
+                            : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC)),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFFE11D48)
-                              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                              : (isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight),
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -331,7 +334,7 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                               color: isSelected
                                   ? (isDark ? Colors.white : const Color(0xFFBE123C))
-                                  : (isDark ? Colors.white70 : AppTheme.textDark),
+                                  : (isDark ? AppTheme.textDarkSecondary : AppTheme.textDark),
                             ),
                           ),
                         ],

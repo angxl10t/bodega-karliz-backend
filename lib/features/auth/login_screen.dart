@@ -607,7 +607,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             decoration: InputDecoration(
               filled: true,
-              fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
               hintText: 'admin',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
@@ -667,7 +667,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             decoration: InputDecoration(
               filled: true,
-              fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
               hintText: '••••••',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
@@ -689,13 +689,13 @@ class _LoginScreenState extends State<LoginScreen> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
