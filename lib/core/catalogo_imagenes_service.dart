@@ -133,7 +133,7 @@ class CatalogoImagenesService {
       id: 'agua_san_mateo',
       nombre: 'Agua San Mateo 600ml Sin Gas',
       marca: 'San Mateo',
-      categoria: 'Bebidas Refrescantes 556',
+      categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/agua_san_mateo.png',
       codigosBarras: ['775117011953', '775435704798', '775386598917', '775544203715', '775620527268'],
       keywords: ['600ml', 'agua', 'gas', 'mateo', 'san', 'sin'],
