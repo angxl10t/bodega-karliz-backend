@@ -1,5 +1,6 @@
 -- ==============================================================================
 -- MIGRACIÓN V14: ENFORCEMENT UNIVERSAL DE ROW LEVEL SECURITY (RLS)
+-- Y CONFIGURACIÓN SECURITY INVOKER EN VISTAS
 -- CajaYa Cloud POS Platform - Supabase Security Compliance & Isolation
 -- ==============================================================================
 
@@ -140,4 +141,29 @@ DO $$ BEGIN
     REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM anon;
 EXCEPTION WHEN OTHERS THEN
     NULL;
+END $$;
+
+-- 5. Configurar SECURITY INVOKER en las Vistas (Corrige error security_definer_view)
+-- En PostgreSQL 15+, las vistas deben tener security_invoker = true para que respeten
+-- los permisos y RLS de la sesión que las consulta en lugar de los del creador (postgres).
+ALTER VIEW IF EXISTS public.v_kardex_general SET (security_invoker = true);
+ALTER VIEW IF EXISTS public.v_rendimiento_cajeros SET (security_invoker = true);
+ALTER VIEW IF EXISTS public.v_resumen_bodegas SET (security_invoker = true);
+ALTER VIEW IF EXISTS public.v_ventas_diarias_bodega SET (security_invoker = true);
+ALTER VIEW IF EXISTS public.v_ingresos_plataforma SET (security_invoker = true);
+ALTER VIEW IF EXISTS public.v_top_productos_bodega SET (security_invoker = true);
+ALTER VIEW IF EXISTS public.v_productos_bajo_stock SET (security_invoker = true);
+
+-- Aplicación dinámica en cualquier otra vista existente en schema public
+DO $$
+DECLARE
+    v RECORD;
+BEGIN
+    FOR v IN (
+        SELECT table_name 
+        FROM information_schema.views 
+        WHERE table_schema = 'public'
+    ) LOOP
+        EXECUTE 'ALTER VIEW public.' || quote_ident(v.table_name) || ' SET (security_invoker = true);';
+    END LOOP;
 END $$;
