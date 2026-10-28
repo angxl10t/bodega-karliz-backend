@@ -186,7 +186,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       ),
                       Text(
                         'Alta inmediata de tienda y usuario administrador',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -217,7 +217,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       ),
                       const SizedBox(height: 12),
                     ],
-                    Text('INFORMACIÓN DE LA TIENDA', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppTheme.textMuted)),
+                    Text('INFORMACIÓN DE LA TIENDA', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     const SizedBox(height: 6),
                     TextField(
                       controller: nombreCtrl,
@@ -276,7 +276,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Text('SUSCRIPCIÓN & VIGENCIA', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppTheme.textMuted)),
+                    Text('SUSCRIPCIÓN & VIGENCIA', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -313,7 +313,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       }).toList(),
                     ),
                     const SizedBox(height: 14),
-                    Text('CREDENCIALES DE ACCESO DEL DUEÑO', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppTheme.textMuted)),
+                    Text('CREDENCIALES DE ACCESO DEL DUEÑO', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -495,10 +495,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               children: [
                 Text(
                   'Este aviso aparecerá en la parte superior de las pantallas de todas las bodegas y cajas activas.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                 ),
                 const SizedBox(height: 12),
-                Text('TIPO DE AVISO:', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppTheme.textMuted)),
+                Text('TIPO DE AVISO:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,
@@ -715,7 +715,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         b.nombreComercial,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -726,7 +726,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('SELECCIONA EL PLAN:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted)),
+                Text('SELECCIONA EL PLAN:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -752,7 +752,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('DÍAS DE VIGENCIA ADICIONAL:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted)),
+                Text('DÍAS DE VIGENCIA ADICIONAL:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
@@ -1119,7 +1119,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.textMuted,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1147,7 +1147,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : AppTheme.textDark,
+                          color: isDark ? Colors.white : AppTheme.textDark,
                         ),
                       ),
                     ],
@@ -1211,7 +1211,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         Text(
                           _errorMessage,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                          style: GoogleFonts.plusJakartaSans(color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontSize: 13),
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton.icon(
@@ -1265,7 +1265,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       indicatorColor: const Color(0xFF7C3AED),
                       indicatorWeight: 3,
                       labelColor: const Color(0xFF7C3AED),
-                      unselectedLabelColor: AppTheme.textMuted,
+                      unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                       labelStyle: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
                       tabs: [
                         Tab(
@@ -1428,7 +1428,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
-                    color: AppTheme.textMuted,
+                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                     letterSpacing: 0.5,
                   ),
                   maxLines: 1,
@@ -1531,7 +1531,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       hintText: 'Buscar bodega por nombre, RUC, dirección...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1696,7 +1696,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                       ),
                     ),
                   ],
@@ -1746,7 +1746,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textMuted,
+                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                   ),
                 ),
               ),
@@ -1961,7 +1961,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       hintText: 'Buscar usuario por username o nombre de bodega...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -2088,7 +2088,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   esSuper
                       ? 'Superadministrador Global'
                       : 'Tienda: ${u.nombreBodega ?? "Sin bodega vinculada"}',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -2157,7 +2157,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       hintText: 'Buscar por código de operación o nombre de bodega...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -2263,7 +2263,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                 const SizedBox(height: 1),
                                 Text(
                                   'Tienda: ${p.nombreBodega ?? "Bodega #${p.idBodega ?? ''}"} • Plan ${p.plan}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -2271,7 +2271,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                   const SizedBox(height: 1),
                                   Text(
                                     _formatearFechaIso(p.fechaPago!),
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -2383,7 +2383,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         children: [
           Text(
             'ESTADO DEL SERVIDOR & CLOUD RUNTIME',
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted, letterSpacing: 0.5),
+            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), letterSpacing: 0.5),
           ),
           const SizedBox(height: 10),
 
@@ -2440,7 +2440,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Memoria Usada / Total:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
+                    Text('Memoria Usada / Total:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -2466,7 +2466,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Tiempo de Actividad (Uptime):', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
+                    Text('Tiempo de Actividad (Uptime):', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -2482,7 +2482,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Hilos de Ejecución Activos:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
+                    Text('Hilos de Ejecución Activos:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -2498,7 +2498,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Aislamiento Multi-Tenant:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted)),
+                    Text('Aislamiento Multi-Tenant:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -2662,7 +2662,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -2778,7 +2778,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           ] else ...[
             Text(
               'No hay avisos globales activos actualmente. Las tiendas y cajas están operando con normalidad sin alertas perimetrales.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             ),
           ],
         ],
@@ -2849,7 +2849,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           ),
           Text(
             detail,
-            style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

@@ -153,7 +153,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                         'Formato profesional de estudio (Vista Frontal 1:1)',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: AppTheme.textMuted,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -179,7 +179,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             child: TabBar(
               controller: _tabController,
               labelColor: isDark ? Colors.white : AppTheme.brandPrimary,
-              unselectedLabelColor: AppTheme.textMuted,
+              unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
               labelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
               indicator: BoxDecoration(
                 color: isDark ? AppTheme.cardDark : Colors.white,
@@ -308,7 +308,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: 'Buscar packshot (ej. Inca Kola, Gloria, Primor)...',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
               prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppTheme.brandPrimary),
               suffixIcon: _searchCtrl.text.isNotEmpty
                   ? IconButton(
@@ -357,7 +357,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : AppTheme.textDark,
+                    color: isDark ? Colors.white : AppTheme.textDark,
                   ),
                 ),
               ),
@@ -380,13 +380,13 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          color: AppTheme.textMuted,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Puedes ingresar una URL personalizada en la siguiente pestaña.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -518,7 +518,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           const SizedBox(height: 6),
           Text(
             'Pega una URL directa de imagen (PNG, JPG, WEBP). Se recomienda formato cuadrado y fondo blanco/neutro.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
           ),
           const SizedBox(height: 14),
 
@@ -527,7 +527,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             style: GoogleFonts.plusJakartaSans(fontSize: 13),
             decoration: InputDecoration(
               hintText: 'https://ejemplo.com/producto-frontal.png',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
               prefixIcon: const Icon(LucideIcons.link2, size: 18, color: AppTheme.brandPrimary),
               suffixIcon: _urlCtrl.text.isNotEmpty
                   ? IconButton(
@@ -563,7 +563,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white70 : AppTheme.textDark,
+                    color: isDark ? Colors.white : AppTheme.textDark,
                   ),
                 ),
                 const SizedBox(height: 12),

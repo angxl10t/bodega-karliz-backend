@@ -251,7 +251,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             ),
                             decoration: InputDecoration(
                               hintText: 'Filtrar por nombre o código...',
-                              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+                              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                               prefixIcon: const Icon(LucideIcons.search, size: 16, color: AppTheme.brandPrimary),
                               suffixIcon: _filtroTexto.isNotEmpty
                                   ? IconButton(
@@ -331,7 +331,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12.5,
                                     height: 1.45,
-                                    color: AppTheme.textMuted,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                   ),
                                 ),
                                 const SizedBox(height: 18),
@@ -353,7 +353,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11.5,
                                             height: 1.4,
-                                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                                           ),
                                         ),
                                       ),
@@ -448,7 +448,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white70 : AppTheme.textDark,
+                color: isDark ? Colors.white : AppTheme.textDark,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -542,14 +542,14 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
               const Spacer(),
               Row(
                 children: [
-                  Icon(LucideIcons.calendar, size: 12, color: AppTheme.textMuted),
+                  Icon(LucideIcons.calendar, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                   const SizedBox(width: 4),
                   Text(
                     fechaStr,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white70 : AppTheme.textDark,
+                      color: isDark ? Colors.white : AppTheme.textDark,
                     ),
                   ),
                 ],
@@ -591,7 +591,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : AppTheme.textDark,
+                            color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -599,7 +599,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                           '•  Valor: S/ ${(p.stockActual * p.precioVenta).toStringAsFixed(2)}',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
-                            color: AppTheme.textMuted,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                       ],

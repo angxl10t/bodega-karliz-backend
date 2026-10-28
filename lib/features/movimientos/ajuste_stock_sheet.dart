@@ -257,7 +257,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                       '${widget.producto.nombre} • SKU: ${widget.producto.codigo}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
@@ -276,7 +276,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white70 : AppTheme.textDark,
+              color: isDark ? Colors.white : AppTheme.textDark,
             ),
           ),
           const SizedBox(height: 8),
@@ -327,7 +327,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                              color: isSelected ? col : (isDark ? Colors.white70 : AppTheme.textDark),
+                              color: isSelected ? col : (isDark ? Colors.white : AppTheme.textDark),
                             ),
                           ),
                         ],
@@ -360,7 +360,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                   children: [
                     Text(
                       'Stock Actual',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                     ),
                     Text(
                       '${widget.producto.stockActual.toStringAsFixed(1)} u.',
@@ -384,7 +384,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                       _esSalida ? 'Stock Restante' : 'Nuevo Stock',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
-                        color: stockInvalido ? AppTheme.alertRed : AppTheme.textMuted,
+                        color: stockInvalido ? AppTheme.alertRed : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ),
                     Text(
@@ -421,7 +421,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white70 : AppTheme.textDark,
+              color: isDark ? Colors.white : AppTheme.textDark,
             ),
           ),
           const SizedBox(height: 8),
@@ -483,7 +483,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white70 : AppTheme.textDark,
+              color: isDark ? Colors.white : AppTheme.textDark,
             ),
           ),
           const SizedBox(height: 6),
@@ -500,7 +500,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                      color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
                     ),
                   ),
                   backgroundColor: isSelected
@@ -520,7 +520,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             maxLines: 2,
             decoration: InputDecoration(
               hintText: 'Describe la razón del ajuste para auditoría...',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
               filled: true,
               fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA),
               border: OutlineInputBorder(
@@ -549,7 +549,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
-                      color: AppTheme.textMuted,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                     ),
                   ),
                 ),

@@ -197,14 +197,14 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                           'Registrar distribuidor o mayorista para compras',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: AppTheme.textMuted,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, color: AppTheme.textMuted, size: 20),
+                    icon: Icon(LucideIcons.x, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), size: 20),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],

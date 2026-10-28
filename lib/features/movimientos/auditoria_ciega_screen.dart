@@ -303,7 +303,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
             ),
             Text(
               _modoConciliacionRevelado ? 'Reporte de Faltantes y Sobrantes' : 'Modo Ciego • Stock del sistema oculto',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             ),
           ],
         ),
@@ -496,7 +496,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                       style: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? Colors.white : AppTheme.textDark),
                       decoration: InputDecoration(
                         hintText: 'Buscar en catálogo para contar...',
-                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                         prefixIcon: const Icon(LucideIcons.search, size: 16, color: AppTheme.brandPrimary),
                         suffixIcon: _filtroTexto.isNotEmpty
                             ? IconButton(
@@ -577,7 +577,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               height: 1.45,
-                              color: AppTheme.textMuted,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                           ),
                           const SizedBox(height: 18),
@@ -599,7 +599,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
                                       height: 1.4,
-                                      color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                                     ),
                                   ),
                                 ),
@@ -686,7 +686,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : AppTheme.textDark)),
+              Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppTheme.textDark)),
               Text(sub, style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: color)),
             ],
           ),
@@ -734,7 +734,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                     const SizedBox(height: 2),
                     Text(
                       'SKU: ${it.codigo}  •  S/ ${it.precioVenta.toStringAsFixed(2)}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                     ),
                   ],
                 ),
@@ -756,7 +756,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Sistema:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted)),
+                      Text('Sistema:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                       Text('${it.stockSistema.toStringAsFixed(0)} un.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     ],
                   ),
@@ -764,7 +764,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Físico Contado:', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted)),
+                      Text('Físico Contado:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                       Text('${it.conteoFisico.toStringAsFixed(0)} un.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     ],
                   ),
@@ -803,7 +803,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
               children: [
                 Text(
                   'Conteo Físico:',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : AppTheme.textDark),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppTheme.textDark),
                 ),
                 const Spacer(),
                 IconButton.outlined(

@@ -283,7 +283,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       ),
                       decoration: InputDecoration(
                         hintText: 'Buscar por Razón Social o RUC...',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                        hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
                         prefixIcon: const Icon(LucideIcons.search, size: 18),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -368,7 +368,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 ),
                                 subtitle: Text(
                                   'RUC: ${p.ruc}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                 ),
                                 trailing: isSelected
                                     ? const Icon(LucideIcons.check, color: AppTheme.brandPrimary, size: 20)
@@ -445,7 +445,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           ),
                           Text(
                             'Toca cualquier producto para añadirlo a la compra',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                           ),
                         ],
                       ),
@@ -481,7 +481,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       ),
                       decoration: InputDecoration(
                         hintText: 'Buscar por nombre, código o barra...',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                        hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
                         prefixIcon: const Icon(LucideIcons.search, size: 18),
                         suffixIcon: IconButton(
                           icon: const Icon(LucideIcons.scanLine, size: 18, color: Color(0xFF0D9488)),
@@ -693,7 +693,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       ),
                       Text(
                         'P. Venta público: S/ ${p.precioVenta.toStringAsFixed(2)}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -907,8 +907,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
         showDialog(
           context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.cardDark : Colors.white,
+          builder: (ctx) {
+            final isDark = Theme.of(ctx).brightness == Brightness.dark;
+            return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -932,7 +934,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 Text(
                   'Se han actualizado los stocks de $totalProds productos por un valor de S/ ${totalInvertido.toStringAsFixed(2)}.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                 ),
                 const SizedBox(height: 18),
                 SizedBox(
@@ -950,7 +952,8 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 ),
               ],
             ),
-          ),
+          );
+        },
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1000,7 +1003,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           child: TabBar(
             controller: _tabController,
             labelColor: AppTheme.brandPrimary,
-            unselectedLabelColor: AppTheme.textMuted,
+            unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
             indicatorColor: AppTheme.brandPrimary,
             indicatorWeight: 2.5,
             labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
@@ -1157,12 +1160,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                     ),
                                     Text(
                                       'RUC: ${_proveedorSeleccionado!.ruc}',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(LucideIcons.chevronRight, color: Color(0xFF94A3B8), size: 18),
+                              Icon(LucideIcons.chevronRight, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF94A3B8), size: 18),
                             ],
                           ),
                         ),
@@ -1424,7 +1427,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                   IconButton(
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    icon: const Icon(LucideIcons.minusCircle, size: 20, color: Color(0xFF94A3B8)),
+                                    icon: Icon(LucideIcons.minusCircle, size: 20, color: isDark ? const Color(0xFFF87171) : const Color(0xFF94A3B8)),
                                     onPressed: () {
                                       setState(() {
                                         if (item.cantidad > 1) {
@@ -1603,7 +1606,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
               ),
               decoration: InputDecoration(
                 hintText: 'Buscar por proveedor o comprobante...',
-                hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
                 prefixIcon: const Icon(LucideIcons.search, size: 18),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1620,14 +1623,14 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.truck, size: 40, color: AppTheme.textMuted),
+                      Icon(LucideIcons.truck, size: 40, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                       const SizedBox(height: 12),
                       Text(
                         'No hay compras registradas',
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
-                          color: isDark ? Colors.white70 : AppTheme.textDark,
+                          color: isDark ? Colors.white : AppTheme.textDark,
                         ),
                       ),
                     ],
@@ -1729,7 +1732,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                             style: GoogleFonts.plusJakartaSans(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
-                                              color: isDark ? Colors.white70 : AppTheme.textDark,
+                                              color: isDark ? Colors.white : AppTheme.textDark,
                                             ),
                                           ),
                                         ),

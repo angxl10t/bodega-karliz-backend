@@ -264,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             icon: Icon(
                               LucideIcons.x,
                               size: 20,
-                              color: isDark ? Colors.white60 : AppTheme.textMuted,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                             onPressed: () => Navigator.pop(bottomSheetContext),
                           ),
@@ -1575,7 +1575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       'Desconectar el usuario de este terminal',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
-                                        color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -2017,7 +2017,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Caja #01',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10.5,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2224,7 +2224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           LucideIcons.chevronDown,
                           size: 13,
-                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ],
                     ),
@@ -2261,7 +2261,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icon(
                           _railCollapsed ? LucideIcons.panelLeftOpen : LucideIcons.panelLeftClose,
                           size: 18,
-                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                         onPressed: () => setState(() => _railCollapsed = !_railCollapsed),
                       ),
@@ -2275,7 +2275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       size: 21,
                     ),
                     unselectedIconTheme: IconThemeData(
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                       size: 20,
                     ),
                     selectedLabelTextStyle: GoogleFonts.outfit(
@@ -2286,7 +2286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     unselectedLabelTextStyle: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFF8B98AD) : const Color(0xFF94A3B8),
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                     ),
                     destinations: const [
                       NavigationRailDestination(
@@ -2475,7 +2475,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => setState(() => _anuncioDismissed = true),
             child: Padding(
               padding: const EdgeInsets.all(4),
-              child: Icon(LucideIcons.x, size: 14, color: isDark ? Colors.white60 : AppTheme.textMuted),
+              child: Icon(LucideIcons.x, size: 14, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
             ),
           ),
         ],

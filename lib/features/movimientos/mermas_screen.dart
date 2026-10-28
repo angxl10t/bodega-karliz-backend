@@ -258,7 +258,7 @@ class _MermasScreenState extends State<MermasScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12.5,
                                     height: 1.45,
-                                    color: AppTheme.textMuted,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                   ),
                                 ),
                                 const SizedBox(height: 18),
@@ -280,7 +280,7 @@ class _MermasScreenState extends State<MermasScreen> {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11.5,
                                             height: 1.4,
-                                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                                           ),
                                         ),
                                       ),
@@ -368,7 +368,7 @@ class _MermasScreenState extends State<MermasScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : AppTheme.textDark,
+                  color: isDark ? Colors.white : AppTheme.textDark,
                 ),
               ),
             ],
@@ -387,7 +387,7 @@ class _MermasScreenState extends State<MermasScreen> {
           const SizedBox(height: 2),
           Text(
             subtitulo,
-            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -509,7 +509,7 @@ class _MermasScreenState extends State<MermasScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : AppTheme.textDark,
+                  color: isDark ? Colors.white : AppTheme.textDark,
                 ),
               ),
             ],
@@ -521,23 +521,23 @@ class _MermasScreenState extends State<MermasScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
                 fontStyle: FontStyle.italic,
-                color: AppTheme.textMuted,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
               ),
             ),
           ],
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(LucideIcons.user, size: 11, color: AppTheme.textMuted),
+              Icon(LucideIcons.user, size: 11, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
               const SizedBox(width: 4),
               Text(
                 m.usuarioResponsable,
-                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
               ),
               const Spacer(),
               Text(
                 fechaStr,
-                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
               ),
             ],
           ),
@@ -746,7 +746,7 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                               ),
                               Text(
                                 'Descuenta del inventario y registra la pérdida contable',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                               ),
                             ],
                           ),
@@ -848,7 +848,7 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                                         ),
                                         Text(
                                           'Stock actual: ${_productoSeleccionado!.stockActual.toStringAsFixed(0)} un.  •  Venta: S/ ${_productoSeleccionado!.precioVenta.toStringAsFixed(2)}',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                         ),
                                       ],
                                     ),

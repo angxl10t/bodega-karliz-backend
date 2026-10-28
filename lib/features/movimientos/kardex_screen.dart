@@ -126,7 +126,7 @@ class _KardexScreenState extends State<KardexScreen> {
             ),
             Text(
               'Auditoría y trazabilidad de entradas, salidas y mermas',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             ),
           ],
         ),
@@ -195,7 +195,7 @@ class _KardexScreenState extends State<KardexScreen> {
                             ),
                             decoration: InputDecoration(
                               hintText: 'Filtrar por producto, motivo o usuario...',
-                              hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                              hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
                               prefixIcon: const Icon(LucideIcons.search, size: 18),
                               suffixIcon: _filtroTexto.isNotEmpty
                                   ? IconButton(
@@ -316,7 +316,7 @@ class _KardexScreenState extends State<KardexScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   height: 1.45,
-                  color: AppTheme.textMuted,
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                 ),
               ),
               const SizedBox(height: 20),
@@ -418,7 +418,7 @@ class _KardexScreenState extends State<KardexScreen> {
             ),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w600),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontWeight: FontWeight.w700),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -523,7 +523,7 @@ class _KardexScreenState extends State<KardexScreen> {
                   m.motivo.isNotEmpty ? m.motivo : 'Movimiento de inventario',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
-                    color: AppTheme.textMuted,
+                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -533,7 +533,7 @@ class _KardexScreenState extends State<KardexScreen> {
                       fechaStr,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10.5,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                       ),
                     ),
                     if (m.usuarioResponsable != null && m.usuarioResponsable!.isNotEmpty) ...[
@@ -547,7 +547,7 @@ class _KardexScreenState extends State<KardexScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(LucideIcons.userCheck, size: 10, color: AppTheme.textMuted),
+                            Icon(LucideIcons.userCheck, size: 10, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                             const SizedBox(width: 4),
                             Text(
                               m.usuarioResponsable!,

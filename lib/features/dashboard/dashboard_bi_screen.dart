@@ -1048,7 +1048,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               Text(
                 'Conforme cobres en el POS, aquí se listarán los productos con mayor margen bruto y frecuencia de venta.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 12),
+                style: GoogleFonts.plusJakartaSans(color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -1207,7 +1207,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               Text(
                 'No tienes mercadería estancada por más de 30 días. Todo tu capital invertido está circulando con fluidez.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 12),
+                style: GoogleFonts.plusJakartaSans(color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -1328,7 +1328,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textMuted,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                     ),
                   ),
                 ],

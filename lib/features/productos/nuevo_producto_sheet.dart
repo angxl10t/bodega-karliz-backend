@@ -380,7 +380,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
             style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: 'Ej. Lácteos, Snacks, Abarrotes...',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
               filled: true,
               fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
               border: OutlineInputBorder(
@@ -604,7 +604,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                           'Añadir artículo al inventario de la bodega',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: AppTheme.textMuted,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                       ],
@@ -628,7 +628,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : const Color(0xFF334155),
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                 ),
               ),
               const SizedBox(height: 6),
@@ -659,7 +659,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white70 : const Color(0xFF334155),
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                     ),
                   ),
                   TextButton.icon(
@@ -765,7 +765,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : const Color(0xFF334155),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -822,7 +822,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : const Color(0xFF334155),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -862,7 +862,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white70 : const Color(0xFF334155),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -931,7 +931,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -964,7 +964,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white70 : const Color(0xFF334155),
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -1038,7 +1038,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -1086,7 +1086,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                         child: Icon(
                           LucideIcons.calendarClock,
                           size: 18,
-                          color: _controlaVencimiento ? AppTheme.brandPrimary : AppTheme.textMuted,
+                          color: _controlaVencimiento ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1106,7 +1106,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                               'Alerta si el producto es perecible o tiene caducidad',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
-                                color: AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                               ),
                             ),
                           ],
@@ -1179,7 +1179,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                 Icon(
                                   LucideIcons.calendarCheck,
                                   size: 16,
-                                  color: _fechaVencimiento != null ? AppTheme.brandPrimary : AppTheme.textMuted,
+                                  color: _fechaVencimiento != null ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -1190,7 +1190,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 13,
                                       fontWeight: _fechaVencimiento != null ? FontWeight.w700 : FontWeight.w500,
-                                      color: _fechaVencimiento != null ? (isDark ? Colors.white : AppTheme.textDark) : AppTheme.textMuted,
+                                      color: _fechaVencimiento != null ? (isDark ? Colors.white : AppTheme.textDark) : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     ),
                                   ),
                                 ),
@@ -1384,7 +1384,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                           : 'Sugerida automáticamente al escribir o escanear',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         height: 1.2,
                       ),
                       maxLines: 2,

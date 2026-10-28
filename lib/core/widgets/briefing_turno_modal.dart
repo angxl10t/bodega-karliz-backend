@@ -349,7 +349,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                           ),
                         ),
                       ],
@@ -407,7 +407,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                               icon: Icon(
                                 LucideIcons.chevronLeft,
                                 color: _currentTipIndex > 0
-                                    ? (isDark ? Colors.white70 : AppTheme.textDark)
+                                    ? (isDark ? Colors.white : AppTheme.textDark)
                                     : (isDark ? Colors.white24 : Colors.black26),
                               ),
                               onPressed: _currentTipIndex > 0
@@ -427,7 +427,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                               icon: Icon(
                                 LucideIcons.chevronRight,
                                 color: _currentTipIndex < tips.length - 1
-                                    ? (isDark ? Colors.white70 : AppTheme.textDark)
+                                    ? (isDark ? Colors.white : AppTheme.textDark)
                                     : (isDark ? Colors.white24 : Colors.black26),
                               ),
                               onPressed: _currentTipIndex < tips.length - 1
@@ -474,7 +474,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? const Color(0xFFA1A1AA) : const Color(0xFF64748B),
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                               ),
                             ),
                           ],

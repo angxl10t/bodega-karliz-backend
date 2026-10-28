@@ -184,8 +184,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                       Text(
                         'Acceso POS y registro de ventas',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: AppTheme.textMuted,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                     ],
@@ -741,7 +742,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -790,8 +791,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   Text(
                                     '1 Admin + 2 Cajeros',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
-                                      color: AppTheme.textMuted,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                     ),
                                   ),
                                 ],
@@ -849,8 +851,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   Text(
                                     'Cajeros Ilimitados',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
-                                      color: AppTheme.textMuted,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                     ),
                                   ),
                                 ],
@@ -982,9 +985,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           Text(
                             'Titular: CajaYa Cloud POS S.A.C.',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textMuted,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -1486,7 +1489,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -1855,7 +1858,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white60 : AppTheme.textMuted),
+                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -2039,14 +2042,15 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   Text(
                                     'Nombre, RUC, lema en tickets y paleta de color',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      color: AppTheme.textMuted,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const Icon(LucideIcons.chevronRight, size: 18, color: AppTheme.textMuted),
+                            Icon(LucideIcons.chevronRight, size: 18, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                           ],
                         ),
                       ),
@@ -2470,8 +2474,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                       Text(
                         'Consola Global Multi-Inquilino',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: AppTheme.textMuted,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                     ],
@@ -2501,7 +2506,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 'No hay bodegas adicionales registradas en el sistema.',
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
               ),
             )
           else

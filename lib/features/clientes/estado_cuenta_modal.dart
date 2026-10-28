@@ -122,7 +122,7 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
                     ),
                     Text(
                       'DNI: ${c.documento ?? "No especificado"} • Tel: ${c.telefono ?? "Sin teléfono"}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                     ),
                   ],
                 ),
@@ -151,7 +151,7 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Saldo Deudor Actual', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted)),
+                        Text('Saldo Deudor Actual', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                         const SizedBox(height: 2),
                         Text(
                           'S/ ${c.saldoDeudor.toStringAsFixed(2)}',
@@ -166,7 +166,7 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('Límite de Crédito', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted)),
+                        Text('Límite de Crédito', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                         const SizedBox(height: 2),
                         Text(
                           'S/ ${c.limiteCredito.toStringAsFixed(2)}',
@@ -209,7 +209,7 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
                     ? Center(
                         child: Text(
                           'No hay movimientos registrados para este cliente.',
-                          style: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                          style: GoogleFonts.plusJakartaSans(color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontSize: 13, fontWeight: FontWeight.w600),
                         ),
                       )
                     : ListView(

@@ -329,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             height: 1.5,
-            color: isDark ? Colors.white70 : AppTheme.textMuted,
+            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
           ),
         ),
 
@@ -396,7 +396,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : AppTheme.textMuted,
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                 ),
               ),
             ),
@@ -452,7 +452,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 desc,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: isDark ? Colors.white60 : AppTheme.textMuted,
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                   height: 1.35,
                 ),
               ),
@@ -548,7 +548,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'Control de Inventario, Ventas & Caja en Tiempo Real',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
-              color: AppTheme.textMuted,
+              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
             ),
           ),
 
@@ -589,7 +589,7 @@ class _LoginScreenState extends State<LoginScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
-              color: isDark ? Colors.white70 : AppTheme.textMuted,
+              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
             ),
           ),
           const SizedBox(height: 6),
@@ -611,7 +611,7 @@ class _LoginScreenState extends State<LoginScreen> {
               hintText: 'admin',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8),
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
               ),
               prefixIcon: Icon(
                 LucideIcons.user,
@@ -650,7 +650,7 @@ class _LoginScreenState extends State<LoginScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
-              color: isDark ? Colors.white70 : AppTheme.textMuted,
+              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
             ),
           ),
           const SizedBox(height: 6),
@@ -671,7 +671,7 @@ class _LoginScreenState extends State<LoginScreen> {
               hintText: '••••••',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8),
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
               ),
               prefixIcon: Icon(
                 LucideIcons.lock,
@@ -682,7 +682,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: Icon(
                   _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
                   size: 18,
-                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                 ),
                 onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
               ),
@@ -853,7 +853,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         '¿Tienes un negocio? ',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                       Text(
@@ -930,7 +930,7 @@ class _LoginScreenState extends State<LoginScreen> {
               'Dirección API en la nube (requiere HTTPS):',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
-                color: isDark ? Colors.white70 : AppTheme.textMuted,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
               ),
             ),
             const SizedBox(height: 10),
@@ -945,7 +945,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
                 hintText: ApiConstants.defaultBaseUrl,
                 hintStyle: GoogleFonts.plusJakartaSans(
-                  color: isDark ? AppTheme.textDarkMuted : const Color(0xFF94A3B8),
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                   fontSize: 13,
                 ),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),

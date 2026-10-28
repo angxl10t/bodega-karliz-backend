@@ -1179,7 +1179,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     ),
                     Text(
                       'Base + Ventas Efectivo - Egresos',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                     ),
                   ],
                 ),
@@ -1285,7 +1285,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             final double total = conteo.entries.fold(0.0, (acc, e) => acc + (e.key * e.value));
             final double dif = total - esperado;
 
-            Color difColor = AppTheme.textMuted;
+            Color difColor = isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted;
             String difLabel = 'Exacto (S/ 0.00)';
             IconData difIcon = LucideIcons.checkCheck;
 
@@ -1371,7 +1371,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: AppTheme.textMuted,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                             ),
                           ),
                         ),

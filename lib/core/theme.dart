@@ -375,6 +375,23 @@ class AppTheme {
           );
         }),
       ),
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.outfit(color: textDarkPrimary, fontWeight: FontWeight.w800),
+        displayMedium: GoogleFonts.outfit(color: textDarkPrimary, fontWeight: FontWeight.w800),
+        displaySmall: GoogleFonts.outfit(color: textDarkPrimary, fontWeight: FontWeight.w700),
+        headlineLarge: GoogleFonts.outfit(color: textDarkPrimary, fontWeight: FontWeight.w800),
+        headlineMedium: GoogleFonts.outfit(color: textDarkPrimary, fontWeight: FontWeight.w800),
+        headlineSmall: GoogleFonts.outfit(color: textDarkPrimary, fontWeight: FontWeight.w700),
+        titleLarge: GoogleFonts.outfit(color: textDarkPrimary, fontWeight: FontWeight.w700),
+        titleMedium: GoogleFonts.plusJakartaSans(color: textDarkPrimary, fontWeight: FontWeight.w700),
+        titleSmall: GoogleFonts.plusJakartaSans(color: textDarkSecondary, fontWeight: FontWeight.w600),
+        bodyLarge: GoogleFonts.plusJakartaSans(color: textDarkPrimary, fontWeight: FontWeight.w500),
+        bodyMedium: GoogleFonts.plusJakartaSans(color: textDarkSecondary, fontWeight: FontWeight.w600),
+        bodySmall: GoogleFonts.plusJakartaSans(color: textDarkSecondary, fontWeight: FontWeight.w600),
+        labelLarge: GoogleFonts.plusJakartaSans(color: textDarkPrimary, fontWeight: FontWeight.w700),
+        labelMedium: GoogleFonts.plusJakartaSans(color: textDarkSecondary, fontWeight: FontWeight.w600),
+        labelSmall: GoogleFonts.plusJakartaSans(color: textDarkSecondary, fontWeight: FontWeight.w600),
+      ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: CupertinoPageTransitionsBuilder(),
@@ -456,7 +473,8 @@ class DidacticBanner extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
                     height: 1.35,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                   ),
                 ),
               ],

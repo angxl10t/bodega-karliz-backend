@@ -246,7 +246,8 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                   'Configura comandos ESC/POS, gaveta de dinero y QR',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
-                                    color: AppTheme.textMuted,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                   ),
                                 ),
                               ],
@@ -297,7 +298,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                             ),
                                             Text(
                                               '58mm (32 cols portátil) ó 80mm (48 cols mesón)',
-                                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                             ),
                                           ],
                                         ),
@@ -330,7 +331,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     ),
                                     subtitle: Text(
                                       'Envía pulso ESC/POS a la gaveta al cobrar en efectivo',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     ),
                                     value: _abrirGaveta,
                                     onChanged: (val) => setState(() => _abrirGaveta = val),
@@ -351,7 +352,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     ),
                                     subtitle: Text(
                                       'Imprime el ticket inmediatamente al completar la venta',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     ),
                                     value: _impresionAutomatica,
                                     onChanged: (val) => setState(() => _impresionAutomatica = val),
@@ -488,7 +489,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     ),
                                     subtitle: Text(
                                       'Permite a los clientes pagar escaneando el papel térmico',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     ),
                                     value: _mostrarQr,
                                     onChanged: (val) => setState(() => _mostrarQr = val),

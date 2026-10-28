@@ -234,7 +234,9 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
   Future<void> _confirmarDesactivar() async {
     final confirmar = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
         backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
@@ -243,7 +245,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
         ),
         content: Text(
           'El artículo "${widget.producto.nombre}" ya no aparecerá en el catálogo ni en ventas.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
         ),
         actions: [
           TextButton(
@@ -260,8 +262,9 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
             child: Text('Dar de baja', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
           ),
         ],
-      ),
-    );
+      );
+    },
+  );
 
     if (confirmar == true && widget.producto.idProducto != null) {
       final exito = await _productoService.desactivarProducto(widget.producto.idProducto!);
@@ -576,7 +579,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                       child: Icon(
                         LucideIcons.calendarClock,
                         size: 18,
-                        color: _controlaVencimiento ? AppTheme.brandPrimary : AppTheme.textMuted,
+                        color: _controlaVencimiento ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -596,7 +599,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                             'Alerta si el producto es perecible o tiene caducidad',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
-                              color: AppTheme.textMuted,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                           ),
                         ],
@@ -669,7 +672,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                               Icon(
                                 LucideIcons.calendarCheck,
                                 size: 16,
-                                color: _fechaVencimiento != null ? AppTheme.brandPrimary : AppTheme.textMuted,
+                                color: _fechaVencimiento != null ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -680,7 +683,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 13,
                                     fontWeight: _fechaVencimiento != null ? FontWeight.w700 : FontWeight.w500,
-                                    color: _fechaVencimiento != null ? (isDark ? Colors.white : AppTheme.textDark) : AppTheme.textMuted,
+                                    color: _fechaVencimiento != null ? (isDark ? Colors.white : AppTheme.textDark) : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   ),
                                 ),
                               ),
@@ -875,7 +878,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                           : 'Sugerida automáticamente al escribir o escanear',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: AppTheme.textMuted,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         height: 1.2,
                       ),
                       maxLines: 2,

@@ -323,7 +323,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                       const SizedBox(height: 2),
                       Text(
                         'Límite: S/ ${widget.cliente.limiteCredito.toStringAsFixed(2)}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -405,7 +405,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
             // Selector de Método de Pago
             Text(
               'Método de Pago Recibido',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             ),
             const SizedBox(height: 8),
             Row(
@@ -434,7 +434,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
-                              color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                              color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
                             ),
                           ),
                         ),
@@ -531,7 +531,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
           Text(
             'Comprobante: ${_abonoCreado!.comprobanteNumero ?? "AB-${_abonoCreado!.idAbono}"}',
             textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textMuted, fontWeight: FontWeight.w600),
+            style: GoogleFonts.outfit(fontSize: 13, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 18),
           Container(
@@ -546,7 +546,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Monto Abonado:', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted)),
+                    Text('Monto Abonado:', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     Text('S/ ${_abonoCreado!.monto.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.accentGreen)),
                   ],
                 ),
@@ -554,7 +554,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Medio de Pago:', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted)),
+                    Text('Medio de Pago:', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
                     Text(_abonoCreado!.metodoPago, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700)),
                   ],
                 ),

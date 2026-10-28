@@ -227,7 +227,7 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : AppTheme.textMuted,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -308,7 +308,7 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
                               icon: LucideIcons.delete,
                               onPressed: _onDeletePressed,
                               isDark: isDark,
-                              color: isDark ? Colors.white70 : const Color(0xFF475569),
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                             ),
                           ],
                         ),
@@ -536,7 +536,7 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
             'Ingresa un PIN de 4 números para desbloquear la caja rápidamente cuando esté inactiva:',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
-              color: isDark ? Colors.white70 : AppTheme.textMuted,
+              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
             ),
           ),
           const SizedBox(height: 16),

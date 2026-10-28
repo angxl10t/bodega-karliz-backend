@@ -157,7 +157,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                             '14 días gratis • Configuración en 1 minuto',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
-                              color: AppTheme.textMuted,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                           ),
                         ],
@@ -165,7 +165,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                     ],
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white60 : AppTheme.textMuted),
+                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -246,7 +246,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : const Color(0xFF334155),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -276,7 +276,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                   ),
                                 ),
                                 const SizedBox(height: 6),
@@ -313,7 +313,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                   ),
                                 ),
                                 const SizedBox(height: 6),
@@ -349,7 +349,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : const Color(0xFF334155),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -381,7 +381,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : const Color(0xFF334155),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -405,7 +405,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white70 : const Color(0xFF334155),
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -419,7 +419,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                             icon: Icon(
                               _obscurePass ? LucideIcons.eyeOff : LucideIcons.eye,
                               size: 18,
-                              color: isDark ? Colors.white54 : AppTheme.textMuted,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                             onPressed: () => setState(() => _obscurePass = !_obscurePass),
                           ),
@@ -604,7 +604,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : const Color(0xFF475569),
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
                 ),
               ),
             ),
@@ -613,7 +613,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
               features,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10.5,
-                color: AppTheme.textMuted,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
               ),
             ),
           ],

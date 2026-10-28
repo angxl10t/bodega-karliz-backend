@@ -205,7 +205,7 @@ class CajaYaHeroGraphic extends StatelessWidget {
                     Icon(
                       LucideIcons.cloudCheck,
                       size: 15,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                     ),
                   ],
                 ),
@@ -223,7 +223,7 @@ class CajaYaHeroGraphic extends StatelessWidget {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                           ),
                         ),
                         Text(

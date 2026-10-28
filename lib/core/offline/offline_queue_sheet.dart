@@ -85,7 +85,7 @@ class OfflineQueueSheet extends StatelessWidget {
                             ),
                             Text(
                               'Ventas firmadas en local sin conexión a internet',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                             ),
                           ],
                         ),
@@ -116,7 +116,7 @@ class OfflineQueueSheet extends StatelessWidget {
                           children: [
                             Text(
                               'Total Pendiente en Caja',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -169,7 +169,7 @@ class OfflineQueueSheet extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   'No hay ventas locales pendientes de envío.',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                 ),
                               ],
                             ),
@@ -223,12 +223,12 @@ class OfflineQueueSheet extends StatelessWidget {
                                       const SizedBox(height: 4),
                                       Text(
                                         'Cliente: ${v.clienteNombre} • ${v.metodoPago}',
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         '${v.detalles.length} artículo(s) • ${v.fechaCreacion.hour.toString().padLeft(2, '0')}:${v.fechaCreacion.minute.toString().padLeft(2, '0')}',
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                       ),
                                       if (v.ultimoError != null) ...[
                                         const SizedBox(height: 4),

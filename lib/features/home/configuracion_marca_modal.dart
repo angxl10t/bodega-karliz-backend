@@ -180,8 +180,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                           Text(
                             'Personalización de comprobantes y colores',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: AppTheme.textMuted,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                             ),
                           ),
                         ],
@@ -189,7 +190,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                     ],
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white60 : AppTheme.textMuted),
+                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -504,7 +505,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                       ),
                                       if (isLocked) ...[
                                         const SizedBox(width: 6),
-                                        const Icon(LucideIcons.lock, size: 12, color: AppTheme.textMuted),
+                                        Icon(LucideIcons.lock, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                                       ],
                                     ],
                                   ),
