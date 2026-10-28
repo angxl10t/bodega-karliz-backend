@@ -74,12 +74,10 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     _idCategoriaSeleccionada = widget.producto.idCategoria ?? 1;
     _imagenUrl = widget.producto.imagenUrl;
 
-    if (_imagenUrl == null || _imagenUrl!.trim().isEmpty) {
-      _fotoSugerida = CatalogoImagenesService.buscarSugerencia(
-        codigoBarras: widget.producto.codigoBarras,
-        nombre: widget.producto.nombre,
-      );
-    }
+    _fotoSugerida = CatalogoImagenesService.buscarSugerencia(
+      codigoBarras: widget.producto.codigoBarras,
+      nombre: widget.producto.nombre,
+    );
 
     _nombreCtrl.addListener(_onDatosCambiados);
     _codigoBarrasCtrl.addListener(_onDatosCambiados);
@@ -576,6 +574,45 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
                           ),
                         ),
+                        if (_fotoSugerida != null &&
+                            _fotoSugerida!.codigosBarras.isNotEmpty &&
+                            _codigoBarrasCtrl.text.trim().isEmpty) ...[
+                          const SizedBox(height: 6),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () {
+                              setState(() {
+                                _codigoBarrasCtrl.text = _fotoSugerida!.codigosBarras.first;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(LucideIcons.barcode, size: 14, color: Color(0xFF10B981)),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      'EAN oficial: ${_fotoSugerida!.codigosBarras.first} (Autocompletar)',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF10B981),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -1070,6 +1107,16 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
       initialUrl: _imagenUrl,
       productName: _nombreCtrl.text.trim().isNotEmpty ? _nombreCtrl.text.trim() : null,
       categoryName: _categoriaSeleccionadaNombre,
+      onItemSeleccionado: (item) {
+        if (item != null) {
+          setState(() {
+            _fotoSugerida = item;
+            if (_codigoBarrasCtrl.text.trim().isEmpty && item.codigosBarras.isNotEmpty) {
+              _codigoBarrasCtrl.text = item.codigosBarras.first;
+            }
+          });
+        }
+      },
       onFotoSeleccionada: (url) {
         setState(() {
           _imagenUrl = url;

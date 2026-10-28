@@ -15,6 +15,7 @@ class CatalogoFotoPickerModal extends StatefulWidget {
   final String? productName;
   final String? categoryName;
   final ValueChanged<String?> onFotoSeleccionada;
+  final ValueChanged<ProductoStudioFoto?>? onItemSeleccionado;
 
   const CatalogoFotoPickerModal({
     super.key,
@@ -22,6 +23,7 @@ class CatalogoFotoPickerModal extends StatefulWidget {
     this.productName,
     this.categoryName,
     required this.onFotoSeleccionada,
+    this.onItemSeleccionado,
   });
 
   static Future<void> show({
@@ -30,6 +32,7 @@ class CatalogoFotoPickerModal extends StatefulWidget {
     String? productName,
     String? categoryName,
     required ValueChanged<String?> onFotoSeleccionada,
+    ValueChanged<ProductoStudioFoto?>? onItemSeleccionado,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -40,6 +43,7 @@ class CatalogoFotoPickerModal extends StatefulWidget {
         productName: productName,
         categoryName: categoryName,
         onFotoSeleccionada: onFotoSeleccionada,
+        onItemSeleccionado: onItemSeleccionado,
       ),
     );
   }
@@ -56,6 +60,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
 
   List<ProductoStudioFoto> _resultados = [];
   String? _selectedUrl;
+  ProductoStudioFoto? _selectedItem;
 
   @override
   void initState() {
@@ -260,6 +265,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                       style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
                     ),
                     onPressed: () {
+                      widget.onItemSeleccionado?.call(null);
                       widget.onFotoSeleccionada(null);
                       Navigator.pop(context);
                     },
@@ -275,6 +281,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () {
+                      widget.onItemSeleccionado?.call(_selectedItem);
                       widget.onFotoSeleccionada(_selectedUrl);
                       Navigator.pop(context);
                     },
@@ -408,6 +415,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                       onTap: () {
                         setState(() {
                           _selectedUrl = item.imagenUrl;
+                          _selectedItem = item;
                           _urlCtrl.text = item.imagenUrl;
                         });
                       },
