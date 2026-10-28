@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="/bodega-karliz-backend/">
+  <base href="/">
   <script>
     (function() {
-      var path = window.location.pathname;
-      if (path.length > 1) {
-        if (!path.endsWith('/')) {
-          path = path.substring(0, path.lastIndexOf('/') + 1);
-        }
+      if (window.location.hostname.indexOf('github.io') !== -1) {
         var baseEl = document.querySelector('base');
-        if (baseEl && path) {
-          baseEl.setAttribute('href', path);
+        if (baseEl) {
+          baseEl.setAttribute('href', '/bodega-karliz-backend/');
         }
       }
     })();
@@ -27,8 +23,6 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- Directivas de Seguridad Web (Content Security Policy & Anti-Clickjacking) -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.gstatic.com https://cdn.jsdelivr.net; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: data: blob: http://localhost:* http://127.0.0.1:*; worker-src 'self' blob: https://cdn.jsdelivr.net; object-src 'none'; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -156,23 +150,7 @@
     </div>
   </div>
 
-  <script>
-    // Limpieza activa de caches obsoletos y desregistro de Service Workers viejos
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (var registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (var name of names) {
-          caches.delete(name);
-        }
-      });
-    }
-  </script>
-  <script src="flutter_bootstrap.js?v=20261028_01" async></script>
+
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
