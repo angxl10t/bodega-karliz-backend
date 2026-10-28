@@ -566,8 +566,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Build Emerald 2026.10 • Comprobar parches OTA',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -576,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -651,8 +652,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Cuentas por cobrar, abonos y recordatorios WhatsApp',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -661,7 +663,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -755,8 +757,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Cola de ventas desconectadas y catálogo local en memoria',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -765,7 +768,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -840,8 +843,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Registro de compras de proveedores y stock por lotes',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -850,7 +854,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -926,8 +930,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Margen real, productos estrella/hueso y horarios pico',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -936,7 +941,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -1010,8 +1015,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Alertas a 7, 15 y 30 días para remate y prevención de mermas',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -1020,7 +1026,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -1095,8 +1101,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Bajas por rotura, vencimiento o autoconsumo con costo contable',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -1105,7 +1112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -1180,8 +1187,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Conteo en góndola sin sesgo y balance de sobrantes/faltantes',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -1190,7 +1198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -1271,8 +1279,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ? 'Plan Pro (S/ 100/mes) • Turnos, cajeros ilimitados y marca'
                                           : 'Plan Bodega (S/ 50/mes) • Hasta 2 cajeros y POS rápido',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -1281,7 +1290,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -1333,8 +1342,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'ESC/POS 58/80 mm, gaveta de dinero y QR Yape/Plin',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -1343,7 +1353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -1395,8 +1405,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       'Tutorial interactivo de los 5 módulos',
                                       style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: AppTheme.textMuted,
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                       ),
                                     ),
                                   ],
@@ -1405,7 +1416,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
-                                color: isDark ? Colors.white54 : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                               ),
                             ],
                           ),
@@ -1452,12 +1463,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     Text(
                                       'Protege la pantalla con tu PIN o huella',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     ),
                                   ],
                                 ),
                               ),
-                              Icon(LucideIcons.chevronRight, size: 18, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                              Icon(LucideIcons.chevronRight, size: 18, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                             ],
                           ),
                         ),
@@ -1505,12 +1516,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     Text(
                                       'PIN de 4 dígitos para desbloqueo rápido de turno',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                     ),
                                   ],
                                 ),
                               ),
-                              Icon(LucideIcons.chevronRight, size: 18, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                              Icon(LucideIcons.chevronRight, size: 18, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                             ],
                           ),
                         ),
@@ -1738,6 +1749,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _confirmarCerrarSesion() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1765,7 +1777,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         content: Text(
           '¿Estás seguro de que deseas salir del sistema de caja e inventario?',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppTheme.textMuted),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w500, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
         ),
         actions: [
           TextButton(
@@ -1879,7 +1891,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           content: Text(
             mensaje,
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+            style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w500, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
           ),
           actions: [
             TextButton(

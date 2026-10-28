@@ -34,7 +34,7 @@ class AppTheme {
   static const Color cardLight = Colors.white;
   static const Color borderLight = Color(0xFFE2E8F0);
   static const Color textDark = Color(0xFF0F172A);
-  static const Color textMuted = Color(0xFF475569); // Slate 600 - Máximo Contraste WCAG AAA en Modo Claro
+  static const Color textMuted = Color(0xFF334155); // Slate 700 - Máximo Contraste WCAG AAA (>10:1) para personas mayores y pantallas con bajo brillo
 
   // ============================================
   // MODO OSCURO DE ÉLITE: VELVET OBSIDIAN & HIGH-CONTRAST TEXT

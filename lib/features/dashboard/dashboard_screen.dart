@@ -456,8 +456,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   Text(
                                     'Todos los productos tienen existencias saludables.',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      color: AppTheme.textMuted,
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                     ),
                                   ),
                                 ],
@@ -525,8 +526,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           Text(
                                             'Código: ${p.codigo}',
                                             style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 11,
-                                              color: AppTheme.textMuted,
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                             ),
                                           ),
                                         ],
@@ -1113,9 +1115,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Text(
                             '$cantVentas cobros sincronizados • Total S/ ${totalVentas.toStringAsFixed(2)}',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: AppTheme.textMuted,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                              fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1154,17 +1156,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       : constraints.maxWidth);
 
               Widget buildChannelBox(String nombre, double monto, Color color, IconData icon) {
+                final Color effectiveColor = isDark
+                    ? (nombre == 'Yape'
+                        ? const Color(0xFFE879F9) // Fuchsia 400 radiante
+                        : nombre == 'Plin'
+                            ? const Color(0xFF38BDF8) // Sky 400 luminoso
+                            : nombre == 'Efectivo'
+                                ? const Color(0xFF34D399) // Emerald 400 nítido
+                                : nombre == 'Tarjeta'
+                                    ? const Color(0xFFA5B4FC) // Indigo 300
+                                    : nombre.contains('Cr')
+                                        ? const Color(0xFFFBBF24) // Amber 400
+                                        : color)
+                    : color;
+
                 return Container(
                   width: tileWidth,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: isDark ? 0.12 : 0.06),
+                    color: effectiveColor.withValues(alpha: isDark ? 0.16 : 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
+                    border: Border.all(color: effectiveColor.withValues(alpha: isDark ? 0.40 : 0.25), width: 1.2),
                   ),
                   child: Row(
                     children: [
-                      Icon(icon, size: 16, color: color),
+                      Icon(icon, size: 17, color: effectiveColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -1173,15 +1189,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               nombre,
                               style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                color: color,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                color: effectiveColor,
                               ),
                             ),
                             Text(
                               'S/ ${monto.toStringAsFixed(2)}',
                               style: GoogleFonts.outfit(
-                                fontSize: 13.5,
+                                fontSize: 14.5,
                                 fontWeight: FontWeight.w900,
                                 color: isDark ? Colors.white : AppTheme.textDark,
                               ),
@@ -1302,8 +1318,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text(
                     'Margen bruto real, rotación de productos estrella/hueso y horas pico 24h.',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                       height: 1.3,
                     ),
                   ),
@@ -1347,26 +1364,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ? (constraints.maxWidth - 10) / 2
                 : constraints.maxWidth));
 
+    // Acentos luminosos vibrantes para máxima legibilidad WCAG AAA en Modo Oscuro
+    final Color displayAccent = isDark
+        ? (accentColor == AppTheme.accentGreen
+            ? const Color(0xFF34D399) // Emerald 400 nítido
+            : accentColor == const Color(0xFFD97706) || accentColor == AppTheme.warningAmber
+                ? const Color(0xFFFBBF24) // Amber 400 luminoso
+                : accentColor == AppTheme.alertRed
+                    ? const Color(0xFFF87171) // Red 400 radiante
+                    : accentColor == AppTheme.brandPrimary
+                        ? const Color(0xFF60A5FA) // Blue 400 vivo
+                        : accentColor == AppTheme.infoIndigo
+                            ? const Color(0xFFA78BFA) // Violet 400
+                            : accentColor)
+        : accentColor;
+
+    // Título con contraste nítido: Slate 100 en oscuro, Slate 800 en claro
+    final Color titleColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+
     final card = Container(
       width: cardWidth,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-          width: 1,
+          color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
+          width: 1.2,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (isDark ? Colors.black : Colors.black12).withValues(alpha: isDark ? 0.35 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: isDark ? 0.2 : 0.1),
+              color: displayAccent.withValues(alpha: isDark ? 0.22 : 0.12),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: displayAccent.withValues(alpha: isDark ? 0.35 : 0.18),
+                width: 1,
+              ),
             ),
-            child: Icon(icon, color: accentColor, size: 21),
+            child: Icon(icon, color: displayAccent, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1376,19 +1422,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   title,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textMuted,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.1,
+                    color: titleColor,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 1),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   style: GoogleFonts.outfit(
-                    fontSize: 17.5,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 19.0,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.3,
                     color: isDark ? Colors.white : AppTheme.textDark,
                   ),
                   maxLines: 1,
@@ -1397,9 +1445,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   subtitle,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: accentColor,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: displayAccent,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1445,8 +1493,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-              width: 1,
+              color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
+              width: 1.2,
             ),
           ),
           child: Column(
@@ -1464,18 +1512,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 title,
                 style: GoogleFonts.outfit(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
                   color: isDark ? Colors.white : AppTheme.textDark,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 2),
               Text(
                 subtitle,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
-                  color: AppTheme.textMuted,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
