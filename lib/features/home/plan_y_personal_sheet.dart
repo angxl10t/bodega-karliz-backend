@@ -1356,7 +1356,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     if (_userRol == 'CAJERO') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Acceso denegado: Solo el Administrador de la bodega puede configurar la Facturación SUNAT.'),
+          content: Text('Acceso denegado: Solo el Administrador de la bodega puede configurar los Comprobantes de Venta.'),
           backgroundColor: AppTheme.alertRed,
         ),
       );
@@ -1368,7 +1368,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     String proveedor = _bodegaInfo?.sunatProveedor ?? 'API Facturador SUNAT Gratuito';
     final rucCtrl = TextEditingController(text: _bodegaInfo?.sunatRucEmisor ?? _bodegaInfo?.rucDni ?? '');
     final serieBoletaCtrl = TextEditingController(text: _bodegaInfo?.serieBoleta ?? 'B001');
-    final serieFacturaCtrl = TextEditingController(text: _bodegaInfo?.serieFactura ?? 'F001');
     bool isSaving = false;
     String modalError = '';
 
@@ -1407,7 +1406,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Módulo Facturación SUNAT',
+                                'Comprobantes de Venta',
                                 style: GoogleFonts.outfit(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w800,
@@ -1415,7 +1414,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                 ),
                               ),
                               Text(
-                                'Proveedor Gratuito • Envío Directo',
+                                'Régimen Nuevo RUS • Boletas B001 y Tickets',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
@@ -1451,7 +1450,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  activa ? 'Facturación SUNAT ACTIVADA' : 'Facturación SUNAT DESACTIVADA',
+                                  activa ? 'Emisión oficial de Boletas ACTIVADA' : 'Emisión en modo interno (Tickets)',
                                   style: GoogleFonts.outfit(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w800,
@@ -1462,8 +1461,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                 ),
                                 Text(
                                   activa
-                                      ? 'Las ventas generarán Boletas electrónicas oficiales (Nuevo RUS) o comprobantes según tu régimen.'
-                                      : 'Las ventas generarán únicamente Tickets de control interno.',
+                                      ? 'Las ventas generarán Boletas de Venta B001 para consumidores finales bajo el Régimen Nuevo RUS.'
+                                      : 'Las ventas generarán únicamente Tickets de mostrador para control interno.',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     color: AppTheme.textMuted,
@@ -1592,70 +1591,57 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Selector de Régimen Tributario
-                    DropdownButtonFormField<String>(
-                      initialValue: regimen,
-                      decoration: InputDecoration(
-                        labelText: 'Régimen Tributario (SUNAT)',
-                        prefixIcon: const Icon(LucideIcons.fileSpreadsheet, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    // Tarjeta informativa Régimen Nuevo RUS
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
                       ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'NUEVO_RUS',
-                          child: Text('Nuevo RUS (Solo Boletas y Tickets)'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'RER',
-                          child: Text('RER (Régimen Especial - Boletas y Facturas)'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'MYPE_TRIBUTARIO',
-                          child: Text('MYPE Tributario (Boletas y Facturas)'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'REGIMEN_GENERAL',
-                          child: Text('Régimen General (Boletas y Facturas)'),
-                        ),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setModalState(() => regimen = val);
-                        }
-                      },
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.fileSpreadsheet, size: 20, color: AppTheme.brandPrimary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Régimen Tributario: Nuevo RUS',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Diseñado para bodegas y minimarkets: emisión exclusiva de Boletas de Venta a consumidor final y Tickets de mostrador. (Las Facturas comerciales no aplican en este régimen).',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
 
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: serieBoletaCtrl,
-                            textCapitalization: TextCapitalization.characters,
-                            inputFormatters: [LengthLimitingTextInputFormatter(4)],
-                            decoration: InputDecoration(
-                              labelText: 'Serie Boleta',
-                              hintText: 'B001',
-                              prefixIcon: const Icon(LucideIcons.fileText, size: 18),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: TextFormField(
-                            controller: serieFacturaCtrl,
-                            textCapitalization: TextCapitalization.characters,
-                            inputFormatters: [LengthLimitingTextInputFormatter(4)],
-                            decoration: InputDecoration(
-                              labelText: 'Serie Factura',
-                              hintText: 'F001',
-                              prefixIcon: const Icon(LucideIcons.fileText, size: 18),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                          ),
-                        ),
-                      ],
+                    TextFormField(
+                      controller: serieBoletaCtrl,
+                      textCapitalization: TextCapitalization.characters,
+                      inputFormatters: [LengthLimitingTextInputFormatter(4)],
+                      decoration: InputDecoration(
+                        labelText: 'Serie Boleta de Venta',
+                        hintText: 'B001',
+                        helperText: 'Debe iniciar con B y tener 4 caracteres (ej: B001)',
+                        prefixIcon: const Icon(LucideIcons.fileText, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
                     ),
                     const SizedBox(height: 14),
 
@@ -1672,7 +1658,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Solo tú como Administrador puedes activar o desactivar este módulo. Tus cajeros no tendrán acceso para modificar la facturación.',
+                              'Solo tú como Administrador puedes activar o desactivar este módulo. Tus cajeros no tendrán acceso para modificar la configuración de comprobantes.',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -1703,13 +1689,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               }
 
                               final sBoleta = serieBoletaCtrl.text.trim().toUpperCase();
-                              final sFactura = serieFacturaCtrl.text.trim().toUpperCase();
                               if (sBoleta.isNotEmpty && !RegExp(r'^B[A-Z0-9]{3}$').hasMatch(sBoleta)) {
                                 setModalState(() => modalError = 'La serie de boleta debe tener 4 caracteres e iniciar con B (ej: B001).');
-                                return;
-                              }
-                              if (sFactura.isNotEmpty && !RegExp(r'^F[A-Z0-9]{3}$').hasMatch(sFactura)) {
-                                setModalState(() => modalError = 'La serie de factura debe tener 4 caracteres e iniciar con F (ej: F001).');
                                 return;
                               }
 
@@ -1726,7 +1707,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   proveedor: proveedor,
                                   rucEmisor: ruc,
                                   serieBoleta: sBoleta.isEmpty ? 'B001' : sBoleta,
-                                  serieFactura: sFactura.isEmpty ? 'F001' : sFactura,
+                                  serieFactura: 'F001',
                                 );
 
                                 if (dialogCtx.mounted) Navigator.pop(dialogCtx);
@@ -1742,8 +1723,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                       backgroundColor: AppTheme.accentGreen,
                                       content: Text(
                                         activa
-                                            ? '✅ Facturación SUNAT activada exitosamente con proveedor gratuito.'
-                                            : 'ℹ️ Facturación SUNAT desactivada. Ventas volverán a emitirse como tickets.',
+                                            ? '✅ Emisión de Boletas B001 configurada exitosamente.'
+                                            : 'ℹ️ Modo interno activado. Las ventas se emitirán como tickets de mostrador.',
                                       ),
                                     ),
                                   );
@@ -1762,7 +1743,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                             )
                           : Text(
-                              'GUARDAR CONFIGURACIÓN SUNAT',
+                              'GUARDAR CONFIGURACIÓN',
                               style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
                             ),
                     ),
@@ -1776,7 +1757,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     ).then((_) {
       rucCtrl.dispose();
       serieBoletaCtrl.dispose();
-      serieFacturaCtrl.dispose();
     });
   }
 
@@ -1951,7 +1931,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           const SizedBox(height: 8),
                           Text(
                             isPro
-                                ? '✓ Cajeros y administradores ilimitados con PIN.\n✓ Control de turnos y sincronización en tiempo real.\n✓ Almacén y Kardex protegidos contra fraudes.\n✓ Personalización de colores y logo en tickets.\n✓ Envío automático a SUNAT disponible.'
+                                ? '✓ Cajeros y administradores ilimitados con PIN.\n✓ Control de turnos y sincronización en tiempo real.\n✓ Almacén y Kardex protegidos contra fraudes.\n✓ Personalización de colores y logo en tickets.\n✓ Emisión oficial de Boletas de Venta B001 disponible.'
                                 : '✓ 1 Administrador + hasta 2 Cajeros activos con PIN.\n✓ Punto de Venta rápido, Control de Stock y Caja diaria.\n✓ Emisión de tickets digitales y reportes de ventas.',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
@@ -2131,7 +2111,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                             borderRadius: BorderRadius.circular(6),
                                           ),
                                           child: Text(
-                                            'GRATUITO',
+                                            'NUEVO RUS',
                                             style: GoogleFonts.outfit(
                                               fontSize: 9,
                                               fontWeight: FontWeight.w800,
@@ -2143,8 +2123,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                     ),
                                     Text(
                                       _bodegaInfo?.facturacionSunatActiva == true
-                                          ? 'Envío automático activo • Boletas B001 & Facturas F001'
-                                          : 'Emisión en modo interno (Tickets sin validez tributaria)',
+                                          ? 'Emisión oficial activa • Boletas B001 y Tickets'
+                                          : 'Emisión en modo interno (Tickets de mostrador)',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
                                         color: _bodegaInfo?.facturacionSunatActiva == true
@@ -2157,7 +2137,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               ),
                               if (_userRol == 'CAJERO') ...[
                                 Tooltip(
-                                  message: 'Solo el Administrador puede activar o desactivar la Facturación SUNAT',
+                                  message: 'Solo el Administrador puede activar o desactivar la emisión de Boletas',
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
@@ -2207,7 +2187,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Protegido por el Administrador: Los cajeros no pueden activar ni desactivar el envío de ventas a SUNAT.',
+                                      'Protegido por el Administrador: Los cajeros no pueden alterar la configuración de comprobantes.',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
@@ -2241,7 +2221,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                         const Icon(LucideIcons.slidersHorizontal, size: 12, color: AppTheme.brandPrimary),
                                         const SizedBox(width: 4),
                                         Text(
-                                          'Configurar SUNAT',
+                                          'Configurar Boletas',
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11.5,
                                             fontWeight: FontWeight.w700,

@@ -1877,7 +1877,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     } else {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(result.errorMessage ?? 'Error al conectar con la pasarela de facturación SUNAT'),
+          content: Text(result.errorMessage ?? 'Error al conectar con el servicio de comprobantes'),
           backgroundColor: AppTheme.alertRed,
         ),
       );

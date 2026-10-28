@@ -1083,7 +1083,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
               // Guía Didáctica de Abastecimiento
               const DidacticBanner(
                 title: 'Abastecimiento de Almacén',
-                description: 'Registra facturas o boletas con múltiples productos a la vez. El stock de tu inventario y el Kardex se incrementarán al confirmar.',
+                description: 'Registra compras con facturas o boletas emitidas por tus proveedores. El stock de tu inventario y el Kardex se incrementarán al confirmar.',
                 icon: LucideIcons.packagePlus,
               ),
               const SizedBox(height: 14),
@@ -1220,7 +1220,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             maxLength: 35,
                             style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
                             decoration: const InputDecoration(
-                              labelText: 'N° de Comprobante / Factura',
+                              labelText: 'N° Factura / Boleta del Proveedor',
                               hintText: 'Ej: F001-000452 o B001-124',
                               counterText: '',
                               contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),

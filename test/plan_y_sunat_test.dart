@@ -72,7 +72,7 @@ void main() {
       expect(find.text('BLOQUEADO'), findsOneWidget);
       expect(find.textContaining('Protegido por el Administrador'), findsOneWidget);
       // Un cajero no debe ver el botón de configuración directa
-      expect(find.text('Configurar SUNAT'), findsNothing);
+      expect(find.text('Configurar Boletas'), findsNothing);
     });
 
     testWidgets('Displays interactive SUNAT config and Yape button for ADMIN role', (WidgetTester tester) async {
@@ -94,7 +94,7 @@ void main() {
       await tester.pump();
 
       // Debería mostrar el botón de configuración SUNAT para ADMIN
-      expect(find.text('Configurar SUNAT'), findsOneWidget);
+      expect(find.text('Configurar Boletas'), findsOneWidget);
       // No debería mostrar la etiqueta de BLOQUEADO para ADMIN
       expect(find.text('BLOQUEADO'), findsNothing);
       // Debería mostrar el botón de renovación / pago con Yape o Plin

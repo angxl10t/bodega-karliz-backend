@@ -1766,7 +1766,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   const SizedBox(height: 10),
                   _buildVentajaPro('👥 Múltiples Cajeros con PIN', 'Crea usuarios independientes para cada turno y terminal.', isDark),
                   const SizedBox(height: 10),
-                  _buildVentajaPro('🧾 Facturación Electrónica SUNAT', 'Emite Boletas y Facturas electrónicas oficiales en vivo.', isDark),
+                  _buildVentajaPro('🧾 Boletas y Tickets Oficiales', 'Emite Boletas de Venta oficiales (Nuevo RUS) y Tickets de mostrador ilimitados.', isDark),
                 ],
               ),
             ),

@@ -838,7 +838,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ],
                                     ),
                                     Text(
-                                      'Registro de compras, facturas y stock por lotes',
+                                      'Registro de compras de proveedores y stock por lotes',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
                                         color: AppTheme.textMuted,
@@ -1672,7 +1672,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildGuideItem(
               icon: LucideIcons.truck,
               title: '5. Compras (Proveedores)',
-              desc: 'Ingresa facturas o boletas con múltiples productos a la vez para abastecer tu almacén.',
+              desc: 'Ingresa facturas o boletas de tus proveedores para abastecer tu almacén con múltiples productos a la vez.',
               isDark: isDark,
             ),
             const SizedBox(height: 16),
