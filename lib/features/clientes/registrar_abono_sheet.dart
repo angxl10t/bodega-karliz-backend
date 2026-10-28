@@ -309,30 +309,41 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Deuda Pendiente Actual',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
-                          fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Deuda Pendiente Actual',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Límite: S/ ${widget.cliente.limiteCredito.toStringAsFixed(2)}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          'Límite: S/ ${widget.cliente.limiteCredito.toStringAsFixed(2)}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    'S/ ${widget.cliente.saldoDeudor.toStringAsFixed(2)}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.alertRed,
+                  const SizedBox(width: 12),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'S/ ${widget.cliente.saldoDeudor.toStringAsFixed(2)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.alertRed,
+                      ),
+                      maxLines: 1,
                     ),
                   ),
                 ],

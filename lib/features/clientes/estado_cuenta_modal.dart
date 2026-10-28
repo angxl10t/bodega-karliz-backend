@@ -148,31 +148,46 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Saldo Deudor Actual', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
-                        const SizedBox(height: 2),
-                        Text(
-                          'S/ ${c.saldoDeudor.toStringAsFixed(2)}',
-                          style: GoogleFonts.outfit(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: c.tieneDeuda ? AppTheme.alertRed : AppTheme.accentGreen,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Saldo Deudor Actual', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'S/ ${c.saldoDeudor.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w900,
+                                color: c.tieneDeuda ? AppTheme.alertRed : AppTheme.accentGreen,
+                              ),
+                              maxLines: 1,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('Límite de Crédito', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
-                        const SizedBox(height: 2),
-                        Text(
-                          'S/ ${c.limiteCredito.toStringAsFixed(2)}',
-                          style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
-                        ),
-                      ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Límite de Crédito', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              'S/ ${c.limiteCredito.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
+                              maxLines: 1,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

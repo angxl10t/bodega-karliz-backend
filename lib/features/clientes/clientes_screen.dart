@@ -304,23 +304,23 @@ class _ClientesScreenState extends State<ClientesScreen> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
                                 '$totalVecinos vecinos',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: AppTheme.textMuted,
+                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Container(
                                 width: 3,
                                 height: 3,
-                                decoration: const BoxDecoration(
-                                  color: AppTheme.textMuted,
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -482,7 +482,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                                   maxCrossAxisExtent: 480,
-                                  mainAxisExtent: 218,
+                                  mainAxisExtent: 232,
                                   crossAxisSpacing: 14,
                                   mainAxisSpacing: 14,
                                 ),
@@ -720,23 +720,32 @@ class _ClientesScreenState extends State<ClientesScreen> {
             children: [
               Icon(icon, size: 15, color: effectiveAccent),
               const SizedBox(width: 5),
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 3),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              fontSize: 18.5,
-              fontWeight: FontWeight.w900,
-              color: effectiveAccent,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: GoogleFonts.outfit(
+                fontSize: 18.5,
+                fontWeight: FontWeight.w900,
+                color: effectiveAccent,
+              ),
             ),
           ),
           const SizedBox(height: 2),
@@ -1083,25 +1092,43 @@ class _ClientesScreenState extends State<ClientesScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          if (c.documento != null && c.documento!.isNotEmpty) ...[
-                            Icon(LucideIcons.idCard, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
-                            const SizedBox(width: 3),
-                            Text(
-                              c.documento!,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                          if (c.documento != null && c.documento!.isNotEmpty)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(LucideIcons.idCard, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  c.documento!,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                          ],
-                          if (tieneTelefono) ...[
-                            Icon(LucideIcons.phone, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
-                            const SizedBox(width: 3),
-                            Text(
-                              c.telefono!,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                          if (tieneTelefono)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(LucideIcons.phone, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  c.telefono!,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
                         ],
                       ),
                     ],
@@ -1117,12 +1144,16 @@ class _ClientesScreenState extends State<ClientesScreen> {
                         : (isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7)),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    tieneDeuda ? 'Debe S/ ${c.saldoDeudor.toStringAsFixed(2)}' : 'Al Día ✨',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: tieneDeuda ? AppTheme.alertRed : AppTheme.accentGreen,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      tieneDeuda ? 'Debe S/ ${c.saldoDeudor.toStringAsFixed(2)}' : 'Al Día ✨',
+                      maxLines: 1,
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: tieneDeuda ? AppTheme.alertRed : AppTheme.accentGreen,
+                      ),
                     ),
                   ),
                 ),
@@ -1170,22 +1201,31 @@ class _ClientesScreenState extends State<ClientesScreen> {
               ),
             ],
 
-            const Spacer(),
+            const SizedBox(height: 10),
 
             // Barra de Límite de Crédito
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)}',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                Flexible(
+                  child: Text(
+                    'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)}',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                Text(
-                  'Disponible: S/ ${c.creditoDisponible.toStringAsFixed(2)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: c.creditoDisponible < 20 ? AppTheme.alertRed : AppTheme.accentGreen,
+                const SizedBox(width: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Disponible: S/ ${c.creditoDisponible.toStringAsFixed(2)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: c.creditoDisponible < 20 ? AppTheme.alertRed : AppTheme.accentGreen,
+                    ),
+                    maxLines: 1,
                   ),
                 ),
               ],
@@ -1212,20 +1252,24 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 // Botón Cobrar / Abonar
                 Expanded(
                   child: SizedBox(
-                    height: 36,
+                    height: 38,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: tieneDeuda ? AppTheme.accentGreen : AppTheme.brandPrimary,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
                       onPressed: () => _abrirRegistrarAbono(c),
                       icon: const Icon(LucideIcons.circleDollarSign, size: 14),
-                      label: Text(
-                        tieneDeuda ? 'Cobrar / Abonar' : 'Abonar Saldo',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          tieneDeuda ? 'Cobrar / Abonar' : 'Abonar Saldo',
+                          maxLines: 1,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ),
                   ),
@@ -1235,20 +1279,24 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 // Botón WhatsApp (si tiene teléfono y deuda)
                 if (tieneTelefono && tieneDeuda) ...[
                   SizedBox(
-                    height: 36,
+                    height: 38,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF25D366),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
                       onPressed: () => _enviarWhatsAppRecordatorio(c),
                       icon: const Icon(LucideIcons.messageSquare, size: 14),
-                      label: Text(
-                        'WhatsApp',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'WhatsApp',
+                          maxLines: 1,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                        ),
                       ),
                     ),
                   ),
@@ -1257,8 +1305,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
 
                 // Botón Ver Estado de Cuenta
                 SizedBox(
-                  height: 36,
-                  width: 36,
+                  height: 38,
+                  width: 38,
                   child: IconButton(
                     style: IconButton.styleFrom(
                       backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
