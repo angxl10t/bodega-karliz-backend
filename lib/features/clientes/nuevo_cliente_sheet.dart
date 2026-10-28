@@ -240,7 +240,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
                         ),
                         Text(
                           'Libreta de Fiados y Cuentas por Cobrar',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                         ),
                       ],
                     ),

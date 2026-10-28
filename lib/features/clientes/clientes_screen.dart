@@ -246,7 +246,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   ),
                   Text(
                     'Cuentas por cobrar y vecinos de confianza',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                   ),
                 ],
               ),
@@ -694,26 +694,38 @@ class _ClientesScreenState extends State<ClientesScreen> {
     required Color bgColor,
     required Color borderColor,
   }) {
+    final effectiveAccent = isDark
+        ? (accentColor == AppTheme.alertRed || accentColor == const Color(0xFFEF4444)
+            ? const Color(0xFFF87171)
+            : accentColor == AppTheme.accentGreen || accentColor == const Color(0xFF10B981)
+                ? const Color(0xFF34D399)
+                : accentColor == AppTheme.brandPrimary || accentColor == const Color(0xFF2563EB)
+                    ? const Color(0xFF60A5FA)
+                    : accentColor == const Color(0xFF7C3AED)
+                        ? const Color(0xFFA78BFA)
+                        : accentColor)
+        : accentColor;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: accentColor),
+              Icon(icon, size: 15, color: effectiveAccent),
               const SizedBox(width: 5),
               Text(
                 title,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: accentColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                 ),
               ),
             ],
@@ -722,15 +734,19 @@ class _ClientesScreenState extends State<ClientesScreen> {
           Text(
             value,
             style: GoogleFonts.outfit(
-              fontSize: 17.5,
+              fontSize: 18.5,
               fontWeight: FontWeight.w900,
-              color: accentColor,
+              color: effectiveAccent,
             ),
           ),
-          const SizedBox(height: 1),
+          const SizedBox(height: 2),
           Text(
             subtitle,
-            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -806,7 +822,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
             fontSize: 12.5,
             color: AppTheme.textMuted,
           ),
-          prefixIcon: const Icon(LucideIcons.search, size: 16, color: AppTheme.textMuted),
+          prefixIcon: Icon(LucideIcons.search, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
           suffixIcon: _filtroTexto.isNotEmpty
               ? IconButton(
                   icon: const Icon(LucideIcons.x, size: 15),
@@ -1070,20 +1086,20 @@ class _ClientesScreenState extends State<ClientesScreen> {
                       Row(
                         children: [
                           if (c.documento != null && c.documento!.isNotEmpty) ...[
-                            Icon(LucideIcons.idCard, size: 11, color: AppTheme.textMuted),
+                            Icon(LucideIcons.idCard, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                             const SizedBox(width: 3),
                             Text(
                               c.documento!,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                             ),
                             const SizedBox(width: 8),
                           ],
                           if (tieneTelefono) ...[
-                            Icon(LucideIcons.phone, size: 11, color: AppTheme.textMuted),
+                            Icon(LucideIcons.phone, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                             const SizedBox(width: 3),
                             Text(
                               c.telefono!,
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                             ),
                           ],
                         ],
@@ -1140,12 +1156,12 @@ class _ClientesScreenState extends State<ClientesScreen> {
               const SizedBox(height: 5),
               Row(
                 children: [
-                  const Icon(LucideIcons.messageCircle, size: 11, color: AppTheme.textMuted),
+                  Icon(LucideIcons.messageCircle, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       c.notas!,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontStyle: FontStyle.italic, color: AppTheme.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontStyle: FontStyle.italic, fontWeight: FontWeight.w500, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1162,7 +1178,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
               children: [
                 Text(
                   'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)}',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                 ),
                 Text(
                   'Disponible: S/ ${c.creditoDisponible.toStringAsFixed(2)}',

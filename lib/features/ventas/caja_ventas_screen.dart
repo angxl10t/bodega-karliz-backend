@@ -547,7 +547,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           children: [
             Text(
               'Ingresa el monto de sencillo o base con el que se abrió la gaveta al inicio de la jornada:',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -658,7 +658,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               children: [
                 Text(
                   'Registra salidas menores de efectivo del cajón para mantener el arqueo cuadrado:',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                 ),
                 const SizedBox(height: 14),
                 TextField(
@@ -978,7 +978,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       ),
                       Text(
                         'Fondo de caja, gastos menores y cuadre físico',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -1142,7 +1142,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                           const SizedBox(width: 4),
                           InkWell(
                             onTap: () => _anularEgreso(e),
-                            child: const Icon(LucideIcons.x, size: 14, color: AppTheme.textMuted),
+                            child: Icon(LucideIcons.x, size: 14, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                           ),
                         ],
                       ],
@@ -1210,7 +1210,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   ),
                   decoration: InputDecoration(
                     labelText: 'Dinero contado en cajón (S/)',
-                    labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                    labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                     hintText: '0.00',
                     prefixText: 'S/ ',
                     prefixStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: AppTheme.brandPrimary),
@@ -1721,7 +1721,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       const SizedBox(height: 4),
                       Text(
                         'Los ${venta.detalles.length} productos serán devueltos inmediatamente al inventario y se registrará la auditoría en el Kardex.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -1770,7 +1770,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
                     hintText: 'Ej. Error en cobro, cliente desistió, duplicado...',
-                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                    hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                     filled: true,
                     fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
                     border: OutlineInputBorder(
@@ -1892,7 +1892,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     final tabBar = TabBar(
       controller: _tabController,
       labelColor: AppTheme.brandPrimary,
-      unselectedLabelColor: AppTheme.textMuted,
+      unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
       indicatorColor: AppTheme.brandPrimary,
       indicatorWeight: 2.5,
       labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
@@ -1922,7 +1922,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   ),
                   Text(
                     'Corte del día, histórico de jornadas y auditoría',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                   ),
                 ],
               ),
@@ -2016,7 +2016,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                               ),
                               Text(
                                 _formatearFechaCompleta(_fechaSeleccionada),
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                               ),
                             ],
                           ),
@@ -2279,7 +2279,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                         ),
                         Text(
                           'Auditoría y cierres pasados de tu bodega',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                         ),
                       ],
                     ),
@@ -2313,7 +2313,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(!_esAdmin ? LucideIcons.shieldCheck : LucideIcons.calendarX2, size: 32, color: !_esAdmin ? AppTheme.brandPrimary : AppTheme.textMuted),
+                          Icon(!_esAdmin ? LucideIcons.shieldCheck : LucideIcons.calendarX2, size: 32, color: !_esAdmin ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B))),
                           const SizedBox(height: 10),
                           Text(
                             !_esAdmin ? 'Modo Cajero: Turno Actual Activo' : 'No hay jornadas anteriores registradas',
@@ -2329,7 +2329,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                                 ? 'Por seguridad contable, la auditoría y cierre de días anteriores está reservada para el Administrador de la tienda.'
                                 : 'Las ventas de los días anteriores se guardan automáticamente para su consulta.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                           ),
                         ],
                       ),
@@ -2542,7 +2542,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w800,
-                          color: esSeleccionado ? AppTheme.brandPrimary : AppTheme.textMuted,
+                          color: esSeleccionado ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                           height: 1.1,
                         ),
                       ),
@@ -2588,7 +2588,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       const SizedBox(height: 3),
                       Text(
                         '${item.cantidadVentas} transacciones concluidas',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),
@@ -2732,6 +2732,20 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     required String descripcion,
     double? width,
   }) {
+    final Color effectiveColor = isDark
+        ? (titulo.contains('Efectivo')
+            ? const Color(0xFF34D399) // Emerald 400 nítido
+            : titulo.contains('Yape')
+                ? const Color(0xFFE879F9) // Fuchsia 400 radiante
+                : titulo.contains('Plin')
+                    ? const Color(0xFF38BDF8) // Sky 400 luminoso
+                    : titulo.contains('Tarjeta')
+                        ? const Color(0xFFA5B4FC) // Indigo 300
+                        : titulo.contains('Crédito') || titulo.contains('Fiado')
+                            ? const Color(0xFFFBBF24) // Amber 400
+                            : color)
+        : color;
+
     return Container(
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -2739,7 +2753,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
           width: 1.2,
         ),
       ),
@@ -2749,10 +2763,14 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
+              color: effectiveColor.withValues(alpha: isDark ? 0.22 : 0.12),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: effectiveColor.withValues(alpha: isDark ? 0.35 : 0.18),
+                width: 1,
+              ),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(icon, color: effectiveColor, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -2769,19 +2787,23 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                 ),
                 Text(
                   descripcion,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                  ),
                 ),
               ],
             ),
           ),
-          TweenAnimationBuilder<double>(
+          TweenAnimationBuilder<double>( 
             tween: Tween<double>(begin: 0.0, end: monto),
             duration: const Duration(milliseconds: 700),
             curve: Curves.easeOutCubic,
             builder: (context, val, _) => Text(
               'S/ ${val.toStringAsFixed(2)}',
               style: GoogleFonts.outfit(
-                fontSize: 16.5,
+                fontSize: 17,
                 fontWeight: FontWeight.w900,
                 color: isDark ? Colors.white : AppTheme.textDark,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -2940,7 +2962,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                 ),
                 decoration: InputDecoration(
                   hintText: 'Buscar por venta #ID, cliente o DNI...',
-                  hintStyle: GoogleFonts.plusJakartaSans(color: AppTheme.textMuted, fontSize: 13),
+                  hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
                   prefixIcon: const Icon(LucideIcons.search, size: 18),
                   suffixIcon: _busquedaVenta.isNotEmpty
                       ? IconButton(
@@ -3212,7 +3234,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       ),
                       Text(
                         fechaStr,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
                   ),

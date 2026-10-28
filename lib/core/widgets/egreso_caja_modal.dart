@@ -171,8 +171,9 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                         Text(
                           'Retiro inmediato de efectivo del cajón para gastos menores',
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: AppTheme.textMuted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
                         ),
                       ],
@@ -324,7 +325,7 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                           Icon(
                             cat.icon,
                             size: 14,
-                            color: isSelected ? const Color(0xFFE11D48) : AppTheme.textMuted,
+                            color: isSelected ? const Color(0xFFE11D48) : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -360,7 +361,7 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                 style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: 'Ej. 50 bolsas plásticas grandes, delivery pan, etc.',
-                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   filled: true,
                   fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(

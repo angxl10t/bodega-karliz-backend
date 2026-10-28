@@ -351,13 +351,13 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                         ),
                         Text(
                           'SKU: ${widget.producto.codigo}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, color: AppTheme.textMuted, size: 20),
+                    icon: Icon(LucideIcons.x, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B), size: 20),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],

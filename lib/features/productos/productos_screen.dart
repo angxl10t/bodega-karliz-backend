@@ -408,7 +408,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   ),
                                   Text(
                                     'Alertas semáforo 🔴 🟡 🟢',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   ),
                                 ],
                               ),
@@ -444,7 +444,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   ),
                                   Text(
                                     'Bajas por rotura o caducidad',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   ),
                                 ],
                               ),
@@ -480,7 +480,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   ),
                                   Text(
                                     'Conteo físico y cuadre de stock',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   ),
                                 ],
                               ),
@@ -517,7 +517,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                   ),
                                   Text(
                                     'Historial detallado de entradas y salidas',
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppTheme.textMuted),
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   ),
                                 ],
                               ),
@@ -936,7 +936,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                           style: GoogleFonts.outfit(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w800,
-                                            color: isSelected ? Colors.white : AppTheme.textMuted,
+                                            color: isSelected ? Colors.white : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                           ),
                                         ),
                                       ),
@@ -1183,7 +1183,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 text: '  •  ${p.codigoBarras!}',
                                 style: GoogleFonts.outfit(
                                   fontSize: 10.5,
-                                  color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted,
+                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                 ),
                               ),
                           ],
@@ -1242,7 +1242,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w800,
-                                color: isDark ? AppTheme.textDarkMuted : AppTheme.textMuted,
+                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                 letterSpacing: 0.4,
                               ),
                               maxLines: 1,
@@ -1425,7 +1425,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Precio Venta', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                          Text('Precio Venta', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontWeight: FontWeight.w700)),
                           const SizedBox(height: 4),
                           Text(
                             'S/ ${p.precioVenta.toStringAsFixed(2)}',
@@ -1440,7 +1440,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Stock Actual', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                          Text('Stock Actual', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontWeight: FontWeight.w700)),
                           const SizedBox(height: 4),
                           Text(
                             '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} unid.',
@@ -1455,7 +1455,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Valor Stock', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                          Text('Valor Stock', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontWeight: FontWeight.w700)),
                           const SizedBox(height: 4),
                           Text(
                             'S/ ${valorTotal.toStringAsFixed(2)}',
@@ -1590,7 +1590,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   ? 'No hay productos que coincidan con la categoría o filtros aplicados.'
                   : 'No hay productos registrados en el inventario.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w500, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             ),
             const SizedBox(height: 18),
             if (hasActiveFilters) ...[
@@ -1750,7 +1750,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
             Text(
               'Has alcanzado el límite de 150 productos activos para el Plan BÁSICO. Pasa al Plan PRO para desbloquear todo el potencial de tu negocio:',
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w500, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
             ),
             const SizedBox(height: 16),
             Container(
@@ -1810,7 +1810,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
               ),
               Text(
                 subtitulo,
-                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w500, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
               ),
             ],
           ),

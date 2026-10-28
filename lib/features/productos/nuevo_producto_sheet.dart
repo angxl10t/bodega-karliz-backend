@@ -611,7 +611,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, color: AppTheme.textMuted, size: 20),
+                    icon: Icon(LucideIcons.x, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B), size: 20),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
