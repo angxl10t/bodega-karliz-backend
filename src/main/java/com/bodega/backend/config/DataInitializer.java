@@ -187,7 +187,10 @@ public class DataInitializer implements ApplicationRunner {
             Usuario superadmin = adminOpt.get();
             superadmin.setRol("SUPERADMIN");
             superadmin.setBodega(null); // Desvinculado explícitamente
-            superadmin.setPassword(passwordEncoder.encode("123456"));
+            // SEGURIDAD: Preservar la contraseña configurada por el usuario
+            if (superadmin.getPassword() == null || superadmin.getPassword().isBlank()) {
+                superadmin.setPassword(passwordEncoder.encode("123456"));
+            }
             usuarioRepository.save(superadmin);
             log.info("[DataInitializer] Usuario 'admin' configurado como SUPERADMIN global (sin bodega asociada).");
         } else {
@@ -218,27 +221,33 @@ public class DataInitializer implements ApplicationRunner {
             Usuario adminKarliz = adminKarlizOpt.get();
             adminKarliz.setBodega(bodegaKarliz);
             adminKarliz.setRol("ADMIN");
-            adminKarliz.setPassword(passwordEncoder.encode("123456"));
+            if (adminKarliz.getPassword() == null || adminKarliz.getPassword().isBlank()) {
+                adminKarliz.setPassword(passwordEncoder.encode("123456"));
+            }
             usuarioRepository.save(adminKarliz);
         }
 
-        // C. Asegurar que cajero_karlizzz esté asignado a Bodega Karliz y tenga PIN 1234
+        // C. Asegurar que cajero_karlizzz esté asignado a Bodega Karliz
         Optional<Usuario> cajeroOpt = usuarioRepository.findByUsernameIgnoreCase("cajero_karlizzz");
         if (cajeroOpt.isPresent()) {
             Usuario cajero = cajeroOpt.get();
             cajero.setBodega(bodegaKarliz);
             cajero.setRol("CAJERO");
-            cajero.setPassword(passwordEncoder.encode("1234"));
+            if (cajero.getPassword() == null || cajero.getPassword().isBlank()) {
+                cajero.setPassword(passwordEncoder.encode("1234"));
+            }
             usuarioRepository.save(cajero);
-            log.info("[DataInitializer] Cajero 'cajero_karlizzz' vinculado a Bodega Karliz con PIN 1234.");
+            log.info("[DataInitializer] Cajero 'cajero_karlizzz' vinculado a Bodega Karliz.");
         }
 
-        // D. Asegurar que admin_sanmartin tenga contraseña 123456
+        // D. Asegurar que admin_sanmartin tenga contraseña si no existe
         Optional<Usuario> sanmartinOpt = usuarioRepository.findByUsernameIgnoreCase("admin_sanmartin");
         if (sanmartinOpt.isPresent()) {
             Usuario sanmartin = sanmartinOpt.get();
-            sanmartin.setPassword(passwordEncoder.encode("123456"));
-            usuarioRepository.save(sanmartin);
+            if (sanmartin.getPassword() == null || sanmartin.getPassword().isBlank()) {
+                sanmartin.setPassword(passwordEncoder.encode("123456"));
+                usuarioRepository.save(sanmartin);
+            }
         }
     }
 

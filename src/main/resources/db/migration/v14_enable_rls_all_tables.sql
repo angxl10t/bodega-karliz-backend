@@ -41,16 +41,19 @@ ALTER TABLE IF EXISTS pagos_suscripciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS mermas_desmedros ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS auditorias_inventario ENABLE ROW LEVEL SECURITY;
 
--- 3. Políticas RLS de Aislamiento Multi-Tenant para tablas añadidas recientemente
+-- 3. Políticas RLS de Aislamiento Estricto Multi-Tenant
+-- Se elimina la cláusula permisiva 'app_current_tenant_id() IS NULL' para garantizar que peticiones
+-- externas sin variable de inquilino activa sean bloqueadas de forma terminante por el kernel de PostgreSQL.
+
 -- RLS: Clientes
 DO $$ BEGIN
     IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'clientes') THEN
         DROP POLICY IF EXISTS rls_clientes_tenant ON clientes;
         CREATE POLICY rls_clientes_tenant ON clientes
         FOR ALL USING (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         ) WITH CHECK (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         );
     END IF;
 END $$;
@@ -61,9 +64,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS rls_abonos_credito_tenant ON abonos_credito;
         CREATE POLICY rls_abonos_credito_tenant ON abonos_credito
         FOR ALL USING (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         ) WITH CHECK (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         );
     END IF;
 END $$;
@@ -74,9 +77,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS rls_fondos_caja_tenant ON fondos_caja;
         CREATE POLICY rls_fondos_caja_tenant ON fondos_caja
         FOR ALL USING (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         ) WITH CHECK (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         );
     END IF;
 END $$;
@@ -87,9 +90,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS rls_egresos_caja_tenant ON egresos_caja;
         CREATE POLICY rls_egresos_caja_tenant ON egresos_caja
         FOR ALL USING (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         ) WITH CHECK (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         );
     END IF;
 END $$;
@@ -100,9 +103,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS rls_mermas_desmedros_tenant ON mermas_desmedros;
         CREATE POLICY rls_mermas_desmedros_tenant ON mermas_desmedros
         FOR ALL USING (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         ) WITH CHECK (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         );
     END IF;
 END $$;
@@ -113,9 +116,9 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS rls_auditorias_inventario_tenant ON auditorias_inventario;
         CREATE POLICY rls_auditorias_inventario_tenant ON auditorias_inventario
         FOR ALL USING (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         ) WITH CHECK (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         );
     END IF;
 END $$;
@@ -126,19 +129,19 @@ DO $$ BEGIN
         DROP POLICY IF EXISTS rls_pagos_suscripciones_tenant ON pagos_suscripciones;
         CREATE POLICY rls_pagos_suscripciones_tenant ON pagos_suscripciones
         FOR ALL USING (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         ) WITH CHECK (
-            app_is_superadmin() OR app_current_tenant_id() IS NULL OR id_bodega = app_current_tenant_id()
+            app_is_superadmin() OR id_bodega = app_current_tenant_id()
         );
     END IF;
 END $$;
 
--- 4. Revocación de permisos públicos directos a través del endpoint anónimo de Supabase (PostgREST)
--- Esto asegura que atacantes externos no puedan consultar datos usando la anon_key pública de Supabase
+-- 4. Revocación Total de Privilegios a los Roles Públicos de Supabase (anon y authenticated)
+-- Como CajaYa utiliza su propia autenticación JWT en Spring Boot, los roles de PostgREST no deben tener acceso a las tablas
 DO $$ BEGIN
-    REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon;
-    REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon;
-    REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM anon;
+    REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
+    REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
+    REVOKE ALL ON ALL ROUTINES IN SCHEMA public FROM anon, authenticated;
 EXCEPTION WHEN OTHERS THEN
     NULL;
 END $$;

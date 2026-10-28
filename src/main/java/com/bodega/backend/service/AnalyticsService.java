@@ -64,6 +64,7 @@ public class AnalyticsService {
     @Transactional(readOnly = true)
     public DashboardBiDTO obtenerDashboardBi(int dias) {
         if (dias <= 0) dias = 30;
+        if (dias > 365) dias = 365; // Límite defensivo para prevenir scans ilimitados
         Long idBodega = tenantService.getCurrentBodegaId();
 
         // 1. Comprobar caché en memoria
