@@ -428,12 +428,21 @@ class CatalogoImagenesService {
     ),
     ProductoStudioFoto(
       id: 'crema_tari',
-      nombre: 'Lavavajillas Líquido Sapolio Limón 750ml',
-      marca: 'Sapolio',
-      categoria: 'Limpieza y Cuidado del Hogar',
-      imagenUrl: '$_basePath/crema_tari.png',
-      codigosBarras: ['7750114009046', '7750112007066', '7750114009053'],
-      keywords: ['350g', '750ml', 'ayudín', 'cajitas', 'fósforos', 'lavavajillas', 'limón', 'llama', 'líquido', 'paquete', 'pasta', 'sapolio', 'x10'],
+      nombre: 'Crema de Ají Tarí Alacena Doypack 400g',
+      marca: 'Alacena',
+      categoria: 'Abarrotes y Fideos',
+      imagenUrl: '/crema_tari.png',
+      codigosBarras: ['7750114009046'],
+      keywords: ['400g', 'ají', 'aji', 'alacena', 'crema', 'doypack', 'picante', 'salsa', 'tari', 'tarí'],
+    ),
+    ProductoStudioFoto(
+      id: 'fosforos_la_llama',
+      nombre: 'Fósforos La Llama paquete x10 cajitas',
+      marca: 'La Llama',
+      categoria: 'Cigarrillos y Tabacos',
+      imagenUrl: '/fosforos_la_llama.png',
+      codigosBarras: ['7750114009053'],
+      keywords: ['cajitas', 'fósforos', 'fosforos', 'la llama', 'llama', 'paquete', 'x10'],
     ),
     ProductoStudioFoto(
       id: 'suavizante_suavitel',
@@ -1006,6 +1015,15 @@ class CatalogoImagenesService {
     return out;
   }
 
+  static const Set<String> _stopwords = {
+    'sin', 'con', 'del', 'las', 'los', 'por', 'para', 'pack', 'extra',
+    'fuerte', 'clasico', 'original', 'unidad', 'sobre', 'botella', 'lata',
+    'caja', 'bolsa', '1kg', '500g', '250g', '100g', '500ml', '650ml', '355ml',
+    '310ml', '1l', '1.5l', '2l', '3l', '350g', '200g', '400g', '150g', '120g',
+    '90g', '30g', '108g', 'x2', 'x3', 'x4', 'x6', 'x10', 'x12', 'x20', 'x24',
+    'x30', 'x100', 'de', 'en', 'la', 'el', 'y'
+  };
+
   /// Busca una foto oficial de estudio por código de barras o por nombre del producto
   static ProductoStudioFoto? buscarSugerencia({String? codigoBarras, String? nombre}) {
     // 1. Prioridad: Coincidencia exacta por Código de Barras (EAN-13)
@@ -1018,17 +1036,48 @@ class CatalogoImagenesService {
       }
     }
 
-    // 2. Coincidencia inteligente por Nombre / Keywords
+    // 2. Coincidencia inteligente ponderada por Nombre / Keywords
     if (nombre != null && nombre.trim().isNotEmpty) {
       final normNombre = _normalizar(nombre);
       if (normNombre.length >= 3) {
+        final tokens = normNombre
+            .split(RegExp(r'[^a-zA-Z0-9]+'))
+            .where((t) => t.isNotEmpty && !_stopwords.contains(t))
+            .toSet();
+
+        ProductoStudioFoto? mejorItem;
+        int mejorScore = 0;
+
         for (final item in _catalogoMaestro) {
+          int score = 0;
+          final normItemNombre = _normalizar(item.nombre);
+          final normMarca = _normalizar(item.marca);
+
+          if (normMarca.length >= 3 && !_stopwords.contains(normMarca) && normNombre.contains(normMarca)) {
+            score += 3;
+          }
+          if (normNombre.contains(normItemNombre) || (normNombre.length >= 6 && normItemNombre.contains(normNombre))) {
+            score += 5;
+          }
+
           for (final kw in item.keywords) {
             final normKw = _normalizar(kw);
-            if (normNombre.contains(normKw) || normKw.contains(normNombre)) {
-              return item;
+            if (_stopwords.contains(normKw) || normKw.length < 2) continue;
+            if (tokens.contains(normKw)) {
+              score += 2;
+            } else if (normKw.length >= 4 && normNombre.contains(normKw)) {
+              score += 1;
             }
           }
+
+          if (score > mejorScore) {
+            mejorScore = score;
+            mejorItem = item;
+          }
+        }
+
+        if (mejorScore >= 4) {
+          return mejorItem;
         }
       }
     }

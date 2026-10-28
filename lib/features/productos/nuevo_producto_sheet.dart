@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/catalogo_imagenes_service.dart';
+import '../../core/categoria_suggester_service.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/catalogo_foto_picker_modal.dart';
 import '../categorias/categoria_model.dart';
@@ -60,116 +61,6 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
   ProductoStudioFoto? _fotoSugerida;
   bool _imagenModificadaManualmente = false;
 
-  static final Map<String, List<String>> _diccionarioKeywords = {
-    'LMP': [
-      'detergente', 'lejia', 'lavavajilla', 'ayudin', 'sapolio', 'clorox',
-      'suavitel', 'poett', 'escoba', 'esponja', 'desinfectante', 'trapeador',
-      'limpiador', 'bolsa de basura', 'jabon de lavar', 'vanish', 'ariel',
-      'bolivar', 'opal', r'\bace\b'
-    ],
-    'CPD': [
-      'colino', 'colinos', 'colgate', 'kolynos', 'crema dental', 'pasta dental',
-      'dentifrico', 'cepillo dental', 'shampoo', 'champu', r'\bjabon\b', 'camay',
-      'dove', 'sedal', 'pantene', 'head & shoulders', 'rexona', 'papel higienico',
-      'toalla higienica', 'kotex', 'nosotras', 'preservativo', 'prestobarba', 'gillette'
-    ],
-    'LAC': [
-      'leche', 'yogur', 'yogurt', 'mantequilla', 'margarina', 'manty',
-      'condensada', 'evaporada', 'chocolatada', 'pura vida', 'danlac'
-    ],
-    'EMB': [
-      'hot dog', 'hotdog', 'salchicha', 'jamon', 'jamonada', 'tocino',
-      'chorizo', 'mortadela', 'cabanossi', 'san fernando', 'braedt', 'queso edam', 'queso fresco'
-    ],
-    'SNK': [
-      'papa', 'papas', 'lays', 'doritos', 'chizito', 'chizitos', 'piqueo',
-      'cuates', 'chifle', 'mani', 'cheetos', 'cheese tris', 'tortees',
-      'snax', 'karinto', 'frutos secos', 'habas', 'nachos'
-    ],
-    'GSE': [
-      'gaseosa', 'inka kola', 'coca cola', 'fanta', 'sprite', 'guarana',
-      r'\bagua\b', 'san luis', 'cielo', 'san mateo', 'sporade', 'gatorade',
-      'cifrut', 'frugos', 'pulp', 'red bull', 'monster', 'volt',
-      'energizante', 'rehidratante', 'jugo'
-    ],
-    'ALC': [
-      'cerveza', 'pilsen', 'cusquena', 'cristal', 'corona', 'stella',
-      'heineken', r'\bvino\b', 'tabernero', 'borgona', 'pisco', 'queirolo',
-      r'\bron\b', 'cartavio', 'whisky', 'vodka', 'tequila', r'\bgin\b', 'licor'
-    ],
-    'ABA': [
-      'fideo', 'fideos', 'tallarin', 'spaghetti', 'codito', 'canuto',
-      'lavaggi', 'don vittorio', 'arroz', 'costeno', 'faraon', 'azucar',
-      'paramonga', r'\bsal\b', 'emsal', 'aceite', 'primor', 'cocinero',
-      'atun', 'conserva', 'fanny', 'tuco', 'sibarita', 'mayonesa',
-      'alacena', 'mostaza', 'ketchup', 'tari', 'vinagre', 'sillao', 'ajinomoto'
-    ],
-    'HLD': [
-      'helado', 'donofrio', 'peziduri', 'frio rico', 'sin parar',
-      'jet', 'bombones', 'paleta', 'artika'
-    ],
-    'GLS': [
-      'chocolate', 'sublime', 'triangulo', 'cua cua', 'dona pepa',
-      'princesa', 'galleta', 'casino', 'margarita', 'tentacion',
-      'oreo', 'caramelo', 'chicle', 'halls'
-    ],
-    'CIG': [
-      'cigarro', 'cigarrillo', 'lucky', 'lucky strike', 'hamilton',
-      'pall mall', 'malboro', 'marlboro', 'tabaco', 'fosforo', 'encendedor',
-      'tokai', 'llama'
-    ],
-    'PAN': [
-      r'\bpan\b', 'bimbo', 'molde', 'mermelada', 'cafe', 'nescafe',
-      'altomayo', 'avena', '3 ositos', r'\bte\b', 'manzanilla',
-      'herbi', 'infusion', 'cocoa', 'winter'
-    ],
-  };
-
-  static String _normalizarTexto(String texto) {
-    var out = texto.toLowerCase().trim();
-    out = out.replaceAll('á', 'a')
-             .replaceAll('é', 'e')
-             .replaceAll('í', 'i')
-             .replaceAll('ó', 'o')
-             .replaceAll('ú', 'u')
-             .replaceAll('ñ', 'n');
-    return out;
-  }
-
-  String _getPrefixForCategory(String nombre) {
-    final clean = _normalizarTexto(nombre);
-    if (clean.contains('gaseosa') || (clean.contains('bebida') && !clean.contains('alcoh'))) {
-      return 'GSE';
-    } else if (clean.contains('alcoh') || clean.contains('cerveza') || clean.contains('licor')) {
-      return 'ALC';
-    } else if (clean.contains('snack') || clean.contains('piqueo')) {
-      return 'SNK';
-    } else if (clean.contains('lacteo') || clean.contains('leche')) {
-      return 'LAC';
-    } else if (clean.contains('embutido') || clean.contains('fiambrer')) {
-      return 'EMB';
-    } else if (clean.contains('abarrote') || clean.contains('fideo')) {
-      return 'ABA';
-    } else if (clean.contains('helado') || clean.contains('postre')) {
-      return 'HLD';
-    } else if (clean.contains('golosina') || clean.contains('chocolate')) {
-      return 'GLS';
-    } else if (clean.contains('dental') || clean.contains('personal') || clean.contains('colino')) {
-      return 'CPD';
-    } else if (clean.contains('limpieza') || clean.contains('hogar') || clean.contains('detergente')) {
-      return 'LMP';
-    } else if (clean.contains('cigar') || clean.contains('tabaco')) {
-      return 'CIG';
-    } else if (clean.contains('panader') || clean.contains('desayuno') || clean.contains('pan')) {
-      return 'PAN';
-    }
-    final norm = clean.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
-    if (norm.length >= 3) {
-      return norm.substring(0, 3);
-    }
-    return '${norm}GEN'.substring(0, 3);
-  }
-
   String _calcularSiguienteCodigo(String prefix) {
     int maxNum = 0;
     final regex = RegExp('^${RegExp.escape(prefix)}-(\\d+)\$', caseSensitive: false);
@@ -193,60 +84,39 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
       (c) => c.idCategoria == _idCategoriaSeleccionada,
       orElse: () => _categorias.first,
     );
-    final prefix = _getPrefixForCategory(cat.nombre);
+    final prefix = CategoriaSuggesterService.getPrefixForCategory(cat.nombre);
     final nextCodigo = _calcularSiguienteCodigo(prefix);
     _codigoCtrl.text = nextCodigo;
   }
 
-  Categoria? _detectarCategoria(String nombre) {
-    final norm = _normalizarTexto(nombre);
+  void _actualizarSugerenciaCategoria() {
+    if (_categoriaModificadaManualmente || _categorias.isEmpty) return;
+    final texto = _nombreCtrl.text.trim();
+    final barcode = _codigoBarrasCtrl.text.trim();
+    if (texto.isEmpty && barcode.isEmpty) return;
 
-    for (final entry in _diccionarioKeywords.entries) {
-      final pfx = entry.key;
-      final kws = entry.value;
+    final cat = CategoriaSuggesterService.sugerirCategoria(
+      nombre: texto.isNotEmpty ? texto : null,
+      codigoBarras: barcode.isNotEmpty ? barcode : null,
+      categoriasDisponibles: _categorias,
+    );
 
-      bool coincide = false;
-      for (final kw in kws) {
-        if (kw.startsWith(r'\b')) {
-          if (RegExp(kw).hasMatch(norm)) {
-            coincide = true;
-            break;
-          }
-        } else if (norm.contains(kw)) {
-          coincide = true;
-          break;
-        }
-      }
-
-      if (coincide) {
-        final catMatch = _categorias.firstWhere(
-          (c) => _getPrefixForCategory(c.nombre) == pfx,
-          orElse: () => _categorias.first,
-        );
-        return catMatch;
-      }
+    if (cat != null && cat.idCategoria != _idCategoriaSeleccionada) {
+      setState(() {
+        _idCategoriaSeleccionada = cat.idCategoria;
+        _categoriaDetectadaAuto = cat.nombre;
+        _actualizarCodigoSegunCategoria();
+      });
     }
-    return null;
   }
 
   void _onNombreChanged() {
-    final texto = _nombreCtrl.text.trim();
-    if (texto.isEmpty || _categorias.isEmpty) return;
-
-    if (!_categoriaModificadaManualmente) {
-      final cat = _detectarCategoria(texto);
-      if (cat != null && cat.idCategoria != _idCategoriaSeleccionada) {
-        setState(() {
-          _idCategoriaSeleccionada = cat.idCategoria;
-          _categoriaDetectadaAuto = cat.nombre;
-          _actualizarCodigoSegunCategoria();
-        });
-      }
-    }
+    _actualizarSugerenciaCategoria();
     _buscarFotoSugerida();
   }
 
   void _onCodigoBarrasChanged() {
+    _actualizarSugerenciaCategoria();
     _buscarFotoSugerida();
   }
 

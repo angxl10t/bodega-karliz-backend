@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/catalogo_imagenes_service.dart';
+import '../../core/categoria_suggester_service.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/catalogo_foto_picker_modal.dart';
 import '../categorias/categoria_model.dart';
@@ -108,6 +109,22 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
         });
       }
     }
+  }
+
+  Categoria? get _categoriaSugerida {
+    if (_categorias.isEmpty) return null;
+    final nombre = _nombreCtrl.text.trim();
+    final barcode = _codigoBarrasCtrl.text.trim();
+    if (nombre.isEmpty && barcode.isEmpty) return null;
+    final sugerida = CategoriaSuggesterService.sugerirCategoria(
+      nombre: nombre.isNotEmpty ? nombre : null,
+      codigoBarras: barcode.isNotEmpty ? barcode : null,
+      categoriasDisponibles: _categorias,
+    );
+    if (sugerida == null || sugerida.idCategoria == _idCategoriaSeleccionada) {
+      return null;
+    }
+    return sugerida;
   }
 
   String? get _categoriaSeleccionadaNombre {
@@ -487,6 +504,41 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                     ),
                   ),
                 ),
+              if (_categoriaSugerida != null) ...[
+                const SizedBox(height: 8),
+                InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    setState(() {
+                      _idCategoriaSeleccionada = _categoriaSugerida!.idCategoria;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.sparkles, color: Color(0xFF10B981), size: 15),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Sugerencia: ${_categoriaSugerida!.nombre} (Toca para aplicar)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF10B981),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 14),
 
               // Código de Barras y Stock Mínimo
