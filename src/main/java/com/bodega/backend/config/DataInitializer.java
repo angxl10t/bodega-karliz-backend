@@ -312,7 +312,14 @@ public class DataInitializer implements ApplicationRunner {
             {"7750113008025", "Crema Dental Colgate Total 12 Limpieza 75ml", "Colgate", "Cuidado Personal", "5.50", "36.000", "packshots/colgate_total12.png"},
             {"7750113008117", "Papel Higiénico Suave Rindemax x4 rollos", "Suave", "Cuidado Personal", "6.50", "40.000", "packshots/papel_higienico_suave.png"},
             {"7750110005017", "Helado Sublime D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "30.000", "packshots/helado_sublime.png"},
-            {"7750112007028", "Cigarros Lucky Strike Double Click Box x20", "Lucky Strike", "Cigarrillos y Tabaco", "18.00", "20.000", "packshots/helado_jet.png"}
+            {"7750112007028", "Cigarros Lucky Strike Double Click Box x20", "Lucky Strike", "Cigarrillos y Tabaco", "18.00", "20.000", "packshots/cigarros_lucky_strike.png"},
+            {"7750112007011", "Cigarros Hamilton Rojo Clásico Box x20", "Hamilton", "Cigarrillos y Tabaco", "16.00", "20.000", "packshots/cigarros_hamilton.png"},
+            {"7750110005062", "Helado Jet Chocolate D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "30.000", "packshots/helado_jet.png"},
+            {"7750114009213", "Lavavajilla Ayudín en Pasta Limón 350g", "Ayudín", "Limpieza del Hogar", "3.80", "40.000", "packshots/lavavajilla_ayudin.png"},
+            {"7750109004172", "Filete de Atún Primor en Aceite 170g", "Primor", "Abarrotes y Despensa", "7.00", "48.000", "packshots/atun_primor.png"},
+            {"7750106000013", "Inca Kola 3 Litros No Retornable", "Inca Kola", "Bebidas y Gaseosas", "13.50", "36.000", "packshots/inka_kola.png"},
+            {"7750106001027", "Inca Kola 1.5 Litros", "Inca Kola", "Bebidas y Gaseosas", "7.50", "36.000", "packshots/inka_kola.png"},
+            {"7750106002017", "Coca Cola 1.5 Litros", "Coca Cola", "Bebidas y Gaseosas", "7.50", "36.000", "packshots/coca_cola.png"}
         };
 
         if (bodegaKarliz != null && bodegaKarliz.getIdBodega() != null) {
