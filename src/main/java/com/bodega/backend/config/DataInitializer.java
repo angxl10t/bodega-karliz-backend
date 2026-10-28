@@ -254,20 +254,24 @@ public class DataInitializer implements ApplicationRunner {
     private void inicializarCategoriasYProductos(Bodega bodegaKarliz) {
         String[][] categoriasDefault = {
             {"Bebidas y Gaseosas", "Gaseosas, aguas minerales, jugos, energizantes e hidratantes"},
-            {"Snacks y Golosinas", "Papas fritas, galletas dulces, chocolates y caramelos"},
-            {"Lácteos y Huevos", "Leche evaporada, fresca, yogures, mantequillas y quesos"},
-            {"Abarrotes y Despensa", "Arroz, azúcar, fideos, aceites, conservas y condimentos"},
-            {"Limpieza del Hogar", "Detergentes, lejías, lavavajillas, suavizantes y esponjas"},
-            {"Cuidado Personal", "Jabones, champús, cremas dentales y papel higiénico"}
+            {"Licores y Cervezas", "Cervezas nacionales e importadas, vinos, piscos y licores"},
+            {"Lácteos y Huevos", "Leche evaporada, fresca, yogures, mantequillas, quesos y huevos"},
+            {"Abarrotes y Despensa", "Arroz, azúcar, fideos, aceites, conservas, salsas y condimentos"},
+            {"Snacks y Golosinas", "Papas fritas, galletas dulces y saladas, chocolates y caramelos"},
+            {"Embutidos y Fiambrería", "Jamones, salchichas, tocinos, chorizos y quesos empaquetados"},
+            {"Panadería y Desayuno", "Pan de molde, mermeladas, avenas, café, té e infusiones"},
+            {"Limpieza del Hogar", "Detergentes, lejías, lavavajillas, desinfectantes y esponjas"},
+            {"Cuidado Personal", "Jabones de tocador, champús, cremas dentales y papel higiénico"},
+            {"Helados y Congelados", "Helados Donofrio, paletas, conos, bombones y postres fríos"},
+            {"Cigarrillos y Tabaco", "Cajetillas Lucky Strike, Pall Mall, Hamilton y encendedores"}
         };
 
         for (Bodega b : bodegaRepository.findAll()) {
             if (b == null || b.getIdBodega() == null) continue;
             Long idBodega = b.getIdBodega();
 
-            long catCount = categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega).size();
-            if (catCount == 0) {
-                for (String[] c : categoriasDefault) {
+            for (String[] c : categoriasDefault) {
+                if (categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idBodega, c[0]).isEmpty()) {
                     Categoria cat = new Categoria();
                     cat.setNombre(c[0]);
                     cat.setDescripcion(c[1]);
@@ -275,46 +279,106 @@ public class DataInitializer implements ApplicationRunner {
                     cat.setBodega(b);
                     categoriaRepository.save(cat);
                 }
-                log.info("[DataInitializer] Sembradas categorías base para Bodega ID: {} ({}).", idBodega, b.getNombreComercial());
             }
         }
+
+        String[][] productosBase = {
+            {"7750106001010", "Inca Kola 500ml", "Inca Kola", "Bebidas y Gaseosas", "3.50", "48.000", "packshots/inka_kola.png"},
+            {"7751234567890", "Coca Cola 3 Litros", "Coca Cola", "Bebidas y Gaseosas", "13.50", "36.000", "packshots/coca_cola.png"},
+            {"7750106000025", "Coca Cola 500ml", "Coca Cola", "Bebidas y Gaseosas", "3.50", "36.000", "packshots/coca_cola.png"},
+            {"7750106003014", "Agua San Luis 625ml Sin Gas", "San Luis", "Bebidas y Gaseosas", "2.00", "48.000", "packshots/agua_san_luis.png"},
+            {"775117011953", "Agua San Mateo 600ml Sin Gas", "San Mateo", "Bebidas y Gaseosas", "2.00", "48.000", "packshots/agua_san_mateo.png"},
+            {"7750111006014", "Cerveza Pilsen Callao 630ml", "Pilsen Callao", "Licores y Cervezas", "7.50", "60.000", "packshots/cerveza_pilsen.png"},
+            {"7750111006021", "Cerveza Cristal 650ml", "Cristal", "Licores y Cervezas", "7.50", "60.000", "packshots/cerveza_cristal.png"},
+            {"7750106006015", "Cerveza Cusqueña Trigo 310ml", "Cusqueña", "Licores y Cervezas", "6.50", "36.000", "packshots/cerveza_cusquena.png"},
+            {"7750108003013", "Leche Gloria Azul Evaporada 400g", "Gloria", "Lácteos y Huevos", "4.50", "72.000", "packshots/leche_gloria_azul.png"},
+            {"7750108003044", "Leche Gloria Sin Lactosa 400g", "Gloria", "Lácteos y Huevos", "4.50", "36.000", "packshots/leche_gloria_sin_lactosa.png"},
+            {"7750108003068", "Yogur Gloria Fresa 1 Litro", "Gloria", "Lácteos y Huevos", "7.20", "24.000", "packshots/yogur_gloria_fresa.png"},
+            {"7750109004041", "Arroz Extra Costeño Bolsa 1kg", "Costeño", "Abarrotes y Despensa", "4.90", "80.000", "packshots/arroz_costeno.png"},
+            {"7750109004065", "Aceite Vegetal Primor Premium 900ml", "Primor", "Abarrotes y Despensa", "9.50", "40.000", "packshots/aceite_primor.png"},
+            {"7750109004010", "Fideos Don Vittorio Spaghetti 450g", "Don Vittorio", "Abarrotes y Despensa", "3.20", "50.000", "packshots/fideos_don_vittorio.png"},
+            {"7750109004072", "Atún Trozos de Atún Primor 170g", "Primor", "Abarrotes y Despensa", "6.00", "48.000", "packshots/trozos_atun_primor.png"},
+            {"7750109004140", "Crema de Ají Tarí Alacena Doypack 400g", "Alacena", "Abarrotes y Despensa", "5.50", "30.000", "packshots/mayonesa_alacena.png"},
+            {"7750106009999", "Papas Lays Clásicas 160g", "Lays", "Snacks y Golosinas", "2.50", "40.000", "packshots/lays_clasicas.png"},
+            {"7750115010011", "Chocolate Sublime Clásico 30g", "Nestlé", "Snacks y Golosinas", "2.50", "60.000", "packshots/chocolate_sublime.png"},
+            {"7750115010059", "Galleta Casino Fresa 68g", "Victoria", "Snacks y Golosinas", "1.50", "50.000", "packshots/galleta_casino.png"},
+            {"7750115010035", "Galleta Cua Cua Chocolate 18g", "Field", "Snacks y Golosinas", "1.50", "60.000", "packshots/galleta_cua_cua.png"},
+            {"7750107002016", "Hot Dog de Pollo San Fernando 500g", "San Fernando", "Embutidos y Fiambrería", "6.80", "20.000", "packshots/hot_dog_san_fernando.png"},
+            {"7750107002078", "Queso Fresco Bonlé Gloria 400g", "Gloria", "Embutidos y Fiambrería", "7.50", "20.000", "packshots/queso_fresco_bonle.png"},
+            {"7750116011018", "Pan de Molde Blanco Bimbo Chico 400g", "Bimbo", "Panadería y Desayuno", "6.50", "25.000", "packshots/pan_bimbo_blanco.png"},
+            {"7750116011049", "Café Soluble Nescafé Tradición Frasco 50g", "Nescafé", "Panadería y Desayuno", "9.50", "24.000", "packshots/cafe_nescafe.png"},
+            {"7750114009015", "Detergente Bolívar Blanco Activo 850g", "Bolívar", "Limpieza del Hogar", "9.90", "30.000", "packshots/detergente_bolivar.png"},
+            {"7750114009060", "Lejía Clorox Tradicional 1 Litro", "Clorox", "Limpieza del Hogar", "4.50", "40.000", "packshots/lejia_clorox.png"},
+            {"7750113008025", "Crema Dental Colgate Total 12 Limpieza 75ml", "Colgate", "Cuidado Personal", "5.50", "36.000", "packshots/colgate_total12.png"},
+            {"7750113008117", "Papel Higiénico Suave Rindemax x4 rollos", "Suave", "Cuidado Personal", "6.50", "40.000", "packshots/papel_higienico_suave.png"},
+            {"7750110005017", "Helado Sublime D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "30.000", "packshots/helado_sublime.png"},
+            {"7750112007028", "Cigarros Lucky Strike Double Click Box x20", "Lucky Strike", "Cigarrillos y Tabaco", "18.00", "20.000", "packshots/helado_jet.png"}
+        };
 
         if (bodegaKarliz != null && bodegaKarliz.getIdBodega() != null) {
             Long idKarliz = bodegaKarliz.getIdBodega();
             long prodCount = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idKarliz).size();
-            if (prodCount == 0) {
-                Categoria catBebidas = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idKarliz, "Bebidas y Gaseosas").orElse(null);
-                Categoria catLacteos = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idKarliz, "Lácteos y Huevos").orElse(null);
-                Categoria catAbarrotes = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idKarliz, "Abarrotes y Despensa").orElse(null);
+            if (prodCount < 10) {
+                for (String[] pData : productosBase) {
+                    String codigoBarras = pData[0];
+                    String nombre = pData[1];
+                    String marca = pData[2];
+                    String catNombre = pData[3];
+                    BigDecimal venta = new BigDecimal(pData[4]);
+                    BigDecimal stock = new BigDecimal(pData[5]);
+                    String imagenUrl = pData[6];
 
-                if (catBebidas != null) {
-                    crearProducto("7750106000018", "Inca Kola 500ml", "Inca Kola", new BigDecimal("3.50"), new BigDecimal("48.000"), catBebidas, bodegaKarliz);
-                    crearProducto("7750106000025", "Coca Cola 500ml", "Coca Cola", new BigDecimal("3.50"), new BigDecimal("36.000"), catBebidas, bodegaKarliz);
+                    Categoria cat = categoriaRepository.findByBodega_IdBodegaAndNombreIgnoreCase(idKarliz, catNombre)
+                            .orElseGet(() -> categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idKarliz).stream().findFirst().orElse(null));
+
+                    if (cat != null) {
+                        crearProducto(codigoBarras, nombre, marca, venta, stock, cat, bodegaKarliz, imagenUrl);
+                    }
                 }
-                if (catLacteos != null) {
-                    crearProducto("7750243000012", "Leche Gloria Azul 400g", "Gloria", new BigDecimal("4.50"), new BigDecimal("24.000"), catLacteos, bodegaKarliz);
-                }
-                if (catAbarrotes != null) {
-                    crearProducto("7750350000010", "Arroz Costeño Extra 1kg", "Costeño", new BigDecimal("5.00"), new BigDecimal("50.000"), catAbarrotes, bodegaKarliz);
-                    crearProducto("7750350000027", "Aceite Primor Clásico 1L", "Primor", new BigDecimal("9.80"), new BigDecimal("20.000"), catAbarrotes, bodegaKarliz);
-                }
-                log.info("[DataInitializer] Sembrado inventario inicial demostrativo para Bodega KARLIZ.");
+                log.info("[DataInitializer] Sembrado catálogo de productos comerciales con códigos de barras oficiales para Bodega KARLIZ.");
             }
         }
     }
 
     private void crearProducto(String codigoBarras, String nombre, String marca,
                                BigDecimal venta, BigDecimal stock,
-                               Categoria categoria, Bodega bodega) {
+                               Categoria categoria, Bodega bodega, String imagenUrl) {
+        if (bodega == null || bodega.getIdBodega() == null || categoria == null) return;
+
+        Optional<Producto> existenteOpt = productoRepository.findByBodega_IdBodegaAndCodigoBarras(bodega.getIdBodega(), codigoBarras);
+        if (existenteOpt.isPresent()) {
+            Producto p = existenteOpt.get();
+            boolean updated = false;
+            if (imagenUrl != null && !imagenUrl.isBlank() && (p.getImagenUrl() == null || p.getImagenUrl().isBlank())) {
+                p.setImagenUrl(imagenUrl);
+                updated = true;
+            }
+            if (marca != null && !marca.isBlank() && (p.getMarca() == null || p.getMarca().isBlank())) {
+                p.setMarca(marca);
+                updated = true;
+            }
+            if (updated) {
+                productoRepository.save(p);
+            }
+            return;
+        }
+
+        String codigo = "PROD-" + codigoBarras;
+        if (productoRepository.findByBodega_IdBodegaAndCodigo(bodega.getIdBodega(), codigo).isPresent()) {
+            codigo = codigo + "-" + (System.currentTimeMillis() % 1000);
+        }
+
         Producto p = new Producto();
-        p.setCodigo("PROD-" + codigoBarras);
+        p.setCodigo(codigo);
         p.setCodigoBarras(codigoBarras);
         p.setNombre(nombre);
         p.setMarca(marca);
         p.setPrecioVenta(venta);
+        p.setPrecioCosto(venta.multiply(new BigDecimal("0.78")).setScale(2, java.math.RoundingMode.HALF_UP));
         p.setStockActual(stock);
         p.setStockMinimo(new BigDecimal("5.000"));
         p.setControlaVencimiento(false);
+        p.setImagenUrl(imagenUrl);
         p.setCategoria(categoria);
         p.setBodega(bodega);
         p.setEstado(true);
