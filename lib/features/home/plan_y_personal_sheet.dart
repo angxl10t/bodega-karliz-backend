@@ -598,35 +598,15 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     }
   }
 
-  Widget _buildFinderPattern(Color color) {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        border: Border.all(color: color, width: 3.5),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Center(
-        child: Container(
-          width: 18,
-          height: 18,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildQrSimulado(Color brandColor) {
+  Widget _buildQrReal(Color brandColor) {
     return Container(
-      width: 150,
-      height: 150,
-      padding: const EdgeInsets.all(10),
+      width: 175,
+      height: 175,
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: brandColor.withValues(alpha: 0.18),
@@ -636,31 +616,16 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
         ],
         border: Border.all(color: brandColor.withValues(alpha: 0.25), width: 1.5),
       ),
-      child: Stack(
-        children: [
-          Positioned(top: 0, left: 0, child: _buildFinderPattern(brandColor)),
-          Positioned(top: 0, right: 0, child: _buildFinderPattern(brandColor)),
-          Positioned(bottom: 0, left: 0, child: _buildFinderPattern(brandColor)),
-          Center(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: brandColor,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: brandColor.withValues(alpha: 0.35),
-                    blurRadius: 6,
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Icon(LucideIcons.qrCode, color: Colors.white, size: 22),
-              ),
-            ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          'assets/images/yape_qr_cajaya.png',
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (context, error, stackTrace) => Center(
+            child: Icon(LucideIcons.qrCode, color: brandColor, size: 54),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -941,66 +906,64 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                       ),
                       child: Column(
                         children: [
-                          _buildQrSimulado(walletPrimary),
-                          const SizedBox(height: 12),
+                          _buildQrReal(walletPrimary),
+                          const SizedBox(height: 10),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                'Número: ',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  color: AppTheme.textMuted,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                              ),
-                              Text(
-                                '987 654 321',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: walletPrimary,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              InkWell(
-                                onTap: () {
-                                  Clipboard.setData(const ClipboardData(text: '987654321'));
-                                  HapticFeedback.lightImpact();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Número 987 654 321 copiado al portapapeles.'),
-                                      duration: Duration(seconds: 2),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(LucideIcons.checkCheck, size: 13, color: AppTheme.accentGreen),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'QR Oficial Interoperable',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.accentGreen,
+                                      ),
                                     ),
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(6),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: Icon(LucideIcons.copy, size: 16, color: walletPrimary),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 6),
                           Text(
-                            'Titular: CajaYa Cloud POS S.A.C.',
+                            'Titular: Luis T.',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Escanea directamente con Yape o Plin',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                             decoration: BoxDecoration(
                               color: walletPrimary.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              'Monto exacto: S/ ${monto.toStringAsFixed(2)}',
+                              'Monto exacto a pagar: S/ ',
                               style: GoogleFonts.outfit(
-                                fontSize: 13,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.w800,
                                 color: walletPrimary,
                               ),
