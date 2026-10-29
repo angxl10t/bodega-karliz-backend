@@ -32,6 +32,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final LoginRateLimiterService loginRateLimiterService;
     private final com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
+    private final com.bodega.backend.service.StarterPackService starterPackService;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, 
                           UsuarioRepository usuarioRepository,
@@ -39,7 +40,8 @@ public class AuthController {
                           com.bodega.backend.repository.CategoriaRepository categoriaRepository,
                           PasswordEncoder passwordEncoder,
                           LoginRateLimiterService loginRateLimiterService,
-                          com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService) {
+                          com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService,
+                          com.bodega.backend.service.StarterPackService starterPackService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.usuarioRepository = usuarioRepository;
@@ -48,6 +50,7 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
         this.loginRateLimiterService = loginRateLimiterService;
         this.userSecurityCacheService = userSecurityCacheService;
+        this.starterPackService = starterPackService;
     }
 
     @PostMapping("/login")
@@ -186,8 +189,8 @@ public class AuthController {
         admin.setBodega(bodegaGuardada);
         usuarioRepository.save(admin);
 
-        // 3. Clonar las categorías estándar peruanas para que la nueva tienda inicie lista
-        clonarCategoriasMaestras(bodegaGuardada);
+        // 3. Provisionar catálogo estándar y Starter Pack con stock inicial en 0 para que la tienda inicie 100% lista para vender
+        starterPackService.provisionarStarterPackParaBodega(bodegaGuardada);
 
         // 4. Generar Token JWT inicial
         String jwt = jwtUtil.generateToken(admin.getUsername(), admin.getRol(), bodegaGuardada.getIdBodega(), bodegaGuardada.getPlan());

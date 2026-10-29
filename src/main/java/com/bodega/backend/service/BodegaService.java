@@ -35,6 +35,8 @@ public class BodegaService {
     private final java.util.concurrent.atomic.AtomicReference<java.util.Map<String, Object>> anuncioGlobal =
             new java.util.concurrent.atomic.AtomicReference<>(null);
 
+    private final StarterPackService starterPackService;
+
     public BodegaService(BodegaRepository bodegaRepository,
                          TenantService tenantService,
                          UserSecurityCacheService userSecurityCacheService,
@@ -45,7 +47,8 @@ public class BodegaService {
                          CompraRepository compraRepository,
                          MovimientoInventarioRepository movimientoInventarioRepository,
                          CategoriaRepository categoriaRepository,
-                         PasswordEncoder passwordEncoder) {
+                         PasswordEncoder passwordEncoder,
+                         StarterPackService starterPackService) {
         this.bodegaRepository = bodegaRepository;
         this.tenantService = tenantService;
         this.userSecurityCacheService = userSecurityCacheService;
@@ -57,6 +60,7 @@ public class BodegaService {
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.categoriaRepository = categoriaRepository;
         this.passwordEncoder = passwordEncoder;
+        this.starterPackService = starterPackService;
     }
 
     @Transactional(readOnly = true)
@@ -433,8 +437,8 @@ public class BodegaService {
         admin.setBodega(guardada);
         usuarioRepository.save(admin);
 
-        // Clonar catálogo estándar de categorías peruanas
-        clonarCategoriasMaestras(guardada);
+        // Clonar catálogo estándar y Starter Pack con stock inicial en 0
+        starterPackService.provisionarStarterPackParaBodega(guardada);
 
         userSecurityCacheService.evictAll();
 

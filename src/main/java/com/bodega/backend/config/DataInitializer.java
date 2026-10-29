@@ -32,19 +32,22 @@ public class DataInitializer implements ApplicationRunner {
     private final CategoriaRepository categoriaRepository;
     private final ProductoRepository productoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.bodega.backend.service.StarterPackService starterPackService;
 
     public DataInitializer(JdbcTemplate jdbcTemplate,
                            BodegaRepository bodegaRepository,
                            UsuarioRepository usuarioRepository,
                            CategoriaRepository categoriaRepository,
                            ProductoRepository productoRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           com.bodega.backend.service.StarterPackService starterPackService) {
         this.jdbcTemplate = jdbcTemplate;
         this.bodegaRepository = bodegaRepository;
         this.usuarioRepository = usuarioRepository;
         this.categoriaRepository = categoriaRepository;
         this.productoRepository = productoRepository;
         this.passwordEncoder = passwordEncoder;
+        this.starterPackService = starterPackService;
     }
 
     @Override
@@ -63,8 +66,11 @@ public class DataInitializer implements ApplicationRunner {
         // 3. Configurar usuarios del sistema (Superadmin desvinculado, Admin de Karliz, Cajero)
         inicializarUsuarios(bodegaKarliz);
 
-        // 4. Sembrar categorías maestras si Bodega 1 no tiene ninguna
-        inicializarCategoriasYProductos(bodegaKarliz);
+        // 4. Sanitizar atajos y categorías basura (Bebidas Refrescantes 128/342/431/556/658) y unificar duplicados
+        starterPackService.sanitizarCategoriasYAtajos();
+
+        // 5. Enriquecer catálogo comercial y starter pack para Bodega KARLIZ y nuevas tiendas
+        starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
 
         log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
     }
