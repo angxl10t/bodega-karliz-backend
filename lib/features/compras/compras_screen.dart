@@ -236,14 +236,19 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Distribuidores / Proveedores',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+                      Expanded(
+                        child: Text(
+                          'Distribuidores / Proveedores',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       TextButton.icon(
                         style: TextButton.styleFrom(
                           foregroundColor: AppTheme.brandPrimary,
@@ -432,23 +437,30 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Catálogo de Abastecimiento',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Catálogo de Abastecimiento',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? Colors.white : AppTheme.textDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          Text(
-                            'Toca cualquier producto para añadirlo a la compra',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                          ),
-                        ],
+                            Text(
+                              'Toca cualquier producto para añadirlo a la compra',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
@@ -630,9 +642,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                       ),
                       onPressed: () => Navigator.pop(ctx),
-                      child: Text(
-                        'VER ORDEN (${_canastaCompras.length} ITEMS - S/ ${_totalCompra.toStringAsFixed(2)})',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'VER ORDEN (${_canastaCompras.length} ITEMS - S/ ${_totalCompra.toStringAsFixed(2)})',
+                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                        ),
                       ),
                     ),
                   ),
@@ -1505,42 +1520,53 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'TOTAL DE LA COMPRA',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.textMuted,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TOTAL DE LA COMPRA',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: AppTheme.textMuted,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '${_canastaCompras.length} prods. • $_totalUnidadesCompraFormatted unid.',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.textMuted,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                              Text(
+                                '${_canastaCompras.length} prods. • $_totalUnidadesCompraFormatted unid.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: AppTheme.textMuted,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: 0.0, end: _totalCompra),
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeOutCubic,
-                          builder: (context, val, child) {
-                            return Text(
-                              'S/ ${val.toStringAsFixed(2)}',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.brandPrimary,
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            );
-                          },
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween<double>(begin: 0.0, end: _totalCompra),
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, val, child) {
+                                return Text(
+                                  'S/ ${val.toStringAsFixed(2)}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: AppTheme.brandPrimary,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -1557,11 +1583,14 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
                             : const Icon(LucideIcons.arrowDownToDot, size: 18),
-                        label: Text(
-                          _isProcesando
-                              ? 'INGRESANDO...'
-                              : 'REGISTRAR COMPRA (${_canastaCompras.length} PRODUCTOS)',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w800),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _isProcesando
+                                ? 'INGRESANDO...'
+                                : 'REGISTRAR COMPRA (${_canastaCompras.length} PRODUCTOS)',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w800),
+                          ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.brandPrimary,

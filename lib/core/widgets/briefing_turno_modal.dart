@@ -330,20 +330,27 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFF38BDF8)),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Consejos Clave de Operación',
-                              style: GoogleFonts.outfit(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : AppTheme.textDark,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFF38BDF8)),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  'Consejos Clave de Operación',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         Text(
                           '${_currentTipIndex + 1} de ${tips.length}',
                           style: GoogleFonts.plusJakartaSans(
@@ -812,9 +819,12 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                   elevation: 0,
                 ),
                 icon: const Icon(LucideIcons.layoutGrid, size: 17),
-                label: Text(
-                  'Ir al Panel',
-                  style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w800),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Ir al Panel',
+                    style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w800),
+                  ),
                 ),
                 onPressed: () async {
                   await _guardarPreferenciaNoMostrar();
@@ -838,9 +848,12 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 icon: const Icon(LucideIcons.shoppingBag, size: 16),
-                label: Text(
-                  'Abrir POS',
-                  style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w700),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Abrir POS',
+                    style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w700),
+                  ),
                 ),
                 onPressed: () async {
                   await _guardarPreferenciaNoMostrar();

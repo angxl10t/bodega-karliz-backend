@@ -138,6 +138,8 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         title: Text(
           'Control de Vencimientos',
           style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         elevation: 0,
         backgroundColor: cardBg,
@@ -454,12 +456,18 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
               overflow: TextOverflow.ellipsis,
             ),
             if (montoSoles != null)
-              Text(
-                'S/ ${montoSoles.toStringAsFixed(2)}',
-                style: GoogleFonts.outfit(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'S/ ${montoSoles.toStringAsFixed(2)}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
           ],
@@ -584,7 +592,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 2,
                       children: [
                         Text(
                           'Stock: ${p.stockActual.toStringAsFixed(0)} un.',
@@ -594,7 +604,6 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Text(
                           '•  Valor: S/ ${(p.stockActual * p.precioVenta).toStringAsFixed(2)}',
                           style: GoogleFonts.plusJakartaSans(
@@ -624,7 +633,10 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(LucideIcons.calendarClock, size: 14),
-                  label: const Text('Actualizar Lote', style: TextStyle(fontSize: 11.5)),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Actualizar Lote', style: TextStyle(fontSize: 11.5)),
+                  ),
                   onPressed: () => _actualizarFechaVencimiento(p),
                 ),
               ),
@@ -640,7 +652,10 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(LucideIcons.trash2, size: 14),
-                  label: const Text('Dar de Baja', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Dar de Baja', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                  ),
                   onPressed: () {
                     AjusteStockSheet.show(context, p, _cargarProductos);
                   },

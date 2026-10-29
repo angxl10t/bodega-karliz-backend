@@ -159,36 +159,45 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      CajaYaLogoMark(
-                        size: 36,
-                        customColor: _parseHexToColor(_selectedHex),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Identidad & Marca',
-                            style: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.brandInk,
-                            ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        CajaYaLogoMark(
+                          size: 36,
+                          customColor: _parseHexToColor(_selectedHex),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Identidad & Marca',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : AppTheme.brandInk,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                'Personalización de comprobantes y colores',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          Text(
-                            'Personalización de comprobantes y colores',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: Icon(LucideIcons.x, size: 20, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                     onPressed: () => Navigator.pop(context),
@@ -546,7 +555,10 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text('GUARDAR IDENTIDAD'),
+                        : const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text('GUARDAR IDENTIDAD'),
+                          ),
                   ),
                 ],
               ),

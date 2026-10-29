@@ -363,26 +363,34 @@ class _MermasScreenState extends State<MermasScreen> {
             children: [
               Icon(icon, size: 15, color: color),
               const SizedBox(width: 6),
-              Text(
-                titulo,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : AppTheme.textDark,
+              Expanded(
+                child: Text(
+                  titulo,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            valor,
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              valor,
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           Text(
@@ -502,17 +510,15 @@ class _MermasScreenState extends State<MermasScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              Text(
-                'Baja: ${m.cantidad.toStringAsFixed(m.cantidad.truncateToDouble() == m.cantidad ? 0 : 2)} un.  (Costo un.: S/ ${m.costoUnitario.toStringAsFixed(2)})',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppTheme.textDark,
-                ),
-              ),
-            ],
+          Text(
+            'Baja: ${m.cantidad.toStringAsFixed(m.cantidad.truncateToDouble() == m.cantidad ? 0 : 2)} un.  (Costo un.: S/ ${m.costoUnitario.toStringAsFixed(2)})',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : AppTheme.textDark,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           if (m.observaciones.isNotEmpty) ...[
             const SizedBox(height: 4),
@@ -743,10 +749,14 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                               Text(
                                 'Registrar Baja de Mercadería',
                                 style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w800),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 'Descuenta del inventario y registra la pérdida contable',
                                 style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -943,11 +953,21 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                                 children: [
                                   const Icon(LucideIcons.calculator, color: Color(0xFFEF4444), size: 18),
                                   const SizedBox(width: 8),
-                                  Text('Pérdida Total Contable:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700)),
-                                  const Spacer(),
-                                  Text(
-                                    '-S/ ${total.toStringAsFixed(2)}',
-                                    style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w900, color: const Color(0xFFEF4444)),
+                                  Expanded(
+                                    child: Text(
+                                      'Pérdida Total Contable:',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      '-S/ ${total.toStringAsFixed(2)}',
+                                      style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w900, color: const Color(0xFFEF4444)),
+                                    ),
                                   ),
                                 ],
                               ),

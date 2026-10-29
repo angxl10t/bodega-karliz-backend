@@ -155,14 +155,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Métricas Clave del Negocio',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
+                        Expanded(
+                          child: Text(
+                            'Métricas Clave del Negocio',
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Text(
                           'Actualizado hoy (En vivo)',
                           style: GoogleFonts.plusJakartaSans(
@@ -391,15 +396,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Alertas de Reposición',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
+                        Expanded(
+                          child: Text(
+                            'Alertas de Reposición',
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (totalAlertas > 0)
+                        if (totalAlertas > 0) ...[
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
@@ -415,6 +425,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
                           ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -635,124 +646,130 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: 8),
 
               // Badges de Plan y Live Sync
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Badge Plan
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.5),
-                        width: 0.8,
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Badge Plan
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.5),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.shield,
+                              size: 10.5,
+                              color: _plan == 'PRO' ? const Color(0xFF38BDF8) : Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _plan == 'PRO' ? 'PRO' : 'BÁSICO',
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.shield,
-                          size: 10.5,
-                          color: _plan == 'PRO' ? const Color(0xFF38BDF8) : Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _plan == 'PRO' ? 'PRO' : 'BÁSICO',
-                          style: GoogleFonts.outfit(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.3,
+                      const SizedBox(width: 6),
+
+                      // Live Dot
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppTheme.accentGreen.withValues(alpha: 0.4),
+                            width: 0.8,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-
-                  // Live Dot
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentGreen.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.accentGreen.withValues(alpha: 0.4),
-                        width: 0.8,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.accentGreen,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'En Vivo',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: const Color(0xFF86EFAC),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.accentGreen,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'En Vivo',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF86EFAC),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 6),
+                      const SizedBox(width: 6),
 
-                  // Botón Acceso Rápido a Consejos de Turno (Modal Ejecutivo)
-                  InkWell(
-                    onTap: () {
-                      BriefingTurnoModal.show(
-                        context,
-                        username: _username,
-                        userRol: _userRol,
-                        nombreBodega: _nombreBodega,
-                        onNavigateTab: widget.onNavigateTab,
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF38BDF8).withValues(alpha: 0.18),
+                      // Botón Acceso Rápido a Consejos de Turno (Modal Ejecutivo)
+                      InkWell(
+                        onTap: () {
+                          BriefingTurnoModal.show(
+                            context,
+                            username: _username,
+                            userRol: _userRol,
+                            nombreBodega: _nombreBodega,
+                            onNavigateTab: widget.onNavigateTab,
+                          );
+                        },
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFF38BDF8).withValues(alpha: 0.45),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            LucideIcons.sparkles,
-                            size: 11,
-                            color: Color(0xFF38BDF8),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Consejos',
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF38BDF8).withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFF38BDF8).withValues(alpha: 0.45),
+                              width: 0.8,
                             ),
                           ),
-                        ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                LucideIcons.sparkles,
+                                size: 11,
+                                color: Color(0xFF38BDF8),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Consejos',
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -1288,12 +1305,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        'Analítica de Negocio & BI',
-                        style: GoogleFonts.outfit(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+                      Flexible(
+                        child: Text(
+                          'Analítica de Negocio & BI',
+                          style: GoogleFonts.outfit(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),

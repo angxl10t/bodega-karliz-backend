@@ -175,6 +175,8 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                             fontWeight: FontWeight.w600,
                             color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -441,11 +443,14 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : const Icon(LucideIcons.arrowDownRight, size: 18),
-                      label: Text(
-                        _isSaving ? 'Registrando...' : 'Registrar Egreso',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _isSaving ? 'Registrando...' : 'Registrar Egreso',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ),

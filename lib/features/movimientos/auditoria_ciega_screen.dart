@@ -382,9 +382,12 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     icon: const Icon(LucideIcons.eye, size: 18),
-                    label: Text(
-                      'FINALIZAR Y VER DISCREPANCIAS (${_sesion!.totalItemsAuditados} CONTADOS)',
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'FINALIZAR Y VER DISCREPANCIAS (${_sesion!.totalItemsAuditados} CONTADOS)',
+                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                      ),
                     ),
                     onPressed: _finalizarConteoYRevelar,
                   ),
@@ -768,31 +771,39 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                       Text('${it.conteoFisico.toStringAsFixed(0)} un.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     ],
                   ),
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        it.esCuadreExacto ? 'CUADRADO' : (it.esFaltante ? 'FALTANTE (-${it.diferencia.abs().toStringAsFixed(0)})' : 'SOBRANTE (+${it.diferencia.toStringAsFixed(0)})'),
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: it.esCuadreExacto
-                              ? AppTheme.accentGreen
-                              : (it.esFaltante ? const Color(0xFFEF4444) : const Color(0xFF3B82F6)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            it.esCuadreExacto ? 'CUADRADO' : (it.esFaltante ? 'FALTANTE (-${it.diferencia.abs().toStringAsFixed(0)})' : 'SOBRANTE (+${it.diferencia.toStringAsFixed(0)})'),
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: it.esCuadreExacto
+                                  ? AppTheme.accentGreen
+                                  : (it.esFaltante ? const Color(0xFFEF4444) : const Color(0xFF3B82F6)),
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${it.valorDiscrepancia >= 0 ? "+" : ""}S/ ${it.valorDiscrepancia.toStringAsFixed(2)}',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: it.esCuadreExacto
-                              ? AppTheme.accentGreen
-                              : (it.esFaltante ? const Color(0xFFEF4444) : const Color(0xFF3B82F6)),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${it.valorDiscrepancia >= 0 ? "+" : ""}S/ ${it.valorDiscrepancia.toStringAsFixed(2)}',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: it.esCuadreExacto
+                                  ? AppTheme.accentGreen
+                                  : (it.esFaltante ? const Color(0xFFEF4444) : const Color(0xFF3B82F6)),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),

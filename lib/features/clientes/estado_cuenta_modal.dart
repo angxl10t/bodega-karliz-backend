@@ -122,7 +122,13 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
                     ),
                     Text(
                       'DNI: ${c.documento ?? "No especificado"} • Tel: ${c.telefono ?? "Sin teléfono"}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                      ),
                     ),
                   ],
                 ),

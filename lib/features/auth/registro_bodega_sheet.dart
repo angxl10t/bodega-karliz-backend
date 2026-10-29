@@ -265,81 +265,100 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                       const SizedBox(height: 14),
 
                       // 2. RUC / DNI & Teléfono
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isVeryNarrow = constraints.maxWidth < 320;
+                          final rucField = Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'RUC / DNI (Opcional)',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: _rucCtrl,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(11),
+                                ],
+                                decoration: const InputDecoration(
+                                  hintText: '8 u 11 dígitos',
+                                  prefixIcon: Icon(LucideIcons.fileText, size: 18),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) return null;
+                                  final clean = v.trim();
+                                  if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$').hasMatch(clean)) {
+                                    return 'Debe ser DNI (8 d.) o RUC (11 d.)';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          );
+
+                          final telField = Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Teléfono (Opcional)',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: _telefonoCtrl,
+                                keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(9),
+                                ],
+                                decoration: const InputDecoration(
+                                  hintText: 'Ej. 987654321',
+                                  prefixIcon: Icon(LucideIcons.phone, size: 18),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) return null;
+                                  if (v.trim().length != 9) {
+                                    return 'Debe tener 9 dígitos';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          );
+
+                          if (isVeryNarrow) {
+                            return Column(
                               children: [
-                                Text(
-                                  'RUC / DNI (Opcional)',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _rucCtrl,
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(11),
-                                  ],
-                                  decoration: const InputDecoration(
-                                    hintText: '8 u 11 dígitos',
-                                    prefixIcon: Icon(LucideIcons.fileText, size: 18),
-                                  ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) return null;
-                                    final clean = v.trim();
-                                    if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$').hasMatch(clean)) {
-                                      return 'Debe ser DNI (8 d.) o RUC (11 d.)';
-                                    }
-                                    return null;
-                                  },
-                                ),
+                                rucField,
+                                const SizedBox(height: 14),
+                                telField,
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Teléfono (Opcional)',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _telefonoCtrl,
-                                  keyboardType: TextInputType.phone,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(9),
-                                  ],
-                                  decoration: const InputDecoration(
-                                    hintText: 'Ej. 987654321',
-                                    prefixIcon: Icon(LucideIcons.phone, size: 18),
-                                  ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) return null;
-                                    if (v.trim().length != 9) {
-                                      return 'Debe tener 9 dígitos';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              Expanded(child: rucField),
+                              const SizedBox(width: 12),
+                              Expanded(child: telField),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 14),
 
@@ -443,31 +462,45 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                       ),
                       const SizedBox(height: 8),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildPlanOption(
-                              id: 'BASICO',
-                              title: 'Plan Bodega',
-                              price: 'S/ 50 /mes',
-                              badge: 'Admin + 2 Cajeros',
-                              features: 'POS rápido, Stock, Caja y Tickets',
-                              isDark: isDark,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildPlanOption(
-                              id: 'PRO',
-                              title: 'Plan Minimarket Pro',
-                              price: 'S/ 100 /mes',
-                              badge: 'Cajeros Ilimitados',
-                              features: 'Turnos, Kardex antifraude, Marca propia',
-                              isPopular: true,
-                              isDark: isDark,
-                            ),
-                          ),
-                        ],
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isVeryNarrow = constraints.maxWidth < 340;
+                          final planBasico = _buildPlanOption(
+                            id: 'BASICO',
+                            title: 'Plan Bodega',
+                            price: 'S/ 50 /mes',
+                            badge: 'Admin + 2 Cajeros',
+                            features: 'POS rápido, Stock, Caja y Tickets',
+                            isDark: isDark,
+                          );
+                          final planPro = _buildPlanOption(
+                            id: 'PRO',
+                            title: 'Plan Minimarket Pro',
+                            price: 'S/ 100 /mes',
+                            badge: 'Cajeros Ilimitados',
+                            features: 'Turnos, Kardex antifraude, Marca propia',
+                            isPopular: true,
+                            isDark: isDark,
+                          );
+
+                          if (isVeryNarrow) {
+                            return Column(
+                              children: [
+                                planBasico,
+                                const SizedBox(height: 10),
+                                planPro,
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              Expanded(child: planBasico),
+                              const SizedBox(width: 12),
+                              Expanded(child: planPro),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 24),
 
@@ -569,18 +602,23 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                 ),
               ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppTheme.textDark,
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
                   ),
                 ),
-                if (isSelected)
+                if (isSelected) ...[
+                  const SizedBox(width: 4),
                   const Icon(LucideIcons.checkCircle2, color: AppTheme.brandPrimary, size: 16),
+                ],
               ],
             ),
             const SizedBox(height: 2),

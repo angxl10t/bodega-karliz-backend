@@ -210,7 +210,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 10),
                       _buildMobileBrandHeader(context, isDark),
                       const SizedBox(height: 18),
-                      const CajaYaHeroGraphic(width: 320, height: 160),
+                      const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CajaYaHeroGraphic(width: 320, height: 160),
+                      ),
                       const SizedBox(height: 20),
                       _buildLoginForm(context, isDark, isDesktop: false),
                       const SizedBox(height: 16),

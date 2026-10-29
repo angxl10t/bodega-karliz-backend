@@ -1249,12 +1249,16 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          hasImg ? 'Foto Frontal Asignada' : 'Foto de Estudio Frontal',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
+                        Expanded(
+                          child: Text(
+                            hasImg ? 'Foto Frontal Asignada' : 'Foto de Estudio Frontal',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
                           ),
                         ),
                         if (esOficialSugerida) ...[
@@ -1302,7 +1306,9 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                     const SizedBox(height: 8),
 
                     // Acciones Rápidas
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
                       children: [
                         InkWell(
                           onTap: _abrirSelectorFoto,
@@ -1330,8 +1336,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                             ),
                           ),
                         ),
-                        if (hasImg) ...[
-                          const SizedBox(width: 8),
+                        if (hasImg)
                           InkWell(
                             onTap: () {
                               setState(() {
@@ -1359,7 +1364,6 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ],

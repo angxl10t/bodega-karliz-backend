@@ -214,6 +214,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isNarrowScreen = screenWidth < 390;
 
     final items = _safeTodos;
     final int bajoStockCount = items.where((p) {
@@ -252,38 +254,20 @@ class _ProductosScreenState extends State<ProductosScreen> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${items.length} items',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textMuted,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${items.length} items',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textMuted,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            Container(
-                              width: 3,
-                              height: 3,
-                              decoration: const BoxDecoration(
-                                color: AppTheme.textMuted,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              bajoStockCount > 0 ? '$bajoStockCount por agotar' : 'Stock saludable',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: bajoStockCount > 0
-                                    ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
-                                    : AppTheme.accentGreen,
-                              ),
-                            ),
-                            if (_bodegaInfo != null) ...[
                               const SizedBox(width: 6),
                               Container(
                                 width: 3,
@@ -294,9 +278,31 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              _buildCuotaPlanBadge(isDark),
+                              Text(
+                                bajoStockCount > 0 ? '$bajoStockCount por agotar' : 'Stock saludable',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: bajoStockCount > 0
+                                      ? (isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706))
+                                      : AppTheme.accentGreen,
+                                ),
+                              ),
+                              if (_bodegaInfo != null) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  width: 3,
+                                  height: 3,
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.textMuted,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                _buildCuotaPlanBadge(isDark),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ],
                     ),
@@ -310,7 +316,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                     color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                     elevation: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
+                      padding: EdgeInsets.symmetric(horizontal: isNarrowScreen ? 7 : 10, vertical: 6.5),
                       decoration: BoxDecoration(
                         color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(12),
@@ -341,16 +347,18 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 ),
                             ],
                           ),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Inventario',
-                            style: GoogleFonts.outfit(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : AppTheme.textDark,
+                          if (!isNarrowScreen) ...[
+                            const SizedBox(width: 5),
+                            Text(
+                              'Inventario',
+                              style: GoogleFonts.outfit(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : AppTheme.textDark,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 3),
+                            const SizedBox(width: 3),
+                          ],
                           Icon(LucideIcons.chevronDown, size: 12, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
                         ],
                       ),
@@ -539,7 +547,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         _exportarCsv();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
+                        padding: EdgeInsets.symmetric(horizontal: isNarrowScreen ? 7 : 9, vertical: 6.5),
                         decoration: BoxDecoration(
                           color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(12),
@@ -552,15 +560,17 @@ class _ProductosScreenState extends State<ProductosScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(LucideIcons.download, size: 13, color: AppTheme.accentGreen),
-                            const SizedBox(width: 4),
-                            Text(
-                              'CSV',
-                              style: GoogleFonts.outfit(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : AppTheme.textDark,
+                            if (!isNarrowScreen) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                'CSV',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),
@@ -568,7 +578,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   ),
 
                   if (_esAdmin) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Material(
                       color: Colors.transparent,
                       child: InkWell(
@@ -578,7 +588,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                           NuevoProductoSheet.show(context, _cargarProductos);
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6.5),
+                          padding: EdgeInsets.symmetric(horizontal: isNarrowScreen ? 8 : 11, vertical: 6.5),
                           decoration: BoxDecoration(
                             color: AppTheme.brandPrimary,
                             borderRadius: BorderRadius.circular(12),
@@ -594,15 +604,17 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(LucideIcons.plus, size: 14, color: Colors.white),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Nuevo',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
+                              if (!isNarrowScreen) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Nuevo',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

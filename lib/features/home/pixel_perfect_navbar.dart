@@ -122,7 +122,12 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
 
     return Container(
       color: Colors.transparent,
-      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding > 0 ? bottomPadding : 12),
+      padding: EdgeInsets.fromLTRB(
+        MediaQuery.of(context).size.width < 360 ? 8 : 16,
+        0,
+        MediaQuery.of(context).size.width < 360 ? 8 : 16,
+        bottomPadding > 0 ? bottomPadding : 12,
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final w = constraints.maxWidth;

@@ -2202,15 +2202,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Admin',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
+                        if (screenWidth >= 360) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            'Admin',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
                           ),
-                        ),
+                        ],
                         const SizedBox(width: 4),
                         Container(
                           width: 6,

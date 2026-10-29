@@ -100,6 +100,8 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 weight: FontWeight.w800,
                 color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             Text(
               'Rentabilidad real, rotación de productos y horas pico',
@@ -107,6 +109,8 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 size: 11.5,
                 color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -606,20 +610,27 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(LucideIcons.flame, size: 20, color: AppTheme.warningAmber),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Mapa de Calor de Horarios Pico',
-                    style: AppTheme.headingStyle(
-                      size: 15,
-                      weight: FontWeight.w700,
-                      color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.flame, size: 20, color: AppTheme.warningAmber),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Mapa de Calor de Horarios Pico',
+                        style: AppTheme.headingStyle(
+                          size: 15,
+                          weight: FontWeight.w700,
+                          color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '24 Horas',
                 style: GoogleFonts.plusJakartaSans(
@@ -852,19 +863,25 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(LucideIcons.arrowUpDown, size: 20, color: AppTheme.brandPrimary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Reporte de Rotación Táctico',
-                    style: AppTheme.headingStyle(
-                      size: 15,
-                      weight: FontWeight.w700,
-                      color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.arrowUpDown, size: 20, color: AppTheme.brandPrimary),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Reporte de Rotación Táctico',
+                        style: AppTheme.headingStyle(
+                          size: 15,
+                          weight: FontWeight.w700,
+                          color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -1128,6 +1145,8 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       fontSize: 11,
                       color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -1299,30 +1318,36 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               // Chip de Recomendación Táctica
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppTheme.warningAmber.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppTheme.warningAmber.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(LucideIcons.lightbulb, size: 12, color: AppTheme.warningAmber),
-                        const SizedBox(width: 4),
-                        Text(
-                          item.accionRecomendada,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.warningAmber,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.warningAmber.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: AppTheme.warningAmber.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(LucideIcons.lightbulb, size: 12, color: AppTheme.warningAmber),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              item.accionRecomendada,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.warningAmber,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Text(
                     '${item.diasSinVentas}+ días sin ventas',
                     style: GoogleFonts.plusJakartaSans(

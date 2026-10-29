@@ -834,19 +834,24 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                titulo,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: color,
+              Expanded(
+                child: Text(
+                  titulo,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
                 ),
               ),
-              if (actionLabel != null && onAction != null)
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(width: 4),
                 InkWell(
                   onTap: onAction,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
@@ -854,22 +859,27 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                     child: Text(
                       actionLabel,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9.5,
+                        fontSize: 9,
                         fontWeight: FontWeight.w800,
                         color: color,
                       ),
                     ),
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            'S/ ${monto.toStringAsFixed(2)}',
-            style: GoogleFonts.outfit(
-              fontSize: 15.5,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : AppTheme.textDark,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'S/ ${monto.toStringAsFixed(2)}',
+              style: GoogleFonts.outfit(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
             ),
           ),
         ],
@@ -953,37 +963,48 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(LucideIcons.scale, color: AppTheme.brandPrimary, size: 20),
                     ),
-                    child: const Icon(LucideIcons.scale, color: AppTheme.brandPrimary, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Arqueo de Turno & Cuadre',
-                        style: GoogleFonts.outfit(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textDark,
-                        ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Arqueo de Turno & Cuadre',
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                          Text(
+                            'Fondo de caja, gastos menores y cuadre físico',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'Fondo de caja, gastos menores y cuadre físico',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               IconButton(
                 icon: const Icon(LucideIcons.send, color: AppTheme.accentGreen, size: 20),
                 tooltip: 'Enviar Arqueo por WhatsApp',
@@ -1165,30 +1186,43 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'EFECTIVO ESPERADO EN GAVETA',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.brandPrimary,
-                        letterSpacing: 0.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'EFECTIVO ESPERADO EN GAVETA',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.brandPrimary,
+                          letterSpacing: 0.5,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Base + Ventas Efectivo - Egresos',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                    ),
-                  ],
+                      Text(
+                        'Base + Ventas Efectivo - Egresos',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'S/ ${esperado.toStringAsFixed(2)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.brandPrimary,
+                const SizedBox(width: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'S/ ${esperado.toStringAsFixed(2)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.brandPrimary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
               ],
@@ -2266,23 +2300,32 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Histórico de Días Anteriores',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Histórico de Días Anteriores',
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Auditoría y cierres pasados de tu bodega',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                        ),
-                      ],
+                          Text(
+                            'Auditoría y cierres pasados de tu bodega',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -2841,107 +2884,115 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           // Barra de Filtro de Fecha para Boletas
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Row(
-              children: [
-                InkWell(
-                  onTap: () => setState(() => _filtrarVentasPorFecha = false),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: !_filtrarVentasPorFecha
-                          ? AppTheme.brandPrimary
-                          : (isDark ? AppTheme.cardDark : Colors.white),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () => setState(() => _filtrarVentasPorFecha = false),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
                         color: !_filtrarVentasPorFecha
                             ? AppTheme.brandPrimary
-                            : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                            : (isDark ? AppTheme.cardDark : Colors.white),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: !_filtrarVentasPorFecha
+                              ? AppTheme.brandPrimary
+                              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Todas (${_ventas.length})',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: !_filtrarVentasPorFecha
-                            ? Colors.white
-                            : (isDark ? Colors.white : AppTheme.textDark),
+                      child: Text(
+                        'Todas (${_ventas.length})',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: !_filtrarVentasPorFecha
+                              ? Colors.white
+                              : (isDark ? Colors.white : AppTheme.textDark),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                InkWell(
-                  onTap: () => setState(() => _filtrarVentasPorFecha = true),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _filtrarVentasPorFecha
-                          ? AppTheme.brandPrimary
-                          : (isDark ? AppTheme.cardDark : Colors.white),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () => setState(() => _filtrarVentasPorFecha = true),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
                         color: _filtrarVentasPorFecha
                             ? AppTheme.brandPrimary
-                            : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                            : (isDark ? AppTheme.cardDark : Colors.white),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _filtrarVentasPorFecha
+                              ? AppTheme.brandPrimary
+                              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(LucideIcons.calendar, size: 13, color: Colors.white),
+                          const SizedBox(width: 5),
+                          Text(
+                            _esMismoDia(_fechaSeleccionada, DateTime.now())
+                                ? 'Solo Hoy'
+                                : _formatearFechaCorta(_fechaSeleccionada),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: _filtrarVentasPorFecha
+                                  ? Colors.white
+                                  : (isDark ? Colors.white : AppTheme.textDark),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(LucideIcons.calendar, size: 13, color: Colors.white),
-                        const SizedBox(width: 5),
-                        Text(
-                          _esMismoDia(_fechaSeleccionada, DateTime.now())
-                              ? 'Solo Hoy'
-                              : _formatearFechaCorta(_fechaSeleccionada),
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: _filtrarVentasPorFecha
-                                ? Colors.white
-                                : (isDark ? Colors.white : AppTheme.textDark),
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(width: 12),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                  ),
-                ),
-                const Spacer(),
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  icon: const Icon(LucideIcons.fileSpreadsheet, size: 14, color: AppTheme.accentGreen),
-                  label: Text(
-                    'Exportar CSV',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppTheme.textDark,
+                    icon: const Icon(LucideIcons.fileSpreadsheet, size: 14, color: AppTheme.accentGreen),
+                    label: Text(
+                      'Exportar CSV',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
                     ),
+                    onPressed: _exportarVentasCsv,
                   ),
-                  onPressed: _exportarVentasCsv,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
           // Filtro por Estado: Todas / Completadas / Anuladas
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-            child: Row(
-              children: [
-                _buildEstadoVentaChip('TODAS', 'Todas', ventasFiltradasPorDia.length, null, isDark),
-                const SizedBox(width: 8),
-                _buildEstadoVentaChip('COMPLETADAS', 'Completadas', ventasFiltradasPorDia.where((v) => !v.isAnulada).length, AppTheme.accentGreen, isDark),
-                const SizedBox(width: 8),
-                _buildEstadoVentaChip('ANULADAS', 'Anuladas', ventasFiltradasPorDia.where((v) => v.isAnulada).length, AppTheme.alertRed, isDark),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildEstadoVentaChip('TODAS', 'Todas', ventasFiltradasPorDia.length, null, isDark),
+                  const SizedBox(width: 8),
+                  _buildEstadoVentaChip('COMPLETADAS', 'Completadas', ventasFiltradasPorDia.where((v) => !v.isAnulada).length, AppTheme.accentGreen, isDark),
+                  const SizedBox(width: 8),
+                  _buildEstadoVentaChip('ANULADAS', 'Anuladas', ventasFiltradasPorDia.where((v) => v.isAnulada).length, AppTheme.alertRed, isDark),
+                ],
+              ),
             ),
           ),
 
@@ -3157,89 +3208,102 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: v.isAnulada
-                          ? AppTheme.alertRed.withValues(alpha: isDark ? 0.2 : 0.1)
-                          : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
-                      borderRadius: BorderRadius.circular(12),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: v.isAnulada
+                            ? AppTheme.alertRed.withValues(alpha: isDark ? 0.2 : 0.1)
+                            : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        v.isAnulada ? LucideIcons.ban : LucideIcons.receipt,
+                        color: v.isAnulada ? AppTheme.alertRed : AppTheme.brandPrimary,
+                        size: 18,
+                      ),
                     ),
-                    child: Icon(
-                      v.isAnulada ? LucideIcons.ban : LucideIcons.receipt,
-                      color: v.isAnulada ? AppTheme.alertRed : AppTheme.brandPrimary,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            v.etiquetaComprobante,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14.5,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                          ),
-                          if (v.esSunat) ...[
-                            const SizedBox(width: 6),
-                            () {
-                              final estado = (v.estadoSunat ?? 'ACEPTADO').toUpperCase();
-                              final Color bg;
-                              final Color fg;
-                              final String label;
-
-                              if (estado == 'ACEPTADO') {
-                                bg = AppTheme.accentGreen.withValues(alpha: 0.15);
-                                fg = AppTheme.accentGreen;
-                                label = 'SUNAT OK';
-                              } else if (estado == 'ACEPTADO_BETA') {
-                                bg = const Color(0xFF0D9488).withValues(alpha: 0.15);
-                                fg = const Color(0xFF0D9488);
-                                label = 'SUNAT BETA';
-                              } else if (estado == 'RECHAZADO') {
-                                bg = AppTheme.alertRed.withValues(alpha: 0.15);
-                                fg = AppTheme.alertRed;
-                                label = 'RECHAZADO';
-                              } else {
-                                bg = const Color(0xFFF59E0B).withValues(alpha: 0.15);
-                                fg = const Color(0xFFF59E0B);
-                                label = 'PENDIENTE';
-                              }
-
-                              return Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: bg,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
+                          Row(
+                            children: [
+                              Flexible(
                                 child: Text(
-                                  label,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    color: fg,
+                                  v.etiquetaComprobante,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 14.5,
+                                    color: isDark ? Colors.white : AppTheme.textDark,
                                   ),
                                 ),
-                              );
-                            }(),
-                          ],
+                              ),
+                              if (v.esSunat) ...[
+                                const SizedBox(width: 6),
+                                () {
+                                  final estado = (v.estadoSunat ?? 'ACEPTADO').toUpperCase();
+                                  final Color bg;
+                                  final Color fg;
+                                  final String label;
+
+                                  if (estado == 'ACEPTADO') {
+                                    bg = AppTheme.accentGreen.withValues(alpha: 0.15);
+                                    fg = AppTheme.accentGreen;
+                                    label = 'SUNAT OK';
+                                  } else if (estado == 'ACEPTADO_BETA') {
+                                    bg = const Color(0xFF0D9488).withValues(alpha: 0.15);
+                                    fg = const Color(0xFF0D9488);
+                                    label = 'SUNAT BETA';
+                                  } else if (estado == 'RECHAZADO') {
+                                    bg = AppTheme.alertRed.withValues(alpha: 0.15);
+                                    fg = AppTheme.alertRed;
+                                    label = 'RECHAZADO';
+                                  } else {
+                                    bg = const Color(0xFFF59E0B).withValues(alpha: 0.15);
+                                    fg = const Color(0xFFF59E0B);
+                                    label = 'PENDIENTE';
+                                  }
+
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: bg,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      label,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        color: fg,
+                                      ),
+                                    ),
+                                  );
+                                }(),
+                              ],
+                            ],
+                          ),
+                          Text(
+                            fechaStr,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                            ),
+                          ),
                         ],
                       ),
-                      Text(
-                        fechaStr,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

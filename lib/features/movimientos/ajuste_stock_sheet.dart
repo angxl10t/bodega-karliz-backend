@@ -252,6 +252,8 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                         fontWeight: FontWeight.w800,
                         color: isDark ? Colors.white : AppTheme.textDark,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '${widget.producto.nombre} • SKU: ${widget.producto.codigo}',
@@ -572,9 +574,12 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : const Icon(LucideIcons.check, size: 18),
-                  label: Text(
-                    _isSaving ? 'Guardando...' : 'Confirmar Ajuste',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _isSaving ? 'Guardando...' : 'Confirmar Ajuste',
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                    ),
                   ),
                   onPressed: (_isSaving || stockInvalido) ? null : _guardarAjuste,
                 ),

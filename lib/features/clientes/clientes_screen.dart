@@ -214,6 +214,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
     final canPop = ModalRoute.of(context)?.canPop ?? false;
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= 720;
+    final isNarrow = screenWidth < 380;
 
     final totalPorCobrar = _resumen?.totalSaldoDeudor ?? 0.0;
     final vecinosDeudores = _resumen?.clientesConDeuda ?? 0;
@@ -353,7 +354,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           _exportarCsv();
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
+                          padding: EdgeInsets.symmetric(horizontal: isNarrow ? 7 : 9, vertical: 6.5),
                           decoration: BoxDecoration(
                             color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(12),
@@ -366,15 +367,17 @@ class _ClientesScreenState extends State<ClientesScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(LucideIcons.download, size: 13, color: AppTheme.accentGreen),
-                              const SizedBox(width: 4),
-                              Text(
-                                'CSV',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : AppTheme.textDark,
+                              if (!isNarrow) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  'CSV',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
@@ -409,7 +412,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
 
                     // Botón + Nuevo Vecino
                     Material(
@@ -421,7 +424,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           _abrirNuevoCliente();
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6.5),
+                          padding: EdgeInsets.symmetric(horizontal: isNarrow ? 8 : 11, vertical: 6.5),
                           decoration: BoxDecoration(
                             color: AppTheme.brandPrimary,
                             borderRadius: BorderRadius.circular(12),
@@ -437,15 +440,17 @@ class _ClientesScreenState extends State<ClientesScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(LucideIcons.userPlus, size: 14, color: Colors.white),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Nuevo',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
+                              if (!isNarrow) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Nuevo',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

@@ -192,10 +192,12 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
               constraints: const BoxConstraints(maxWidth: 380),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Cabecera de Bloqueo
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Cabecera de Bloqueo
                     Column(
                       children: [
                         const SizedBox(height: 12),
@@ -337,6 +339,7 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
                   ],
                 ),
               ),
+            ),
             ),
           ),
         ),

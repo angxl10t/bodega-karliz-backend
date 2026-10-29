@@ -249,6 +249,8 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     fontWeight: FontWeight.w600,
                                     color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
@@ -552,7 +554,11 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                         color: cardBg,
                         border: Border(top: BorderSide(color: borderColor)),
                       ),
-                      child: Row(
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
@@ -571,28 +577,32 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                             label: const Text('Probar Impresora'),
                             onPressed: (_isTesting || _isSaving) ? null : _probarImpresion,
                           ),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancelar'),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.brandPrimary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            ),
-                            icon: _isSaving
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Icon(LucideIcons.check, size: 18),
-                            label: const Text('Guardar'),
-                            onPressed: (_isTesting || _isSaving) ? null : _guardar,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancelar'),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.brandPrimary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                ),
+                                icon: _isSaving
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      )
+                                    : const Icon(LucideIcons.check, size: 18),
+                                label: const Text('Guardar'),
+                                onPressed: (_isTesting || _isSaving) ? null : _guardar,
+                              ),
+                            ],
                           ),
                         ],
                       ),

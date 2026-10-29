@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -193,8 +194,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 ),
               ],
             ),
-            content: SizedBox(
-              width: 520,
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: math.min(MediaQuery.of(context).size.width - 40, 520),
+              ),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1129,31 +1132,33 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 ),
                 const SizedBox(width: 6),
 
-                // Latencia en vivo
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(LucideIcons.activity, size: 12, color: _latencyMs < 300 ? AppTheme.accentGreen : Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${_latencyMs}ms',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+                // Latencia en vivo (Oculta en pantallas menores a 390px para proteger el encabezado)
+                if (MediaQuery.of(context).size.width >= 390) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(LucideIcons.activity, size: 12, color: _latencyMs < 300 ? AppTheme.accentGreen : Colors.amber),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${_latencyMs}ms',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
+                  const SizedBox(width: 4),
+                ],
 
                 // Botón Refrescar
                 IconButton(

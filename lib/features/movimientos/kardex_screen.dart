@@ -123,10 +123,14 @@ class _KardexScreenState extends State<KardexScreen> {
                 fontWeight: FontWeight.w800,
                 color: isDark ? Colors.white : AppTheme.textDark,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             Text(
               'Auditoría y trazabilidad de entradas, salidas y mermas',
               style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -549,12 +553,17 @@ class _KardexScreenState extends State<KardexScreen> {
                           children: [
                             Icon(LucideIcons.userCheck, size: 10, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
                             const SizedBox(width: 4),
-                            Text(
-                              m.usuarioResponsable!,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? AppTheme.textDarkMuted : const Color(0xFF334155),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 110),
+                              child: Text(
+                                m.usuarioResponsable!,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppTheme.textDarkMuted : const Color(0xFF334155),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
