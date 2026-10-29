@@ -265,9 +265,27 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+
     if (_isLoading || _sesion == null) {
       return Scaffold(
         backgroundColor: isDark ? AppTheme.bgDark : const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: cardBg,
+          elevation: 0,
+          leading: canPop
+              ? IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft),
+                  tooltip: 'Regresar',
+                  onPressed: () => Navigator.maybePop(context),
+                )
+              : null,
+          titleSpacing: canPop ? 0 : 16,
+          title: Text(
+            'Toma de Inventario Físico',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+          ),
+        ),
         body: const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary)),
       );
     }
@@ -294,6 +312,14 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(LucideIcons.arrowLeft),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+        titleSpacing: canPop ? 0 : 16,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

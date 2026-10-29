@@ -84,12 +84,22 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgCanvas = isDark ? AppTheme.bgDark : AppTheme.bgLight;
 
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+
     return Scaffold(
       backgroundColor: bgCanvas,
       appBar: AppBar(
         backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0.5,
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(LucideIcons.arrowLeft),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+        titleSpacing: canPop ? 0 : 16,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

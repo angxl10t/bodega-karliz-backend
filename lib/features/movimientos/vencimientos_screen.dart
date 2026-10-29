@@ -132,9 +132,19 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
       return da.compareTo(db);
     });
 
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(LucideIcons.arrowLeft),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+        titleSpacing: canPop ? 0 : 16,
         title: Text(
           'Control de Vencimientos',
           style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18),

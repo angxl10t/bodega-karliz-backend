@@ -995,40 +995,141 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     }
   }
 
+  Future<void> _abrirNuevoProveedorModal() async {
+    final nuevo = await NuevoProveedorSheet.show(context);
+    if (nuevo != null && mounted) {
+      setState(() => _proveedorSeleccionado = nuevo);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary));
-    }
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
+        appBar: AppBar(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0.5,
+          leading: canPop
+              ? IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft),
+                  tooltip: 'Regresar',
+                  onPressed: () => Navigator.maybePop(context),
+                )
+              : null,
+          titleSpacing: canPop ? 0 : 16,
+          title: Text(
+            'Compras & Proveedores',
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppTheme.textDark,
+            ),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary)),
+      );
+    }
 
     if (!_esAdmin) {
       return Scaffold(
         backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
+        appBar: AppBar(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0.5,
+          leading: canPop
+              ? IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft),
+                  tooltip: 'Regresar',
+                  onPressed: () => Navigator.maybePop(context),
+                )
+              : null,
+          titleSpacing: canPop ? 0 : 16,
+          title: Text(
+            'Compras & Proveedores',
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppTheme.textDark,
+            ),
+          ),
+        ),
         body: _buildCajeroRestringido(isDark),
       );
     }
 
+    final tabBar = TabBar(
+      controller: _tabController,
+      labelColor: AppTheme.brandPrimary,
+      unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+      indicatorColor: AppTheme.brandPrimary,
+      indicatorWeight: 2.5,
+      labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
+      unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
+      tabs: const [
+        Tab(icon: Icon(LucideIcons.truck, size: 17), text: 'Nueva Compra en Lote'),
+        Tab(icon: Icon(LucideIcons.clipboardList, size: 17), text: 'Historial de Compras'),
+      ],
+    );
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(48),
-        child: Container(
-          color: isDark ? AppTheme.cardDark : Colors.white,
-          child: TabBar(
-            controller: _tabController,
-            labelColor: AppTheme.brandPrimary,
-            unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
-            indicatorColor: AppTheme.brandPrimary,
-            indicatorWeight: 2.5,
-            labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
-            unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
-            tabs: const [
-              Tab(icon: Icon(LucideIcons.truck, size: 17), text: 'Nueva Compra en Lote'),
-              Tab(icon: Icon(LucideIcons.clipboardList, size: 17), text: 'Historial de Compras'),
-            ],
-          ),
+      backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
+      appBar: AppBar(
+        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0.5,
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(LucideIcons.arrowLeft),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+        titleSpacing: canPop ? 0 : 16,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Compras & Proveedores',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              'Ingreso de mercadería, lotes y costos mayoristas',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Registrar Proveedor',
+            icon: const Icon(LucideIcons.userPlus, size: 19, color: AppTheme.brandPrimary),
+            onPressed: _abrirNuevoProveedorModal,
+          ),
+          IconButton(
+            tooltip: 'Actualizar Datos',
+            icon: const Icon(LucideIcons.refreshCw, size: 18),
+            onPressed: () => _cargarDatos(forceRefresh: true),
+          ),
+          const SizedBox(width: 6),
+        ],
+        bottom: tabBar,
       ),
       body: TabBarView(
         controller: _tabController,
@@ -1076,6 +1177,18 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   fontSize: 13,
                   height: 1.5,
                   color: AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.maybePop(context),
+                icon: const Icon(LucideIcons.arrowLeft, size: 18),
+                label: const Text('Volver al Inicio'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandPrimary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
               ),
             ],

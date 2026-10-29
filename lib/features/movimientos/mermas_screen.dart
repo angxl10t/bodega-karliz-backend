@@ -115,9 +115,19 @@ class _MermasScreenState extends State<MermasScreen> {
         ? _mermas
         : _mermas.where((m) => m.motivo.toUpperCase() == _filtroMotivo.toUpperCase()).toList();
 
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(LucideIcons.arrowLeft),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+        titleSpacing: canPop ? 0 : 16,
         title: Text(
           'Mermas y Desmedros',
           style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18),

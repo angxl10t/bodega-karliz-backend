@@ -1940,7 +1940,12 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     return Scaffold(
       appBar: canPop
           ? AppBar(
-              titleSpacing: 16,
+              leading: IconButton(
+                icon: const Icon(LucideIcons.arrowLeft),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              ),
+              titleSpacing: 0,
               elevation: 0,
               backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
               title: Column(

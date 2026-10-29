@@ -108,9 +108,18 @@ class _KardexScreenState extends State<KardexScreen> {
         !_esAjuste(m)).length;
     final int totalAjustes = _movimientos.where((m) => _esAjuste(m)).length;
 
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
+
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 16,
+        leading: canPop
+            ? IconButton(
+                icon: const Icon(LucideIcons.arrowLeft),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              )
+            : null,
+        titleSpacing: canPop ? 0 : 16,
         elevation: 0,
         backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
         title: Column(
