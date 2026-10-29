@@ -15,6 +15,9 @@ import '../clientes/cliente_model.dart';
 import '../clientes/cliente_service.dart';
 import '../compras/compras_screen.dart';
 import 'dashboard_bi_screen.dart';
+import '../movimientos/mermas_screen.dart';
+import '../movimientos/vencimientos_screen.dart';
+import '../movimientos/auditoria_ciega_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -311,6 +314,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             _buildQuickActionBtn(
                               width: btnWidth,
+                              title: 'Control Vencimientos',
+                              subtitle: 'Semáforo de Caducidad',
+                              icon: LucideIcons.calendarClock,
+                              color: AppTheme.brandPrimary,
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const VencimientosScreen()),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Registro de Mermas',
+                              subtitle: 'Bajas & Pérdidas',
+                              icon: LucideIcons.trash2,
+                              color: AppTheme.brandPrimary,
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const MermasScreen()),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Auditoría Ciega',
+                              subtitle: 'Conteo Físico en Tienda',
+                              icon: LucideIcons.clipboardCheck,
+                              color: AppTheme.brandPrimary,
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
                               title: 'Kardex Auditoría',
                               subtitle: 'Historial de Movimientos',
                               icon: LucideIcons.fileSpreadsheet,
@@ -346,23 +391,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               isDark: isDark,
                               onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
                             ),
-                            _buildQuickActionBtn(
-                              width: isDesktop ? btnWidth : constraints.maxWidth,
-                              title: 'Personal & Cajeros',
-                              subtitle: 'Turnos & Accesos del Equipo',
-                              icon: LucideIcons.users,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              isBanner: !isDesktop,
-                              onTap: () => PlanYPersonalSheet.show(
-                                context,
-                                nombreBodega: _nombreBodega,
-                                plan: _plan,
-                                currentUsername: _username,
-                                userRol: _userRol,
-                                onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+                            if (_userRol == 'ADMIN' || _userRol == 'SUPERADMIN')
+                              _buildQuickActionBtn(
+                                width: isDesktop ? btnWidth : constraints.maxWidth,
+                                title: 'Personal & Cajeros',
+                                subtitle: 'Turnos & Accesos del Equipo',
+                                icon: LucideIcons.users,
+                                color: AppTheme.brandPrimary,
+                                isDark: isDark,
+                                isBanner: !isDesktop,
+                                onTap: () => PlanYPersonalSheet.show(
+                                  context,
+                                  nombreBodega: _nombreBodega,
+                                  plan: _plan,
+                                  currentUsername: _username,
+                                  userRol: _userRol,
+                                  seccionInicial: PlanSheetSeccion.personal,
+                                  onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+                                ),
                               ),
-                            ),
                           ],
                         );
                       },

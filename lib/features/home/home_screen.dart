@@ -7,11 +7,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../auth/auth_service.dart';
 import '../dashboard/dashboard_screen.dart';
-import '../dashboard/dashboard_bi_screen.dart';
 import '../productos/productos_screen.dart';
 import '../ventas/ventas_screen.dart';
 import '../ventas/caja_ventas_screen.dart';
-import '../compras/compras_screen.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../core/update_service.dart';
@@ -25,9 +23,6 @@ import 'pixel_perfect_navbar.dart';
 import 'plan_y_personal_sheet.dart';
 import 'configuracion_ticket_modal.dart';
 import '../clientes/clientes_screen.dart';
-import '../movimientos/vencimientos_screen.dart';
-import '../movimientos/mermas_screen.dart';
-import '../movimientos/auditoria_ciega_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/offline/offline_models.dart';
@@ -192,1422 +187,992 @@ class _HomeScreenState extends State<HomeScreen> {
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: Container(
                   constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.88,
+                    maxHeight: MediaQuery.of(context).size.height * 0.90,
                   ),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 24,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Manija superior de arrastre
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4.5,
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 24,
+                        offset: const Offset(0, -4),
                       ),
-                      const SizedBox(height: 16),
-
-                      // Título del Panel y botón cerrar
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ],
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(7),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    LucideIcons.shieldCheck,
-                                    size: 18,
-                                    color: AppTheme.brandPrimary,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Flexible(
-                                  child: Text(
-                                    'Centro de Administración',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
+                          // Manija superior de arrastre
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4.5,
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Título del Panel y botón cerrar
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(7),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.user,
+                                        size: 18,
+                                        color: AppTheme.brandPrimary,
+                                      ),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                    const SizedBox(width: 10),
+                                    Flexible(
+                                      child: Text(
+                                        'Cuenta y Preferencias',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                icon: Icon(
+                                  LucideIcons.x,
+                                  size: 20,
+                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                ),
+                                onPressed: () => Navigator.pop(bottomSheetContext),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 1. Cabecera del Usuario en Sesión
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: cardBg,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 52,
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [AppTheme.brandPrimary, AppTheme.brandDark],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          _username.isNotEmpty ? _username.substring(0, 1).toUpperCase() : 'U',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  _username.isNotEmpty ? _username.toUpperCase() : 'USUARIO',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: (_userRol == 'SUPERADMIN'
+                                                          ? const Color(0xFF8B5CF6)
+                                                          : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary))
+                                                      .withValues(alpha: 0.15),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      _userRol == 'SUPERADMIN'
+                                                          ? LucideIcons.crown
+                                                          : (_plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.store),
+                                                      size: 10,
+                                                      color: _userRol == 'SUPERADMIN'
+                                                          ? const Color(0xFF8B5CF6)
+                                                          : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      _userRol == 'SUPERADMIN'
+                                                          ? 'SUPERADMIN'
+                                                          : (_plan == 'PRO' ? 'PLAN PRO' : 'PLAN BODEGA'),
+                                                      style: GoogleFonts.outfit(
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w800,
+                                                        color: _userRol == 'SUPERADMIN'
+                                                            ? const Color(0xFF8B5CF6)
+                                                            : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            _userRol == 'SUPERADMIN'
+                                                ? 'Superadministrador • Plataforma Global'
+                                                : (_userRol == 'ADMIN'
+                                                    ? 'Administrador General • Acceso Total'
+                                                    : 'Cajero / Operador de Tienda'),
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              Container(
+                                                width: 6,
+                                                height: 6,
+                                                decoration: const BoxDecoration(
+                                                  color: AppTheme.accentGreen,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                'Sesión activa • ${_nombreBodega.isNotEmpty ? _nombreBodega : "CajaYa"}',
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontSize: 11,
+                                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            icon: Icon(
-                              LucideIcons.x,
-                              size: 20,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                            ),
-                            onPressed: () => Navigator.pop(bottomSheetContext),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
+                          const SizedBox(height: 14),
 
-                      // 1. Información de la Cuenta
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: borderColor),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
+                          // 2. Versión del Sistema
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              _verificarActualizacion();
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.sparkles,
+                                      color: AppTheme.brandPrimary,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Versión del Sistema',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 14.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark ? Colors.white : AppTheme.textDark,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? AppTheme.brandPrimary.withValues(alpha: 0.2)
+                                                    : AppTheme.surfaceTint,
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                'v2.4.0',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          'Build Emerald 2026.10 • Comprobar parches OTA',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // 3. Modo Claro u Oscuro
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: cardBg,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: Row(
                               children: [
                                 Container(
-                                  width: 52,
-                                  height: 52,
+                                  padding: const EdgeInsets.all(9),
                                   decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [AppTheme.brandPrimary, AppTheme.brandDark],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppTheme.brandPrimary.withValues(alpha: 0.35),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
+                                    color: (isDark ? const Color(0xFFFACC15) : const Color(0xFF64748B)).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Center(
-                                    child: Icon(
-                                      LucideIcons.shieldCheck,
-                                      color: Colors.white,
-                                      size: 26,
-                                    ),
+                                  child: Icon(
+                                    isDark ? LucideIcons.moon : LucideIcons.sun,
+                                    color: isDark ? const Color(0xFFFACC15) : const Color(0xFF334155),
+                                    size: 20,
                                   ),
                                 ),
-                                const SizedBox(width: 14),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              _username.isNotEmpty ? _username.toUpperCase() : 'ADMIN',
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w800,
-                                                color: isDark ? Colors.white : AppTheme.textDark,
-                                              ),
-                                              maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: (_userRol == 'SUPERADMIN'
-                                                      ? const Color(0xFF8B5CF6)
-                                                      : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary))
-                                                  .withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  _userRol == 'SUPERADMIN'
-                                                      ? LucideIcons.crown
-                                                      : (_plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.store),
-                                                  size: 10,
-                                                  color: _userRol == 'SUPERADMIN'
-                                                      ? const Color(0xFF8B5CF6)
-                                                      : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  _userRol == 'SUPERADMIN'
-                                                      ? 'SUPERADMIN'
-                                                      : (_plan == 'PRO' ? 'PLAN PRO' : 'PLAN BODEGA'),
-                                                  style: GoogleFonts.outfit(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w800,
-                                                    color: _userRol == 'SUPERADMIN'
-                                                        ? const Color(0xFF8B5CF6)
-                                                        : (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 2),
                                       Text(
-                                        _userRol == 'SUPERADMIN'
-                                            ? 'Superadministrador • Plataforma Global'
-                                            : (_userRol == 'ADMIN'
-                                                ? 'Administrador General • Acceso Total'
-                                                : 'Operador de Tienda'),
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: _userRol == 'SUPERADMIN' ? const Color(0xFF8B5CF6) : AppTheme.brandPrimary,
+                                        isDark ? 'Modo Oscuro (Velvet Obsidian)' : 'Modo Claro Pro (Porcelana)',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
                                       Text(
-                                        _userRol == 'SUPERADMIN'
-                                            ? 'CajaYa Cloud POS • Directorio de Todas las Bodegas'
-                                            : '$_nombreBodega • ${_plan == 'PRO' ? 'Plan Minimarket Pro' : 'Plan Bodega'}',
+                                        isDark
+                                            ? 'Activo • Titanio satinado anti-fatiga'
+                                            : 'Activo • Máximo contraste para ventas',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppTheme.textMuted,
+                                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                Switch.adaptive(
+                                  value: isDark,
+                                  activeThumbColor: AppTheme.brandPrimary,
+                                  activeTrackColor: AppTheme.brandPrimary.withValues(alpha: 0.4),
+                                  onChanged: (val) {
+                                    HapticFeedback.selectionClick();
+                                    themeProvider.toggleTheme();
+                                  },
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // 4. Sincronización Offline (Local-First)
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              OfflineQueueSheet.show(context);
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                               decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppTheme.brandPrimary.withValues(alpha: 0.08)
-                                    : AppTheme.surfaceTint,
-                                borderRadius: BorderRadius.circular(10),
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    LucideIcons.checkCheck,
-                                    size: 13,
-                                    color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.cloudOff,
+                                      color: Color(0xFFD97706),
+                                      size: 20,
+                                    ),
                                   ),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(width: 12),
                                   Expanded(
-                                    child: Text(
-                                      _userRol == 'SUPERADMIN'
-                                          ? 'Permisos: Consola Global, Auditoría y Todas las Bodegas'
-                                          : (_userRol == 'ADMIN'
-                                              ? 'Permisos: POS, Caja, Almacén, Compras y Métricas'
-                                              : 'Permisos: Cobro en Caja POS y Consulta de Stock'),
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? AppTheme.brandLight : AppTheme.brandDark,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // 2. Cambiar de Modo Oscuro a Día
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: borderColor),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(9),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFFFACC15).withValues(alpha: 0.15)
-                                    : const Color(0xFF64748B).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                isDark ? LucideIcons.moon : LucideIcons.sun,
-                                color: isDark ? const Color(0xFFFACC15) : const Color(0xFFF59E0B),
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    isDark ? 'Modo Oscuro (Velvet Obsidian)' : 'Modo Claro Pro (Porcelana)',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 14.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
-                                    ),
-                                  ),
-                                  Text(
-                                    isDark
-                                        ? 'Activo • Titanio satinado anti-fatiga'
-                                        : 'Activo • Máximo contraste para ventas',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Switch.adaptive(
-                              value: isDark,
-                              activeThumbColor: AppTheme.brandPrimary,
-                              activeTrackColor: AppTheme.brandPrimary.withValues(alpha: 0.4),
-                              onChanged: (val) {
-                                HapticFeedback.selectionClick();
-                                themeProvider.toggleTheme();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // 3. Versión del App
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _verificarActualizacion();
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.sparkles,
-                                  color: AppTheme.brandPrimary,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          'Versión del Sistema',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: isDark
-                                                ? AppTheme.brandPrimary.withValues(alpha: 0.2)
-                                                : AppTheme.surfaceTint,
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            'v2.4.0',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 10.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Sincronización Offline (Local-First)',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 14.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark ? Colors.white : AppTheme.textDark,
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Build Emerald 2026.10 • Comprobar parches OTA',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Libreta de Fiados & Clientes
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          setState(() {
-                            _selectedIndex = 4;
-                            _loadedTabs.add(4);
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD97706).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.bookUser,
-                                  color: Color(0xFFD97706),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Libreta de Fiados & Clientes',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFD97706).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            'TAB 5',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: const Color(0xFFD97706),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Cuentas por cobrar, abonos y recordatorios WhatsApp',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Sincronización Offline (Local-First)
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          OfflineQueueSheet.show(context);
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.cloudOff,
-                                  color: Color(0xFFD97706),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Sincronización Offline (Local-First)',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        ValueListenableBuilder<List<OfflineVenta>>(
-                                          valueListenable: OfflineSyncManager.instance.pendingSalesNotifier,
-                                          builder: (context, ventas, _) {
-                                            if (ventas.isEmpty) {
-                                              return Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                decoration: BoxDecoration(
-                                                  color: AppTheme.accentGreen.withValues(alpha: 0.15),
-                                                  borderRadius: BorderRadius.circular(6),
-                                                ),
-                                                child: Text(
-                                                  'AL DÍA',
-                                                  style: GoogleFonts.outfit(
-                                                    fontSize: 9.5,
-                                                    fontWeight: FontWeight.w800,
-                                                    color: AppTheme.accentGreen,
+                                            const SizedBox(width: 8),
+                                            ValueListenableBuilder<List<OfflineVenta>>(
+                                              valueListenable: OfflineSyncManager.instance.pendingSalesNotifier,
+                                              builder: (context, ventas, _) {
+                                                if (ventas.isEmpty) {
+                                                  return Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                    ),
+                                                    child: Text(
+                                                      'AL DÍA',
+                                                      style: GoogleFonts.outfit(
+                                                        fontSize: 9.5,
+                                                        fontWeight: FontWeight.w800,
+                                                        color: AppTheme.accentGreen,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                                return Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                                                    borderRadius: BorderRadius.circular(6),
                                                   ),
-                                                ),
-                                              );
-                                            }
-                                            return Container(
+                                                  child: Text(
+                                                    '${ventas.length} PENDIENTES',
+                                                    style: GoogleFonts.outfit(
+                                                      fontSize: 9.5,
+                                                      fontWeight: FontWeight.w800,
+                                                      color: const Color(0xFFD97706),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          'Cola de ventas desconectadas y catálogo local en memoria',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // 5. Suscripción de la Bodega
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              PlanYPersonalSheet.show(
+                                context,
+                                nombreBodega: _nombreBodega,
+                                plan: _plan,
+                                currentUsername: _username,
+                                userRol: _userRol,
+                                seccionInicial: PlanSheetSeccion.suscripcion,
+                                onPlanUpdated: () => _cargarDatosUsuario(),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.crown,
+                                      color: Color(0xFF0D9488),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              'Mi Suscripción',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 14.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark ? Colors.white : AppTheme.textDark,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                                                color: const Color(0xFF0D9488).withValues(alpha: 0.15),
                                                 borderRadius: BorderRadius.circular(6),
                                               ),
                                               child: Text(
-                                                '${ventas.length} PENDIENTES',
+                                                _plan == 'PRO' ? 'PRO' : 'BÁSICO',
                                                 style: GoogleFonts.outfit(
                                                   fontSize: 9.5,
                                                   fontWeight: FontWeight.w800,
-                                                  color: const Color(0xFFD97706),
+                                                  color: const Color(0xFF0D9488),
                                                 ),
                                               ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Cola de ventas desconectadas y catálogo local en memoria',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Compras & Proveedores (Ingreso de Lotes)
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const ComprasScreen()),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0284C7).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.truck,
-                                  color: Color(0xFF0284C7),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Compras & Proveedores',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF0284C7).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            'INGRESOS',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: const Color(0xFF0284C7),
                                             ),
-                                          ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Registro de compras de proveedores y stock por lotes',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Control de Vencimientos (Semáforo 🔴🟡🟢)
-                      // Analítica de Negocio & BI (Dashboard BI)
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.trendingUp,
-                                  color: AppTheme.brandPrimary,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
                                         Text(
-                                          'Analítica de Negocio & BI',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.brandPrimary.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            'RENTABILIDAD',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: AppTheme.brandPrimary,
-                                            ),
+                                          'Renovación Yape/Plin autónoma, días de vigencia y SUNAT',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    Text(
-                                      'Margen real, productos estrella/hueso y horarios pico',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ],
                               ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const VencimientosScreen()),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEF4444).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.calendarClock,
-                                  color: Color(0xFFEF4444),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Control de Vencimientos',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            'SEMÁFORO',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: const Color(0xFFEF4444),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Alertas a 7, 15 y 30 días para remate y prevención de mermas',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Registro de Mermas y Desmedros
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const MermasScreen()),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFDC2626).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.trash2,
-                                  color: Color(0xFFDC2626),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Registro de Mermas & Pérdidas',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFDC2626).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            'DESMEDROS',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: const Color(0xFFDC2626),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Bajas por rotura, vencimiento o autoconsumo con costo contable',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Toma de Inventario Físico (Auditoría Ciega)
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF6366F1).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.clipboardCheck,
-                                  color: Color(0xFF6366F1),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Auditoría Ciega de Inventario',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF6366F1).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            'STOCK AUDIT',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: const Color(0xFF6366F1),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Conteo en góndola sin sesgo y balance de sobrantes/faltantes',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Plan de Suscripción & Personal de la Bodega
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          PlanYPersonalSheet.show(
-                            context,
-                            nombreBodega: _nombreBodega,
-                            plan: _plan,
-                            currentUsername: _username,
-                            userRol: _userRol,
-                            onPlanUpdated: () => _cargarDatosUsuario(),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  _plan == 'PRO' ? LucideIcons.users : LucideIcons.store,
-                                  color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Suscripción & Personal',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: (_plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            _plan == 'PRO' ? 'PRO' : 'BÁSICO',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: _plan == 'PRO' ? AppTheme.accentGreen : AppTheme.brandPrimary,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      _plan == 'PRO'
-                                          ? 'Plan Pro (S/ 100/mes) • Turnos, cajeros ilimitados y marca'
-                                          : 'Plan Bodega (S/ 50/mes) • Hasta 2 cajeros y POS rápido',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // 4. Configuración de Impresora Térmica & Tickets (ESC/POS)
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          ConfiguracionTicketModal.show(context);
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.printer,
-                                  color: AppTheme.brandPrimary,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Impresora Térmica & Tickets',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
-                                      ),
-                                    ),
-                                    Text(
-                                      'ESC/POS 58/80 mm, gaveta de dinero y QR Yape/Plin',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // 5. Botón de Ayuda
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _mostrarGuiaDidactica();
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.helpCircle,
-                                  color: Color(0xFF3B82F6),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Centro de Ayuda & Guía',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Tutorial interactivo de los 5 módulos',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // 4. Bloquear Caja Manualmente
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _bloquearPantalla();
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(LucideIcons.lock, color: AppTheme.brandPrimary, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Bloquear Caja Ahora',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Protege la pantalla con tu PIN o huella',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(LucideIcons.chevronRight, size: 18, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // 5. Configurar o Cambiar PIN de Caja
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          ConfigurarPinModal.show(context, onPinGuardado: () {
-                            if (mounted) setState(() {});
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.accentGreen.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(LucideIcons.keyRound, color: AppTheme.accentGreen, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Configurar PIN de Caja',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
-                                      ),
-                                    ),
-                                    Text(
-                                      'PIN de 4 dígitos para desbloqueo rápido de turno',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(LucideIcons.chevronRight, size: 18, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 6. Salir de Sesión
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _confirmarCerrarSesion();
-                        },
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.alertRed.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: AppTheme.alertRed.withValues(alpha: 0.25),
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(9),
+                          const SizedBox(height: 10),
+
+                          // 6. Personal (Separado y EXCLUSIVO para ADMIN y SUPERADMIN)
+                          if (_userRol == 'ADMIN' || _userRol == 'SUPERADMIN') ...[
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(bottomSheetContext);
+                                PlanYPersonalSheet.show(
+                                  context,
+                                  nombreBodega: _nombreBodega,
+                                  plan: _plan,
+                                  currentUsername: _username,
+                                  userRol: _userRol,
+                                  seccionInicial: PlanSheetSeccion.personal,
+                                  onPlanUpdated: () => _cargarDatosUsuario(),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(18),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.alertRed.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: borderColor),
                                 ),
-                                child: const Icon(
-                                  LucideIcons.logOut,
-                                  color: AppTheme.alertRed,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
                                   children: [
-                                    Text(
-                                      'Salir de Sesión',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 14.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppTheme.alertRed,
+                                    Container(
+                                      padding: const EdgeInsets.all(9),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.users,
+                                        color: Color(0xFF6366F1),
+                                        size: 20,
                                       ),
                                     ),
-                                    Text(
-                                      'Desconectar el usuario de este terminal',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'Personal de Tienda',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 14.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  'ADMIN',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: const Color(0xFF6366F1),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Text(
+                                            'Gestión de cajeros, turnos y reseteo de claves PIN',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                            ),
+                                          ),
+                                        ],
                                       ),
+                                    ),
+                                    Icon(
+                                      LucideIcons.chevronRight,
+                                      size: 18,
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(
-                                LucideIcons.chevronRight,
-                                size: 18,
-                                color: AppTheme.alertRed,
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+
+                          // 7. Impresora Térmica & Ticket
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              ConfiguracionTicketModal.show(context);
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
                               ),
-                            ],
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.printer,
+                                      color: Color(0xFF0284C7),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Impresora Térmica & Ticket',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        Text(
+                                          'ESC/POS 58/80 mm, gaveta de dinero y corte de ticket',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 10),
+
+                          // 8. Centro de Ayuda & Guía
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              _mostrarGuiaDidactica();
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.helpCircle,
+                                      color: Color(0xFF3B82F6),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Centro de Ayuda & Guía',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Tutorial interactivo de los módulos y soporte',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // 9. Bloquear Caja Ahora
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              _bloquearPantalla();
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(LucideIcons.lock, color: AppTheme.brandPrimary, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Bloquear Caja Ahora',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Protege la pantalla con tu PIN para pausas de turno',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // 10. Configurar PIN de Caja
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              ConfigurarPinModal.show(context, onPinGuardado: () {
+                                if (mounted) setState(() {});
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                              decoration: BoxDecoration(
+                                color: cardBg,
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: borderColor),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(LucideIcons.keyRound, color: AppTheme.accentGreen, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Configurar PIN de Caja',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        Text(
+                                          'PIN de 4 dígitos para desbloqueo rápido de turno',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 11. Salir de Sesión
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              _confirmarCerrarSesion();
+                            },
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.alertRed.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: AppTheme.alertRed.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(9),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.alertRed.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.logOut,
+                                      color: AppTheme.alertRed,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Salir de Sesión',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppTheme.alertRed,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Desconectar el usuario de este terminal de forma segura',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: AppTheme.alertRed,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        );
+            );
           },
         );
       },
     );
   }
 
-  void _mostrarGuiaDidactica() {
+    void _mostrarGuiaDidactica() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
