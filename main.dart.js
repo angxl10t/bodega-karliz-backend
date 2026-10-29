@@ -64793,7 +64793,7 @@ s=A.d(8)
 B.d.H(k,A.a([A.l(e,A.c(b.d,e,e,e,e,A.e().$3$color$fontSize$fontWeight(B.z,11.5,B.u),e,e,e),B.h,e,e,new A.m(a4,e,e,s,e,e,e,B.l),e,e,B.r7,B.az,e,e,e)],a3))}a3=f.d
 a4=A.a([$.S7()],t.VS)
 s=b.b
-k.push(A.cx(!1,a3,A.bg(e,new A.b8(4,A.d(14),B.b2),e,e,e,e,e,e,!0,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,"Cons\xfaltalo en la constancia de tu app "+s,e,e,e,e,"Ej: 849201 (6 a 8 d\xedgitos)",e,e,e,e,e,e,e,e,"C\xf3digo de Operaci\xf3n ("+s+")",!0,!0,!1,e,B.a_S,e,e,e,e,e,e,e,e,e,e,e,e),e,a4,B.eN,e,1,!1,e,e,e,e,B.M,B.R,e))
+k.push(A.cx(!1,a3,A.bg(e,new A.b8(4,A.d(14),B.b2),e,e,e,e,e,e,!0,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,e,"Validaci\xf3n aut\xf3noma en tiempo real v\xeda pasarela "+s,e,e,e,e,"Ej: 849201 (6 a 10 d\xedgitos)",e,e,e,e,e,e,e,e,"C\xf3digo de Operaci\xf3n ("+s+")",!0,!0,!1,e,B.a_S,e,e,e,e,e,e,e,e,e,e,e,e),e,a4,B.eN,e,1,!1,e,e,e,e,B.M,B.R,e))
 k.push(B.aR)
 a4=A.bl(e,e,a0,e,e,e,0,e,e,B.f,e,e,B.cB,e,new A.a3(A.d(14),B.t),e,e,e,e,e)
 s=b.c
