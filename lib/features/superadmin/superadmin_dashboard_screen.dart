@@ -1047,6 +1047,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             bottom: false,
             child: Row(
               children: [
+                if (ModalRoute.of(context)?.canPop ?? false) ...[
+                  IconButton(
+                    icon: const Icon(LucideIcons.arrowLeft, size: 20),
+                    tooltip: 'Regresar',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => Navigator.maybePop(context),
+                  ),
+                  const SizedBox(width: 4),
+                ],
                 // Logo & Badge de Plataforma
                 Container(
                   padding: const EdgeInsets.all(7),

@@ -1203,6 +1203,17 @@ class _VentasScreenState extends State<VentasScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        style: IconButton.styleFrom(
+                          backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
+                          padding: const EdgeInsets.all(6),
+                          minimumSize: const Size(34, 34),
+                        ),
+                        icon: const Icon(LucideIcons.x, size: 18),
+                        tooltip: 'Cerrar Catálogo',
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -5283,6 +5294,9 @@ class _VentasScreenState extends State<VentasScreen> {
                             ),
                           ],
                         ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                         TextButton.icon(
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFFD97706),
@@ -5304,6 +5318,18 @@ class _VentasScreenState extends State<VentasScreen> {
                               },
                             );
                           },
+                        ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              style: IconButton.styleFrom(
+                                padding: const EdgeInsets.all(6),
+                                minimumSize: const Size(32, 32),
+                              ),
+                              icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                              tooltip: 'Cerrar Libreta',
+                              onPressed: () => Navigator.pop(bottomCtx),
+                            ),
+                          ],
                         ),
                       ],
                     ),

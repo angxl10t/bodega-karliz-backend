@@ -238,6 +238,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
               color: cardBg,
               child: Row(
                 children: [
+                  if (ModalRoute.of(context)?.canPop ?? false) ...[
+                    IconButton(
+                      icon: const Icon(LucideIcons.arrowLeft, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      tooltip: 'Regresar',
+                      onPressed: () => Navigator.maybePop(context),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1418,6 +1428,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      padding: const EdgeInsets.all(6),
+                      minimumSize: const Size(32, 32),
+                    ),
+                    icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                    tooltip: 'Cerrar Detalle',
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -1736,6 +1756,18 @@ class _ProductosScreenState extends State<ProductosScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(6),
+                  minimumSize: const Size(32, 32),
+                ),
+                icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                tooltip: 'Cerrar',
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ),
             Center(
               child: Container(
                 width: 58,

@@ -598,6 +598,18 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          IconButton(
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.white.withValues(alpha: 0.12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.all(6),
+              minimumSize: const Size(34, 34),
+            ),
+            tooltip: 'Cerrar Briefing',
+            icon: const Icon(LucideIcons.x, color: Colors.white70, size: 18),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ],
       ),
     );

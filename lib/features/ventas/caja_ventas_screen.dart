@@ -1392,6 +1392,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                             ),
                           ],
                         ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                         TextButton(
                           onPressed: () {
                             setModalState(() {
@@ -1408,6 +1411,18 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                               color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
                             ),
                           ),
+                        ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              style: IconButton.styleFrom(
+                                padding: const EdgeInsets.all(6),
+                                minimumSize: const Size(32, 32),
+                              ),
+                              icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                              tooltip: 'Cerrar Desglose',
+                              onPressed: () => Navigator.pop(sheetCtx),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -1537,41 +1552,72 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                         top: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
                       ),
                     ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.brandPrimary,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                        icon: const Icon(LucideIcons.check, size: 18),
-                        label: Text(
-                          'Aplicar S/ ${total.toStringAsFixed(2)} al Arqueo',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: 50,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              onPressed: () => Navigator.pop(sheetCtx),
+                              child: Text(
+                                'Cancelar',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _conteoFisicoController.text = total.toStringAsFixed(2);
-                            _efectivoContado = total;
-                          });
-                          Navigator.pop(sheetCtx);
-                          if (dialogCtx.mounted) {
-                            ScaffoldMessenger.of(dialogCtx).showSnackBar(
-                              SnackBar(
-                                content: Text('¡Conteo físico de S/ ${total.toStringAsFixed(2)} registrado en caja!'),
-                                backgroundColor: AppTheme.accentGreen,
-                                duration: const Duration(seconds: 3),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.brandPrimary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                               ),
-                            );
-                          }
-                        },
-                      ),
+                              icon: const Icon(LucideIcons.check, size: 18),
+                              label: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  'Aplicar S/ ${total.toStringAsFixed(2)} al Arqueo',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _conteoFisicoController.text = total.toStringAsFixed(2);
+                                  _efectivoContado = total;
+                                });
+                                Navigator.pop(sheetCtx);
+                                if (dialogCtx.mounted) {
+                                  ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                                    SnackBar(
+                                      content: Text('¡Conteo físico de S/ ${total.toStringAsFixed(2)} registrado en caja!'),
+                                      backgroundColor: AppTheme.accentGreen,
+                                      duration: const Duration(seconds: 3),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

@@ -1930,7 +1930,18 @@ class _HomeScreenState extends State<HomeScreen> {
       behavior: HitTestBehavior.translucent,
       onPointerDown: (_) => _resetInactivityTimer(),
       onPointerMove: (_) => _resetInactivityTimer(),
-      child: Scaffold(
+      child: PopScope(
+        canPop: _selectedIndex == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (_selectedIndex != 0) {
+            setState(() {
+              _selectedIndex = 0;
+              _loadedTabs.add(0);
+            });
+          }
+        },
+        child: Scaffold(
         appBar: AppBar(
         titleSpacing: 16,
         elevation: 0,
@@ -2342,6 +2353,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               isDark: isDark,
             ),
+        ),
       ),
     );
   }

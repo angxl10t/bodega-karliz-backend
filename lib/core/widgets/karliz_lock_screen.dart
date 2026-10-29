@@ -514,23 +514,37 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
           ),
           const SizedBox(height: 18),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(LucideIcons.keyRound, size: 20, color: AppTheme.brandPrimary),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(LucideIcons.keyRound, size: 20, color: AppTheme.brandPrimary),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'PIN Rápido de Caja',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.brandInk,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Text(
-                'PIN Rápido de Caja',
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.brandInk,
+              IconButton(
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(6),
+                  minimumSize: const Size(32, 32),
                 ),
+                icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                tooltip: 'Cerrar',
+                onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
@@ -580,17 +594,43 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
             ),
           ],
           const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _guardando ? null : _guardar,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.brandPrimary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            child: _guardando
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text('Guardar PIN', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _guardando ? null : () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                  ),
+                  child: Text(
+                    'Cancelar',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: _guardando ? null : _guardar,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: _guardando
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : Text('Guardar PIN', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
+                ),
+              ),
+            ],
           ),
         ],
       ),

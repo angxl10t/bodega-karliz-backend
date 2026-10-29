@@ -268,6 +268,16 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              IconButton(
+                style: IconButton.styleFrom(
+                  padding: const EdgeInsets.all(6),
+                  minimumSize: const Size(32, 32),
+                ),
+                icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                tooltip: 'Cerrar Ajuste',
+                onPressed: () => Navigator.pop(context),
+              ),
             ],
           ),
           const SizedBox(height: 18),

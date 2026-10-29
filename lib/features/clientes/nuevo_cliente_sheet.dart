@@ -396,25 +396,56 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
               ),
               const SizedBox(height: 22),
 
-              // Botón Guardar
-              SizedBox(
-                height: 50,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.brandPrimary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              // Botones Cancelar y Guardar
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _isGuardando ? null : () => Navigator.pop(context),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  onPressed: _isGuardando ? null : _guardar,
-                  icon: _isGuardando
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Icon(LucideIcons.check, size: 18),
-                  label: Text(
-                    esEdicion ? 'Actualizar Datos' : 'Registrar Vecino en Libreta',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.brandPrimary,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: _isGuardando ? null : _guardar,
+                        icon: _isGuardando
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Icon(LucideIcons.check, size: 18),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            esEdicion ? 'Actualizar Datos' : 'Registrar Vecino',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),

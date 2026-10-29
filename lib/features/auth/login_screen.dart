@@ -958,6 +958,10 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
             onPressed: () => ctrl.text = ApiConstants.defaultBaseUrl,
             child: const Text('Restablecer'),
           ),
