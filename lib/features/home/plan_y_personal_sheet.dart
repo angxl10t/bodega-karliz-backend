@@ -1770,10 +1770,14 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
     final isPro = _currentPlan.toUpperCase() == 'PRO';
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.88,
-      ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 620),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.88,
+          ),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDarkElevated : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -2207,13 +2211,17 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  'Proveedor: ${_bodegaInfo?.sunatProveedor ?? "API Facturador SUNAT Gratuito"}',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    color: AppTheme.textMuted,
+                                Expanded(
+                                  child: Text(
+                                    'Proveedor: ',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 InkWell(
                                   onTap: () => _abrirModalConfiguracionSunat(),
                                   borderRadius: BorderRadius.circular(8),
@@ -2290,14 +2298,18 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Personal Registrado (${_usuarios.length})',
-                          style: GoogleFonts.outfit(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
+                        Expanded(
+                          child: Text(
+                            'Personal Registrado ()',
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         TextButton.icon(
                           onPressed: _abrirCrearUsuarioModal,
                           icon: const Icon(LucideIcons.userPlus, size: 16),
@@ -2432,7 +2444,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildDirectorioBodegasGlobal(bool isDark, Color cardBg, Color borderColor) {

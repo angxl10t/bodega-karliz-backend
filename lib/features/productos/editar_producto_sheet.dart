@@ -306,10 +306,17 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     final inputBg = isDark ? const Color(0xFF101622) : const Color(0xFFF5F6F8);
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 620,
+          maxHeight: MediaQuery.of(context).size.height * 0.92,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),
@@ -856,7 +863,9 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildFotoProductoCard(bool isDark, Color borderColor) {

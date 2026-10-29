@@ -186,10 +186,14 @@ class _HomeScreenState extends State<HomeScreen> {
             final cardBg = isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC);
             final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.88,
-              ),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 620),
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.88,
+                  ),
               decoration: BoxDecoration(
                 color: isDark ? AppTheme.cardDark : Colors.white,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -1594,7 +1598,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },

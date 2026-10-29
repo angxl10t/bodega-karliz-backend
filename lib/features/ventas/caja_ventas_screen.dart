@@ -1337,12 +1337,16 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               difIcon = LucideIcons.trendingDown;
             }
 
-            return Container(
-              height: MediaQuery.of(dialogCtx).size.height * 0.85,
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 580),
+                child: Container(
+                  height: MediaQuery.of(dialogCtx).size.height * 0.85,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
               child: Column(
                 children: [
                   Container(
@@ -1622,7 +1626,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },

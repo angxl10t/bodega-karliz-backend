@@ -62,7 +62,8 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final c = widget.cliente;
 
-    return Center(
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 620,

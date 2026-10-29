@@ -172,9 +172,13 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final esEdicion = widget.clienteExistente != null;
 
-    return Center(
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: MediaQuery.of(context).size.height * 0.90,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,

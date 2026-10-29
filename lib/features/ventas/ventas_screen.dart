@@ -790,10 +790,14 @@ class _VentasScreenState extends State<VentasScreen> {
             final inCart = cartIdx != -1;
             final inCartQty = inCart ? _carrito[cartIdx].cantidad : 0.0;
 
-            return Container(
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 540),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.25),
@@ -1113,7 +1117,9 @@ class _VentasScreenState extends State<VentasScreen> {
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },
@@ -1140,11 +1146,15 @@ class _VentasScreenState extends State<VentasScreen> {
                   (p.codigoBarras ?? '').toLowerCase().contains(q);
             }).toList();
 
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.78,
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.78,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                 border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
               ),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
@@ -1453,7 +1463,9 @@ class _VentasScreenState extends State<VentasScreen> {
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },
@@ -5250,12 +5262,16 @@ class _VentasScreenState extends State<VentasScreen> {
       builder: (bottomCtx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.78,
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-              ),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.78,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  ),
               child: Column(
                 children: [
                   const SizedBox(height: 12),
@@ -5524,7 +5540,9 @@ class _VentasScreenState extends State<VentasScreen> {
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },

@@ -210,9 +210,13 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
       return _buildVistaExito(isDark);
     }
 
-    return Center(
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 540),
+        constraints: BoxConstraints(
+          maxWidth: 540,
+          maxHeight: MediaQuery.of(context).size.height * 0.90,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
@@ -500,9 +504,13 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
     final saldoRestante = _abonoCreado!.saldoRestante;
     final tieneTelefono = widget.cliente.telefono != null && widget.cliente.telefono!.trim().isNotEmpty;
 
-    return Center(
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 540),
+        constraints: BoxConstraints(
+          maxWidth: 540,
+          maxHeight: MediaQuery.of(context).size.height * 0.90,
+        ),
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,

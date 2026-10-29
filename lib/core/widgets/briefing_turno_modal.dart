@@ -273,10 +273,14 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
     final bool isAdmin = _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
     final List<_ConsejoItem> tips = isAdmin ? _consejosAdmin : _consejosCajero;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.90,
-      ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 650),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.90,
+          ),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -492,7 +496,9 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                 ),
               ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildHeader(bool isDark, bool isAdmin) {

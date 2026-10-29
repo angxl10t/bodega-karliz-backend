@@ -715,12 +715,16 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.88,
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 620),
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.88,
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
           : Form(
@@ -1031,6 +1035,8 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                 ],
               ),
             ),
+        ),
+      ),
     );
   }
 }

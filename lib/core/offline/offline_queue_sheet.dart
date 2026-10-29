@@ -22,7 +22,8 @@ class OfflineQueueSheet extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final syncManager = OfflineSyncManager.instance;
 
-    return Center(
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 620,

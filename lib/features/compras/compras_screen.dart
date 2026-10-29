@@ -216,9 +216,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   p.ruc.contains(filtro);
             }).toList();
 
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.75,
-              padding: const EdgeInsets.all(22),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 620),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.75,
+                  padding: const EdgeInsets.all(22),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -388,7 +392,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },
@@ -417,9 +423,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   (p.codigoBarras ?? '').toLowerCase().contains(f);
             }).toList();
 
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.85,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 620),
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.85,
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -653,7 +663,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   ),
                 ],
               ),
-            );
+            ),
+          ),
+        );
           },
         );
       },

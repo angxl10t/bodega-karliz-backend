@@ -130,8 +130,15 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
     final inputBg = isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8);
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
-    return Container(
-      decoration: BoxDecoration(
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: MediaQuery.of(context).size.height * 0.90,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDarkElevated : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
@@ -439,6 +446,8 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
