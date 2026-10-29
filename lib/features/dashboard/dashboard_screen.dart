@@ -141,15 +141,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Banner Ejecutivo Rebrandeado CajaYa
-                    _buildGreetingBanner(isDark),
-                    const SizedBox(height: 14),
-
-                    // Alerta de Quiebre de Stock Inminente (Acceso directo a reabastecimiento)
-                    if (productosCriticos.isNotEmpty) ...[
-                      _buildStockAlertBanner(productosCriticos, isDark),
-                      const SizedBox(height: 14),
-                    ],
+                    // Banner Ejecutivo Rebrandeado CajaYa con badge sutil de stock
+                    _buildGreetingBanner(isDark, productosCriticos),
+                    const SizedBox(height: 16),
 
                     // Título de Métricas
                     Row(
@@ -180,7 +174,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Cuadrícula de KPIs Responsiva
+                    // Cuadrícula de KPIs Responsiva (4 Pilares Fundamentales)
                     LayoutBuilder(
                       builder: (context, constraints) {
                         return Wrap(
@@ -191,7 +185,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               constraints: constraints,
                               title: 'Ventas de Hoy',
                               value: 'S/ ${(_cierreHoy?.totalVentas ?? 0.0).toStringAsFixed(2)}',
-                              subtitle: '${_cierreHoy?.cantidadVentas ?? 0} ventas hoy (En vivo)',
+                              subtitle: '${_cierreHoy?.cantidadVentas ?? 0} ventas hoy',
                               icon: LucideIcons.badgePercent,
                               accentColor: AppTheme.accentGreen,
                               isDark: isDark,
@@ -199,9 +193,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             _buildMetricTile(
                               constraints: constraints,
-                              title: 'Fiados & Vecinos',
+                              title: 'Fiados por Cobrar',
                               value: 'S/ ${(_resumenCreditos?.totalDeuda ?? 0.0).toStringAsFixed(2)}',
-                              subtitle: '${_resumenCreditos?.clientesConDeuda ?? 0} con saldo pendiente',
+                              subtitle: '${_resumenCreditos?.clientesConDeuda ?? 0} vecinos con saldo',
                               icon: LucideIcons.bookUser,
                               accentColor: const Color(0xFFD97706),
                               isDark: isDark,
@@ -211,7 +205,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               constraints: constraints,
                               title: 'Valor en Mercadería',
                               value: 'S/ ${valorInventario.toStringAsFixed(2)}',
-                              subtitle: '${stockTotalUnidades % 1 == 0 ? stockTotalUnidades.toInt().toString() : stockTotalUnidades.toStringAsFixed(2)} unidades valorizadas',
+                              subtitle: '${stockTotalUnidades % 1 == 0 ? stockTotalUnidades.toInt().toString() : stockTotalUnidades.toStringAsFixed(1)} u. en almacén',
                               icon: LucideIcons.wallet,
                               accentColor: AppTheme.brandPrimary,
                               isDark: isDark,
@@ -219,31 +213,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             _buildMetricTile(
                               constraints: constraints,
-                              title: 'Catálogo Activo',
+                              title: 'Catálogo & Stock',
                               value: '$totalProductos Items',
-                              subtitle: 'Productos registrados',
+                              subtitle: productosCriticos.isNotEmpty
+                                  ? '${productosCriticos.length} por reponer • Ver catálogo'
+                                  : 'Existencias saludables',
                               icon: LucideIcons.boxes,
-                              accentColor: AppTheme.infoIndigo,
-                              isDark: isDark,
-                              onTap: () => widget.onNavigateTab(3), // Tab Inventario
-                            ),
-                            _buildMetricTile(
-                              constraints: constraints,
-                              title: 'Stock Crítico (≤ 5 u.)',
-                              value: '${productosCriticos.length}',
-                              subtitle: productosCriticos.isNotEmpty ? 'Requiere pedido urgente' : 'Sin faltantes',
-                              icon: LucideIcons.alertCircle,
-                              accentColor: AppTheme.alertRed,
-                              isDark: isDark,
-                              onTap: () => widget.onNavigateTab(3), // Tab Inventario
-                            ),
-                            _buildMetricTile(
-                              constraints: constraints,
-                              title: 'Stock Bajo (6-10 u.)',
-                              value: '${productosBajos.length}',
-                              subtitle: 'Próximos a reponer',
-                              icon: LucideIcons.clock,
-                              accentColor: AppTheme.warningAmber,
+                              accentColor: productosCriticos.isNotEmpty ? AppTheme.alertRed : AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () => widget.onNavigateTab(3), // Tab Inventario
                             ),
@@ -289,6 +265,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.shoppingBag,
                               color: AppTheme.brandPrimary,
                               isDark: isDark,
+                              isPrimaryHero: true,
                               onTap: () => widget.onNavigateTab(1), // Tab POS
                             ),
                             _buildQuickActionBtn(
@@ -296,7 +273,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Arqueo de Caja',
                               subtitle: 'Corte & Historial',
                               icon: LucideIcons.banknote,
-                              color: AppTheme.accentGreen,
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () => widget.onNavigateTab(2), // Tab Caja
                             ),
@@ -305,7 +282,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Libreta de Fiados',
                               subtitle: 'Cobros & WhatsApp',
                               icon: LucideIcons.bookUser,
-                              color: const Color(0xFFD97706),
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () => widget.onNavigateTab(4), // Tab Fiados
                             ),
@@ -314,7 +291,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Ver Inventario',
                               subtitle: 'Stock & Filtros',
                               icon: LucideIcons.boxes,
-                              color: AppTheme.infoIndigo,
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () => widget.onNavigateTab(3), // Tab Stock
                             ),
@@ -323,7 +300,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Compras & Lotes',
                               subtitle: 'Ingreso Proveedores',
                               icon: LucideIcons.truck,
-                              color: const Color(0xFF0284C7),
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () {
                                 Navigator.push(
@@ -337,7 +314,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Kardex Auditoría',
                               subtitle: 'Historial de Movimientos',
                               icon: LucideIcons.fileSpreadsheet,
-                              color: const Color(0xFF0D9488),
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () {
                                 Navigator.push(
@@ -351,7 +328,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Analítica & BI',
                               subtitle: 'Márgenes & Picos',
                               icon: LucideIcons.trendingUp,
-                              color: const Color(0xFF6366F1),
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               onTap: () {
                                 Navigator.push(
@@ -374,7 +351,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Personal & Cajeros',
                               subtitle: 'Turnos & Accesos del Equipo',
                               icon: LucideIcons.users,
-                              color: const Color(0xFF6366F1),
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               isBanner: !isDesktop,
                               onTap: () => PlanYPersonalSheet.show(
@@ -574,7 +551,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildGreetingBanner(bool isDark) {
+  Widget _buildGreetingBanner(bool isDark, [List<Producto> criticos = const []]) {
     final String initial = _username.isNotEmpty ? _username[0].toUpperCase() : 'U';
     final bool isAdmin = _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
 
@@ -767,6 +744,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                       ),
+
+                      // Badge sutil de quiebre de stock si hay productos críticos
+                      if (criticos.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        InkWell(
+                          onTap: () => widget.onNavigateTab(3), // Tab Inventario
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.alertRed.withValues(alpha: 0.22),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppTheme.alertRed.withValues(alpha: 0.5),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  LucideIcons.triangleAlert,
+                                  size: 11,
+                                  color: Color(0xFFFCA5A5),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${criticos.length} por reponer',
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -936,142 +953,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStockAlertBanner(List<Producto> criticos, bool isDark) {
-    if (criticos.isEmpty) return const SizedBox.shrink();
-
-    final topCriticos = criticos.take(4).toList();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A1215) : const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.red.withValues(alpha: isDark ? 0.2 : 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.alertRed.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(LucideIcons.triangleAlert, color: AppTheme.alertRed, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Alerta de Quiebre de Stock',
-                      style: GoogleFonts.outfit(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      '${criticos.length} productos con stock crítico (≤ 5 u.)',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.alertRed,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  elevation: 0,
-                ),
-                onPressed: () => widget.onNavigateTab(3), // Tab Inventario
-                icon: const Icon(LucideIcons.boxes, size: 14),
-                label: Text(
-                  'Reponer',
-                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: topCriticos.map((p) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF3F171A) : Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF991B1B) : const Color(0xFFFCA5A5),
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 140),
-                      child: Text(
-                        p.nombre,
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppTheme.textDark,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppTheme.alertRed.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${p.stockActual.toInt()} u.',
-                        style: GoogleFonts.outfit(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.alertRed,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
           ),
         ],
       ),
@@ -1377,11 +1258,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required bool isDark,
     VoidCallback? onTap,
   }) {
-    final double cardWidth = constraints.maxWidth >= 1100
-        ? (constraints.maxWidth - 40) / 5
-        : (constraints.maxWidth >= 720
-            ? (constraints.maxWidth - 20) / 3
-            : (constraints.maxWidth > 460
+    final double cardWidth = constraints.maxWidth >= 1050
+        ? (constraints.maxWidth - 30) / 4
+        : (constraints.maxWidth >= 580
+            ? (constraints.maxWidth - 10) / 2
+            : (constraints.maxWidth > 350
                 ? (constraints.maxWidth - 10) / 2
                 : constraints.maxWidth));
 
@@ -1452,16 +1333,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: GoogleFonts.outfit(
-                    fontSize: 19.0,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.3,
-                    color: isDark ? Colors.white : AppTheme.textDark,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: GoogleFonts.outfit(
+                      fontSize: 19.0,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.3,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                    maxLines: 1,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   subtitle,
@@ -1502,9 +1386,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required VoidCallback onTap,
     double? width,
     bool isBanner = false,
+    bool isPrimaryHero = false,
   }) {
+    final Color cardBg = isPrimaryHero
+        ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.35) : const Color(0xFFEFF6FF))
+        : (isDark ? AppTheme.cardDark : Colors.white);
+
+    final Color borderColor = isPrimaryHero
+        ? (isDark ? const Color(0xFF3B82F6) : const Color(0xFF93C5FD))
+        : (isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight);
+
+    final Color iconBg = isPrimaryHero
+        ? AppTheme.brandPrimary
+        : color.withValues(alpha: isDark ? 0.20 : 0.10);
+
+    final Color iconColor = isPrimaryHero
+        ? Colors.white
+        : (isDark ? const Color(0xFF60A5FA) : color);
+
     final card = Material(
-      color: isDark ? AppTheme.cardDark : Colors.white,
+      color: cardBg,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
@@ -1515,8 +1416,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
-              width: 1.2,
+              color: borderColor,
+              width: isPrimaryHero ? 1.6 : 1.2,
             ),
           ),
           child: isBanner
@@ -1525,10 +1426,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                        color: iconBg,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(icon, color: color, size: 20),
+                      child: Icon(icon, color: iconColor, size: 20),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -1536,15 +1437,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            title,
-                            style: GoogleFonts.outfit(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Text(
+                                title,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (isPrimaryHero) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.brandPrimary,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'PRINCIPAL',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -1570,13 +1493,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: isDark ? 0.2 : 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(icon, color: color, size: 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: iconBg,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(icon, color: iconColor, size: 18),
+                        ),
+                        if (isPrimaryHero)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.brandPrimary,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Text(
+                              'PRINCIPAL',
+                              style: GoogleFonts.outfit(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     Text(
