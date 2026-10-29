@@ -70,7 +70,7 @@ public class ProductoController {
 
     private static final int MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB max
     private static final java.util.Set<String> ALLOWED_IMAGE_TYPES = java.util.Set.of(
-        "image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml", "image/avif"
+        "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"
     );
 
     /**
