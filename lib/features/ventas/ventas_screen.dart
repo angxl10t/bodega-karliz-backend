@@ -95,8 +95,7 @@ class _VentasScreenState extends State<VentasScreen> {
     };
     final Set<String> uniqueCats = {};
     for (final p in _safeDisponibles) {
-      final cat = p.nombreCategoria?.trim();
-      final catKey = (cat != null && cat.isNotEmpty) ? cat : 'General';
+      final catKey = CategoryHelper.normalize(p.nombreCategoria);
       uniqueCats.add(catKey);
       counts[catKey] = (counts[catKey] ?? 0) + 1;
     }
@@ -120,7 +119,7 @@ class _VentasScreenState extends State<VentasScreen> {
 
     return _safeDisponibles.where((p) {
       if (_tabletSelectedCategoria != null && _tabletSelectedCategoria != 'Todos') {
-        final cat = p.nombreCategoria?.trim() ?? 'General';
+        final cat = CategoryHelper.normalize(p.nombreCategoria);
         if (cat != _tabletSelectedCategoria) return false;
       }
       if (_tabletSearchQuery.isNotEmpty) {

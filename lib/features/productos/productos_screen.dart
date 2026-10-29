@@ -52,8 +52,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
     final Map<String, int> counts = {'Todos': _safeTodos.length};
     final Set<String> cats = {};
     for (final p in _safeTodos) {
-      final c = p.nombreCategoria?.trim();
-      final catKey = (c != null && c.isNotEmpty) ? c : 'General';
+      final catKey = CategoryHelper.normalize(p.nombreCategoria);
       cats.add(catKey);
       counts[catKey] = (counts[catKey] ?? 0) + 1;
     }
@@ -150,7 +149,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
         // 2. Filtro por Categoría seleccionada
         if (_selectedCategoria != 'Todos') {
-          final cat = p.nombreCategoria?.trim() ?? 'General';
+          final cat = CategoryHelper.normalize(p.nombreCategoria);
           if (cat != _selectedCategoria) return false;
         }
 

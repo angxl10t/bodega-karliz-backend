@@ -7,6 +7,25 @@ import 'theme.dart';
 class CategoryHelper {
   CategoryHelper._();
 
+  /// Sanitiza y unifica nombres de categorías en las 12 canónicas del sistema CajaYa Cloud POS
+  static String normalize(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return 'General';
+    final clean = raw.trim();
+    final lower = clean.toLowerCase();
+    if (lower.contains('bebidas refrescantes') || lower == 'bebidas y gaseosas' || lower == 'bebidas') {
+      return 'Gaseosas y Bebidas';
+    }
+    if (lower == 'licores y cervezas') return 'Bebidas Alcohólicas';
+    if (lower == 'snacks y golosinas') return 'Snacks y Piqueos';
+    if (lower == 'lácteos y huevos' || lower == 'lacteos y huevos') return 'Lácteos y Derivados';
+    if (lower == 'abarrotes y fideos') return 'Abarrotes y Despensa';
+    if (lower == 'helados y postres') return 'Helados y Congelados';
+    if (lower == 'cuidado personal') return 'Cuidado Personal y Dental';
+    if (lower == 'limpieza del hogar') return 'Limpieza y Cuidado del Hogar';
+    if (lower == 'cigarrillos y tabacos') return 'Cigarrillos y Tabaco';
+    return clean;
+  }
+
   static IconData getIcon(String? categoryName) {
     if (categoryName == null) return LucideIcons.package2;
     final cat = categoryName.toLowerCase().trim();
