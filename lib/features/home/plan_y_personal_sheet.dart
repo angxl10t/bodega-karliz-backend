@@ -1084,7 +1084,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                     SnackBar(
                                       backgroundColor: AppTheme.accentGreen,
                                       content: Text(
-                                        '🎉 ¡Suscripción actualizada exitosamente con $billetera! Tu plan $planSeleccionado está activo por 30 días adicionales.',
+                                        '¡Suscripción actualizada exitosamente con $billetera! Tu plan $planSeleccionado está activo por 30 días adicionales.',
                                         style: const TextStyle(fontWeight: FontWeight.w600),
                                       ),
                                     ),
@@ -1726,8 +1726,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                       backgroundColor: AppTheme.accentGreen,
                                       content: Text(
                                         activa
-                                            ? '✅ Emisión de Boletas B001 configurada exitosamente.'
-                                            : 'ℹ️ Modo interno activado. Las ventas se emitirán como tickets de mostrador.',
+                                            ? 'Emisión de Boletas B001 configurada exitosamente.'
+                                            : 'Modo interno activado. Las ventas se emitirán como tickets de mostrador.',
                                       ),
                                     ),
                                   );
@@ -1938,8 +1938,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           const SizedBox(height: 8),
                           Text(
                             isPro
-                                ? '✓ Cajeros y administradores ilimitados con PIN.\n✓ Control de turnos y sincronización en tiempo real.\n✓ Almacén y Kardex protegidos contra fraudes.\n✓ Personalización de colores y logo en tickets.\n✓ Emisión oficial de Boletas de Venta B001 disponible.'
-                                : '✓ 1 Administrador + hasta 2 Cajeros activos con PIN.\n✓ Punto de Venta rápido, Control de Stock y Caja diaria.\n✓ Emisión de tickets digitales y reportes de ventas.',
+                                ? '• Cajeros y administradores ilimitados con PIN.\n• Control de turnos y sincronización en tiempo real.\n• Almacén y Kardex protegidos contra fraudes.\n• Personalización de colores y logo en tickets.\n• Emisión oficial de Boletas de Venta B001 disponible.'
+                                : '• 1 Administrador + hasta 2 Cajeros activos con PIN.\n• Punto de Venta rápido, Control de Stock y Caja diaria.\n• Emisión de tickets digitales y reportes de ventas.',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               color: Colors.white.withValues(alpha: 0.9),

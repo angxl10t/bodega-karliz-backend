@@ -64,7 +64,7 @@ class _VentasScreenState extends State<VentasScreen> {
   final _pagoConController = TextEditingController();
   final _tabletSearchCtrl = TextEditingController();
   String _tabletSearchQuery = '';
-  String? _tabletSelectedCategoria = '⭐ Frecuentes';
+  String? _tabletSelectedCategoria = 'Frecuentes';
 
   final FocusNode _screenFocusNode = FocusNode();
   final FocusNode _tabletSearchFocusNode = FocusNode();
@@ -80,8 +80,8 @@ class _VentasScreenState extends State<VentasScreen> {
     return stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(2);
   }
 
-  List<String> _tabletCategorias = ['⭐ Frecuentes', 'Todos'];
-  Map<String, int> _tabletCategoryCounts = {'⭐ Frecuentes': 0, 'Todos': 0};
+  List<String> _tabletCategorias = ['Frecuentes', 'Todos'];
+  Map<String, int> _tabletCategoryCounts = {'Frecuentes': 0, 'Todos': 0};
   List<Producto> _frecuentesProductos = [];
 
   void _recalcularTabletCatalogCache() {
@@ -90,7 +90,7 @@ class _VentasScreenState extends State<VentasScreen> {
     _frecuentesProductos = copy.take(16).toList();
 
     final Map<String, int> counts = {
-      '⭐ Frecuentes': _frecuentesProductos.length,
+      'Frecuentes': _frecuentesProductos.length,
       'Todos': _safeDisponibles.length,
     };
     final Set<String> uniqueCats = {};
@@ -99,12 +99,12 @@ class _VentasScreenState extends State<VentasScreen> {
       uniqueCats.add(catKey);
       counts[catKey] = (counts[catKey] ?? 0) + 1;
     }
-    _tabletCategorias = ['⭐ Frecuentes', 'Todos', ...(uniqueCats.toList()..sort())];
+    _tabletCategorias = ['Frecuentes', 'Todos', ...(uniqueCats.toList()..sort())];
     _tabletCategoryCounts = counts;
   }
 
   List<Producto> get _filteredTabletProductos {
-    if (_tabletSelectedCategoria == '⭐ Frecuentes') {
+    if (_tabletSelectedCategoria == 'Frecuentes') {
       if (_tabletSearchQuery.isNotEmpty) {
         final q = _tabletSearchQuery.toLowerCase().trim();
         return _frecuentesProductos.where((p) =>
@@ -526,7 +526,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      '⚠️ "${productoEncontrado.nombre}" existe en el catálogo pero no tiene stock disponible (0 u.)',
+                      'El producto "${productoEncontrado.nombre}" existe en el catálogo pero no cuenta con stock disponible (0 u.)',
                       style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -553,9 +553,17 @@ class _VentasScreenState extends State<VentasScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                '⚠️ Stock máximo alcanzado para "${productoEncontrado.nombre}" (${_formatStock(productoEncontrado.stockActual)} u. disponibles)',
-                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+              content: Row(
+                children: [
+                  const Icon(LucideIcons.triangleAlert, color: Colors.white, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Stock máximo alcanzado para "${productoEncontrado.nombre}" (${_formatStock(productoEncontrado.stockActual)} u. disponibles)',
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
               backgroundColor: AppTheme.alertRed,
               duration: const Duration(seconds: 3),
@@ -580,7 +588,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '✓ Agregado: ${productoEncontrado.nombre} (S/ ${productoEncontrado.precioVenta.toStringAsFixed(2)}) • Quedan ${restante.toStringAsFixed(0)} u.',
+                    'Agregado: ${productoEncontrado.nombre} (S/ ${productoEncontrado.precioVenta.toStringAsFixed(2)}) • Quedan ${restante.toStringAsFixed(0)} u.',
                     style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -607,7 +615,7 @@ class _VentasScreenState extends State<VentasScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '⚠️ Código "$codeClean" no encontrado en el inventario',
+                  'Código "$codeClean" no encontrado en el inventario',
                   style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -1553,7 +1561,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '⚠️ Indica con cuánto paga el cliente o presiona "Pago Exacto" para continuar.',
+                    'Indica con cuánto paga el cliente o presiona "Pago Exacto" para continuar.',
                     style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -1579,7 +1587,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '⚠️ Monto insuficiente: el cliente pagó S/ ${_montoRecibido.toStringAsFixed(2)}, faltan S/ ${faltante.toStringAsFixed(2)} para completar el total de S/ ${_totalVenta.toStringAsFixed(2)}.',
+                    'Monto insuficiente: el cliente pagó S/ ${_montoRecibido.toStringAsFixed(2)}, faltan S/ ${faltante.toStringAsFixed(2)} para completar el total de S/ ${_totalVenta.toStringAsFixed(2)}.',
                     style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -1606,7 +1614,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '⚠️ Selecciona un cliente para registrar la venta al crédito en la libreta.',
+                    'Selecciona un cliente para registrar la venta al crédito en la libreta.',
                     style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -1628,7 +1636,7 @@ class _VentasScreenState extends State<VentasScreen> {
       if (item.producto.idProducto == null || item.producto.idProducto! <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('⚠️ El producto "${item.producto.nombre}" no tiene un ID válido. Actualiza la lista.'),
+            content: Text('El producto "${item.producto.nombre}" no tiene un ID válido. Actualiza la lista.'),
             backgroundColor: AppTheme.alertRed,
           ),
         );
@@ -1642,7 +1650,7 @@ class _VentasScreenState extends State<VentasScreen> {
         KarlizSoundService.instance.playErrorBeep();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('⚠️ Por favor ingresa un DNI válido de 8 dígitos numéricos.'),
+            content: Text('Por favor ingresa un DNI válido de 8 dígitos numéricos.'),
             backgroundColor: AppTheme.alertRed,
           ),
         );
@@ -1656,7 +1664,7 @@ class _VentasScreenState extends State<VentasScreen> {
           KarlizSoundService.instance.playErrorBeep();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('⚠️ Normativa SUNAT: Para Boletas de Venta iguales o mayores a S/ 700.00 es obligatorio identificar al cliente con su DNI.'),
+              content: Text('Normativa SUNAT: Para Boletas de Venta iguales o mayores a S/ 700.00 es obligatorio identificar al cliente con su DNI.'),
               backgroundColor: AppTheme.alertRed,
             ),
           );

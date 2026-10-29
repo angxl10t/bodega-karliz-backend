@@ -490,7 +490,7 @@ class ThermalTicketService {
     buffer.writeln(twoColumns('DEUDA ANTERIOR:', 'S/ ${saldoAnterior.toStringAsFixed(2)}', width));
     buffer.writeln(twoColumns('MONTO ABONADO:', 'S/ ${montoAbonado.toStringAsFixed(2)}', width));
     buffer.writeln(divider(width, '-'));
-    final estadoDeuda = saldoRestante <= 0.01 ? 'DEUDA CANCELADA 🎉' : 'S/ ${saldoRestante.toStringAsFixed(2)}';
+    final estadoDeuda = saldoRestante <= 0.01 ? 'DEUDA CANCELADA' : 'S/ ${saldoRestante.toStringAsFixed(2)}';
     buffer.writeln(twoColumns('SALDO PENDIENTE:', estadoDeuda, width));
     buffer.writeln(divider(width, '='));
 

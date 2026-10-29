@@ -160,7 +160,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('⚠️ Código "$scannedCode" no encontrado en catálogo de productos'),
+            content: Text('Código "$scannedCode" no encontrado en el catálogo de productos'),
             backgroundColor: AppTheme.alertRed,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
@@ -832,7 +832,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   final cantFormatted = c % 1 == 0 ? c.toInt().toString() : c.toStringAsFixed(2);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('✓ Agregado: ${p.nombre} ($cantFormatted u.)'),
+                      content: Text('Agregado: ${p.nombre} ($cantFormatted u.)'),
                       backgroundColor: AppTheme.accentGreen,
                       duration: const Duration(seconds: 1),
                     ),
@@ -894,7 +894,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       setState(() => _isProcesando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ No se pudo determinar el ID del proveedor. Vuelve a seleccionarlo de la lista.'),
+          content: Text('No se pudo determinar el ID del proveedor. Vuelve a seleccionarlo de la lista.'),
           backgroundColor: AppTheme.alertRed,
         ),
       );

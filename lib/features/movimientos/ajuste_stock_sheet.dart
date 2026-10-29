@@ -416,13 +416,21 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
           ),
           if (stockInvalido) ...[
             const SizedBox(height: 6),
-            Text(
-              '⚠️ La merma excede las existencias disponibles en tienda.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.alertRed,
-              ),
+            Row(
+              children: [
+                const Icon(LucideIcons.triangleAlert, size: 13, color: AppTheme.alertRed),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    'La merma excede las existencias disponibles en tienda.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.alertRed,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
           const SizedBox(height: 18),

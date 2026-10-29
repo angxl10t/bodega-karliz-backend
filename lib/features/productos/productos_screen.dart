@@ -424,7 +424,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'Alertas semáforo 🔴 🟡 🟢',
+                                    'Monitoreo preventivo por lotes',
                                     style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   ),
                                 ],
@@ -1805,11 +1805,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
               ),
               child: Column(
                 children: [
-                  _buildVentajaPro('🚀 Catálogo y Productos Ilimitados', 'Registra todos los SKUs que necesites sin restricciones.', isDark),
+                  _buildVentajaPro('Catálogo y Productos Ilimitados', 'Registra todos los SKUs que necesites sin restricciones.', isDark),
                   const SizedBox(height: 10),
-                  _buildVentajaPro('👥 Múltiples Cajeros con PIN', 'Crea usuarios independientes para cada turno y terminal.', isDark),
+                  _buildVentajaPro('Múltiples Cajeros con PIN', 'Crea usuarios independientes para cada turno y terminal.', isDark),
                   const SizedBox(height: 10),
-                  _buildVentajaPro('🧾 Boletas y Tickets Oficiales', 'Emite Boletas de Venta oficiales (Nuevo RUS) y Tickets de mostrador ilimitados.', isDark),
+                  _buildVentajaPro('Boletas y Tickets Oficiales', 'Emite Boletas de Venta oficiales (Nuevo RUS) y Tickets de mostrador ilimitados.', isDark),
                 ],
               ),
             ),

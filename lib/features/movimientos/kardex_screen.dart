@@ -347,7 +347,7 @@ class _KardexScreenState extends State<KardexScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('📊', style: TextStyle(fontSize: 16)),
+                    const Icon(LucideIcons.barChart3, size: 16, color: AppTheme.brandPrimary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(

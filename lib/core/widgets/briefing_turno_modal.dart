@@ -563,7 +563,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                   children: [
                     Flexible(
                       child: Text(
-                        '¡Hola, $_username! 👋',
+                        '¡Hola, $_username!',
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 18,

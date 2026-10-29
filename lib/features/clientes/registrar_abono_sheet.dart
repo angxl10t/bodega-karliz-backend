@@ -583,7 +583,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                   children: [
                     Text('Saldo Restante:', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700)),
                     Text(
-                      saldoRestante <= 0.01 ? 'DEUDA CANCELADA 🎉' : 'S/ ${saldoRestante.toStringAsFixed(2)}',
+                      saldoRestante <= 0.01 ? 'DEUDA CANCELADA' : 'S/ ${saldoRestante.toStringAsFixed(2)}',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,

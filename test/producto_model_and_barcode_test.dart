@@ -278,7 +278,7 @@ void main() {
       expect(CategoryHelper.getIcon('Golosinas y Dulces'), LucideIcons.candy);
       expect(CategoryHelper.getIcon('Panadería'), LucideIcons.croissant);
       expect(CategoryHelper.getIcon('Frutas y Verduras'), LucideIcons.apple);
-      expect(CategoryHelper.getIcon('⭐ Frecuentes'), LucideIcons.flame);
+      expect(CategoryHelper.getIcon('Frecuentes'), LucideIcons.flame);
       expect(CategoryHelper.getIcon('Todos'), LucideIcons.layoutGrid);
       expect(CategoryHelper.getIcon('Desconocido'), LucideIcons.package2);
       expect(CategoryHelper.getIcon(null), LucideIcons.package2);

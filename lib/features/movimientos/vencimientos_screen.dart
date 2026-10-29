@@ -357,7 +357,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('💡', style: TextStyle(fontSize: 15)),
+                                      Icon(LucideIcons.lightbulb, size: 15, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(

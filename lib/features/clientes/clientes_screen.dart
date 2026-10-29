@@ -968,7 +968,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('💡', style: TextStyle(fontSize: 16)),
+                    Icon(LucideIcons.lightbulb, size: 16, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -1152,7 +1152,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
-                      tieneDeuda ? 'Debe S/ ${c.saldoDeudor.toStringAsFixed(2)}' : 'Al Día ✨',
+                      tieneDeuda ? 'Debe S/ ${c.saldoDeudor.toStringAsFixed(2)}' : 'Al Día',
                       maxLines: 1,
                       style: GoogleFonts.outfit(
                         fontSize: 12,

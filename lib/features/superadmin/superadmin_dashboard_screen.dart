@@ -295,7 +295,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         const SizedBox(width: 8),
                         Expanded(
                           child: ChoiceChip(
-                            label: const Center(child: Text('Plan PRO ⭐')),
+                            label: const Center(child: Text('Plan PRO')),
                             selected: plan == 'PRO',
                             onSelected: (val) {
                               if (val) setModalState(() => plan = 'PRO');
@@ -515,14 +515,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('⚠️ Advertencia'),
+                      avatar: const Icon(LucideIcons.triangleAlert, size: 14, color: AppTheme.warningAmber),
+                      label: const Text('Advertencia'),
                       selected: tipo == 'WARNING',
                       onSelected: (val) {
                         if (val) setModalState(() => tipo = 'WARNING');
                       },
                     ),
                     ChoiceChip(
-                      label: const Text('🚨 Urgente'),
+                      avatar: const Icon(LucideIcons.alertOctagon, size: 14, color: AppTheme.alertRed),
+                      label: const Text('Urgente'),
                       selected: tipo == 'URGENTE',
                       onSelected: (val) {
                         if (val) setModalState(() => tipo = 'URGENTE');
@@ -745,7 +747,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     const SizedBox(width: 8),
                     Expanded(
                       child: ChoiceChip(
-                        label: const Center(child: Text('Plan PRO ⭐')),
+                        label: const Center(child: Text('Plan PRO')),
                         selected: planElegido == 'PRO',
                         onSelected: (val) {
                           if (val) setModalState(() => planElegido = 'PRO');

@@ -282,7 +282,7 @@ class _MermasScreenState extends State<MermasScreen> {
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('📋', style: TextStyle(fontSize: 15)),
+                                      const Icon(LucideIcons.clipboardList, size: 16, color: AppTheme.brandPrimary),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
