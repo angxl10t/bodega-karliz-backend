@@ -38,7 +38,11 @@ public class DataInitializer implements ApplicationRunner {
     private String configuredSuperadminPassword;
 
     @org.springframework.beans.factory.annotation.Value("${cajaya.seed.demo-accounts:false}")
-    private boolean seedDemoAccounts;
+    private String seedDemoAccountsRaw;
+
+    private boolean isSeedDemoAccountsEnabled() {
+        return "true".equalsIgnoreCase(seedDemoAccountsRaw) || "1".equals(seedDemoAccountsRaw);
+    }
 
     public DataInitializer(JdbcTemplate jdbcTemplate,
                            BodegaRepository bodegaRepository,
@@ -221,7 +225,7 @@ public class DataInitializer implements ApplicationRunner {
         }
 
         // B. Cuentas de demostracion (Solo si cajaya.seed.demo-accounts=true)
-        if (seedDemoAccounts) {
+        if (isSeedDemoAccountsEnabled()) {
             Optional<Usuario> adminKarlizOpt = usuarioRepository.findByUsernameIgnoreCase("admin_karliz");
             if (adminKarlizOpt.isEmpty()) {
                 Usuario adminKarliz = new Usuario();
