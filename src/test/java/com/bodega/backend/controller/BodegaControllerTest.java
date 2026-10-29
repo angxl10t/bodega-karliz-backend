@@ -28,6 +28,12 @@ public class BodegaControllerTest {
     @Mock
     private BodegaService bodegaService;
 
+    @Mock
+    private com.bodega.backend.security.PagoRateLimiterService pagoRateLimiterService;
+
+    @Mock
+    private com.bodega.backend.service.TenantService tenantService;
+
     @InjectMocks
     private BodegaController bodegaController;
 

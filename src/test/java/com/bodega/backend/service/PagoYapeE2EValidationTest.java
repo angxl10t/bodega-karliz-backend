@@ -80,7 +80,7 @@ public class PagoYapeE2EValidationTest {
         solicitud.setBilletera("YAPE");
 
         // Simular que en la base de datos de abonos bancarios no existe ese código
-        when(yapeTransaccionRecibidaRepository.findFirstByCodigoOperacionAndUsadoFalse("99988877"))
+        when(yapeTransaccionRecibidaRepository.findByCodigoOperacionForUpdate("99988877"))
                 .thenReturn(Optional.empty());
         when(yapeTransaccionRecibidaRepository.findFirstByCodigoOperacion("99988877"))
                 .thenReturn(Optional.empty());
@@ -125,7 +125,7 @@ public class PagoYapeE2EValidationTest {
         tx.setNombreRemitente("Pedro Quispe");
         tx.setUsado(false);
 
-        when(yapeTransaccionRecibidaRepository.findFirstByCodigoOperacionAndUsadoFalse("849201"))
+        when(yapeTransaccionRecibidaRepository.findByCodigoOperacionForUpdate("849201"))
                 .thenReturn(Optional.of(tx));
 
         // 2. El bodeguero envía su solicitud de Plan PRO por S/ 100
@@ -159,7 +159,7 @@ public class PagoYapeE2EValidationTest {
         txUsada.setMonto(new BigDecimal("100.00"));
         txUsada.setUsado(true);
 
-        when(yapeTransaccionRecibidaRepository.findFirstByCodigoOperacionAndUsadoFalse("849201"))
+        when(yapeTransaccionRecibidaRepository.findByCodigoOperacionForUpdate("849201"))
                 .thenReturn(Optional.empty());
         when(yapeTransaccionRecibidaRepository.findFirstByCodigoOperacion("849201"))
                 .thenReturn(Optional.of(txUsada));
@@ -186,7 +186,7 @@ public class PagoYapeE2EValidationTest {
         tx.setMonto(new BigDecimal("50.00"));
         tx.setUsado(false);
 
-        when(yapeTransaccionRecibidaRepository.findFirstByCodigoOperacionAndUsadoFalse("554433"))
+        when(yapeTransaccionRecibidaRepository.findByCodigoOperacionForUpdate("554433"))
                 .thenReturn(Optional.of(tx));
 
         PagoYapeDTO solicitud = new PagoYapeDTO();

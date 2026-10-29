@@ -214,7 +214,7 @@ public class SecurityConfig {
 
         configuration.setAllowedOriginPatterns(List.of(
 
-            "https://*.onrender.com",
+            "https://bodega-karliz-backend.onrender.com",
 
             "https://cajaya-pos.onrender.com",
 

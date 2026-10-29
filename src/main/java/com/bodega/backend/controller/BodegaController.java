@@ -2,20 +2,32 @@ package com.bodega.backend.controller;
 
 import com.bodega.backend.dto.ActualizarBodegaDTO;
 import com.bodega.backend.dto.BodegaDTO;
+import com.bodega.backend.security.ClientIpUtil;
+import com.bodega.backend.security.PagoRateLimiterService;
 import com.bodega.backend.service.BodegaService;
+import com.bodega.backend.service.TenantService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/bodegas")
 public class BodegaController {
 
     private final BodegaService bodegaService;
+    private final PagoRateLimiterService pagoRateLimiterService;
+    private final TenantService tenantService;
 
-    public BodegaController(BodegaService bodegaService) {
+    public BodegaController(BodegaService bodegaService,
+                            PagoRateLimiterService pagoRateLimiterService,
+                            TenantService tenantService) {
         this.bodegaService = bodegaService;
+        this.pagoRateLimiterService = pagoRateLimiterService;
+        this.tenantService = tenantService;
     }
 
     @GetMapping("/mi-bodega")
@@ -44,9 +56,37 @@ public class BodegaController {
 
     @PostMapping("/pago-yape")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<BodegaDTO> registrarPagoYape(@Valid @RequestBody com.bodega.backend.dto.PagoYapeDTO dto) {
-        BodegaDTO actualizada = bodegaService.registrarPagoYape(dto);
-        return ResponseEntity.ok(actualizada);
+    public ResponseEntity<BodegaDTO> registrarPagoYape(
+            @Valid @RequestBody com.bodega.backend.dto.PagoYapeDTO dto,
+            HttpServletRequest request) {
+
+        String clientIp = ClientIpUtil.extractClientIp(request);
+        Long idBodega = tenantService != null ? tenantService.getCurrentBodegaId() : null;
+
+        if (pagoRateLimiterService != null && pagoRateLimiterService.isBlocked(clientIp, idBodega)) {
+            long remaining = pagoRateLimiterService.getRemainingBlockMinutes(clientIp, idBodega);
+            throw new ResponseStatusException(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Demasiados intentos fallidos con códigos de operación. Por seguridad bancaria, la validación de pagos está temporalmente bloqueada por " + remaining + " minuto(s)."
+            );
+        }
+
+        try {
+            BodegaDTO actualizada = bodegaService.registrarPagoYape(dto);
+            if (pagoRateLimiterService != null) {
+                pagoRateLimiterService.resetAttempts(clientIp, idBodega);
+            }
+            return ResponseEntity.ok(actualizada);
+        } catch (RuntimeException ex) {
+            if (pagoRateLimiterService != null) {
+                pagoRateLimiterService.registerFailedAttempt(clientIp, idBodega);
+            }
+            throw ex;
+        }
+    }
+
+    public ResponseEntity<BodegaDTO> registrarPagoYape(com.bodega.backend.dto.PagoYapeDTO dto) {
+        return registrarPagoYape(dto, null);
     }
 
     @PutMapping("/configuracion-sunat")
@@ -95,7 +135,7 @@ public class BodegaController {
     @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<BodegaDTO> provisionarBodega(
             @jakarta.validation.Valid @RequestBody com.bodega.backend.dto.ProvisionarBodegaDTO dto) {
-        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(bodegaService.provisionarBodega(dto));
     }
 

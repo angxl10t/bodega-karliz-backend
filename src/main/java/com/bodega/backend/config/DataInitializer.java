@@ -34,6 +34,12 @@ public class DataInitializer implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final com.bodega.backend.service.StarterPackService starterPackService;
 
+    @org.springframework.beans.factory.annotation.Value("${cajaya.security.superadmin-password:${SUPERADMIN_PASSWORD:}}")
+    private String configuredSuperadminPassword;
+
+    @org.springframework.beans.factory.annotation.Value("${cajaya.seed.demo-accounts:false}")
+    private boolean seedDemoAccounts;
+
     public DataInitializer(JdbcTemplate jdbcTemplate,
                            BodegaRepository bodegaRepository,
                            UsuarioRepository usuarioRepository,
@@ -187,22 +193,25 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void inicializarUsuarios(Bodega bodegaKarliz) {
+        String superadminPass = (configuredSuperadminPassword != null && !configuredSuperadminPassword.isBlank())
+                ? configuredSuperadminPassword.trim()
+                : "123456";
+
         // A. Configurar SUPERADMIN ('admin') desvinculado de Karliz
         Optional<Usuario> adminOpt = usuarioRepository.findByUsernameIgnoreCase("admin");
         if (adminOpt.isPresent()) {
             Usuario superadmin = adminOpt.get();
             superadmin.setRol("SUPERADMIN");
-            superadmin.setBodega(null); // Desvinculado explícitamente
-            // SEGURIDAD: Preservar la contraseña configurada por el usuario
+            superadmin.setBodega(null);
             if (superadmin.getPassword() == null || superadmin.getPassword().isBlank()) {
-                superadmin.setPassword(passwordEncoder.encode("123456"));
+                superadmin.setPassword(passwordEncoder.encode(superadminPass));
             }
             usuarioRepository.save(superadmin);
-            log.info("[DataInitializer] Usuario 'admin' configurado como SUPERADMIN global (sin bodega asociada).");
+            log.info("[DataInitializer] Usuario 'admin' configurado como SUPERADMIN global.");
         } else {
             Usuario superadmin = new Usuario();
             superadmin.setUsername("admin");
-            superadmin.setPassword(passwordEncoder.encode("123456"));
+            superadmin.setPassword(passwordEncoder.encode(superadminPass));
             superadmin.setRol("SUPERADMIN");
             superadmin.setEstado(true);
             superadmin.setBodega(null);
@@ -211,48 +220,30 @@ public class DataInitializer implements ApplicationRunner {
             log.info("[DataInitializer] Usuario 'admin' creado como SUPERADMIN global.");
         }
 
-        // B. Crear / Asegurar ADMIN de Bodega KARLIZ ('admin_karliz')
-        Optional<Usuario> adminKarlizOpt = usuarioRepository.findByUsernameIgnoreCase("admin_karliz");
-        if (adminKarlizOpt.isEmpty()) {
-            Usuario adminKarliz = new Usuario();
-            adminKarliz.setUsername("admin_karliz");
-            adminKarliz.setPassword(passwordEncoder.encode("123456"));
-            adminKarliz.setRol("ADMIN");
-            adminKarliz.setEstado(true);
-            adminKarliz.setBodega(bodegaKarliz);
-            adminKarliz.setFechaCambioClave(OffsetDateTime.now());
-            usuarioRepository.save(adminKarliz);
-            log.info("[DataInitializer] Creado administrador dedicado para Bodega KARLIZ ('admin_karliz').");
-        } else {
-            Usuario adminKarliz = adminKarlizOpt.get();
-            adminKarliz.setBodega(bodegaKarliz);
-            adminKarliz.setRol("ADMIN");
-            if (adminKarliz.getPassword() == null || adminKarliz.getPassword().isBlank()) {
+        // B. Cuentas de demostracion (Solo si cajaya.seed.demo-accounts=true)
+        if (seedDemoAccounts) {
+            Optional<Usuario> adminKarlizOpt = usuarioRepository.findByUsernameIgnoreCase("admin_karliz");
+            if (adminKarlizOpt.isEmpty()) {
+                Usuario adminKarliz = new Usuario();
+                adminKarliz.setUsername("admin_karliz");
                 adminKarliz.setPassword(passwordEncoder.encode("123456"));
+                adminKarliz.setRol("ADMIN");
+                adminKarliz.setEstado(true);
+                adminKarliz.setBodega(bodegaKarliz);
+                adminKarliz.setFechaCambioClave(OffsetDateTime.now());
+                usuarioRepository.save(adminKarliz);
+                log.info("[DataInitializer] Creado administrador demo para Bodega KARLIZ ('admin_karliz').");
             }
-            usuarioRepository.save(adminKarliz);
-        }
 
-        // C. Asegurar que cajero_karlizzz esté asignado a Bodega Karliz
-        Optional<Usuario> cajeroOpt = usuarioRepository.findByUsernameIgnoreCase("cajero_karlizzz");
-        if (cajeroOpt.isPresent()) {
-            Usuario cajero = cajeroOpt.get();
-            cajero.setBodega(bodegaKarliz);
-            cajero.setRol("CAJERO");
-            if (cajero.getPassword() == null || cajero.getPassword().isBlank()) {
-                cajero.setPassword(passwordEncoder.encode("1234"));
-            }
-            usuarioRepository.save(cajero);
-            log.info("[DataInitializer] Cajero 'cajero_karlizzz' vinculado a Bodega Karliz.");
-        }
-
-        // D. Asegurar que admin_sanmartin tenga contraseña si no existe
-        Optional<Usuario> sanmartinOpt = usuarioRepository.findByUsernameIgnoreCase("admin_sanmartin");
-        if (sanmartinOpt.isPresent()) {
-            Usuario sanmartin = sanmartinOpt.get();
-            if (sanmartin.getPassword() == null || sanmartin.getPassword().isBlank()) {
-                sanmartin.setPassword(passwordEncoder.encode("123456"));
-                usuarioRepository.save(sanmartin);
+            Optional<Usuario> cajeroOpt = usuarioRepository.findByUsernameIgnoreCase("cajero_karlizzz");
+            if (cajeroOpt.isPresent()) {
+                Usuario cajero = cajeroOpt.get();
+                cajero.setBodega(bodegaKarliz);
+                cajero.setRol("CAJERO");
+                if (cajero.getPassword() == null || cajero.getPassword().isBlank()) {
+                    cajero.setPassword(passwordEncoder.encode("1234"));
+                }
+                usuarioRepository.save(cajero);
             }
         }
     }
