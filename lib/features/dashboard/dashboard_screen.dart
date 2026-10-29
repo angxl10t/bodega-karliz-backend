@@ -273,11 +273,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     LayoutBuilder(
                       builder: (context, constraints) {
-                        final double btnWidth = constraints.maxWidth >= 850
+                        final bool isDesktop = constraints.maxWidth >= 850;
+                        final double btnWidth = isDesktop
                             ? (constraints.maxWidth - 20) / 3
-                            : (constraints.maxWidth >= 480
-                                ? (constraints.maxWidth - 10) / 2
-                                : constraints.maxWidth);
+                            : (constraints.maxWidth - 10) / 2;
 
                         return Wrap(
                           spacing: 10,
@@ -371,12 +370,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
                             ),
                             _buildQuickActionBtn(
-                              width: btnWidth,
+                              width: isDesktop ? btnWidth : constraints.maxWidth,
                               title: 'Personal & Cajeros',
-                              subtitle: 'Turnos & Accesos',
+                              subtitle: 'Turnos & Accesos del Equipo',
                               icon: LucideIcons.users,
                               color: const Color(0xFF6366F1),
                               isDark: isDark,
+                              isBanner: !isDesktop,
                               onTap: () => PlanYPersonalSheet.show(
                                 context,
                                 nombreBodega: _nombreBodega,
@@ -1501,6 +1501,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required bool isDark,
     required VoidCallback onTap,
     double? width,
+    bool isBanner = false,
   }) {
     final card = Material(
       color: isDark ? AppTheme.cardDark : Colors.white,
@@ -1518,41 +1519,89 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: 1.2,
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(10),
+          child: isBanner
+              ? Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: color, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.outfit(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      LucideIcons.chevronRight,
+                      size: 16,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF94A3B8),
+                    ),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: color, size: 18),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      title,
+                      style: GoogleFonts.outfit(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style: GoogleFonts.outfit(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.textDark,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
         ),
       ),
     );
