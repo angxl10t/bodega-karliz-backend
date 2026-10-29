@@ -21,16 +21,55 @@ public class PagoWebhookController {
     }
 
     /**
-     * Endpoint receptor de notificaciones push de Yape / Plin.
-     * Llamado automáticamente por la app Android Listener en el teléfono de Luis T.
-     * Protegido por el encabezado X-Yape-Secret.
+     * Endpoint POST receptor de notificaciones push de Yape / Plin.
+     * Admite secreto vía header X-Yape-Secret o query param ?secret=...
      */
     @PostMapping("/webhook-yape-listener")
-    public ResponseEntity<Map<String, Object>> recibirNotificacionYape(
+    public ResponseEntity<Map<String, Object>> recibirNotificacionYapePost(
             @RequestHeader(value = "X-Yape-Secret", required = false) String secretHeader,
-            @RequestBody WebhookYapeDTO dto) {
+            @RequestParam(value = "secret", required = false) String secretParam,
+            @RequestBody(required = false) WebhookYapeDTO dto) {
 
-        YapeTransaccionRecibida tx = yapeWebhookService.procesarNotificacionYape(secretHeader, dto);
+        String secret = secretHeader != null ? secretHeader : secretParam;
+        if (dto == null) {
+            dto = new WebhookYapeDTO();
+        }
+        YapeTransaccionRecibida tx = yapeWebhookService.procesarNotificacionYape(secret, dto);
+
+        return ResponseEntity.ok(Map.of(
+                "status", "PROCESSED",
+                "codigoOperacion", tx.getCodigoOperacion(),
+                "monto", tx.getMonto(),
+                "billetera", tx.getBilletera(),
+                "mensaje", "Notificación Yape/Plin registrada exitosamente en CajaYa Cloud POS"
+        ));
+    }
+
+    /**
+     * Endpoint GET receptor de notificaciones (ideal para automatizaciones móviles rápidas,
+     * "Abrir sitio web / HTTP GET" en MacroDroid, Tasker o navegadores).
+     * Ejemplo: /api/pagos/webhook-yape-listener?secret=CajayaYapeSecretKey2026Secure&texto=[not_body]
+     */
+    @GetMapping("/webhook-yape-listener")
+    public ResponseEntity<Map<String, Object>> recibirNotificacionYapeGet(
+            @RequestHeader(value = "X-Yape-Secret", required = false) String secretHeader,
+            @RequestParam(value = "secret", required = false) String secretParam,
+            @RequestParam(value = "texto", required = false) String texto,
+            @RequestParam(value = "notificacion", required = false) String notificacion,
+            @RequestParam(value = "codigoOperacion", required = false) String codigoOperacion,
+            @RequestParam(value = "monto", required = false) java.math.BigDecimal monto,
+            @RequestParam(value = "billetera", required = false) String billetera,
+            @RequestParam(value = "remitente", required = false) String remitente) {
+
+        String secret = secretHeader != null ? secretHeader : secretParam;
+        WebhookYapeDTO dto = new WebhookYapeDTO();
+        dto.setTextoNotificacion(texto != null ? texto : notificacion);
+        dto.setCodigoOperacion(codigoOperacion);
+        dto.setMonto(monto);
+        dto.setBilletera(billetera);
+        dto.setNombreRemitente(remitente);
+
+        YapeTransaccionRecibida tx = yapeWebhookService.procesarNotificacionYape(secret, dto);
 
         return ResponseEntity.ok(Map.of(
                 "status", "PROCESSED",
