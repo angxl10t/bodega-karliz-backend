@@ -3,6 +3,14 @@
 <head>
   <base href="./">
 
+  <script>
+    // Normalizador automatico para evitar errores 404 en subrutas de Render o simuladores
+    if (window.location.pathname.startsWith('/bodega-sistema')) {
+      var _sub = window.location.pathname.replace(/^\/bodega-sistema\/?/, '/') || '/';
+      window.location.replace(_sub + window.location.search + window.location.hash);
+    }
+  </script>
+
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="CajaYa POS - Punto de Venta & Control de Inventario">
