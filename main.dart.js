@@ -64196,7 +64196,7 @@ f=B.f.p(0.2)
 e=A.d(8)
 d=s?"S/ 100 /mes":"S/ 50 /mes"
 e=A.n(A.a([g,A.l(a,A.c(d,a,a,a,a,A.B().$3$color$fontSize$fontWeight(B.f,12,B.o),a,a,a),B.i,a,a,new A.m(f,a,a,e,a,a,a,B.l),a,a,a,B.cH,a,a,a)],j),B.j,B.a3,B.e,0)
-g=s?"\u2022 Cajeros y administradores ilimitados con PIN.\n\u2022 Control de turnos y sincronizaci\xf3n en tiempo real.\n\u2022 Almac\xe9n y Kardex protegidos contra fraudes.\n\u2022 Personalizaci\xf3n de colores y logo en tickets.\n\u2022 Emisi\xf3n oficial de Boletas de Venta B001 disponible.":"\u2022 1 Administrador + hasta 2 Cajeros activos con PIN.\n\u2022 Punto de Venta r\xe1pido, Control de Stock y Caja diaria.\n\u2022 Emisi\xf3n de tickets digitales y reportes de ventas."
+g=s?"\u2022 Reportes y m\xe9tricas avanzadas (historial ilimitado).\n\u2022 Fiados con cobranza \xe1gil y alertas por WhatsApp.\n\u2022 Kardex valorizado y control de mermas y p\xe9rdidas.\n\u2022 Control de vencimientos con sem\xe1foro preventivo.\n\u2022 Logo y personalizaci\xf3n de marca en tickets y recibos.":"\u2022 Punto de Venta r\xe1pido con tickets digitales.\n\u2022 Control de Stock y Caja diaria (apertura/cierre).\n\u2022 Resumen diario de ventas y productos top.\n\u2022 Control b\xe1sico de fiados y lista de vencimientos."
 g=A.a([e,B.a4,A.c(g,a,a,a,a,A.e().$3$color$fontSize$height(B.f.p(0.9),11.5,1.4),a,a,a)],j)
 f=b.y
 if((f==null?a:f.z)!=null){f=A.ak(B.t_,B.f.p(0.85),a,13)
@@ -64255,7 +64255,7 @@ k.push(B.ai)
 if(!s){p=B.k.p(0.08)
 i=A.d(18)
 h=A.Y(B.k.p(0.3),B.m,1)
-B.c.H(k,A.a([A.l(a,A.C(A.a([A.n(A.a([B.tm,B.F,A.c("\xbfNecesitas cajeros o empleados?",a,a,a,a,A.B().$3$color$fontSize$fontWeight(a0?B.f:B.y,14.5,B.o),a,a,a)],j),B.j,B.d,B.e,0),B.a7,A.c("El Plan Bodega (S/ 50 /mes) incluye 1 Admin + hasta 2 Cajeros activos. Para turnos y cajeros ilimitados con PIN, Kardex antifraude y colores de marca propia, pasa a Plan Minimarket Pro (S/ 100 /mes).",a,a,a,a,A.e().$2$color$fontSize(B.p,11.5),a,a,a)],j),B.w,B.d,B.e),B.i,a,a,new A.m(p,a,h,i,a,a,a,B.l),a,a,a,B.ba,a,a,a),B.ai],j))}B.c.H(l,k)}if(b.a.w!==B.lm){p=A.a([A.n(A.a([A.A(A.c("Personal Registrado ()",a,B.D,a,a,A.B().$3$color$fontSize$fontWeight(a0?B.f:B.y,15,B.o),a,a,a),1),B.F,A.iI(B.tn,B.amG,b.galb(),a)],j),B.j,B.a3,B.e,0),B.a4],j)
+B.c.H(k,A.a([A.l(a,A.C(A.a([A.n(A.a([B.tm,B.F,A.c("\xbfQuieres crecer con m\xe1s control?",a,a,a,a,A.B().$3$color$fontSize$fontWeight(a0?B.f:B.y,14.5,B.o),a,a,a)],j),B.j,B.d,B.e,0),B.a7,A.c("El Plan PRO (S/ 100 /mes) agrega: reportes avanzados con historial ilimitado exportable a Excel, fiados con cobranza \xe1gil y alertas por WhatsApp, sem\xe1foro preventivo de vencimientos, kardex valorizado y logo de marca en tickets. M\xe1ximo control para tu negocio.",a,a,a,a,A.e().$2$color$fontSize(B.p,11.5),a,a,a)],j),B.w,B.d,B.e),B.i,a,a,new A.m(p,a,h,i,a,a,a,B.l),a,a,a,B.ba,a,a,a),B.ai],j))}B.c.H(l,k)}if(b.a.w!==B.lm){p=A.a([A.n(A.a([A.A(A.c("Personal Registrado ()",a,B.D,a,a,A.B().$3$color$fontSize$fontWeight(a0?B.f:B.y,15,B.o),a,a,a),1),B.F,A.iI(B.tn,B.amG,b.galb(),a)],j),B.j,B.a3,B.e,0),B.a4],j)
 if(b.w)p.push(B.QA)
 else{k=b.x
 if(k.length!==0)p.push(A.aS(A.c(k,a,a,a,a,B.ajR,a,a,a),a,a))
@@ -64589,7 +64589,7 @@ p=A.d(14)
 o=A.Y(b.a==="BASICO"?B.k:B.K,B.m,1.8)
 n=A.c("Plan Bodega",e,e,e,e,A.B().$3$color$fontSize$fontWeight(c?B.f:B.y,13,B.o),e,e,e)
 m=A.c("S/ 50.00 /mes",e,e,e,e,A.B().$3$color$fontSize$fontWeight(B.k,14,B.N),e,e,e)
-r=A.A(A.be(!1,r,!0,A.h0(e,A.C(A.a([n,B.b6,m,B.b6,A.c("1 Admin + 2 Cajeros",e,e,e,e,A.e().$3$color$fontSize$fontWeight(c?B.n:B.p,11,B.u),e,e,e)],a3),B.j,B.d,B.e),e,B.ao,new A.m(q,e,o,p,e,e,e,B.l),B.a0,e,e,e,B.bF,e),e,!0,e,e,e,e,e,e,e,e,e,e,new A.aVL(b,a6),e,e,e,e,e,e,e),1)
+r=A.A(A.be(!1,r,!0,A.h0(e,A.C(A.a([n,B.b6,m,B.b6,A.c("POS + Stock + Caja diaria",e,e,e,e,A.e().$3$color$fontSize$fontWeight(c?B.n:B.p,11,B.u),e,e,e)],a3),B.j,B.d,B.e),e,B.ao,new A.m(q,e,o,p,e,e,e,B.l),B.a0,e,e,e,B.bF,e),e,!0,e,e,e,e,e,e,e,e,e,e,new A.aVL(b,a6),e,e,e,e,e,e,e),1)
 q=A.d(14)
 if(b.a==="PRO")p=B.x.p(0.12)
 else p=c?B.aA:B.n
@@ -64597,7 +64597,7 @@ o=A.d(14)
 n=A.Y(b.a==="PRO"?B.x:B.K,B.m,1.8)
 m=A.n(A.a([A.c("Plan PRO",e,e,e,e,A.B().$3$color$fontSize$fontWeight(c?B.f:B.y,13,B.o),e,e,e),B.an,B.a_t],a3),B.j,B.aV,B.e,0)
 l=A.c("S/ 100.00 /mes",e,e,e,e,A.B().$3$color$fontSize$fontWeight(B.x,14,B.N),e,e,e)
-r=A.n(A.a([r,B.V,A.A(A.be(!1,q,!0,A.h0(e,A.C(A.a([m,B.b6,l,B.b6,A.c("Cajeros Ilimitados",e,e,e,e,A.e().$3$color$fontSize$fontWeight(c?B.n:B.p,11,B.u),e,e,e)],a3),B.j,B.d,B.e),e,B.ao,new A.m(p,e,n,o,e,e,e,B.l),B.a0,e,e,e,B.bF,e),e,!0,e,e,e,e,e,e,e,e,e,e,new A.aVM(b,a6),e,e,e,e,e,e,e),1)],a3),B.j,B.d,B.e,0)
+r=A.n(A.a([r,B.V,A.A(A.be(!1,q,!0,A.h0(e,A.C(A.a([m,B.b6,l,B.b6,A.c("BI + Fiados + Kardex",e,e,e,e,A.e().$3$color$fontSize$fontWeight(c?B.n:B.p,11,B.u),e,e,e)],a3),B.j,B.d,B.e),e,B.ao,new A.m(p,e,n,o,e,e,e,B.l),B.a0,e,e,e,B.bF,e),e,!0,e,e,e,e,e,e,e,e,e,e,new A.aVM(b,a6),e,e,e,e,e,e,e),1)],a3),B.j,B.d,B.e,0)
 q=c?B.ar:B.B
 p=A.d(12)
 o=A.d(10)
