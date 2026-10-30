@@ -12,6 +12,7 @@ import '../movimientos/ajuste_stock_sheet.dart';
 import '../movimientos/vencimientos_screen.dart';
 import '../movimientos/mermas_screen.dart';
 import '../movimientos/auditoria_ciega_screen.dart';
+import '../dashboard/dashboard_bi_screen.dart';
 import '../home/bodega_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
@@ -389,6 +390,11 @@ class _ProductosScreenState extends State<ProductosScreen> {
                           context,
                           MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
                         ).then((_) => _cargarProductos());
+                      } else if (val == 'hueso') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const DashboardBiScreen(initialTabRotacion: 1)),
+                        ).then((_) => _cargarProductos());
                       } else if (val == 'kardex') {
                         Navigator.push(
                           context,
@@ -487,16 +493,84 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    'Auditoría Ciega (Conteo)',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Auditoría Rápida por Pasillo',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'PRO',
+                                          style: GoogleFonts.outfit(fontSize: 8.5, fontWeight: FontWeight.w900, color: const Color(0xFF059669)),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   Text(
-                                    'Conteo físico y cuadre de stock',
+                                    '5 min de conteo físico contra robo hormiga',
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'hueso',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEA580C).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(LucideIcons.archive, size: 15, color: Color(0xFFEA580C)),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Detector de Productos Hueso',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'PRO',
+                                          style: GoogleFonts.outfit(fontSize: 8.5, fontWeight: FontWeight.w900, color: const Color(0xFF059669)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    'Alerta de dinero atrapado y stock sin rotar',
                                     style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                                   ),
                                 ],

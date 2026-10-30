@@ -20,6 +20,8 @@ import 'dashboard_bi_screen.dart';
 import '../movimientos/mermas_screen.dart';
 import '../movimientos/vencimientos_screen.dart';
 import '../movimientos/auditoria_ciega_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../home/mi_bodega_online_modal.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -48,12 +50,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _telefono = '';
   String _direccion = '';
   bool _isLoading = true;
+  double _metaDiaria = 1000.0;
 
   @override
   void initState() {
     super.initState();
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
     VentaService.ventasRevision.addListener(_onVentasRevisionChanged);
+    _cargarMetaDiaria();
     _cargarDatos();
   }
 
@@ -74,6 +78,308 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (mounted) {
       _cargarCierreHoy();
     }
+  }
+
+  Future<void> _cargarMetaDiaria() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final m = prefs.getDouble('meta_diaria_cajaya');
+      if (m != null && m > 0) {
+        if (mounted) setState(() => _metaDiaria = m);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _guardarMetaDiaria(double nuevaMeta) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('meta_diaria_cajaya', nuevaMeta);
+      if (mounted) setState(() => _metaDiaria = nuevaMeta);
+    } catch (_) {}
+  }
+
+  void _mostrarDialogoEditarMeta(BuildContext context, bool isDark) {
+    final ctrl = TextEditingController(text: _metaDiaria.toStringAsFixed(0));
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(LucideIcons.target, color: AppTheme.brandPrimary, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Meta Diaria de Venta',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ingresa tu objetivo de venta para hoy en Soles (S/):',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              autofocus: true,
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+              decoration: InputDecoration(
+                prefixText: 'S/ ',
+                prefixStyle: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.brandPrimary,
+                ),
+                filled: true,
+                fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.brandPrimary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () {
+              final val = double.tryParse(ctrl.text.trim());
+              if (val != null && val > 0) {
+                _guardarMetaDiaria(val);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Meta diaria actualizada a S/ ${val.toStringAsFixed(2)}'),
+                    backgroundColor: AppTheme.accentGreen,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: Text('Guardar Meta', style: GoogleFonts.outfit(fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTermometroMetaDiaria(bool isDark) {
+    final totalVentas = _cierreHoy?.totalVentas ?? 0.0;
+    final double progreso = _metaDiaria > 0 ? (totalVentas / _metaDiaria).clamp(0.0, 1.0) : 0.0;
+    final bool metaCumplida = totalVentas >= _metaDiaria;
+    final double falta = (_metaDiaria - totalVentas).clamp(0.0, double.infinity);
+    final double porcentaje = _metaDiaria > 0 ? ((totalVentas / _metaDiaria) * 100) : 0.0;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [
+                  const Color(0xFF1E293B),
+                  metaCumplida ? const Color(0xFF064E3B) : const Color(0xFF1E1B4B),
+                ]
+              : [
+                  Colors.white,
+                  metaCumplida ? const Color(0xFFECFDF5) : const Color(0xFFF8FAFC),
+                ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: metaCumplida
+              ? AppTheme.accentGreen
+              : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+          width: metaCumplida ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (metaCumplida ? AppTheme.accentGreen : AppTheme.brandPrimary)
+                .withValues(alpha: isDark ? 0.15 : 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: (metaCumplida ? AppTheme.accentGreen : AppTheme.brandPrimary)
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      metaCumplida ? LucideIcons.flame : LucideIcons.target,
+                      size: 18,
+                      color: metaCumplida ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Termómetro de Meta Diaria',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Text(
+                              'PRO',
+                              style: GoogleFonts.outfit(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF0F766E),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        metaCumplida
+                            ? '🎉 ¡Excelente! Superaste tu meta de venta diaria'
+                            : (totalVentas > 0
+                                ? 'Faltan S/ ${falta.toStringAsFixed(2)} para llegar a la meta'
+                                : 'Registra tus ventas de hoy para avanzar'),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: metaCumplida
+                              ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF059669))
+                              : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.pencil, size: 15),
+                tooltip: 'Cambiar Meta Diaria',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                onPressed: () => _mostrarDialogoEditarMeta(context, isDark),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'S/ ${totalVentas.toStringAsFixed(2)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: metaCumplida
+                          ? AppTheme.accentGreen
+                          : (isDark ? Colors.white : AppTheme.textDark),
+                    ),
+                  ),
+                  Text(
+                    ' / S/ ${_metaDiaria.toStringAsFixed(2)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '${porcentaje.toStringAsFixed(0)}% cumplido',
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: metaCumplida
+                      ? AppTheme.accentGreen
+                      : (porcentaje >= 50 ? const Color(0xFF2563EB) : const Color(0xFFD97706)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progreso,
+              minHeight: 10,
+              backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                metaCumplida ? AppTheme.accentGreen : const Color(0xFF10B981),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _cargarCierreHoy() async {
@@ -235,6 +541,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     // Tarjeta en Directo de Canales de Pago
                     _buildPaymentBreakdownCard(isDark),
+
+                    // Termómetro de Meta Diaria de Venta (PRO)
+                    _buildTermometroMetaDiaria(isDark),
                     const SizedBox(height: 14),
 
                     // Banner de Inteligencia de Negocio & BI
@@ -344,8 +653,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             _buildQuickActionBtn(
                               width: btnWidth,
+                              title: 'Mi Bodega Online',
+                              subtitle: 'Catálogo Web & WhatsApp',
+                              icon: LucideIcons.globe,
+                              color: const Color(0xFF16A34A),
+                              isDark: isDark,
+                              onTap: () => MiBodegaOnlineModal.show(
+                                context,
+                                nombreBodega: _nombreBodega,
+                                telefonoBodega: _telefono,
+                              ),
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Detector Stock Hueso',
+                              subtitle: 'Dinero Inmovilizado',
+                              icon: LucideIcons.archive,
+                              color: const Color(0xFFEA580C),
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const DashboardBiScreen(initialTabRotacion: 1),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Horas Punta',
+                              subtitle: 'Afluencia & Horarios Pico',
+                              icon: LucideIcons.clock,
+                              color: const Color(0xFF8B5CF6),
+                              isDark: isDark,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
                               title: 'Auditoría Ciega',
-                              subtitle: 'Conteo Físico en Tienda',
+                              subtitle: 'Conteo Rápido (Anti-Robo)',
                               icon: LucideIcons.clipboardCheck,
                               color: AppTheme.brandPrimary,
                               isDark: isDark,

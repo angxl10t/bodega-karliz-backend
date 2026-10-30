@@ -1640,7 +1640,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                   Text(
 
-                                    'Arqueo Ciego + Proveedores + Fiados',
+                                    'Catálogo Web + Anti-Robo + Huesos + BI',
 
                                     style: GoogleFonts.plusJakartaSans(
 
@@ -3820,9 +3820,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                             isPro
 
-                                ? '• Reportes y métricas avanzadas (historial ilimitado).\n• Fiados con cobranza ágil y alertas por WhatsApp.\n• Kardex valorizado y control de mermas y pérdidas.\n• Control de vencimientos con semáforo preventivo.\n• Logo y personalización de marca en tickets y recibos.'
+                                ? '• Detector de Productos Hueso: alerta de dinero inmovilizado.\n• Mi Bodega Online: enlace web para pedidos por WhatsApp.\n• Auditoría Rápida por Pasillo: conteos de 5 min contra robo hormiga.\n• Termómetro de Meta Diaria: seguimiento en tiempo real con barra de progreso.\n• Mapa de Horas Punta: analítica de afluencia para saber cuándo vender más.\n• Reporte de Cierre al WhatsApp del Dueño: arqueo ejecutivo con 1 toque.'
 
-                                : '• Punto de Venta rápido con tickets digitales.\n• Control de Stock y Caja diaria (apertura/cierre).\n• Resumen diario de ventas y productos top.\n• Control básico de fiados y lista de vencimientos.',
+                                : '• Punto de Venta táctil y rápido con tickets digitales.\n• Control de Stock e Inventario en tiempo real.\n• Caja Diaria y Arqueo (apertura, egresos y cierre).\n• Cajeros y administradores con PIN ilimitados.\n• Libreta de fiados y control de vencimientos básico.',
 
                             style: GoogleFonts.plusJakartaSans(
 
@@ -4508,7 +4508,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                             Text(
 
-                              'El Plan PRO (S/ 100 /mes) agrega: reportes avanzados con historial ilimitado exportable a Excel, fiados con cobranza ágil y alertas por WhatsApp, semáforo preventivo de vencimientos, kardex valorizado y logo de marca en tickets. Máximo control para tu negocio.',
+                              'El Plan PRO (S/ 100 /mes) desbloquea: Detector de Productos Hueso (capital inmovilizado), Catálogo Mi Bodega Online con link para WhatsApp, Auditoría Rápida de Pasillo anti-robo, Termómetro de Meta Diaria, Mapa de Horas Punta y Reporte Ejecutivo de Arqueo al WhatsApp del Dueño. Diseñado para bodegas y minimarkets que buscan máxima rentabilidad y control total.',
 
                               style: GoogleFonts.plusJakartaSans(
 

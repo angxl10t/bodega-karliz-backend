@@ -458,7 +458,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     }
 
     final msg = StringBuffer();
-    msg.writeln('📊 *ARQUEO DE CAJA - CAJAYA CLOUD POS*');
+    msg.writeln('📊 *REPORTE EJECUTIVO DE CIERRE DE CAJA*');
+    msg.writeln('✨ *CajaYa Cloud POS - Resumen del Dueño*');
     msg.writeln('🏪 *Bodega:* $_nombreBodega');
     msg.writeln('📅 *Fecha:* ${_formatearFechaCompleta(_fechaSeleccionada)}');
     msg.writeln('👤 *Cajero:* $_username');
@@ -1611,9 +1612,15 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                                 if (dialogCtx.mounted) {
                                   ScaffoldMessenger.of(dialogCtx).showSnackBar(
                                     SnackBar(
-                                      content: Text('¡Conteo físico de S/ ${total.toStringAsFixed(2)} registrado en caja!'),
+                                      content: Text('¡Conteo de S/ ${total.toStringAsFixed(2)} registrado!'),
                                       backgroundColor: AppTheme.accentGreen,
-                                      duration: const Duration(seconds: 3),
+                                      duration: const Duration(seconds: 5),
+                                      behavior: SnackBarBehavior.floating,
+                                      action: SnackBarAction(
+                                        label: 'ENVIAR AL DUEÑO',
+                                        textColor: Colors.white,
+                                        onPressed: _compartirArqueoWhatsApp,
+                                      ),
                                     ),
                                   );
                                 }

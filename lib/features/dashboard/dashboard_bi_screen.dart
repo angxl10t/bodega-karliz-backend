@@ -8,7 +8,8 @@ import 'dashboard_bi_service.dart';
 
 class DashboardBiScreen extends StatefulWidget {
   final DashboardBiService? service;
-  const DashboardBiScreen({super.key, this.service});
+  final int initialTabRotacion;
+  const DashboardBiScreen({super.key, this.service, this.initialTabRotacion = 0});
 
   @override
   State<DashboardBiScreen> createState() => _DashboardBiScreenState();
@@ -20,7 +21,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
   bool _cargando = true;
   String? _error;
   DashboardBiData? _data;
-  int _tabRotacion = 0; // 0 = Estrellas, 1 = Huesos
+  late int _tabRotacion = widget.initialTabRotacion; // 0 = Estrellas, 1 = Huesos
   int? _horaSeleccionada;
   final TextEditingController _searchController = TextEditingController();
   String _filtroTexto = '';
