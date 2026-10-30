@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
 
@@ -1520,7 +1520,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                   Text(
 
-                                    '1 Admin + 2 Cajeros',
+                                    'POS + Stock + Caja diaria',
 
                                     style: GoogleFonts.plusJakartaSans(
 
@@ -1640,7 +1640,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                   Text(
 
-                                    'Cajeros Ilimitados',
+                                    'BI + Fiados + Kardex',
 
                                     style: GoogleFonts.plusJakartaSans(
 
@@ -3820,9 +3820,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                             isPro
 
-                                ? '• Cajeros y administradores ilimitados con PIN.\n• Control de turnos y sincronización en tiempo real.\n• Almacén y Kardex protegidos contra fraudes.\n• Personalización de colores y logo en tickets.\n• Emisión oficial de Boletas de Venta B001 disponible.'
+                                ? '• Reportes y métricas avanzadas (historial ilimitado).\n• Fiados con cobranza ágil y alertas por WhatsApp.\n• Kardex valorizado y control de mermas y pérdidas.\n• Control de vencimientos con semáforo preventivo.\n• Logo y personalización de marca en tickets y recibos.'
 
-                                : '• 1 Administrador + hasta 2 Cajeros activos con PIN.\n• Punto de Venta rápido, Control de Stock y Caja diaria.\n• Emisión de tickets digitales y reportes de ventas.',
+                                : '• Punto de Venta rápido con tickets digitales.\n• Control de Stock y Caja diaria (apertura/cierre).\n• Resumen diario de ventas y productos top.\n• Control básico de fiados y lista de vencimientos.',
 
                             style: GoogleFonts.plusJakartaSans(
 
@@ -4486,7 +4486,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                 Text(
 
-                                  '¿Necesitas cajeros o empleados?',
+                                  '¿Quieres crecer con más control?',
 
                                   style: GoogleFonts.outfit(
 
@@ -4508,7 +4508,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                             Text(
 
-                              'El Plan Bodega (S/ 50 /mes) incluye 1 Admin + hasta 2 Cajeros activos. Para turnos y cajeros ilimitados con PIN, Kardex antifraude y colores de marca propia, pasa a Plan Minimarket Pro (S/ 100 /mes).',
+                              'El Plan PRO (S/ 100 /mes) agrega: reportes avanzados con historial ilimitado exportable a Excel, fiados con cobranza ágil y alertas por WhatsApp, semáforo preventivo de vencimientos, kardex valorizado y logo de marca en tickets. Máximo control para tu negocio.',
 
                               style: GoogleFonts.plusJakartaSans(
 
