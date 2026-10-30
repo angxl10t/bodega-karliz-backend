@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
@@ -54,6 +54,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
 
   bool _isConsultandoDoc = false;
   bool _isGuardando = false;
+  bool _esCaserito = false;
   String? _errorMsg;
 
   @override
@@ -67,6 +68,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
       _dirCtrl.text = c.direccion ?? '';
       _limiteCtrl.text = c.limiteCredito.toStringAsFixed(0);
       _notasCtrl.text = c.notas ?? '';
+      _esCaserito = c.esCaserito;
     }
   }
 
@@ -142,7 +144,11 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
       'telefono': _telCtrl.text.trim().isNotEmpty ? _telCtrl.text.trim() : null,
       'direccion': _dirCtrl.text.trim().isNotEmpty ? _dirCtrl.text.trim() : null,
       'limiteCredito': limite,
-      'notas': _notasCtrl.text.trim().isNotEmpty ? _notasCtrl.text.trim() : null,
+      'notas': () {
+        final raw = _notasCtrl.text.trim();
+        String finalNotas = _esCaserito ? (raw.contains('[CASERITO]') ? raw : '[CASERITO] $raw').trim() : raw.replaceAll('[CASERITO]', '').trim();
+        return finalNotas.isNotEmpty ? finalNotas : null;
+      }(),
     };
 
     try {
@@ -396,6 +402,39 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
                   hintText: 'Ej. Paga quincenas, vecino de confianza...',
                   prefixIcon: const Icon(LucideIcons.stickyNote, size: 18),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Caserito VIP Toggle
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _esCaserito ? const Color(0xFFF59E0B) : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                  ),
+                ),
+                child: SwitchListTile(
+                  value: _esCaserito,
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: const Color(0xFFF59E0B),
+                  title: Row(
+                    children: [
+                      const Icon(LucideIcons.star, size: 16, color: Color(0xFFF59E0B)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Marcar como Caserito (VIP)',
+                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                  subtitle: Text(
+                    'Identifica a los vecinos leales para ofrecerles mejor atención.',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppTheme.textMuted),
+                  ),
+                  onChanged: (val) => setState(() => _esCaserito = val),
                 ),
               ),
               const SizedBox(height: 22),

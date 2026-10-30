@@ -1,3 +1,4 @@
+﻿import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1130,6 +1131,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
         ),
         actions: [
           IconButton(
+            tooltip: 'Sugerencia de Pedido (Reposición)',
+            icon: const Icon(LucideIcons.sparkles, size: 19, color: AppTheme.accentGreen),
+            onPressed: _mostrarSugerenciaPedidoModal,
+          ),
+          IconButton(
             tooltip: 'Registrar Proveedor',
             icon: const Icon(LucideIcons.userPlus, size: 19, color: AppTheme.brandPrimary),
             onPressed: _abrirNuevoProveedorModal,
@@ -1150,6 +1156,179 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           _buildHistorialCompras(isDark),
         ],
       ),
+    );
+  }
+
+  void _mostrarSugerenciaPedidoModal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final productosCriticos = _safeProductos.where((p) => p.stockActual <= p.stockMinimo).toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(LucideIcons.sparkles, color: AppTheme.accentGreen, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sugerencia de Reposición',
+                          style: GoogleFonts.outfit(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        Text(
+                          'Productos con stock mínimo o crítico para pedir hoy',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (productosCriticos.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const Icon(LucideIcons.checkCircle2, color: AppTheme.accentGreen, size: 40),
+                        const SizedBox(height: 10),
+                        Text(
+                          '¡Tu inventario está abastecido!',
+                          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'No hay productos con stock por debajo del límite mínimo.',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else ...[
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: productosCriticos.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (ctx, i) {
+                      final p = productosCriticos[i];
+                      final cantidadSugerida = ((p.stockMinimo * 2) - p.stockActual).clamp(1.0, 999.0);
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          backgroundColor: const Color(0xFFFEE2E2),
+                          radius: 18,
+                          child: const Icon(LucideIcons.packageMinus, size: 16, color: AppTheme.alertRed),
+                        ),
+                        title: Text(
+                          p.nombre,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(
+                          'Stock actual: ${p.stockActual.toInt()} | Mínimo: ${p.stockMinimo.toInt()}',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.alertRed),
+                        ),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Pedir: ${cantidadSugerida.toInt()}',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.accentGreen,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(LucideIcons.send, size: 16),
+                    label: Text(
+                      'Enviar Pedido por WhatsApp al Proveedor',
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                    onPressed: () async {
+                      final buffer = StringBuffer();
+                      buffer.writeln('📦 *PEDIDO DE REPOSICIÓN - BODEGA*');
+                      buffer.writeln('Hola estimado proveedor, por favor programar el siguiente pedido:');
+                      buffer.writeln('');
+                      for (final p in productosCriticos) {
+                        final cant = ((p.stockMinimo * 2) - p.stockActual).clamp(1.0, 999.0).toInt();
+                        buffer.writeln('• *${p.nombre}*: $cant unidades');
+                      }
+                      buffer.writeln('');
+                      buffer.writeln('Muchas gracias.');
+                      final url = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(buffer.toString())}');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 

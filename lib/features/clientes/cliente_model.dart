@@ -1,4 +1,4 @@
-class Cliente {
+﻿class Cliente {
   final int? idCliente;
   final int? idBodega;
   final String? documento;
@@ -30,6 +30,7 @@ class Cliente {
   });
 
   bool get tieneDeuda => saldoDeudor > 0.009;
+  bool get esCaserito => (notas ?? '').toUpperCase().contains('CASERITO');
   double get porcentajeCreditoUsado => limiteCredito > 0 ? (saldoDeudor / limiteCredito).clamp(0.0, 1.0) : 0.0;
 
   factory Cliente.fromJson(Map<String, dynamic> json) {

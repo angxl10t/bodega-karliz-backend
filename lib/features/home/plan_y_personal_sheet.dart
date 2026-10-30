@@ -1640,7 +1640,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                   Text(
 
-                                    'BI + Fiados + Kardex',
+                                    'Arqueo Ciego + Proveedores + Fiados',
 
                                     style: GoogleFonts.plusJakartaSans(
 
