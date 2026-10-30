@@ -8,6 +8,8 @@ import '../productos/nuevo_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
 import '../auth/auth_service.dart';
 import '../home/plan_y_personal_sheet.dart';
+import '../home/configuracion_ticket_modal.dart';
+import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../ventas/venta_model.dart';
 import '../ventas/venta_service.dart';
@@ -391,15 +393,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               isDark: isDark,
                               onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
                             ),
-                            if (_userRol == 'ADMIN' || _userRol == 'SUPERADMIN')
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Impresora Térmica',
+                              subtitle: 'Tickets & Gaveta ESC/POS',
+                              icon: LucideIcons.printer,
+                              color: AppTheme.brandPrimary,
+                              isDark: isDark,
+                              onTap: () => ConfiguracionTicketModal.show(context),
+                            ),
+                            if (_userRol == 'ADMIN' || _userRol == 'SUPERADMIN') ...[
                               _buildQuickActionBtn(
-                                width: isDesktop ? btnWidth : constraints.maxWidth,
+                                width: btnWidth,
                                 title: 'Personal & Cajeros',
                                 subtitle: 'Turnos & Accesos del Equipo',
                                 icon: LucideIcons.users,
                                 color: AppTheme.brandPrimary,
                                 isDark: isDark,
-                                isBanner: !isDesktop,
                                 onTap: () => PlanYPersonalSheet.show(
                                   context,
                                   nombreBodega: _nombreBodega,
@@ -410,6 +420,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   onPlanUpdated: () => _cargarDatos(forceRefresh: true),
                                 ),
                               ),
+                              _buildQuickActionBtn(
+                                width: btnWidth,
+                                title: 'Mi Suscripción',
+                                subtitle: _plan == 'PRO' ? 'Plan Minimarket Pro • Facturas' : 'Plan Bodega Básico • Renovar',
+                                icon: LucideIcons.crown,
+                                color: const Color(0xFF0D9488),
+                                isDark: isDark,
+                                onTap: () => PlanYPersonalSheet.show(
+                                  context,
+                                  nombreBodega: _nombreBodega,
+                                  plan: _plan,
+                                  currentUsername: _username,
+                                  userRol: _userRol,
+                                  seccionInicial: PlanSheetSeccion.suscripcion,
+                                  onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+                                ),
+                              ),
+                            ],
                           ],
                         );
                       },
@@ -677,72 +705,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Badge Plan
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.5),
-                            width: 0.8,
+                      // Badge Plan (Acceso directo a suscripción)
+                      InkWell(
+                        onTap: () {
+                          PlanYPersonalSheet.show(
+                            context,
+                            nombreBodega: _nombreBodega,
+                            plan: _plan,
+                            currentUsername: _username,
+                            userRol: _userRol,
+                            seccionInicial: PlanSheetSeccion.suscripcion,
+                            onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: (_plan == 'PRO' ? const Color(0xFF38BDF8) : AppTheme.brandPrimary).withValues(alpha: 0.5),
+                              width: 0.8,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.shield,
-                              size: 10.5,
-                              color: _plan == 'PRO' ? const Color(0xFF38BDF8) : Colors.white,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _plan == 'PRO' ? 'PRO' : 'BÁSICO',
-                              style: GoogleFonts.outfit(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.3,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _plan == 'PRO' ? LucideIcons.sparkles : LucideIcons.shield,
+                                size: 10.5,
+                                color: _plan == 'PRO' ? const Color(0xFF38BDF8) : Colors.white,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                _plan == 'PRO' ? 'PRO' : 'BÁSICO',
+                                style: GoogleFonts.outfit(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 6),
 
-                      // Live Dot
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentGreen.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppTheme.accentGreen.withValues(alpha: 0.4),
-                            width: 0.8,
+                      // Live Dot (Acceso directo a cola offline)
+                      InkWell(
+                        onTap: () => OfflineQueueSheet.show(context),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppTheme.accentGreen.withValues(alpha: 0.4),
+                              width: 0.8,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: AppTheme.accentGreen,
-                                shape: BoxShape.circle,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.accentGreen,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'En Vivo',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFF86EFAC),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                              const SizedBox(width: 5),
+                              Text(
+                                'En Vivo',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: const Color(0xFF86EFAC),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 6),
