@@ -1233,6 +1233,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   children: [
                     ProductImageWidget(
                       imagenUrl: p.imagenUrl,
+                      nombre: p.nombre,
+                      codigoBarras: p.codigoBarras,
                       categoria: p.nombreCategoria,
                       size: 72,
                       borderRadius: 18,
@@ -1450,6 +1452,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
                   // Packshot de Estudio Frontal en Gran Detalle (130 px)
                   ProductImageWidget(
                     imagenUrl: p.imagenUrl,
+                    nombre: p.nombre,
+                    codigoBarras: p.codigoBarras,
                     categoria: p.nombreCategoria,
                     size: 130,
                     borderRadius: 24,

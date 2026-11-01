@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../api_constants.dart';
+import '../catalogo_imagenes_service.dart';
 import '../category_helper.dart';
 import '../theme.dart';
 
@@ -15,6 +16,8 @@ import '../theme.dart';
 /// - Fallback estético al squircle temático de categoría (CategoryHelper)
 class ProductImageWidget extends StatelessWidget {
   final String? imagenUrl;
+  final String? nombre;
+  final String? codigoBarras;
   final String? categoria;
   final double size;
   final double borderRadius;
@@ -25,6 +28,8 @@ class ProductImageWidget extends StatelessWidget {
   const ProductImageWidget({
     super.key,
     required this.imagenUrl,
+    this.nombre,
+    this.codigoBarras,
     this.categoria,
     this.size = 46.0,
     this.borderRadius = 14.0,
@@ -74,11 +79,26 @@ class ProductImageWidget extends StatelessWidget {
     final catColor = CategoryHelper.getColor(categoria, isDark);
     final catIcon = CategoryHelper.getIcon(categoria);
 
-    final hasUrl = imagenUrl != null && imagenUrl!.trim().isNotEmpty;
+    // 1. Determinar URL efectiva: si la URL viene vacía o genérica, intentar auto-match inteligente por nombre/código
+    String? rawUrl = (imagenUrl != null && imagenUrl!.trim().isNotEmpty && !imagenUrl!.contains('producto_generico'))
+        ? imagenUrl!.trim()
+        : null;
+
+    if (rawUrl == null && (nombre != null || codigoBarras != null)) {
+      final sug = CatalogoImagenesService.buscarSugerencia(
+        codigoBarras: codigoBarras,
+        nombre: nombre,
+      );
+      if (sug != null && sug.imagenUrl.isNotEmpty) {
+        rawUrl = sug.imagenUrl;
+      }
+    }
+
+    final hasUrl = rawUrl != null && rawUrl.isNotEmpty;
 
     Widget content;
     if (hasUrl) {
-      final effectiveUrl = _resolverUrl(imagenUrl!);
+      final effectiveUrl = _resolverUrl(rawUrl);
 
       content = Container(
         width: size,
@@ -125,7 +145,20 @@ class ProductImageWidget extends StatelessWidget {
             },
             errorBuilder: (context, error, stackTrace) {
               debugPrint('⚠️ Error al cargar imagen de producto ($effectiveUrl): $error');
-              // Si la URL falla o no tiene internet, recurre al squircle temático oficial
+              // Si falló y tenemos nombre, intentar sugerencia oficial de catálogo
+              if (nombre != null || codigoBarras != null) {
+                final fallbackSug = CatalogoImagenesService.buscarSugerencia(
+                  codigoBarras: codigoBarras,
+                  nombre: nombre,
+                );
+                if (fallbackSug != null && fallbackSug.imagenUrl != rawUrl) {
+                  return Image.network(
+                    _resolverUrl(fallbackSug.imagenUrl),
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => _buildCategoryFallback(catIcon, catColor),
+                  );
+                }
+              }
               return _buildCategoryFallback(catIcon, catColor);
             },
           ),

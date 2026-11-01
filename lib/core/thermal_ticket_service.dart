@@ -191,7 +191,6 @@ class ThermalTicketService {
     // Datos del Comprobante
     final bool esBoleta = tipoComprobante == 'BOLETA_ELECTRONICA' || tipoComprobante == 'BOLETA';
     final bool esFactura = tipoComprobante == 'FACTURA_ELECTRONICA';
-    final bool esSunat = esBoleta || esFactura;
 
     if (esBoleta) {
       buffer.writeln(center('BOLETA DE VENTA', width));

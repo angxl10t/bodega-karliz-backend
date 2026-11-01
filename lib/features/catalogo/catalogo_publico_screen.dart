@@ -869,6 +869,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   return Center(
                     child: ProductImageWidget(
                       imagenUrl: imagenUrl,
+                      nombre: nombre,
                       categoria: categoria,
                       size: effectiveSize,
                       borderRadius: isTablet ? 16 : 14,

@@ -872,6 +872,8 @@ class _VentasScreenState extends State<VentasScreen> {
                   Center(
                     child: ProductImageWidget(
                       imagenUrl: p.imagenUrl,
+                      nombre: p.nombre,
+                      codigoBarras: p.codigoBarras,
                       categoria: p.nombreCategoria,
                       size: 140,
                       borderRadius: 24,
@@ -1341,6 +1343,8 @@ class _VentasScreenState extends State<VentasScreen> {
                                   children: [
                                     ProductImageWidget(
                                       imagenUrl: p.imagenUrl,
+                                      nombre: p.nombre,
+                                      codigoBarras: p.codigoBarras,
                                       categoria: p.nombreCategoria,
                                       size: 58,
                                       borderRadius: 16,
@@ -3631,6 +3635,8 @@ class _VentasScreenState extends State<VentasScreen> {
                                       children: [
                                         ProductImageWidget(
                                           imagenUrl: p.imagenUrl,
+                                          nombre: p.nombre,
+                                          codigoBarras: p.codigoBarras,
                                           categoria: p.nombreCategoria,
                                           size: 88,
                                           borderRadius: 16,
@@ -3901,6 +3907,8 @@ class _VentasScreenState extends State<VentasScreen> {
                           // Foto de estudio o glyph de categoría en lista de carrito
                           ProductImageWidget(
                             imagenUrl: item.producto.imagenUrl,
+                            nombre: item.producto.nombre,
+                            codigoBarras: item.producto.codigoBarras,
                             categoria: item.producto.nombreCategoria,
                             size: 34,
                             borderRadius: 10,
