@@ -32,7 +32,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
   final _adminPassCtrl = TextEditingController();
 
   final _authService = AuthService();
-  String _selectedPlan = 'BASICO';
+  String _selectedPlan = 'PRO';
   bool _isLoading = false;
   bool _obscurePass = true;
   String _errorMessage = '';
@@ -75,7 +75,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
       context.go('/home'); // Ingresa al sistema con la nueva bodega aprovisionada
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('¡Bienvenido a tu nuevo sistema! Bodega creada con 14 días gratis de Plan $_selectedPlan.'),
+          content: Text('¡Bienvenido a tu nuevo sistema! Bodega creada con 1 mes gratis (30 días) de Plan Minimarket PRO.'),
           backgroundColor: AppTheme.accentGreen,
           duration: const Duration(seconds: 4),
         ),
@@ -154,7 +154,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                             ),
                           ),
                           Text(
-                            '14 días gratis • Configuración en 1 minuto',
+                            '1 mes gratis (30 días) • Configuración en 1 minuto',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
@@ -455,53 +455,117 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                       ),
                       const SizedBox(height: 20),
 
-                      // 5. Selector de Plan
+                      // 5. Selector de Plan con Diferenciación Real y 1 Mes Gratis
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.15 : 0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppTheme.accentGreen.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(LucideIcons.gift, color: AppTheme.accentGreen, size: 22),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '¡1 Mes Gratis de Plan Minimarket PRO!',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Tu bodega inicia con 30 días de acceso total PRO sin costo para probar todas las funciones. Sin tarjetas ni cobros automáticos.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
                       Text(
-                        'Selecciona tu Plan Inicial',
+                        'Selecciona tu Plan',
                         style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
                           color: isDark ? Colors.white : AppTheme.textDark,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Ambos planes incluyen cajeros y administradores ilimitados con PIN individual.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
 
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          final isVeryNarrow = constraints.maxWidth < 340;
+                          final isNarrow = constraints.maxWidth < 480;
                           final planBasico = _buildPlanOption(
                             id: 'BASICO',
-                            title: 'Plan Bodega',
+                            title: 'Plan Bodega Básico',
                             price: 'S/ 50 /mes',
-                            badge: 'Admin + 2 Cajeros',
-                            features: 'POS rápido, Stock, Caja y Tickets',
+                            badge: 'Hasta 150 productos',
+                            bulletPoints: const [
+                              'Hasta 150 productos en inventario',
+                              'POS rápido, tickets y código de barras',
+                              'Caja chica, arqueo diario y fiados',
+                              'Modo Offline para vender sin internet',
+                              'Cajeros y admins ilimitados (PIN 4 d.)',
+                            ],
                             isDark: isDark,
                           );
                           final planPro = _buildPlanOption(
                             id: 'PRO',
-                            title: 'Plan Minimarket Pro',
-                            price: 'S/ 100 /mes',
-                            badge: 'Cajeros Ilimitados',
-                            features: 'Turnos, Kardex antifraude, Marca propia',
+                            title: 'Plan Minimarket PRO',
+                            price: 'S/ 100 /mes (1er Mes S/ 0)',
+                            badge: 'Catálogo Ilimitado',
                             isPopular: true,
+                            bulletPoints: const [
+                              'Catálogo de productos ILIMITADO',
+                              'Enlace propio de Catálogo Digital Online',
+                              'Dashboard BI: rotación ABC, margen y utilidad',
+                              'Auditoría Ciega y Detector Stock Hueso',
+                              'Reportes a WhatsApp y Meta Diaria',
+                              'Cajeros y admins ilimitados (PIN 4 d.)',
+                            ],
                             isDark: isDark,
                           );
 
-                          if (isVeryNarrow) {
+                          if (isNarrow) {
                             return Column(
                               children: [
-                                planBasico,
-                                const SizedBox(height: 10),
                                 planPro,
+                                const SizedBox(height: 12),
+                                planBasico,
                               ],
                             );
                           }
 
                           return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(child: planBasico),
-                              const SizedBox(width: 12),
                               Expanded(child: planPro),
+                              const SizedBox(width: 12),
+                              Expanded(child: planBasico),
                             ],
                           );
                         },
@@ -535,9 +599,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                     const Icon(LucideIcons.rocket, size: 20, color: Colors.white),
                                     const SizedBox(width: 10),
                                     Text(
-                                      'CREAR BODEGA & EMPEZAR',
+                                      'CREAR BODEGA & EMPEZAR (1 MES GRATIS)',
                                       style: GoogleFonts.outfit(
-                                        fontSize: 14,
+                                        fontSize: 13.5,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white,
                                         letterSpacing: 0.5,
@@ -563,13 +627,13 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
     required String title,
     required String price,
     required String badge,
-    required String features,
+    required List<String> bulletPoints,
     bool isPopular = false,
     required bool isDark,
   }) {
     final isSelected = _selectedPlan == id;
     final cardBg = isSelected
-        ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.08)
+        ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.22 : 0.08)
         : (isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC));
     final borderColor = isSelected
         ? AppTheme.brandPrimary
@@ -579,7 +643,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
       onTap: () => setState(() => _selectedPlan = id),
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(16),
@@ -591,13 +655,13 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
             if (isPopular)
               Container(
                 margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(
                   color: AppTheme.accentGreen,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'RECOMENDADO',
+                  '1 MES GRATIS • RECOMENDADO',
                   style: GoogleFonts.outfit(
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
@@ -621,7 +685,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                 ),
                 if (isSelected) ...[
                   const SizedBox(width: 4),
-                  const Icon(LucideIcons.checkCircle2, color: AppTheme.brandPrimary, size: 16),
+                  const Icon(LucideIcons.checkCircle2, color: AppTheme.brandPrimary, size: 18),
                 ],
               ],
             ),
@@ -629,16 +693,18 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
             Text(
               price,
               style: GoogleFonts.outfit(
-                fontSize: 12,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w700,
                 color: AppTheme.brandPrimary,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isSelected
+                    ? AppTheme.brandPrimary.withValues(alpha: 0.15)
+                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -646,18 +712,35 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                  color: isSelected
+                      ? AppTheme.brandPrimary
+                      : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569)),
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              features,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10.5,
-                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+            const SizedBox(height: 10),
+            ...bulletPoints.map((bp) => Padding(
+              padding: const EdgeInsets.only(bottom: 5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2, right: 6),
+                    child: Icon(LucideIcons.check, size: 12, color: AppTheme.accentGreen),
+                  ),
+                  Expanded(
+                    child: Text(
+                      bp,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        height: 1.25,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
+            )),
           ],
         ),
       ),

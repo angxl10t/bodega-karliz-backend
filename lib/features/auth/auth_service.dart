@@ -196,7 +196,7 @@ class AuthService {
     required String adminPassword,
     String? colorPrimario,
     String? lemaComercial,
-    String plan = 'BASICO',
+    String plan = 'PRO',
   }) async {
     try {
       final response = await http.post(
