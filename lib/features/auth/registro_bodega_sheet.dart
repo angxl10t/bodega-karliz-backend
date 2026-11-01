@@ -413,6 +413,10 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'El usuario es obligatorio';
                           if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                          final clean = v.trim().toLowerCase();
+                          if (clean == 'admin' || clean == 'superadmin') {
+                            return 'El usuario "$clean" está reservado. Usa ej. admin_mitienda';
+                          }
                           if (v.trim().contains(' ')) return 'No debe contener espacios';
                           return null;
                         },
