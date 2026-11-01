@@ -3148,7 +3148,14 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                     InkWell(
 
-                      onTap: () => ConfiguracionMarcaModal.show(context, isPro: isPro),
+                      onTap: () => ConfiguracionMarcaModal.show(
+                        context,
+                        isPro: isPro,
+                        onSaved: () {
+                          _cargarDatos();
+                          widget.onPlanUpdated?.call();
+                        },
+                      ),
 
                       borderRadius: BorderRadius.circular(16),
 

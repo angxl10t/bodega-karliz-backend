@@ -597,10 +597,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isLoading = false;
       });
 
-      // Sincronización en vivo del plan real de la bodega
+      // Sincronización en vivo de los datos e identidad de la bodega
       BodegaService().obtenerMiBodega().then((info) {
-        if (mounted && info != null && info.plan.toUpperCase() != _plan.toUpperCase()) {
-          setState(() => _plan = info.plan);
+        if (mounted && info != null) {
+          setState(() {
+            if (info.plan.toUpperCase() != _plan.toUpperCase()) {
+              _plan = info.plan;
+            }
+            if (info.telefono != null && info.telefono!.isNotEmpty) {
+              _telefono = info.telefono!;
+            }
+            if (info.nombreComercial.isNotEmpty) {
+              _nombreBodega = info.nombreComercial;
+            }
+            if (info.direccion != null && info.direccion!.isNotEmpty) {
+              _direccion = info.direccion!;
+            }
+          });
         }
       }).catchError((_) {});
     }

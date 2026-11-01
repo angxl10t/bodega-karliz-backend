@@ -1423,18 +1423,21 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
       backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       builder: (ctx) {
         final double valorTotal = p.stockActual * p.precioVenta;
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        return SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(22, 16, 22, 28 + MediaQuery.of(ctx).viewInsets.bottom),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Center(
                 child: Container(
                   width: 44,
@@ -1717,7 +1720,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
               ),
             ],
           ),
-        );
+        ),
+      );
       },
     );
   }
