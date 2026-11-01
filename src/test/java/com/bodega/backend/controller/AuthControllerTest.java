@@ -210,11 +210,11 @@ public class AuthControllerTest {
         Bodega nuevaBodega = new Bodega();
         nuevaBodega.setIdBodega(10L);
         nuevaBodega.setNombreComercial("Minimarket Don Pepe");
-        nuevaBodega.setPlan("BASICO");
+        nuevaBodega.setPlan("PRO");
 
         when(bodegaRepository.save(any(Bodega.class))).thenReturn(nuevaBodega);
         when(passwordEncoder.encode("segura1234")).thenReturn("$2a$10$hashed");
-        when(jwtUtil.generateToken("don_pepe", "ADMIN", 10L, "BASICO")).thenReturn("jwt.token.nueva.bodega");
+        when(jwtUtil.generateToken("don_pepe", "ADMIN", 10L, "PRO")).thenReturn("jwt.token.nueva.bodega");
 
         ResponseEntity<Map<String, String>> response = authController.registrarBodega(dto, request);
 
@@ -222,7 +222,7 @@ public class AuthControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("jwt.token.nueva.bodega", response.getBody().get("token"));
         assertEquals("Minimarket Don Pepe", response.getBody().get("nombreBodega"));
-        assertEquals("BASICO", response.getBody().get("plan"));
+        assertEquals("PRO", response.getBody().get("plan"));
 
         verify(starterPackService).provisionarStarterPackParaBodega(nuevaBodega);
         verify(usuarioRepository).save(any(Usuario.class));

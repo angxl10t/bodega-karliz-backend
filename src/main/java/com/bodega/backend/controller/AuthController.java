@@ -175,10 +175,11 @@ public class AuthController {
         } else {
             bodega.setRegimenTributario("NUEVO_RUS");
         }
-        if (dto.getPlan() != null && "PRO".equalsIgnoreCase(dto.getPlan().trim())) { bodega.setPlan("PRO"); } else { bodega.setPlan("BASICO"); }
+        // Periodo de prueba gratuito inicial de 1 mes (30 días) con Plan Minimarket PRO completo
+        bodega.setPlan("PRO");
         bodega.setEstado(true);
-        // Periodo de prueba gratuito inicial de 14 días
-        bodega.setFechaVencimientoPlan(java.time.OffsetDateTime.now().plusDays(14));
+        // Periodo de prueba gratuito de 30 días (1 mes)
+        bodega.setFechaVencimientoPlan(java.time.OffsetDateTime.now().plusDays(30));
 
         com.bodega.backend.entity.Bodega bodegaGuardada = bodegaRepository.save(bodega);
 
@@ -213,7 +214,7 @@ public class AuthController {
         response.put("logoUrl", bodegaGuardada.getLogoUrl() != null ? bodegaGuardada.getLogoUrl() : "");
         response.put("regimenTributario", bodegaGuardada.getRegimenTributario() != null ? bodegaGuardada.getRegimenTributario() : "NUEVO_RUS");
         response.put("facturacionSunatActiva", String.valueOf(Boolean.TRUE.equals(bodegaGuardada.getFacturacionSunatActiva())));
-        response.put("mensaje", "¡Bienvenido a CajaYa! Tu tienda '" + bodegaGuardada.getNombreComercial() + "' ha sido creada con éxito.");
+        response.put("mensaje", "¡Bienvenido a CajaYa! Tu tienda '" + bodegaGuardada.getNombreComercial() + "' ha sido creada con éxito. Disfruta de 1 mes gratis de Plan PRO.");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
