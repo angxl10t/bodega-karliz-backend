@@ -7,6 +7,7 @@ import 'features/auth/splash_screen.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/superadmin/superadmin_dashboard_screen.dart';
+import 'features/catalogo/catalogo_publico_screen.dart';
 import 'core/theme_provider.dart';
 import 'core/api_constants.dart';
 import 'core/update_service.dart';
@@ -36,8 +37,10 @@ void main() async {
 final _router = GoRouter(
   initialLocation: '/splash',
   redirect: (context, state) async {
-    final path = state.uri.toString();
+    final path = state.uri.path;
+    final uriStr = state.uri.toString();
     if (path == '/splash') return null;
+    if (path == '/catalogo' || uriStr.startsWith('/catalogo')) return null;
     final isLoggedIn = await AuthService().isLoggedIn();
     if (!isLoggedIn && path != '/login') return '/login';
     if (isLoggedIn && path == '/login') {
@@ -52,6 +55,13 @@ final _router = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/superadmin', builder: (context, state) => const SuperAdminDashboardScreen()),
+    GoRoute(
+      path: '/catalogo',
+      builder: (context, state) {
+        final tienda = state.uri.queryParameters['tienda'] ?? '';
+        return CatalogoPublicoScreen(tiendaSlug: tienda);
+      },
+    ),
   ],
 );
 
