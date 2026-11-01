@@ -139,7 +139,7 @@ public class CatalogoPublicoController {
             }
         }
 
-        return bodegaRepository.findFirstByOrderByIdBodegaAsc().orElse(null);
+        return null;
     }
 
     private String normalizarSlug(String texto) {

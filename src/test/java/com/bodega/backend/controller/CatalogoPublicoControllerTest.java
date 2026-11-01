@@ -113,4 +113,18 @@ class CatalogoPublicoControllerTest {
         assertFalse((Boolean) body.get("esPro"));
         verify(productoRepository, never()).findByBodega_IdBodegaAndEstadoTrue(anyLong());
     }
+
+    @Test
+    void testCatalogoBodegaNoExistenteRetorna404() {
+        when(bodegaRepository.findByEstadoTrueOrderByNombreComercialAsc()).thenReturn(List.of(bodegaPro));
+
+        ResponseEntity<Map<String, Object>> response = controller.obtenerCatalogoPorParam("bodega-fantasma-999");
+
+        assertEquals(404, response.getStatusCode().value());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Bodega no encontrada", body.get("error"));
+        assertFalse((Boolean) body.get("esPro"));
+        verify(productoRepository, never()).findByBodega_IdBodegaAndEstadoTrue(anyLong());
+    }
 }
