@@ -29,7 +29,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
-    FlutterSecureStorage.setMockInitialValues({'jwt_token': 'test_token'});
+    FlutterSecureStorage.setMockInitialValues({'jwt_token': 'test_token', 'plan_bodega': 'PRO'});
     SharedPreferences.setMockInitialValues({});
   });
 
@@ -265,6 +265,24 @@ void main() {
       expect(find.text('Métricas de Rentabilidad Real'), findsOneWidget);
       expect(find.text('Mapa de Calor de Horarios Pico'), findsOneWidget);
       expect(find.text('Reporte de Rotación Táctico'), findsOneWidget);
+    });
+
+    testWidgets('DashboardBiScreen renderiza pantalla de bloqueo PRO cuando el plan es BASICO', (tester) async {
+      FlutterSecureStorage.setMockInitialValues({'jwt_token': 'test_token', 'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
+      SharedPreferences.setMockInitialValues({'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DashboardBiScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('EXCLUSIVO PLAN MINIMARKET PRO'), findsOneWidget);
+      expect(find.text('Módulo de Analítica & Business Intelligence'), findsOneWidget);
+      expect(find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'), findsOneWidget);
     });
   });
 }

@@ -5,6 +5,8 @@ import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
 import 'dashboard_bi_model.dart';
 import 'dashboard_bi_service.dart';
+import '../auth/auth_service.dart';
+import '../../core/widgets/plan_upgrade_modal.dart';
 
 class DashboardBiScreen extends StatefulWidget {
   final DashboardBiService? service;
@@ -26,9 +28,36 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _filtroTexto = '';
 
+  bool _isPro = true;
+  bool _verificandoPlan = true;
+
   @override
   void initState() {
     super.initState();
+    _verificarPlanYCargar();
+  }
+
+  Future<void> _verificarPlanYCargar() async {
+    final auth = AuthService();
+    final plan = await auth.getPlanBodega();
+    final rol = await auth.getUserRole();
+    final pro = plan.toUpperCase() == 'PRO' || rol.toUpperCase() == 'SUPERADMIN';
+    if (!pro) {
+      if (mounted) {
+        setState(() {
+          _isPro = false;
+          _verificandoPlan = false;
+          _cargando = false;
+        });
+      }
+      return;
+    }
+    if (mounted) {
+      setState(() {
+        _isPro = true;
+        _verificandoPlan = false;
+      });
+    }
     _cargarDatos();
   }
 
@@ -86,6 +115,146 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     final bgCanvas = isDark ? AppTheme.bgDark : AppTheme.bgLight;
 
     final canPop = ModalRoute.of(context)?.canPop ?? false;
+
+    if (!_isPro && !_verificandoPlan) {
+      return Scaffold(
+        backgroundColor: bgCanvas,
+        appBar: AppBar(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          elevation: 0,
+          leading: canPop
+              ? IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft),
+                  tooltip: 'Regresar',
+                  onPressed: () => Navigator.maybePop(context),
+                )
+              : null,
+          title: Text(
+            'Analítica de Negocio & BI',
+            style: AppTheme.headingStyle(
+              size: 18,
+              weight: FontWeight.w800,
+              color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+            ),
+          ),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 520),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDark : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.3),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(LucideIcons.lock, size: 40, color: Color(0xFFD97706)),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'EXCLUSIVO PLAN MINIMARKET PRO',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFD97706),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Módulo de Analítica & Business Intelligence',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Calcula tu margen bruto real en soles y porcentaje restando el costo de compra en cada venta, descubre tus horas punta de 24h y clasifica productos estrella vs huesos para liberar capital inmovilizado.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      height: 1.5,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D9488),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      icon: const Icon(LucideIcons.sparkles, size: 18),
+                      label: Text(
+                        'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                      ),
+                      onPressed: () {
+                        PlanUpgradeModal.show(
+                          context,
+                          featureName: 'Analítica de Rentabilidad Real & BI',
+                          featureDescription: 'Calcula tu margen bruto real en soles y porcentaje, conoce tus horas punta de 24h y optimiza la rotación de tu minimarket.',
+                          icon: LucideIcons.trendingUp,
+                          onPlanUpdated: () {
+                            _verificarPlanYCargar();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (canPop)
+                    TextButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(LucideIcons.arrowLeft, size: 16),
+                      label: Text(
+                        'Volver al Panel Principal',
+                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: bgCanvas,

@@ -147,7 +147,7 @@ class AuthService {
   }
 
   Future<String> getPlanBodega() async {
-    return await SecureStorageService.read('plan_bodega') ?? 'PRO';
+    return await SecureStorageService.read('plan_bodega') ?? 'BASICO';
   }
 
   Future<String> getIdBodega() async {
@@ -196,7 +196,7 @@ class AuthService {
     required String adminPassword,
     String? colorPrimario,
     String? lemaComercial,
-    String plan = 'PRO',
+    String plan = 'BASICO',
   }) async {
     try {
       final response = await http.post(
@@ -211,6 +211,7 @@ class AuthService {
           'password': adminPassword,
           'colorPrimario': colorPrimario ?? '#2563EB',
           'lemaComercial': lemaComercial,
+          'plan': plan,
         }),
       ).timeout(const Duration(seconds: 25));
 

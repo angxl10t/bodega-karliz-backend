@@ -1,3 +1,7 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bodega_mobile/features/movimientos/auditoria_ciega_screen.dart';
+import 'package:bodega_mobile/features/dashboard/dashboard_bi_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -112,6 +116,42 @@ void main() {
       expect(find.text('Mi Bodega Online'), findsOneWidget);
       expect(find.text('Compartir Catálogo por WhatsApp'), findsOneWidget);
       expect(find.text('Ver Catálogo como Cliente'), findsOneWidget);
+    });
+
+    testWidgets('AuditoriaCiegaScreen renders locked paywall when bodega is on BASICO plan', (tester) async {
+      FlutterSecureStorage.setMockInitialValues({'jwt_token': 'fake_jwt', 'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
+      SharedPreferences.setMockInitialValues({'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AuditoriaCiegaScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('EXCLUSIVO PLAN MINIMARKET PRO'), findsOneWidget);
+      expect(find.text('Auditoría Rápida por Pasillo'), findsAtLeastNWidgets(1));
+      expect(find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'), findsOneWidget);
+    });
+
+    testWidgets('DashboardBiScreen renders locked paywall when bodega is on BASICO plan', (tester) async {
+      FlutterSecureStorage.setMockInitialValues({'jwt_token': 'fake_jwt', 'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
+      SharedPreferences.setMockInitialValues({'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DashboardBiScreen(),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('EXCLUSIVO PLAN MINIMARKET PRO'), findsOneWidget);
+      expect(find.text('Módulo de Analítica & Business Intelligence'), findsOneWidget);
+      expect(find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'), findsOneWidget);
     });
   });
 }

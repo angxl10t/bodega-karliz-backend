@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -43,7 +43,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   String _telefonoBodega = '';
   String _lemaBodega = '';
   String _username = 'Cajero';
-  String _plan = 'PRO';
+  String _plan = 'BASICO';
 
   DateTime _fechaSeleccionada = DateTime.now();
   bool _filtrarVentasPorFecha = false;
@@ -281,7 +281,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       final direccion = (results[7] as String?) ?? '';
       final telefono = (results[8] as String?) ?? '';
       final lema = (results[9] as String?) ?? '';
-      final plan = (results[10] as String?) ?? 'PRO';
+      final plan = (results[10] as String?) ?? 'BASICO';
 
       if (historial.isEmpty && ventas.isNotEmpty) {
         historial = _calcularHistorialDesdeVentas(ventas);

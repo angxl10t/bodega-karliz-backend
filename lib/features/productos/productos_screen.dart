@@ -718,7 +718,14 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         borderRadius: BorderRadius.circular(12),
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          NuevoProductoSheet.show(context, _cargarProductos);
+                          final esBasico = _bodegaInfo?.plan.toUpperCase() == 'BASICO';
+                          final total = _todosProductos.length;
+                          final limite = _bodegaInfo?.limiteProductos ?? 150;
+                          if (esBasico && total >= limite) {
+                            _mostrarModalLimitePlanBasico(context);
+                          } else {
+                            NuevoProductoSheet.show(context, _cargarProductos);
+                          }
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: isNarrowScreen ? 8 : 11, vertical: 6.5),
@@ -1776,7 +1783,16 @@ class _ProductosScreenState extends State<ProductosScreen> {
               const SizedBox(height: 10),
             ] else if (_esAdmin) ...[
               ElevatedButton.icon(
-                onPressed: () => NuevoProductoSheet.show(context, _cargarProductos),
+                onPressed: () {
+                  final esBasico = _bodegaInfo?.plan.toUpperCase() == 'BASICO';
+                  final total = _todosProductos.length;
+                  final limite = _bodegaInfo?.limiteProductos ?? 150;
+                  if (esBasico && total >= limite) {
+                    _mostrarModalLimitePlanBasico(context);
+                  } else {
+                    NuevoProductoSheet.show(context, _cargarProductos);
+                  }
+                },
                 icon: const Icon(LucideIcons.plus, size: 16),
                 label: Text(
                   'Registrar Primer Producto',

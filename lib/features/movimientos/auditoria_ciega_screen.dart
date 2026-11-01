@@ -10,6 +10,8 @@ import '../../core/csv_exporter.dart';
 import '../productos/producto_service.dart';
 import 'auditoria_ciega_model.dart';
 import 'movimiento_service.dart';
+import '../auth/auth_service.dart';
+import '../../core/widgets/plan_upgrade_modal.dart';
 
 class AuditoriaCiegaScreen extends StatefulWidget {
   const AuditoriaCiegaScreen({super.key});
@@ -30,9 +32,36 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
   String _filtroTexto = '';
   String _filtroDiscrepancia = 'TODOS'; // 'TODOS', 'FALTANTES', 'SOBRANTES', 'EXACTOS'
 
+  bool _isPro = true;
+  bool _verificandoPlan = true;
+
   @override
   void initState() {
     super.initState();
+    _verificarPlanYIniciar();
+  }
+
+  Future<void> _verificarPlanYIniciar() async {
+    final auth = AuthService();
+    final plan = await auth.getPlanBodega();
+    final rol = await auth.getUserRole();
+    final pro = plan.toUpperCase() == 'PRO' || rol.toUpperCase() == 'SUPERADMIN';
+    if (!pro) {
+      if (mounted) {
+        setState(() {
+          _isPro = false;
+          _verificandoPlan = false;
+          _isLoading = false;
+        });
+      }
+      return;
+    }
+    if (mounted) {
+      setState(() {
+        _isPro = true;
+        _verificandoPlan = false;
+      });
+    }
     _iniciarSesionAuditoria();
   }
 
@@ -266,6 +295,142 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
     final canPop = ModalRoute.of(context)?.canPop ?? false;
+
+    if (!_isPro && !_verificandoPlan) {
+      return Scaffold(
+        backgroundColor: isDark ? AppTheme.bgDark : const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: cardBg,
+          elevation: 0,
+          leading: canPop
+              ? IconButton(
+                  icon: const Icon(LucideIcons.arrowLeft),
+                  tooltip: 'Regresar',
+                  onPressed: () => Navigator.maybePop(context),
+                )
+              : null,
+          title: Text(
+            'Auditoría Rápida por Pasillo',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+          ),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 520),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.3),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(LucideIcons.lock, size: 40, color: Color(0xFFD97706)),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'EXCLUSIVO PLAN MINIMARKET PRO',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFD97706),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Auditoría Rápida por Pasillo',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal, detectando mermas y robo hormiga a tiempo con balance de sobrantes y faltantes.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      height: 1.5,
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D9488),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      icon: const Icon(LucideIcons.sparkles, size: 18),
+                      label: Text(
+                        'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                      ),
+                      onPressed: () {
+                        PlanUpgradeModal.show(
+                          context,
+                          featureName: 'Auditoría Rápida por Pasillo',
+                          featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola sin mostrar el stock real al personal para detectar diferencias a tiempo.',
+                          icon: LucideIcons.clipboardCheck,
+                          onPlanUpdated: () {
+                            _verificarPlanYIniciar();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (canPop)
+                    TextButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(LucideIcons.arrowLeft, size: 16),
+                      label: Text(
+                        'Volver al Inventario',
+                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     if (_isLoading || _sesion == null) {
       return Scaffold(

@@ -8,6 +8,7 @@ import '../productos/nuevo_producto_sheet.dart';
 import '../movimientos/kardex_screen.dart';
 import '../auth/auth_service.dart';
 import '../home/plan_y_personal_sheet.dart';
+import '../home/bodega_service.dart';
 import '../home/configuracion_ticket_modal.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
@@ -46,7 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _nombreBodega = 'CajaYa POS';
   String _username = 'Usuario';
   String _userRol = 'ADMIN';
-  String _plan = 'PRO';
+  String _plan = 'BASICO';
   String _ruc = '';
   String _telefono = '';
   String _direccion = '';
@@ -207,6 +208,154 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildTermometroMetaDiaria(bool isDark) {
     final bool isPro = _plan.toUpperCase() == 'PRO';
+    if (!isPro) {
+      return Container(
+        margin: const EdgeInsets.only(top: 14),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.cardDark : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFFD97706).withValues(alpha: 0.35),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFD97706).withValues(alpha: isDark ? 0.08 : 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              PlanUpgradeModal.show(
+                context,
+                featureName: 'Termómetro de Meta Diaria de Venta',
+                featureDescription: 'Establece tu meta de ventas diaria y mira en vivo la barra de progreso avanzando con cada cobro en caja. Conoce cuánto te falta para superar tu punto de equilibrio.',
+                icon: LucideIcons.target,
+                onPlanUpdated: _cargarDatos,
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(LucideIcons.target, size: 18, color: Color(0xFFD97706)),
+                          ),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Termómetro de Meta Diaria',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(LucideIcons.lock, size: 9, color: Color(0xFFD97706)),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          'PRO',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            color: const Color(0xFFD97706),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '🔒 Función Exclusiva Plan PRO • Toca para desbloquear',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFFD97706),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFD97706).withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(LucideIcons.lock, size: 12, color: Color(0xFFD97706)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Desbloquear',
+                              style: GoogleFonts.outfit(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFFD97706),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      height: 10,
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 80,
+                            color: const Color(0xFFD97706).withValues(alpha: 0.4),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final totalVentas = _cierreHoy?.totalVentas ?? 0.0;
     final double progreso = _metaDiaria > 0 ? (totalVentas / _metaDiaria).clamp(0.0, 1.0) : 0.0;
     final bool metaCumplida = totalVentas >= _metaDiaria;
@@ -440,13 +589,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _nombreBodega = (results[2] as String?) ?? 'CajaYa POS';
         _username = (results[3] as String?) ?? 'Usuario';
         _userRol = (results[4] as String?) ?? 'ADMIN';
-        _plan = (results[5] as String?) ?? 'PRO';
+        _plan = (results[5] as String?) ?? 'BASICO';
         _ruc = (results[6] as String?) ?? '';
         _telefono = (results[7] as String?) ?? '';
         _direccion = (results[8] as String?) ?? '';
         _resumenCreditos = results[9] as ResumenCreditos?;
         _isLoading = false;
       });
+
+      // Sincronización en vivo del plan real de la bodega
+      BodegaService().obtenerMiBodega().then((info) {
+        if (mounted && info != null && info.plan.toUpperCase() != _plan.toUpperCase()) {
+          setState(() => _plan = info.plan);
+        }
+      }).catchError((_) {});
     }
   }
 
@@ -829,7 +985,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.plusCircle,
                               color: AppTheme.brandPrimary,
                               isDark: isDark,
-                              onTap: () => NuevoProductoSheet.show(context, _cargarDatos),
+                              onTap: () {
+                                final esBasico = _plan.toUpperCase() != 'PRO';
+                                if (esBasico && _productos.length >= 150) {
+                                  PlanUpgradeModal.show(
+                                    context,
+                                    featureName: 'Catálogo de Productos Ilimitado',
+                                    featureDescription: 'Has alcanzado el límite de 150 productos activos para el Plan Bodega Básico. Actualiza al Plan Minimarket PRO para registrar productos ilimitados.',
+                                    icon: LucideIcons.boxes,
+                                    onPlanUpdated: _cargarDatos,
+                                  );
+                                  return;
+                                }
+                                NuevoProductoSheet.show(context, _cargarDatos);
+                              },
                             ),
                             _buildQuickActionBtn(
                               width: btnWidth,

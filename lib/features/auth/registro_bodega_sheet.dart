@@ -32,7 +32,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
   final _adminPassCtrl = TextEditingController();
 
   final _authService = AuthService();
-  String _selectedPlan = 'PRO';
+  String _selectedPlan = 'BASICO';
   bool _isLoading = false;
   bool _obscurePass = true;
   String _errorMessage = '';

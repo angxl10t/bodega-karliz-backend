@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _username = 'admin';
   String _userRol = 'ADMIN';
   String _nombreBodega = 'CajaYa POS';
-  String _plan = 'PRO';
+  String _plan = 'BASICO';
   Map<String, dynamic> _anuncioGlobal = {};
   bool _anuncioDismissed = false;
   Timer? _inactivityTimer;
@@ -136,6 +136,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _nombreBodega = results[2];
         _plan = results[3];
       });
+
+      // Sincronización en segundo plano del plan real de la bodega desde la nube
+      BodegaService().obtenerMiBodega().then((info) {
+        if (mounted && info != null && info.plan.toUpperCase() != _plan.toUpperCase()) {
+          setState(() => _plan = info.plan);
+        }
+      }).catchError((_) {});
 
       try {
         final anuncio = await BodegaService().obtenerAnuncioGlobal();
