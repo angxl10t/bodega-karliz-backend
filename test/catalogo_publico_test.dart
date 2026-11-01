@@ -123,4 +123,154 @@ void main() {
     expect(find.text('SUSCRIPCIÓN PRO REQUERIDA'), findsOneWidget);
     expect(find.text('Inca Kola 500ml'), findsNothing);
   });
+
+  testWidgets('CatalogoPublicoScreen adapts properly for Tablet Portrait (800x1280)', (tester) async {
+    tester.view.physicalSize = const Size(800, 1280);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final mockClient = MockClient((request) async {
+      final data = {
+        'esPro': true,
+        'mensaje': null,
+        'bodega': {
+          'idBodega': 1,
+          'nombreComercial': 'Bodega Karliz',
+          'telefono': '987654321',
+          'plan': 'PRO',
+          'esPro': true,
+        },
+        'categorias': ['Bebidas'],
+        'productos': [
+          {
+            'idProducto': 101,
+            'nombre': 'Inca Kola 500ml',
+            'precioVenta': 3.50,
+            'categoria': 'Bebidas',
+            'imagenUrl': '',
+            'disponible': true,
+          },
+        ],
+      };
+      return http.Response(jsonEncode(data), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CatalogoPublicoScreen(
+          tiendaSlug: 'bodega-karliz',
+          httpClient: mockClient,
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('Inca Kola 500ml'), findsOneWidget);
+    expect(find.text('S/ 3.50'), findsOneWidget);
+  });
+
+  testWidgets('CatalogoPublicoScreen adapts properly for Tablet Landscape (1280x800)', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final mockClient = MockClient((request) async {
+      final data = {
+        'esPro': true,
+        'mensaje': null,
+        'bodega': {
+          'idBodega': 1,
+          'nombreComercial': 'Bodega Karliz',
+          'telefono': '987654321',
+          'plan': 'PRO',
+          'esPro': true,
+        },
+        'categorias': ['Bebidas'],
+        'productos': [
+          {
+            'idProducto': 101,
+            'nombre': 'Inca Kola 500ml',
+            'precioVenta': 3.50,
+            'categoria': 'Bebidas',
+            'imagenUrl': '',
+            'disponible': true,
+          },
+        ],
+      };
+      return http.Response(jsonEncode(data), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CatalogoPublicoScreen(
+          tiendaSlug: 'bodega-karliz',
+          httpClient: mockClient,
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('Inca Kola 500ml'), findsOneWidget);
+    expect(find.text('S/ 3.50'), findsOneWidget);
+  });
+
+  testWidgets('CatalogoPublicoScreen adapts properly for Mobile Landscape (844x390)', (tester) async {
+    tester.view.physicalSize = const Size(844, 390);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final mockClient = MockClient((request) async {
+      final data = {
+        'esPro': true,
+        'mensaje': null,
+        'bodega': {
+          'idBodega': 1,
+          'nombreComercial': 'Bodega Karliz',
+          'telefono': '987654321',
+          'plan': 'PRO',
+          'esPro': true,
+        },
+        'categorias': ['Bebidas'],
+        'productos': [
+          {
+            'idProducto': 101,
+            'nombre': 'Inca Kola 500ml',
+            'precioVenta': 3.50,
+            'categoria': 'Bebidas',
+            'imagenUrl': '',
+            'disponible': true,
+          },
+        ],
+      };
+      return http.Response(jsonEncode(data), 200, headers: {'content-type': 'application/json; charset=utf-8'});
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CatalogoPublicoScreen(
+          tiendaSlug: 'bodega-karliz',
+          httpClient: mockClient,
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('Inca Kola 500ml'), findsOneWidget);
+    expect(find.text('S/ 3.50'), findsOneWidget);
+  });
 }

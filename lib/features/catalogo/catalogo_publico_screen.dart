@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -454,256 +455,357 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }
 
   Widget _buildCatalogoProView(bool isDark) {
+    final mediaQuery = MediaQuery.of(context);
+    final double shortestSide = mediaQuery.size.shortestSide;
+    final bool isPhysicalTablet = shortestSide >= 600;
+    final bool isTablet = isPhysicalTablet || (mediaQuery.size.width >= 650 && mediaQuery.size.height >= 550);
+
     final nombreBodega = _bodega['nombreComercial']?.toString() ?? 'Bodega';
     final lema = _bodega['lemaComercial']?.toString() ?? '';
     final direccion = _bodega['direccion']?.toString() ?? '';
     final prods = _productosFiltrados;
 
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        // Banner Superior de la Tienda
-        SliverToBoxAdapter(
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                    : [Colors.white, const Color(0xFFF1F5F9)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1400),
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Banner Superior de la Tienda
+            SliverToBoxAdapter(
+              child: Container(
+                margin: EdgeInsets.fromLTRB(
+                  isTablet ? 20 : 16,
+                  isTablet ? 18 : 14,
+                  isTablet ? 20 : 16,
+                  10,
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                padding: EdgeInsets.all(isTablet ? 22 : 18),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                        : [Colors.white, const Color(0xFFF1F5F9)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
+                  border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(LucideIcons.store, size: 26, color: AppTheme.brandPrimary),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  nombreBodega,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDark ? Colors.white : AppTheme.textDark,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF059669).withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'PRO ONLINE',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xFF059669),
-                                  ),
-                                ),
-                              ),
-                            ],
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(isTablet ? 12 : 10),
+                          decoration: BoxDecoration(
+                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
                           ),
-                          if (lema.isNotEmpty)
-                            Text(
-                              lema,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                              ),
-                            ),
-                          if (direccion.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Icon(LucideIcons.mapPin, size: 12, color: Color(0xFF94A3B8)),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    direccion,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11.5,
-                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          child: Icon(LucideIcons.store, size: isTablet ? 30 : 26, color: AppTheme.brandPrimary),
+                        ),
+                        SizedBox(width: isTablet ? 16 : 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      nombreBodega,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: isTablet ? 22 : 19,
+                                        fontWeight: FontWeight.w900,
+                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: isTablet ? 8 : 6, vertical: isTablet ? 3 : 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF059669).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      'PRO ONLINE',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: isTablet ? 11 : 9.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: const Color(0xFF059669),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (lema.isNotEmpty)
+                                Text(
+                                  lema,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: isTablet ? 13.5 : 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              if (direccion.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(LucideIcons.mapPin, size: isTablet ? 14 : 12, color: const Color(0xFF94A3B8)),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        direccion,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: isTablet ? 12.5 : 11.5,
+                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ),
-                          ],
-                        ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: isTablet ? 16 : 14),
+
+                    // Buscador
+                    TextField(
+                      controller: _searchCtrl,
+                      onChanged: (val) => setState(() => _filtroBusqueda = val),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: isTablet ? 15 : 13.5,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Buscar productos, abarrotes, bebidas...',
+                        hintStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: isTablet ? 14 : 13,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: Icon(LucideIcons.search, size: isTablet ? 20 : 18, color: AppTheme.brandPrimary),
+                        suffixIcon: _filtroBusqueda.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(LucideIcons.x, size: isTablet ? 18 : 16),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _filtroBusqueda = '');
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                        contentPadding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 14, vertical: isTablet ? 14 : 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
+                          borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-
-                // Buscador
-                TextField(
-                  controller: _searchCtrl,
-                  onChanged: (val) => setState(() => _filtroBusqueda = val),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5,
-                    color: isDark ? Colors.white : AppTheme.textDark,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Buscar productos, abarrotes, bebidas...',
-                    hintStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                    ),
-                    prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppTheme.brandPrimary),
-                    suffixIcon: _filtroBusqueda.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(LucideIcons.x, size: 16),
-                            onPressed: () {
-                              _searchCtrl.clear();
-                              setState(() => _filtroBusqueda = '');
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Filtros de Categoría Horizontales
-        SliverToBoxAdapter(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                _buildCategoriaChip('TODAS', 'Todos (${_productos.length})', isDark),
-                ..._categorias.map((c) => _buildCategoriaChip(c, c, isDark)),
-              ],
-            ),
-          ),
-        ),
-
-        // Grilla de Productos
-        if (prods.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(LucideIcons.shoppingBag, size: 40, color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No se encontraron productos',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Prueba con otro término de búsqueda o categoría.',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
-                  ),
-                ],
               ),
             ),
-          )
-        else
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-            sliver: SliverLayoutBuilder(
-              builder: (context, constraints) {
-                final double width = constraints.crossAxisExtent;
-                int crossAxisCount = 2;
-                if (width >= 1050) {
-                  crossAxisCount = 4;
-                } else if (width >= 700) {
-                  crossAxisCount = 3;
-                }
 
-                return SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: 0.72,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildProductoCard(prods[index], isDark),
-                    childCount: prods.length,
-                  ),
-                );
-              },
+            // Filtros de Categoría Horizontales
+            SliverToBoxAdapter(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 8 : 6,
+                ),
+                child: Row(
+                  children: [
+                    _buildCategoriaChip('TODAS', 'Todos (${_productos.length})', isDark, isTablet),
+                    ..._categorias.map((c) => _buildCategoriaChip(c, c, isDark, isTablet)),
+                  ],
+                ),
+              ),
             ),
-          ),
-      ],
+
+            // Grilla de Productos
+            if (prods.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(LucideIcons.shoppingBag, size: isTablet ? 48 : 40, color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No se encontraron productos',
+                        style: GoogleFonts.outfit(
+                          fontSize: isTablet ? 18 : 16,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Prueba con otro término de búsqueda o categoría.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: isTablet ? 13 : 12,
+                          color: const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final double width = constraints.crossAxisExtent;
+                  final config = _getDeviceConfig(context, width);
+
+                  return SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      isTablet ? 20 : 16,
+                      10,
+                      isTablet ? 20 : 16,
+                      100,
+                    ),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: config.crossAxisCount,
+                        childAspectRatio: config.childAspectRatio,
+                        crossAxisSpacing: config.gridSpacing,
+                        mainAxisSpacing: config.gridSpacing,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _buildProductoCard(prods[index], isDark, config),
+                        childCount: prods.length,
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildCategoriaChip(String key, String label, bool isDark) {
+  _CatalogoDeviceConfig _getDeviceConfig(BuildContext context, double width) {
+    final mediaQuery = MediaQuery.of(context);
+    final double shortestSide = mediaQuery.size.shortestSide;
+    final bool isLandscape = mediaQuery.orientation == Orientation.landscape;
+    final bool isPhysicalTablet = shortestSide >= 600;
+    final bool isTabletDevice = isPhysicalTablet || (width >= 650 && mediaQuery.size.height >= 550);
+
+    if (isTabletDevice) {
+      if (isLandscape) {
+        // Tablet en Horizontal (o Desktop grande)
+        final int cols = width >= 1250 ? 4 : 3;
+        return _CatalogoDeviceConfig(
+          crossAxisCount: cols,
+          childAspectRatio: 0.80,
+          maxImageSize: 140.0,
+          categoriaFontSize: 12.0,
+          nombreFontSize: 16.5,
+          precioFontSize: 21.0,
+          botonHeight: 44.0,
+          botonFontSize: 14.0,
+          botonIconSize: 18.0,
+          cardPadding: 14.0,
+          gridSpacing: 16.0,
+          isTablet: true,
+        );
+      } else {
+        // Tablet en Vertical
+        final int cols = width >= 900 ? 3 : 2;
+        return _CatalogoDeviceConfig(
+          crossAxisCount: cols,
+          childAspectRatio: 0.78,
+          maxImageSize: 150.0,
+          categoriaFontSize: 12.0,
+          nombreFontSize: 17.0,
+          precioFontSize: 22.0,
+          botonHeight: 44.0,
+          botonFontSize: 14.5,
+          botonIconSize: 18.0,
+          cardPadding: 14.0,
+          gridSpacing: 16.0,
+          isTablet: true,
+        );
+      }
+    } else if (isLandscape) {
+      // Celular en Horizontal
+      final int cols = width >= 800 ? 3 : 2;
+      return _CatalogoDeviceConfig(
+        crossAxisCount: cols,
+        childAspectRatio: 0.88,
+        maxImageSize: 105.0,
+        categoriaFontSize: 11.0,
+        nombreFontSize: 15.0,
+        precioFontSize: 18.0,
+        botonHeight: 40.0,
+        botonFontSize: 13.0,
+        botonIconSize: 16.0,
+        cardPadding: 12.0,
+        gridSpacing: 12.0,
+        isTablet: false,
+      );
+    } else {
+      // Celular en Vertical
+      return const _CatalogoDeviceConfig(
+        crossAxisCount: 2,
+        childAspectRatio: 0.68,
+        maxImageSize: 84.0,
+        categoriaFontSize: 10.0,
+        nombreFontSize: 13.5,
+        precioFontSize: 16.0,
+        botonHeight: 36.0,
+        botonFontSize: 12.0,
+        botonIconSize: 14.0,
+        cardPadding: 10.0,
+        gridSpacing: 10.0,
+        isTablet: false,
+      );
+    }
+  }
+
+  Widget _buildCategoriaChip(String key, String label, bool isDark, bool isTablet) {
     final isSelected = _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
 
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: EdgeInsets.only(right: isTablet ? 10 : 8),
       child: FilterChip(
         label: Text(
           label,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
+            fontSize: isTablet ? 13.5 : 12,
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             color: isSelected
                 ? Colors.white
                 : (isDark ? Colors.white70 : const Color(0xFF334155)),
           ),
         ),
+        padding: isTablet ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2) : EdgeInsets.zero,
         selected: isSelected,
         selectedColor: AppTheme.brandPrimary,
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -712,7 +814,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               ? AppTheme.brandPrimary
               : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 14 : 12)),
         onSelected: (_) {
           HapticFeedback.selectionClick();
           setState(() => _categoriaSeleccionada = key);
@@ -721,28 +823,29 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     );
   }
 
-  Widget _buildProductoCard(Map<String, dynamic> prod, bool isDark) {
+  Widget _buildProductoCard(Map<String, dynamic> prod, bool isDark, _CatalogoDeviceConfig config) {
     final int id = (prod['idProducto'] is int) ? prod['idProducto'] as int : int.parse(prod['idProducto'].toString());
     final String nombre = prod['nombre']?.toString() ?? 'Producto';
     final String categoria = prod['categoria']?.toString() ?? 'General';
     final String imagenUrl = prod['imagenUrl']?.toString() ?? '';
     final double precio = (prod['precioVenta'] is num) ? (prod['precioVenta'] as num).toDouble() : 0.0;
     final int cantidadEnCarrito = _carrito[id] ?? 0;
+    final bool isTablet = config.isTablet;
 
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(isTablet ? 20 : 18),
         border: Border.all(
           color: cantidadEnCarrito > 0
               ? AppTheme.brandPrimary
               : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-          width: cantidadEnCarrito > 0 ? 1.5 : 1.0,
+          width: cantidadEnCarrito > 0 ? 1.8 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: isTablet ? 12 : 8,
             offset: const Offset(0, 3),
           ),
         ],
@@ -750,43 +853,53 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Imagen del Producto
+          // Imagen del Producto adaptativa y ampliada
           Expanded(
             flex: 3,
             child: Container(
-              margin: const EdgeInsets.all(8),
+              margin: EdgeInsets.all(isTablet ? 10 : 8),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
               ),
-              child: Center(
-                child: ProductImageWidget(
-                  imagenUrl: imagenUrl,
-                  categoria: categoria,
-                  size: 72,
-                  isDark: isDark,
-                ),
+              child: LayoutBuilder(
+                builder: (context, boxConstraints) {
+                  final availableMax = math.min(boxConstraints.maxWidth, boxConstraints.maxHeight);
+                  final double effectiveSize = (availableMax * 0.88).clamp(64.0, config.maxImageSize);
+                  return Center(
+                    child: ProductImageWidget(
+                      imagenUrl: imagenUrl,
+                      categoria: categoria,
+                      size: effectiveSize,
+                      borderRadius: isTablet ? 16 : 14,
+                      isDark: isDark,
+                    ),
+                  );
+                },
               ),
             ),
           ),
 
-          // Datos del Producto
+          // Datos del Producto (Categoría, Título, Precio)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: EdgeInsets.symmetric(horizontal: config.cardPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 8 : 6,
+                    vertical: isTablet ? 3 : 2,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(5),
+                    borderRadius: BorderRadius.circular(isTablet ? 7 : 5),
                   ),
                   child: Text(
                     categoria,
                     style: GoogleFonts.outfit(
-                      fontSize: 9.5,
+                      fontSize: config.categoriaFontSize,
                       fontWeight: FontWeight.w700,
                       color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     ),
@@ -794,22 +907,23 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: isTablet ? 5 : 3),
                 Text(
                   nombre,
                   style: GoogleFonts.outfit(
-                    fontSize: 13,
+                    fontSize: config.nombreFontSize,
                     fontWeight: FontWeight.w800,
                     color: isDark ? Colors.white : AppTheme.textDark,
+                    height: 1.22,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: isTablet ? 6 : 4),
                 Text(
                   'S/ ${precio.toStringAsFixed(2)}',
                   style: GoogleFonts.outfit(
-                    fontSize: 15,
+                    fontSize: config.precioFontSize,
                     fontWeight: FontWeight.w900,
                     color: AppTheme.brandPrimary,
                   ),
@@ -818,35 +932,43 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             ),
           ),
 
-          const SizedBox(height: 8),
-
           // Botón / Selector de Cantidad
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+            padding: EdgeInsets.fromLTRB(
+              config.cardPadding,
+              isTablet ? 6 : 3,
+              config.cardPadding,
+              config.cardPadding,
+            ),
             child: cantidadEnCarrito == 0
                 ? SizedBox(
-                    height: 34,
+                    height: config.botonHeight,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.brandPrimary,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+                        ),
                       ),
                       onPressed: () => _modificarCantidad(id, 1),
-                      icon: const Icon(LucideIcons.plus, size: 14),
+                      icon: Icon(LucideIcons.plus, size: config.botonIconSize),
                       label: Text(
                         'Agregar',
-                        style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.outfit(
+                          fontSize: config.botonFontSize,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
                   )
                 : Container(
-                    height: 34,
+                    height: config.botonHeight,
                     decoration: BoxDecoration(
                       color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
                       border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.3)),
                     ),
                     child: Row(
@@ -854,22 +976,22 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       children: [
                         IconButton(
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 32, minHeight: 34),
-                          icon: const Icon(LucideIcons.minus, size: 14, color: AppTheme.brandPrimary),
+                          constraints: BoxConstraints(minWidth: config.botonHeight, minHeight: config.botonHeight),
+                          icon: Icon(LucideIcons.minus, size: config.botonIconSize, color: AppTheme.brandPrimary),
                           onPressed: () => _modificarCantidad(id, -1),
                         ),
                         Text(
                           '$cantidadEnCarrito',
                           style: GoogleFonts.outfit(
-                            fontSize: 13,
+                            fontSize: config.botonFontSize + 1,
                             fontWeight: FontWeight.w900,
                             color: AppTheme.brandPrimary,
                           ),
                         ),
                         IconButton(
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 32, minHeight: 34),
-                          icon: const Icon(LucideIcons.plus, size: 14, color: AppTheme.brandPrimary),
+                          constraints: BoxConstraints(minWidth: config.botonHeight, minHeight: config.botonHeight),
+                          icon: Icon(LucideIcons.plus, size: config.botonIconSize, color: AppTheme.brandPrimary),
                           onPressed: () => _modificarCantidad(id, 1),
                         ),
                       ],
@@ -882,8 +1004,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }
 
   Widget _buildFloatingOrderBar(bool isDark) {
+    final mediaQuery = MediaQuery.of(context);
+    final double shortestSide = mediaQuery.size.shortestSide;
+    final bool isPhysicalTablet = shortestSide >= 600;
+    final bool isTablet = isPhysicalTablet || (mediaQuery.size.width >= 650 && mediaQuery.size.height >= 550);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 24 : 16,
+        vertical: isTablet ? 16 : 12,
+      ),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -899,51 +1029,89 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         ),
       ),
       child: SafeArea(
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? 'producto' : 'productos'}',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    ),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 1400),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? 'producto' : 'productos'}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: isTablet ? 13 : 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                      Text(
+                        'S/ ${_totalMontoCarrito.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: isTablet ? 22 : 19,
+                          fontWeight: FontWeight.w900,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'S/ ${_totalMontoCarrito.toStringAsFixed(2)}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A), // Verde WhatsApp
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 26 : 18,
+                      vertical: isTablet ? 16 : 14,
                     ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 16 : 14)),
                   ),
-                ],
-              ),
+                  icon: Icon(LucideIcons.send, size: isTablet ? 20 : 18),
+                  label: Text(
+                    'Pedir por WhatsApp',
+                    style: GoogleFonts.outfit(fontSize: isTablet ? 15.5 : 14, fontWeight: FontWeight.w900),
+                  ),
+                  onPressed: _enviarPedidoWhatsApp,
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF16A34A), // Verde WhatsApp
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              icon: const Icon(LucideIcons.send, size: 18),
-              label: Text(
-                'Pedir por WhatsApp',
-                style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900),
-              ),
-              onPressed: _enviarPedidoWhatsApp,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _CatalogoDeviceConfig {
+  final int crossAxisCount;
+  final double childAspectRatio;
+  final double maxImageSize;
+  final double categoriaFontSize;
+  final double nombreFontSize;
+  final double precioFontSize;
+  final double botonHeight;
+  final double botonFontSize;
+  final double botonIconSize;
+  final double cardPadding;
+  final double gridSpacing;
+  final bool isTablet;
+
+  const _CatalogoDeviceConfig({
+    required this.crossAxisCount,
+    required this.childAspectRatio,
+    required this.maxImageSize,
+    required this.categoriaFontSize,
+    required this.nombreFontSize,
+    required this.precioFontSize,
+    required this.botonHeight,
+    required this.botonFontSize,
+    required this.botonIconSize,
+    required this.cardPadding,
+    required this.gridSpacing,
+    required this.isTablet,
+  });
 }
