@@ -117,7 +117,7 @@ public class DataInitializer implements ApplicationRunner {
                     b.setNombreComercial("Bodega KARLIZ");
                 }
                 if (b.getPlan() == null) {
-                    b.setPlan("PRO");
+                    b.setPlan("BASICO");
                 }
                 return bodegaRepository.save(b);
             }
@@ -143,7 +143,7 @@ public class DataInitializer implements ApplicationRunner {
                     "INSERT INTO bodegas (id_bodega, nombre_comercial, ruc_dni, direccion, telefono, plan, color_primario, lema_comercial, estado) " +
                     "OVERRIDING SYSTEM VALUE " +
                     "VALUES (1, 'Bodega KARLIZ', '10712345678', 'Av. Principal 123', '987654321', 'PRO', '#2563EB', 'Atención cálida, rápida y surtido completo', TRUE) " +
-                    "ON CONFLICT (id_bodega) DO UPDATE SET nombre_comercial = 'Bodega KARLIZ', plan = 'PRO'"
+                    "ON CONFLICT (id_bodega) DO UPDATE SET nombre_comercial = 'Bodega KARLIZ'"
             );
         } catch (Exception ex1) {
             log.warn("[DataInitializer] Inserción OVERRIDING falló, intentando estándar: {}", ex1.getMessage());
@@ -166,7 +166,7 @@ public class DataInitializer implements ApplicationRunner {
             return bodegaRepository.findById(1L).orElseGet(() -> {
                 Bodega fallback = new Bodega();
                 fallback.setNombreComercial("Bodega KARLIZ");
-                fallback.setPlan("PRO");
+                fallback.setPlan("BASICO");
                 fallback.setColorPrimario("#2563EB");
                 fallback.setEstado(true);
                 return bodegaRepository.save(fallback);
@@ -175,7 +175,7 @@ public class DataInitializer implements ApplicationRunner {
             log.warn("[DataInitializer] Creación fallback JPA: {}", ex.getMessage());
             Bodega fallback = new Bodega();
             fallback.setNombreComercial("Bodega KARLIZ");
-            fallback.setPlan("PRO");
+            fallback.setPlan("BASICO");
             fallback.setColorPrimario("#2563EB");
             fallback.setEstado(true);
             return bodegaRepository.save(fallback);

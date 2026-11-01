@@ -1,6 +1,7 @@
 package com.bodega.backend.service;
 
 import com.bodega.backend.dto.DashboardBiDTO;
+import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.dto.HorarioPicoDTO;
 import com.bodega.backend.dto.ProductoEstrellaDTO;
 import com.bodega.backend.dto.ProductoHuesoDTO;
@@ -66,6 +67,22 @@ public class AnalyticsService {
         if (dias <= 0) dias = 30;
         if (dias > 365) dias = 365; // Límite defensivo para prevenir scans ilimitados
         Long idBodega = tenantService.getCurrentBodegaId();
+
+        // Control de suscripción SaaS: Exclusivo Plan PRO
+        Bodega bodegaActual = null;
+        try {
+            bodegaActual = tenantService.getCurrentBodega();
+        } catch (Exception ignored) {}
+
+        if (bodegaActual != null) {
+            String plan = (bodegaActual.getPlan() != null) ? bodegaActual.getPlan().trim().toUpperCase() : "BASICO";
+            boolean esPro = "PRO".equals(plan) || "CORPORATIVO".equals(plan);
+            if (!esPro) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "El módulo de Business Intelligence (BI) y analítica avanzada es exclusivo del Plan Minimarket PRO."
+                );
+            }
+        }
 
         // 1. Comprobar caché en memoria
         String cacheKey = idBodega + "_" + dias;

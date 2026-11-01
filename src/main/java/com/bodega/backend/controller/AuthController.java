@@ -107,7 +107,7 @@ public class AuthController {
                     : "CajaYa POS";
             plan = (usuario.getBodega() != null && usuario.getBodega().getPlan() != null) 
                     ? usuario.getBodega().getPlan() 
-                    : "PRO";
+                    : "BASICO";
         }
 
         String jwt = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol(), idBodega, plan);
@@ -171,7 +171,7 @@ public class AuthController {
         } else {
             bodega.setRegimenTributario("NUEVO_RUS");
         }
-        bodega.setPlan("BASICO");
+        if (dto.getPlan() != null && "PRO".equalsIgnoreCase(dto.getPlan().trim())) { bodega.setPlan("PRO"); } else { bodega.setPlan("BASICO"); }
         bodega.setEstado(true);
         // Periodo de prueba gratuito inicial de 14 días
         bodega.setFechaVencimientoPlan(java.time.OffsetDateTime.now().plusDays(14));

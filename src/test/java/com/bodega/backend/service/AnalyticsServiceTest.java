@@ -143,4 +143,16 @@ public class AnalyticsServiceTest {
         assertNotNull(tercerLlamado);
         verify(ventaRepository, times(6)).countVentasByPeriodo(eq(1L), any(OffsetDateTime.class));
     }
+    @Test
+    void testObtenerDashboardBi_BloqueaPlanBasico() {
+        com.bodega.backend.entity.Bodega bodegaBasica = new com.bodega.backend.entity.Bodega();
+        bodegaBasica.setIdBodega(1L);
+        bodegaBasica.setPlan("BASICO");
+        when(tenantService.getCurrentBodega()).thenReturn(bodegaBasica);
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                org.springframework.security.access.AccessDeniedException.class,
+                () -> analyticsService.obtenerDashboardBi(30)
+        );
+    }
 }
