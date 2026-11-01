@@ -12,6 +12,8 @@ import '../movimientos/ajuste_stock_sheet.dart';
 import '../movimientos/vencimientos_screen.dart';
 import '../movimientos/mermas_screen.dart';
 import '../movimientos/auditoria_ciega_screen.dart';
+import '../../core/widgets/plan_upgrade_modal.dart';
+import '../../core/widgets/pago_yape_modal.dart';
 import '../dashboard/dashboard_bi_screen.dart';
 import '../home/bodega_service.dart';
 import '../auth/auth_service.dart';
@@ -386,15 +388,37 @@ class _ProductosScreenState extends State<ProductosScreen> {
                           MaterialPageRoute(builder: (_) => const MermasScreen()),
                         ).then((_) => _cargarProductos());
                       } else if (val == 'auditoria') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
-                        ).then((_) => _cargarProductos());
+                        final esBasico = _bodegaInfo?.plan.toUpperCase() != 'PRO';
+                        if (esBasico) {
+                          PlanUpgradeModal.show(
+                            context,
+                            featureName: 'Auditoría Rápida por Pasillo',
+                            featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal, detectando mermas y robo hormiga a tiempo.',
+                            icon: LucideIcons.clipboardCheck,
+                            onPlanUpdated: _cargarProductos,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
+                          ).then((_) => _cargarProductos());
+                        }
                       } else if (val == 'hueso') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const DashboardBiScreen(initialTabRotacion: 1)),
-                        ).then((_) => _cargarProductos());
+                        final esBasico = _bodegaInfo?.plan.toUpperCase() != 'PRO';
+                        if (esBasico) {
+                          PlanUpgradeModal.show(
+                            context,
+                            featureName: 'Detector de Productos Hueso',
+                            featureDescription: 'Identifica qué productos llevan más de 30 días sin ventas para armar combos, liquidar ofertas y recuperar tu capital de trabajo inmovilizado en góndola.',
+                            icon: LucideIcons.archive,
+                            onPlanUpdated: _cargarProductos,
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const DashboardBiScreen(initialTabRotacion: 1)),
+                          ).then((_) => _cargarProductos());
+                        }
                       } else if (val == 'kardex') {
                         Navigator.push(
                           context,
@@ -507,12 +531,25 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                          color: ((_bodegaInfo?.plan.toUpperCase() != 'PRO') ? const Color(0xFFD97706) : const Color(0xFF10B981)).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(4),
                                         ),
-                                        child: Text(
-                                          'PRO',
-                                          style: GoogleFonts.outfit(fontSize: 8.5, fontWeight: FontWeight.w900, color: const Color(0xFF059669)),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (_bodegaInfo?.plan.toUpperCase() != 'PRO') ...[
+                                              const Icon(LucideIcons.lock, size: 8, color: Color(0xFFD97706)),
+                                              const SizedBox(width: 2),
+                                            ],
+                                            Text(
+                                              'PRO',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.w900,
+                                                color: (_bodegaInfo?.plan.toUpperCase() != 'PRO') ? const Color(0xFFD97706) : const Color(0xFF059669),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -559,12 +596,25 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                          color: ((_bodegaInfo?.plan.toUpperCase() != 'PRO') ? const Color(0xFFD97706) : const Color(0xFF10B981)).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(4),
                                         ),
-                                        child: Text(
-                                          'PRO',
-                                          style: GoogleFonts.outfit(fontSize: 8.5, fontWeight: FontWeight.w900, color: const Color(0xFF059669)),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (_bodegaInfo?.plan.toUpperCase() != 'PRO') ...[
+                                              const Icon(LucideIcons.lock, size: 8, color: Color(0xFFD97706)),
+                                              const SizedBox(width: 2),
+                                            ],
+                                            Text(
+                                              'PRO',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.w900,
+                                                color: (_bodegaInfo?.plan.toUpperCase() != 'PRO') ? const Color(0xFFD97706) : const Color(0xFF059669),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -1879,26 +1929,46 @@ class _ProductosScreenState extends State<ProductosScreen> {
               ),
               child: Column(
                 children: [
-                  _buildVentajaPro('Catálogo y Productos Ilimitados', 'Registra todos los SKUs que necesites sin restricciones.', isDark),
+                  _buildVentajaPro('Catálogo y Productos Ilimitados', 'Registra todos los SKUs que necesites sin tope de 150 items.', isDark),
                   const SizedBox(height: 10),
-                  _buildVentajaPro('Múltiples Cajeros con PIN', 'Crea usuarios independientes para cada turno y terminal.', isDark),
+                  _buildVentajaPro('Mi Bodega Online (WhatsApp)', 'Catálogo digital con link propio para pedidos de clientes por chat.', isDark),
                   const SizedBox(height: 10),
-                  _buildVentajaPro('Boletas y Tickets Oficiales', 'Emite Boletas de Venta oficiales (Nuevo RUS) y Tickets de mostrador ilimitados.', isDark),
+                  _buildVentajaPro('Detector de Productos Hueso', 'Alertas de mercadería sin rotación en 30 días para liberar capital.', isDark),
+                  const SizedBox(height: 10),
+                  _buildVentajaPro('Auditoría Rápida por Pasillo', 'Conteo físico anti-robo en solo 5 minutos por estante.', isDark),
+                  const SizedBox(height: 10),
+                  _buildVentajaPro('Termómetro de Meta Diaria & Horas Punta', 'Seguimiento de ventas y afluencia de clientes en tiempo real.', isDark),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 backgroundColor: AppTheme.brandPrimary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                PagoYapeModal.show(context, planInicial: 'PRO', onPlanUpdated: _cargarProductos);
+              },
+              icon: const Icon(LucideIcons.sparkles, size: 18),
+              label: Text(
+                'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13.5),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
               onPressed: () => Navigator.pop(ctx),
               child: Text(
-                'Entendido',
-                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14),
+                'Continuar con límite de 150 (Plan Básico)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                ),
               ),
             ),
           ],

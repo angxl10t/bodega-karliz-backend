@@ -12,6 +12,7 @@ import 'bodega_service.dart';
 
 import 'configuracion_marca_modal.dart';
 import 'mi_bodega_online_modal.dart';
+import '../../core/widgets/plan_upgrade_modal.dart';
 
 import '../auth/auth_service.dart';
 
@@ -3303,13 +3304,22 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                             color: (isPro ? AppTheme.accentGreen : const Color(0xFFD97706)).withValues(alpha: 0.12),
                                             borderRadius: BorderRadius.circular(6),
                                           ),
-                                          child: Text(
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (!isPro) ...[
+                                                const Icon(LucideIcons.lock, size: 9, color: Color(0xFFD97706)),
+                                                const SizedBox(width: 3),
+                                              ],
+                                              Text(
                                             isPro ? 'PRO ONLINE' : 'PLAN PRO',
                                             style: GoogleFonts.outfit(
                                               fontSize: 9,
                                               fontWeight: FontWeight.w800,
                                               color: isPro ? AppTheme.accentGreen : const Color(0xFFD97706),
                                             ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -3361,10 +3371,19 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                       telefonoBodega: _bodegaInfo?.telefono ?? '',
                                     );
                                   } else {
-                                    _abrirModalPagoYape(context);
+                                    PlanUpgradeModal.show(
+                                       context,
+                                       featureName: 'Mi Bodega Online',
+                                       featureDescription: 'Obtén tu propio enlace web oficial (cajaya-pos.onrender.com/#/catalogo?tienda=tu-bodega) para compartir en redes sociales y recibir pedidos directos en tu WhatsApp sin comisiones.',
+                                       icon: LucideIcons.globe,
+                                       onPlanUpdated: () {
+                                         _cargarDatos();
+                                         widget.onPlanUpdated?.call();
+                                       },
+                                     );
                                   }
                                 },
-                                icon: Icon(isPro ? LucideIcons.share2 : LucideIcons.sparkles, size: 14),
+                                icon: Icon(isPro ? LucideIcons.share2 : LucideIcons.lock, size: 14),
                                 label: Text(
                                   isPro ? 'Mi Enlace' : 'Activar PRO',
                                   style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w800),

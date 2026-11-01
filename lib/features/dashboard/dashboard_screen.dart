@@ -22,6 +22,7 @@ import '../movimientos/vencimientos_screen.dart';
 import '../movimientos/auditoria_ciega_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../home/mi_bodega_online_modal.dart';
+import '../../core/widgets/plan_upgrade_modal.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -205,6 +206,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTermometroMetaDiaria(bool isDark) {
+    final bool isPro = _plan.toUpperCase() == 'PRO';
     final totalVentas = _cierreHoy?.totalVentas ?? 0.0;
     final double progreso = _metaDiaria > 0 ? (totalVentas / _metaDiaria).clamp(0.0, 1.0) : 0.0;
     final bool metaCumplida = totalVentas >= _metaDiaria;
@@ -283,32 +285,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                              color: (isPro ? const Color(0xFF0D9488) : const Color(0xFFD97706)).withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(5),
                             ),
-                            child: Text(
-                              'PRO',
-                              style: GoogleFonts.outfit(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF0F766E),
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (!isPro) ...[
+                                  const Icon(LucideIcons.lock, size: 9, color: Color(0xFFD97706)),
+                                  const SizedBox(width: 3),
+                                ],
+                                Text(
+                                  'PRO',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    color: isPro ? const Color(0xFF0F766E) : const Color(0xFFD97706),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                       Text(
-                        metaCumplida
-                            ? '🎉 ¡Excelente! Superaste tu meta de venta diaria'
-                            : (totalVentas > 0
-                                ? 'Faltan S/ ${falta.toStringAsFixed(2)} para llegar a la meta'
-                                : 'Registra tus ventas de hoy para avanzar'),
+                        isPro
+                            ? (metaCumplida
+                                ? '🎉 ¡Excelente! Superaste tu meta de venta diaria'
+                                : (totalVentas > 0
+                                    ? 'Faltan S/ ${falta.toStringAsFixed(2)} para llegar a la meta'
+                                    : 'Registra tus ventas de hoy para avanzar'))
+                            : '🔒 Función Exclusiva Plan PRO • Toca para desbloquear',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: metaCumplida
-                              ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF059669))
-                              : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                          color: isPro
+                              ? (metaCumplida
+                                  ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF059669))
+                                  : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)))
+                              : const Color(0xFFD97706),
                         ),
                       ),
                     ],
@@ -317,11 +332,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               IconButton(
                 icon: const Icon(LucideIcons.pencil, size: 15),
-                tooltip: 'Cambiar Meta Diaria',
+                tooltip: isPro ? 'Cambiar Meta Diaria' : 'Desbloquear con Plan PRO',
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                onPressed: () => _mostrarDialogoEditarMeta(context, isDark),
+                color: isPro
+                    ? (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B))
+                    : const Color(0xFFD97706),
+                onPressed: () {
+                  if (!isPro) {
+                    PlanUpgradeModal.show(
+                      context,
+                      featureName: 'Termómetro de Meta Diaria de Venta',
+                      featureDescription: 'Establece tu meta de ventas diaria y mira en vivo la barra de progreso avanzando con cada cobro en caja. Conoce cuánto te falta para superar tu punto de equilibrio.',
+                      icon: LucideIcons.target,
+                      onPlanUpdated: _cargarDatos,
+                    );
+                    return;
+                  }
+                  _mostrarDialogoEditarMeta(context, isDark);
+                },
               ),
             ],
           ),
@@ -658,11 +687,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.globe,
                               color: const Color(0xFF16A34A),
                               isDark: isDark,
-                              onTap: () => MiBodegaOnlineModal.show(
-                                context,
-                                nombreBodega: _nombreBodega,
-                                telefonoBodega: _telefono,
-                              ),
+                              isLocked: _plan.toUpperCase() != 'PRO',
+                              onTap: () {
+                                if (_plan.toUpperCase() != 'PRO') {
+                                  PlanUpgradeModal.show(
+                                    context,
+                                    featureName: 'Mi Bodega Online',
+                                    featureDescription: 'Obtén tu propio enlace web oficial (cajaya-pos.onrender.com/#/catalogo?tienda=tu-bodega) para compartir en redes sociales y recibir pedidos directos en tu WhatsApp sin comisiones.',
+                                    icon: LucideIcons.globe,
+                                    onPlanUpdated: _cargarDatos,
+                                  );
+                                  return;
+                                }
+                                MiBodegaOnlineModal.show(
+                                  context,
+                                  nombreBodega: _nombreBodega,
+                                  telefonoBodega: _telefono,
+                                );
+                              },
                             ),
                             _buildQuickActionBtn(
                               width: btnWidth,
@@ -671,7 +713,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.archive,
                               color: const Color(0xFFEA580C),
                               isDark: isDark,
+                              isLocked: _plan.toUpperCase() != 'PRO',
                               onTap: () {
+                                if (_plan.toUpperCase() != 'PRO') {
+                                  PlanUpgradeModal.show(
+                                    context,
+                                    featureName: 'Detector de Productos Hueso',
+                                    featureDescription: 'Identifica qué productos llevan más de 30 días sin ventas para armar combos, liquidar ofertas y recuperar tu capital de trabajo inmovilizado en góndola.',
+                                    icon: LucideIcons.archive,
+                                    onPlanUpdated: _cargarDatos,
+                                  );
+                                  return;
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -687,7 +740,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.clock,
                               color: const Color(0xFF8B5CF6),
                               isDark: isDark,
+                              isLocked: _plan.toUpperCase() != 'PRO',
                               onTap: () {
+                                if (_plan.toUpperCase() != 'PRO') {
+                                  PlanUpgradeModal.show(
+                                    context,
+                                    featureName: 'Mapa de Horas Punta',
+                                    featureDescription: 'Analiza tus 24 horas para conocer las horas de mayor afluencia de clientes y picos de venta, optimizando tus compras y horarios de atención.',
+                                    icon: LucideIcons.clock,
+                                    onPlanUpdated: _cargarDatos,
+                                  );
+                                  return;
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
@@ -701,7 +765,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.clipboardCheck,
                               color: AppTheme.brandPrimary,
                               isDark: isDark,
+                              isLocked: _plan.toUpperCase() != 'PRO',
                               onTap: () {
+                                if (_plan.toUpperCase() != 'PRO') {
+                                  PlanUpgradeModal.show(
+                                    context,
+                                    featureName: 'Auditoría Rápida por Pasillo',
+                                    featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal, detectando mermas y robo hormiga a tiempo.',
+                                    icon: LucideIcons.clipboardCheck,
+                                    onPlanUpdated: _cargarDatos,
+                                  );
+                                  return;
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
@@ -729,7 +804,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.trendingUp,
                               color: AppTheme.brandPrimary,
                               isDark: isDark,
+                              isLocked: _plan.toUpperCase() != 'PRO',
                               onTap: () {
+                                if (_plan.toUpperCase() != 'PRO') {
+                                  PlanUpgradeModal.show(
+                                    context,
+                                    featureName: 'Analítica de Negocio & BI',
+                                    featureDescription: 'Calcula tu margen bruto real en soles y porcentaje restando el costo de compra en cada venta, conociendo tu rentabilidad exacta sin estimaciones.',
+                                    icon: LucideIcons.trendingUp,
+                                    onPlanUpdated: _cargarDatos,
+                                  );
+                                  return;
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
@@ -1573,8 +1659,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildBiBanner(bool isDark) {
+    final bool isPro = _plan.toUpperCase() == 'PRO';
     return InkWell(
       onTap: () {
+        if (!isPro) {
+          PlanUpgradeModal.show(
+            context,
+            featureName: 'Analítica de Rentabilidad Real & BI',
+            featureDescription: 'Calcula tu margen bruto real en soles y porcentaje restando el costo de compra en cada venta, conociendo tus horas punta de afluencia y rotación de productos estrella vs huesos.',
+            icon: LucideIcons.trendingUp,
+            onPlanUpdated: _cargarDatos,
+          );
+          return;
+        }
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
@@ -1647,27 +1744,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppTheme.brandPrimary,
+                          color: isPro ? AppTheme.brandPrimary : const Color(0xFFD97706),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Text(
-                          'NUEVO',
-                          style: GoogleFonts.outfit(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!isPro) ...[
+                              const Icon(LucideIcons.lock, size: 9, color: Colors.white),
+                              const SizedBox(width: 3),
+                            ],
+                            Text(
+                              isPro ? 'NUEVO' : 'PRO',
+                              style: GoogleFonts.outfit(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    'Margen bruto real, rotación de productos estrella/hueso y horas pico 24h.',
+                    isPro
+                        ? 'Margen bruto real, rotación de productos estrella/hueso y horas pico 24h.'
+                        : '🔒 Margen bruto real, detector de huesos y horas pico 24h • Toca para desbloquear con Plan PRO.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                      color: isPro
+                          ? (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))
+                          : const Color(0xFFD97706),
                       height: 1.3,
                     ),
                   ),
@@ -1832,6 +1942,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     double? width,
     bool isBanner = false,
     bool isPrimaryHero = false,
+    bool isLocked = false,
+    String? lockedBadge = 'PRO',
   }) {
     final Color cardBg = isPrimaryHero
         ? (isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.35) : const Color(0xFFEFF6FF))
@@ -1839,7 +1951,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final Color borderColor = isPrimaryHero
         ? (isDark ? const Color(0xFF3B82F6) : const Color(0xFF93C5FD))
-        : (isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight);
+        : (isLocked
+            ? (isDark ? const Color(0xFFD97706).withValues(alpha: 0.35) : const Color(0xFFF59E0B).withValues(alpha: 0.45))
+            : (isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight));
 
     final Color iconBg = isPrimaryHero
         ? AppTheme.brandPrimary
@@ -1911,6 +2025,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                                   ),
                                 ),
+                              ] else if (isLocked) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD97706).withValues(alpha: isDark ? 0.22 : 0.12),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: const Color(0xFFD97706).withValues(alpha: 0.4),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(LucideIcons.lock, size: 9, color: Color(0xFFD97706)),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        lockedBadge ?? 'PRO',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 8.5,
+                                          fontWeight: FontWeight.w900,
+                                          color: const Color(0xFFD97706),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ],
                           ),
@@ -1963,6 +2105,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                               ),
+                            ),
+                          )
+                        else if (isLocked)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD97706).withValues(alpha: isDark ? 0.22 : 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: const Color(0xFFD97706).withValues(alpha: 0.4),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(LucideIcons.lock, size: 9.5, color: Color(0xFFD97706)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  lockedBadge ?? 'PRO',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFFD97706),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                       ],

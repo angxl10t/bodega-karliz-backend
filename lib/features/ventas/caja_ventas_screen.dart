@@ -13,6 +13,7 @@ import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
+import '../../core/widgets/plan_upgrade_modal.dart';
 
 class CajaVentasScreen extends StatefulWidget {
   const CajaVentasScreen({super.key});
@@ -42,6 +43,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   String _telefonoBodega = '';
   String _lemaBodega = '';
   String _username = 'Cajero';
+  String _plan = 'PRO';
 
   DateTime _fechaSeleccionada = DateTime.now();
   bool _filtrarVentasPorFecha = false;
@@ -253,6 +255,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       final direccionFuture = auth.getDireccionBodega();
       final telefonoFuture = auth.getTelefonoBodega();
       final lemaFuture = auth.getLemaComercial();
+      final planFuture = auth.getPlanBodega();
 
       final results = await Future.wait([
         arqueoHoyFuture,
@@ -265,6 +268,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
         direccionFuture,
         telefonoFuture,
         lemaFuture,
+        planFuture,
       ]);
 
       final arqueoHoy = results[0] as CierreCaja?;
@@ -277,6 +281,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       final direccion = (results[7] as String?) ?? '';
       final telefono = (results[8] as String?) ?? '';
       final lema = (results[9] as String?) ?? '';
+      final plan = (results[10] as String?) ?? 'PRO';
 
       if (historial.isEmpty && ventas.isNotEmpty) {
         historial = _calcularHistorialDesdeVentas(ventas);
@@ -295,6 +300,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
           _direccionBodega = direccion;
           _telefonoBodega = telefono;
           _lemaBodega = lema;
+          _plan = plan;
           _isLoading = false;
         });
       }
@@ -429,6 +435,16 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
   }
 
   Future<void> _compartirArqueoWhatsApp() async {
+    if (_plan.toUpperCase() != 'PRO') {
+      PlanUpgradeModal.show(
+        context,
+        featureName: 'Reporte de Cierre al WhatsApp del Dueño',
+        featureDescription: 'Recibe automáticamente en tu WhatsApp un resumen consolidado con el total recaudado, desglose por efectivo/Yape/Plin/fiados y cuadre de caja sin tener que estar en la bodega.',
+        icon: LucideIcons.send,
+        onPlanUpdated: _cargarDatos,
+      );
+      return;
+    }
     final c = _cierreCaja;
     final totalVendido = c?.totalVentas ?? 0.0;
     final totalEfectivo = c?.totalEfectivo ?? 0.0;
@@ -1007,8 +1023,23 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               ),
               const SizedBox(width: 6),
               IconButton(
-                icon: const Icon(LucideIcons.send, color: AppTheme.accentGreen, size: 20),
-                tooltip: 'Enviar Arqueo por WhatsApp',
+                icon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_plan.toUpperCase() != 'PRO') ...[
+                      const Icon(LucideIcons.lock, color: Color(0xFFD97706), size: 13),
+                      const SizedBox(width: 2),
+                    ],
+                    Icon(
+                      LucideIcons.send,
+                      color: _plan.toUpperCase() != 'PRO' ? const Color(0xFFD97706) : AppTheme.accentGreen,
+                      size: 19,
+                    ),
+                  ],
+                ),
+                tooltip: _plan.toUpperCase() != 'PRO'
+                    ? 'Enviar Arqueo por WhatsApp (Exclusivo Plan PRO)'
+                    : 'Enviar Arqueo por WhatsApp',
                 onPressed: _compartirArqueoWhatsApp,
               ),
             ],
@@ -1276,9 +1307,18 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                icon: const Icon(LucideIcons.send, size: 16),
+                icon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_plan.toUpperCase() != 'PRO') ...[
+                      const Icon(LucideIcons.lock, size: 12, color: Colors.white),
+                      const SizedBox(width: 3),
+                    ],
+                    const Icon(LucideIcons.send, size: 15),
+                  ],
+                ),
                 label: Text(
-                  'WhatsApp',
+                  _plan.toUpperCase() != 'PRO' ? 'WhatsApp (PRO)' : 'WhatsApp',
                   style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 12),
                 ),
                 onPressed: _compartirArqueoWhatsApp,

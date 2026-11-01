@@ -4,18 +4,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/pago_yape_modal.dart';
 
 class MiBodegaOnlineModal extends StatelessWidget {
   final String nombreBodega;
   final String telefonoBodega;
+  final bool isPro;
 
   const MiBodegaOnlineModal({
     super.key,
     required this.nombreBodega,
     this.telefonoBodega = '',
+    this.isPro = true,
   });
 
-  static Future<void> show(BuildContext context, {required String nombreBodega, String telefonoBodega = ''}) {
+  static Future<void> show(
+    BuildContext context, {
+    required String nombreBodega,
+    String telefonoBodega = '',
+    bool isPro = true,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -23,6 +31,7 @@ class MiBodegaOnlineModal extends StatelessWidget {
       builder: (ctx) => MiBodegaOnlineModal(
         nombreBodega: nombreBodega,
         telefonoBodega: telefonoBodega,
+        isPro: isPro,
       ),
     );
   }
@@ -103,16 +112,25 @@ class MiBodegaOnlineModal extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            color: (isPro ? const Color(0xFF10B981) : const Color(0xFFD97706)).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Text(
-                            'PLAN PRO',
-                            style: GoogleFonts.outfit(
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFF059669),
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!isPro) ...[
+                                const Icon(LucideIcons.lock, size: 9, color: Color(0xFFD97706)),
+                                const SizedBox(width: 3),
+                              ],
+                              Text(
+                                'PLAN PRO',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: isPro ? const Color(0xFF059669) : const Color(0xFFD97706),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -130,6 +148,34 @@ class MiBodegaOnlineModal extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
+
+          if (!isPro) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFF59E0B)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.lock, color: Color(0xFFD97706), size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Esta función es exclusiva del Plan PRO. Tus clientes podrán realizar pedidos en cuanto actives tu suscripción.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF92400E),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // Tarjeta de Enlace
           Container(
@@ -188,30 +234,52 @@ class MiBodegaOnlineModal extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Botón Principal: Compartir por WhatsApp
-          SizedBox(
-            height: 48,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF16A34A),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
+          // Botón Principal
+          if (!isPro)
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                icon: const Icon(LucideIcons.sparkles, size: 18),
+                label: Text(
+                  'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                  style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  PagoYapeModal.show(context, planInicial: 'PRO');
+                },
               ),
-              icon: const Icon(LucideIcons.send, size: 18),
-              label: Text(
-                'Compartir Catálogo por WhatsApp',
-                style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800),
+            )
+          else
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                icon: const Icon(LucideIcons.send, size: 18),
+                label: Text(
+                  'Compartir Catálogo por WhatsApp',
+                  style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800),
+                ),
+                onPressed: () async {
+                  HapticFeedback.mediumImpact();
+                  final uri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(mensajeWhatsApp)}');
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                },
               ),
-              onPressed: () async {
-                HapticFeedback.mediumImpact();
-                final uri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(mensajeWhatsApp)}');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
             ),
-          ),
           const SizedBox(height: 10),
 
           // Botón Secundario: Probar Enlace
