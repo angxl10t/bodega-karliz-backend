@@ -162,12 +162,14 @@ public class StarterPackService {
         {"7750109004089", "Aceite Vegetal Cocinero 900ml", "Cocinero", "Abarrotes y Despensa", "8.50", "7.10", "packshots/aceite_cocinero.png"},
         {"7750109004096", "Azúcar Rubia Paramonga 1kg", "Paramonga", "Abarrotes y Despensa", "4.50", "3.70", "packshots/azucar_paramonga.png"},
         {"7750109004010", "Fideos Don Vittorio Spaghetti 450g", "Don Vittorio", "Abarrotes y Despensa", "3.20", "2.50", "packshots/fideos_spaghetti_don_vittorio.png"},
+        {"7750114002088", "Fideos Molitalia Spaghetti 500g", "Molitalia", "Abarrotes y Despensa", "3.40", "2.60", "packshots/fideos_spaghetti_molitalia.png"},
         {"7750109004027", "Fideos Don Vittorio Codito 450g", "Don Vittorio", "Abarrotes y Despensa", "3.20", "2.50", "packshots/fideos_codito_don_vittorio.png"},
         {"7750109004034", "Fideos Lavaggi Canuto Corto 450g", "Lavaggi", "Abarrotes y Despensa", "2.90", "2.20", "packshots/fideos_canuto_lavaggi.png"},
         {"7750109004072", "Trozos de Atún Primor en Aceite 170g", "Primor", "Abarrotes y Despensa", "6.00", "4.80", "packshots/atun_primor.png"},
         {"7750109004102", "Filete de Atún Fanny en Aceite 140g", "Fanny", "Abarrotes y Despensa", "5.80", "4.60", "packshots/atun_fanny_140g.png"},
         {"7750109004119", "Mayonesa Alacena Doypack 850g", "Alacena", "Abarrotes y Despensa", "11.50", "9.20", "packshots/mayonesa_alacena_850g.png"},
         {"7750243030335", "Crema de Ají Tarí AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "5.50", "4.30", "packshots/crema_tari_400g.png"},
+        {"7750114006079", "Salsa de Rocoto Uchucuta AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "6.90", "5.40", "packshots/salsa_uchucuta_alacena.png"},
         {"7750109004126", "Salsa de Tomate Tuco Sibarita 260g", "Sibarita", "Abarrotes y Despensa", "3.50", "2.70", "packshots/tuco_sibarita.png"},
         {"7750109004133", "Sal Yodada Marina Emsal 1kg", "Emsal", "Abarrotes y Despensa", "2.00", "1.40", "packshots/sal_emsal.png"},
 
@@ -195,6 +197,7 @@ public class StarterPackService {
 
         // --- 8. PANADERÍA Y DESAYUNO ---
         {"7750116011018", "Pan de Molde Blanco Bimbo Chico 400g", "Bimbo", "Panadería y Desayuno", "5.50", "4.30", "packshots/pan_bimbo_blanco.png"},
+        {"7501000133404", "Pan Bimbo Artesano Rebanada Gruesa 500g", "Bimbo", "Panadería y Desayuno", "8.50", "6.70", "packshots/pan_bimbo_artesano.png"},
         {"7750116011025", "Pan de Molde Bimbo Integral 400g", "Bimbo", "Panadería y Desayuno", "5.80", "4.50", "packshots/pan_bimbo_integral.png"},
         {"7750116011032", "Mermelada de Fresa Gloria Vaso 310g", "Gloria", "Panadería y Desayuno", "5.50", "4.30", "packshots/mermelada_gloria.png"},
         {"7750116011049", "Café Soluble Nescafé Tradición Frasco 50g", "Nescafé", "Panadería y Desayuno", "9.50", "7.60", "packshots/cafe_nescafe.png"},
@@ -226,10 +229,13 @@ public class StarterPackService {
         {"7750113008094", "Desodorante Rexona Men Aerosol 150ml", "Rexona", "Cuidado Personal y Dental", "12.50", "9.80", "packshots/rexona_men.png"},
         {"7750113008100", "Desodorante Rexona Women Aerosol 150ml", "Rexona", "Cuidado Personal y Dental", "12.50", "9.80", "packshots/rexona_women.png"},
         {"7750113008117", "Papel Higiénico Suave Rindemax x4 rollos", "Suave", "Cuidado Personal y Dental", "6.50", "5.10", "packshots/papel_higienico_suave.png"},
+        {"7750113008148", "Papel Higiénico Elite Dúo Doble Hoja x4 rollos", "Elite", "Cuidado Personal y Dental", "7.50", "5.80", "packshots/papel_higienico_elite.png"},
+        {"7750113008162", "Papel Higiénico Paracas Black Premium x4 rollos", "Paracas", "Cuidado Personal y Dental", "6.90", "5.30", "packshots/papel_higienico_paracas.png"},
         {"7750113008124", "Toallas Higiénicas Nosotras x10", "Nosotras", "Cuidado Personal y Dental", "4.50", "3.40", "packshots/toallas_nosotras.png"},
 
         // --- 11. HELADOS Y CONGELADOS ---
         {"7750110005017", "Helado Sublime D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "2.30", "packshots/helado_sublime.png"},
+        {"7750110005178", "Helado D'Onofrio Sándwich Clásico", "D'Onofrio", "Helados y Congelados", "3.50", "2.70", "packshots/helado_sandwich_donofrio.png"},
         {"7750110005062", "Helado Jet Chocolate D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "2.30", "packshots/helado_jet.png"},
         {"7750110005024", "Helado Sin Parar Lúcuma D'Onofrio Copa", "D'Onofrio", "Helados y Congelados", "4.50", "3.40", "packshots/helado_sin_parar.png"},
         {"7750110005031", "Helado Frío Rico Vainilla D'Onofrio Cono", "D'Onofrio", "Helados y Congelados", "4.50", "3.40", "packshots/helado_frio_rico.png"},
