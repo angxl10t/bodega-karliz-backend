@@ -154,6 +154,10 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
         }
 
+        if ("admin".equalsIgnoreCase(username) || "superadmin".equalsIgnoreCase(username)) {
+            throw new RuntimeException("El nombre de usuario '" + username + "' está reservado por la plataforma. Por favor elija otro identificador (ej. admin_tubodega).");
+        }
+
         if (usuarioRepository.existsByUsernameIgnoreCase(username)) {
             throw new RuntimeException("El nombre de usuario '" + username + "' ya está registrado. Por favor elija otro.");
         }

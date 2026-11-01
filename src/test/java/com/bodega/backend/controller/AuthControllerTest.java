@@ -59,6 +59,9 @@ public class AuthControllerTest {
     private UserSecurityCacheService userSecurityCacheService;
 
     @Mock
+    private com.bodega.backend.service.StarterPackService starterPackService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -174,5 +177,54 @@ public class AuthControllerTest {
         assertTrue(response.getBody().get("mensaje").contains("exitosamente"));
         verify(usuarioRepository).save(usuario);
         verify(userSecurityCacheService).evict("admin");
+    }
+
+    @Test
+    void testRegistrarBodega_UsuarioAdminReservado_LanzaExcepcion() {
+        com.bodega.backend.dto.RegistroBodegaDTO dto = new com.bodega.backend.dto.RegistroBodegaDTO();
+        dto.setNombreComercial("Bodega El Éxito");
+        dto.setUsername("admin");
+        dto.setPassword("password123");
+
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                authController.registrarBodega(dto, request)
+        );
+
+        assertTrue(ex.getMessage().contains("está reservado"));
+    }
+
+    @Test
+    void testRegistrarBodega_Exitoso() {
+        com.bodega.backend.dto.RegistroBodegaDTO dto = new com.bodega.backend.dto.RegistroBodegaDTO();
+        dto.setNombreComercial("Minimarket Don Pepe");
+        dto.setUsername("don_pepe");
+        dto.setPassword("segura1234");
+        dto.setPlan("BASICO");
+
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(loginRateLimiterService.isBlocked(anyString(), eq("don_pepe"))).thenReturn(false);
+        when(usuarioRepository.existsByUsernameIgnoreCase("don_pepe")).thenReturn(false);
+
+        Bodega nuevaBodega = new Bodega();
+        nuevaBodega.setIdBodega(10L);
+        nuevaBodega.setNombreComercial("Minimarket Don Pepe");
+        nuevaBodega.setPlan("BASICO");
+
+        when(bodegaRepository.save(any(Bodega.class))).thenReturn(nuevaBodega);
+        when(passwordEncoder.encode("segura1234")).thenReturn("$2a$10$hashed");
+        when(jwtUtil.generateToken("don_pepe", "ADMIN", 10L, "BASICO")).thenReturn("jwt.token.nueva.bodega");
+
+        ResponseEntity<Map<String, String>> response = authController.registrarBodega(dto, request);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("jwt.token.nueva.bodega", response.getBody().get("token"));
+        assertEquals("Minimarket Don Pepe", response.getBody().get("nombreBodega"));
+        assertEquals("BASICO", response.getBody().get("plan"));
+
+        verify(starterPackService).provisionarStarterPackParaBodega(nuevaBodega);
+        verify(usuarioRepository).save(any(Usuario.class));
     }
 }
