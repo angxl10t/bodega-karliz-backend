@@ -58,7 +58,7 @@ public class CatalogoPublicoController {
         Map<String, Object> bodegaData = new LinkedHashMap<>();
         bodegaData.put("idBodega", bodega.getIdBodega());
         bodegaData.put("nombreComercial", bodega.getNombreComercial());
-        bodegaData.put("telefono", bodega.getTelefono() != null ? bodega.getTelefono() : "");
+        bodegaData.put("telefono", bodega.getTelefono() != null ? bodega.getTelefono().trim() : "");
         bodegaData.put("direccion", bodega.getDireccion() != null ? bodega.getDireccion() : "");
         bodegaData.put("logoUrl", bodega.getLogoUrl() != null ? bodega.getLogoUrl() : "");
         bodegaData.put("colorPrimario", bodega.getColorPrimario() != null ? bodega.getColorPrimario() : "#2563EB");
@@ -84,6 +84,7 @@ public class CatalogoPublicoController {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("idProducto", p.getIdProducto());
             item.put("codigo", p.getCodigo());
+            item.put("codigoBarras", p.getCodigoBarras() != null ? p.getCodigoBarras() : "");
             item.put("nombre", p.getNombre());
             item.put("marca", p.getMarca() != null ? p.getMarca() : "");
             item.put("precioVenta", p.getPrecioVenta());
@@ -113,7 +114,11 @@ public class CatalogoPublicoController {
 
     private Bodega resolverBodega(String idOrSlug) {
         if (idOrSlug == null || idOrSlug.trim().isEmpty()) {
-            return bodegaRepository.findFirstByOrderByIdBodegaAsc().orElse(null);
+            // Preferir bodega PRO activa si existe, o la primera registrada
+            return bodegaRepository.findAll().stream()
+                    .filter(b -> Boolean.TRUE.equals(b.getEstado()) && "PRO".equalsIgnoreCase(b.getPlan()))
+                    .findFirst()
+                    .orElseGet(() -> bodegaRepository.findFirstByOrderByIdBodegaAsc().orElse(null));
         }
 
         String raw = idOrSlug.trim();
