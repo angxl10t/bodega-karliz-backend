@@ -59753,10 +59753,12 @@ if(B.b.O(a).length!==9)return"Debe tener 9 d\xedgitos"
 return null},
 $S:19}
 A.b_T.prototype={
-$1(a){var s
+$1(a){var s,r
 if(a==null||B.b.O(a).length===0)return"El usuario es obligatorio"
 s=B.b.O(a)
 if(s.length<3)return"M\xednimo 3 caracteres"
+r=s.toLowerCase()
+if(r==="admin"||r==="superadmin")return'El usuario "'+r+'" est\xe1 reservado. Usa ej. admin_mitienda'
 if(B.b.m(s," "))return"No debe contener espacios"
 return null},
 $S:19}
