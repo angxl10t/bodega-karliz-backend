@@ -1664,7 +1664,7 @@ class _VentasScreenState extends State<VentasScreen> {
           KarlizSoundService.instance.playErrorBeep();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Normativa SUNAT: Para Boletas de Venta iguales o mayores a S/ 700.00 es obligatorio identificar al cliente con su DNI.'),
+              content: Text('Para Boletas de Venta iguales o mayores a S/ 700.00 es obligatorio identificar al cliente con su DNI.'),
               backgroundColor: AppTheme.alertRed,
             ),
           );
@@ -1906,23 +1906,23 @@ class _VentasScreenState extends State<VentasScreen> {
                   case 'ACEPTADO':
                     badgeColor = AppTheme.accentGreen;
                     badgeIcon = LucideIcons.checkCircle2;
-                    badgeText = '${ventaGenerada.etiquetaComprobante} • SUNAT ACEPTADO';
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • EMITIDO';
                     break;
                   case 'ACEPTADO_BETA':
                     badgeColor = const Color(0xFF0D9488);
                     badgeIcon = LucideIcons.checkCheck;
-                    badgeText = '${ventaGenerada.etiquetaComprobante} • SUNAT BETA (MODO PRUEBA)';
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • MODO PRUEBA';
                     break;
                   case 'RECHAZADO':
                     badgeColor = const Color(0xFFEF4444);
                     badgeIcon = LucideIcons.alertCircle;
-                    badgeText = '${ventaGenerada.etiquetaComprobante} • RECHAZADO SUNAT';
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • RECHAZADO';
                     break;
                   case 'PENDIENTE_ENVIO':
                   default:
                     badgeColor = const Color(0xFFF59E0B);
                     badgeIcon = LucideIcons.clock;
-                    badgeText = '${ventaGenerada.etiquetaComprobante} • PENDIENTE ENVÍO SUNAT';
+                    badgeText = '${ventaGenerada.etiquetaComprobante} • PENDIENTE';
                     break;
                 }
 
@@ -4297,7 +4297,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       Icon(LucideIcons.shieldAlert, size: 10, color: Colors.amber.shade900),
                       const SizedBox(width: 3),
                       Text(
-                        'SUNAT ≥ S/ 700',
+                        'Monto ≥ S/ 700',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9.5,
                           fontWeight: FontWeight.w800,
@@ -5803,7 +5803,7 @@ class _VentasScreenState extends State<VentasScreen> {
       }
       if (ventaGenerada?.serieCorrelativo != null) {
         buffer.writeln('Serie-Correlativo: ${ventaGenerada!.serieCorrelativo}');
-        buffer.writeln('Estado SUNAT: ${ventaGenerada.estadoSunat ?? "ACEPTADO"}');
+        buffer.writeln('Estado: ${ventaGenerada.estadoSunat ?? "EMITIDO"}');
       }
       buffer.writeln('Fecha: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}');
       buffer.writeln('--------------------------------');
@@ -5859,7 +5859,7 @@ class _VentasScreenState extends State<VentasScreen> {
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
-                  'Régimen Nuevo RUS (SUNAT): Venta ágil a consumidor final',
+                  'Venta ágil de mostrador a consumidor final',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
@@ -5913,7 +5913,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'SUNAT: Boletas ≥ S/ 700.00 requieren DNI del cliente obligatoriamente (Art. 8 RCP).',
+                    'Boletas ≥ S/ 700.00 requieren registrar el DNI o documento del cliente.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,

@@ -27,10 +27,25 @@ class MiBodegaOnlineModal extends StatelessWidget {
     );
   }
 
+  static String normalizarSlug(String texto) {
+    if (texto.trim().isEmpty) return '';
+    return texto
+        .toLowerCase()
+        .replaceAll(RegExp(r'[áàäâã]'), 'a')
+        .replaceAll(RegExp(r'[éèëê]'), 'e')
+        .replaceAll(RegExp(r'[íìïî]'), 'i')
+        .replaceAll(RegExp(r'[óòöôõ]'), 'o')
+        .replaceAll(RegExp(r'[úùüû]'), 'u')
+        .replaceAll(RegExp(r'[ñ]'), 'n')
+        .replaceAll(RegExp(r'[^a-z0-9]'), '-')
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final slug = nombreBodega.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '-');
+    final slug = normalizarSlug(nombreBodega);
     final catalogoUrl = 'https://cajaya-pos.onrender.com/#/catalogo?tienda=$slug';
 
     final mensajeWhatsApp = '¡Hola vecino! 👋\n\n'

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
 
@@ -11,6 +11,7 @@ import 'usuarios_service.dart';
 import 'bodega_service.dart';
 
 import 'configuracion_marca_modal.dart';
+import 'mi_bodega_online_modal.dart';
 
 import '../auth/auth_service.dart';
 
@@ -2648,822 +2649,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
 
 
-  void _abrirModalConfiguracionSunat({bool? activarDirecto}) {
-
-    if (_userRol == 'CAJERO') {
-
-      ScaffoldMessenger.of(context).showSnackBar(
-
-        const SnackBar(
-
-          content: Text('Acceso denegado: Solo el Administrador de la bodega puede configurar los Comprobantes de Venta.'),
-
-          backgroundColor: AppTheme.alertRed,
-
-        ),
-
-      );
-
-      return;
-
-    }
-
-
-
-    bool activa = activarDirecto ?? (_bodegaInfo?.facturacionSunatActiva ?? false);
-
-    String regimen = _bodegaInfo?.regimenTributario ?? 'NUEVO_RUS';
-
-    String proveedor = _bodegaInfo?.sunatProveedor ?? 'API Facturador SUNAT Gratuito';
-
-    final rucCtrl = TextEditingController(text: _bodegaInfo?.sunatRucEmisor ?? _bodegaInfo?.rucDni ?? '');
-
-    final serieBoletaCtrl = TextEditingController(text: _bodegaInfo?.serieBoleta ?? 'B001');
-
-    bool isSaving = false;
-
-    String modalError = '';
-
-
-
-    showDialog(
-
-      context: context,
-
-      barrierDismissible: !isSaving,
-
-      builder: (dialogCtx) => StatefulBuilder(
-
-        builder: (ctx, setModalState) {
-
-          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-
-
-
-          return Dialog(
-
-            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-
-            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-
-            child: ConstrainedBox(
-
-              constraints: const BoxConstraints(maxWidth: 440),
-
-              child: SingleChildScrollView(
-
-                padding: const EdgeInsets.all(20),
-
-                child: Column(
-
-                  mainAxisSize: MainAxisSize.min,
-
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-
-                  children: [
-
-                    Row(
-
-                      children: [
-
-                        Container(
-
-                          padding: const EdgeInsets.all(10),
-
-                          decoration: BoxDecoration(
-
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-
-                            borderRadius: BorderRadius.circular(14),
-
-                          ),
-
-                          child: const Icon(LucideIcons.landmark, color: AppTheme.brandPrimary, size: 24),
-
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        Expanded(
-
-                          child: Column(
-
-                            crossAxisAlignment: CrossAxisAlignment.start,
-
-                            children: [
-
-                              Text(
-
-                                'Comprobantes de Venta',
-
-                                style: GoogleFonts.outfit(
-
-                                  fontSize: 17,
-
-                                  fontWeight: FontWeight.w800,
-
-                                  color: isDark ? Colors.white : AppTheme.textDark,
-
-                                ),
-
-                              ),
-
-                              Text(
-
-                                'Régimen Nuevo RUS • Boletas B001 y Tickets',
-
-                                style: GoogleFonts.plusJakartaSans(
-
-                                  fontSize: 11.5,
-
-                                  fontWeight: FontWeight.w600,
-
-                                  color: AppTheme.accentGreen,
-
-                                ),
-
-                              ),
-
-                            ],
-
-                          ),
-
-                        ),
-
-                        IconButton(
-
-                          icon: const Icon(LucideIcons.x, size: 20),
-
-                          onPressed: isSaving ? null : () => Navigator.pop(dialogCtx),
-
-                        ),
-
-                      ],
-
-                    ),
-
-                    const SizedBox(height: 16),
-
-
-
-                    Container(
-
-                      padding: const EdgeInsets.all(12),
-
-                      decoration: BoxDecoration(
-
-                        color: activa
-
-                            ? AppTheme.accentGreen.withValues(alpha: 0.1)
-
-                            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-
-                        borderRadius: BorderRadius.circular(14),
-
-                        border: Border.all(
-
-                          color: activa ? AppTheme.accentGreen : Colors.transparent,
-
-                        ),
-
-                      ),
-
-                      child: Row(
-
-                        children: [
-
-                          Expanded(
-
-                            child: Column(
-
-                              crossAxisAlignment: CrossAxisAlignment.start,
-
-                              children: [
-
-                                Text(
-
-                                  activa ? 'Emisión oficial de Boletas ACTIVADA' : 'Emisión en modo interno (Tickets)',
-
-                                  style: GoogleFonts.outfit(
-
-                                    fontSize: 13.5,
-
-                                    fontWeight: FontWeight.w800,
-
-                                    color: activa
-
-                                        ? AppTheme.accentGreen
-
-                                        : (isDark ? Colors.white : AppTheme.textDark),
-
-                                  ),
-
-                                ),
-
-                                Text(
-
-                                  activa
-
-                                      ? 'Las ventas generarán Boletas de Venta B001 para consumidores finales bajo el Régimen Nuevo RUS.'
-
-                                      : 'Las ventas generarán únicamente Tickets de mostrador para control interno.',
-
-                                  style: GoogleFonts.plusJakartaSans(
-
-                                    fontSize: 11,
-
-                                    color: AppTheme.textMuted,
-
-                                  ),
-
-                                ),
-
-                              ],
-
-                            ),
-
-                          ),
-
-                          Switch(
-
-                            value: activa,
-
-                            activeThumbColor: AppTheme.accentGreen,
-
-                            onChanged: (val) => setModalState(() => activa = val),
-
-                          ),
-
-                        ],
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 14),
-
-
-
-                    Text(
-
-                      'PROVEEDOR DE FACTURACIÓN ELECTRÓNICA:',
-
-                      style: GoogleFonts.plusJakartaSans(
-
-                        fontSize: 10.5,
-
-                        fontWeight: FontWeight.w800,
-
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-
-                        letterSpacing: 0.5,
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    InkWell(
-
-                      onTap: () => setModalState(() => proveedor = 'API Facturador SUNAT Gratuito'),
-
-                      borderRadius: BorderRadius.circular(12),
-
-                      child: Container(
-
-                        padding: const EdgeInsets.all(10),
-
-                        decoration: BoxDecoration(
-
-                          color: proveedor == 'API Facturador SUNAT Gratuito'
-
-                              ? AppTheme.brandPrimary.withValues(alpha: 0.1)
-
-                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC)),
-
-                          borderRadius: BorderRadius.circular(12),
-
-                          border: Border.all(
-
-                            color: proveedor == 'API Facturador SUNAT Gratuito'
-
-                                ? AppTheme.brandPrimary
-
-                                : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
-
-                          ),
-
-                        ),
-
-                        child: Row(
-
-                          children: [
-
-                            Icon(
-
-                              proveedor == 'API Facturador SUNAT Gratuito'
-
-                                  ? LucideIcons.checkCircle2
-
-                                  : LucideIcons.circle,
-
-                              size: 16,
-
-                              color: AppTheme.brandPrimary,
-
-                            ),
-
-                            const SizedBox(width: 8),
-
-                            Expanded(
-
-                              child: Column(
-
-                                crossAxisAlignment: CrossAxisAlignment.start,
-
-                                children: [
-
-                                  Text(
-
-                                    'API Facturador SUNAT Gratuito',
-
-                                    style: GoogleFonts.outfit(
-
-                                      fontSize: 12.5,
-
-                                      fontWeight: FontWeight.w700,
-
-                                      color: isDark ? Colors.white : AppTheme.textDark,
-
-                                    ),
-
-                                  ),
-
-                                  Text(
-
-                                    '0% comisión por comprobante • Homologación directa',
-
-                                    style: GoogleFonts.plusJakartaSans(
-
-                                      fontSize: 10.5,
-
-                                      color: AppTheme.textMuted,
-
-                                    ),
-
-                                  ),
-
-                                ],
-
-                              ),
-
-                            ),
-
-                            Container(
-
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-
-                              decoration: BoxDecoration(
-
-                                color: AppTheme.accentGreen.withValues(alpha: 0.15),
-
-                                borderRadius: BorderRadius.circular(6),
-
-                              ),
-
-                              child: Text(
-
-                                'GRATIS',
-
-                                style: GoogleFonts.outfit(
-
-                                  fontSize: 9,
-
-                                  fontWeight: FontWeight.w800,
-
-                                  color: AppTheme.accentGreen,
-
-                                ),
-
-                              ),
-
-                            ),
-
-                          ],
-
-                        ),
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 14),
-
-
-
-                    if (modalError.isNotEmpty) ...[
-
-                      Container(
-
-                        padding: const EdgeInsets.all(8),
-
-                        margin: const EdgeInsets.only(bottom: 10),
-
-                        decoration: BoxDecoration(
-
-                          color: AppTheme.alertRed.withValues(alpha: 0.1),
-
-                          borderRadius: BorderRadius.circular(8),
-
-                        ),
-
-                        child: Text(
-
-                          modalError,
-
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.alertRed, fontWeight: FontWeight.w600),
-
-                        ),
-
-                      ),
-
-                    ],
-
-
-
-                    TextFormField(
-
-                      controller: rucCtrl,
-
-                      keyboardType: TextInputType.number,
-
-                      inputFormatters: [
-
-                        FilteringTextInputFormatter.digitsOnly,
-
-                        LengthLimitingTextInputFormatter(11),
-
-                      ],
-
-                      decoration: InputDecoration(
-
-                        labelText: 'RUC del Emisor (11 dígitos)',
-
-                        hintText: 'Ej: 20601234567 o 10456789012',
-
-                        prefixIcon: const Icon(LucideIcons.building2, size: 18),
-
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 12),
-
-
-
-                    // Tarjeta informativa Régimen Nuevo RUS
-
-                    Container(
-
-                      padding: const EdgeInsets.all(12),
-
-                      decoration: BoxDecoration(
-
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-
-                        borderRadius: BorderRadius.circular(14),
-
-                        border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
-
-                      ),
-
-                      child: Row(
-
-                        children: [
-
-                          const Icon(LucideIcons.fileSpreadsheet, size: 20, color: AppTheme.brandPrimary),
-
-                          const SizedBox(width: 10),
-
-                          Expanded(
-
-                            child: Column(
-
-                              crossAxisAlignment: CrossAxisAlignment.start,
-
-                              children: [
-
-                                Text(
-
-                                  'Régimen Tributario: Nuevo RUS',
-
-                                  style: GoogleFonts.outfit(
-
-                                    fontSize: 12.5,
-
-                                    fontWeight: FontWeight.w700,
-
-                                    color: isDark ? Colors.white : AppTheme.textDark,
-
-                                  ),
-
-                                ),
-
-                                const SizedBox(height: 2),
-
-                                Text(
-
-                                  'Diseñado para bodegas y minimarkets: emisión exclusiva de Boletas de Venta a consumidor final y Tickets de mostrador. (Las Facturas comerciales no aplican en este régimen).',
-
-                                  style: GoogleFonts.plusJakartaSans(
-
-                                    fontSize: 10.5,
-
-                                    color: AppTheme.textMuted,
-
-                                  ),
-
-                                ),
-
-                              ],
-
-                            ),
-
-                          ),
-
-                        ],
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 12),
-
-
-
-                    TextFormField(
-
-                      controller: serieBoletaCtrl,
-
-                      textCapitalization: TextCapitalization.characters,
-
-                      inputFormatters: [LengthLimitingTextInputFormatter(4)],
-
-                      decoration: InputDecoration(
-
-                        labelText: 'Serie Boleta de Venta',
-
-                        hintText: 'B001',
-
-                        helperText: 'Debe iniciar con B y tener 4 caracteres (ej: B001)',
-
-                        prefixIcon: const Icon(LucideIcons.fileText, size: 18),
-
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 14),
-
-
-
-                    Container(
-
-                      padding: const EdgeInsets.all(10),
-
-                      decoration: BoxDecoration(
-
-                        color: AppTheme.brandPrimary.withValues(alpha: 0.08),
-
-                        borderRadius: BorderRadius.circular(12),
-
-                        border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.2)),
-
-                      ),
-
-                      child: Row(
-
-                        children: [
-
-                          const Icon(LucideIcons.shieldCheck, size: 18, color: AppTheme.brandPrimary),
-
-                          const SizedBox(width: 8),
-
-                          Expanded(
-
-                            child: Text(
-
-                              'Solo tú como Administrador puedes activar o desactivar este módulo. Tus cajeros no tendrán acceso para modificar la configuración de comprobantes.',
-
-                              style: GoogleFonts.plusJakartaSans(
-
-                                fontSize: 11,
-
-                                fontWeight: FontWeight.w600,
-
-                                color: isDark ? AppTheme.brandLight : AppTheme.brandDark,
-
-                              ),
-
-                            ),
-
-                          ),
-
-                        ],
-
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 18),
-
-
-
-                    ElevatedButton(
-
-                      style: ElevatedButton.styleFrom(
-
-                        backgroundColor: AppTheme.brandPrimary,
-
-                        foregroundColor: Colors.white,
-
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-
-                        elevation: 0,
-
-                      ),
-
-                      onPressed: isSaving
-
-                          ? null
-
-                          : () async {
-
-                              final ruc = rucCtrl.text.trim();
-
-                              if (activa && (ruc.length != 11)) {
-
-                                setModalState(() => modalError = 'Para activar SUNAT ingresa un RUC válido de 11 dígitos.');
-
-                                return;
-
-                              }
-
-
-
-                              final sBoleta = serieBoletaCtrl.text.trim().toUpperCase();
-
-                              if (sBoleta.isNotEmpty && !RegExp(r'^B[A-Z0-9]{3}$').hasMatch(sBoleta)) {
-
-                                setModalState(() => modalError = 'La serie de boleta debe tener 4 caracteres e iniciar con B (ej: B001).');
-
-                                return;
-
-                              }
-
-
-
-                              final messenger = ScaffoldMessenger.of(context);
-
-                              setModalState(() {
-
-                                isSaving = true;
-
-                                modalError = '';
-
-                              });
-
-
-
-                              try {
-
-                                final info = await _bodegaService.actualizarConfiguracionSunat(
-
-                                  activa: activa,
-
-                                  regimenTributario: regimen,
-
-                                  proveedor: proveedor,
-
-                                  rucEmisor: ruc,
-
-                                  serieBoleta: sBoleta.isEmpty ? 'B001' : sBoleta,
-
-                                  serieFactura: 'F001',
-
-                                );
-
-
-
-                                if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-
-
-
-                                if (mounted) {
-
-                                  setState(() {
-
-                                    _bodegaInfo = info;
-
-                                  });
-
-                                  widget.onPlanUpdated?.call();
-
-
-
-                                  messenger.showSnackBar(
-
-                                    SnackBar(
-
-                                      backgroundColor: AppTheme.accentGreen,
-
-                                      content: Text(
-
-                                        activa
-
-                                            ? 'Emisión de Boletas B001 configurada exitosamente.'
-
-                                            : 'Modo interno activado. Las ventas se emitirán como tickets de mostrador.',
-
-                                      ),
-
-                                    ),
-
-                                  );
-
-                                }
-
-                              } catch (e) {
-
-                                setModalState(() {
-
-                                  isSaving = false;
-
-                                  modalError = e.toString().replaceAll('Exception: ', '');
-
-                                });
-
-                              }
-
-                            },
-
-                      child: isSaving
-
-                          ? const SizedBox(
-
-                              height: 20,
-
-                              width: 20,
-
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-
-                            )
-
-                          : Text(
-
-                              'GUARDAR CONFIGURACIÓN',
-
-                              style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
-
-                            ),
-
-                    ),
-
-                  ],
-
-                ),
-
-              ),
-
-            ),
-
-          );
-
-        },
-
-      ),
-
-    ).then((_) {
-
-      rucCtrl.dispose();
-
-      serieBoletaCtrl.dispose();
-
-    });
-
-  }
-
-
-
   @override
 
   Widget build(BuildContext context) {
@@ -4066,388 +3251,131 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
 
 
-                    // MÓDULO FACTURACIÓN ELECTRÓNICA SUNAT (Solución 2)
-
+                    // MÓDULO MI BODEGA ONLINE (CATÁLOGO DIGITAL PRO)
                     Container(
-
                       padding: const EdgeInsets.all(16),
-
                       decoration: BoxDecoration(
-
                         color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-
                         borderRadius: BorderRadius.circular(18),
-
                         border: Border.all(
-
-                          color: (_bodegaInfo?.facturacionSunatActiva == true)
-
+                          color: isPro
                               ? AppTheme.accentGreen.withValues(alpha: 0.5)
-
                               : borderColor,
-
-                          width: (_bodegaInfo?.facturacionSunatActiva == true) ? 1.5 : 1.0,
-
+                          width: isPro ? 1.5 : 1.0,
                         ),
-
                       ),
-
                       child: Column(
-
                         crossAxisAlignment: CrossAxisAlignment.start,
-
                         children: [
-
                           Row(
-
                             children: [
-
                               Container(
-
                                 padding: const EdgeInsets.all(9),
-
                                 decoration: BoxDecoration(
-
-                                  color: (_bodegaInfo?.facturacionSunatActiva == true
-
-                                          ? AppTheme.accentGreen
-
-                                          : const Color(0xFF64748B))
-
-                                      .withValues(alpha: 0.12),
-
+                                  color: (isPro ? AppTheme.accentGreen : const Color(0xFF64748B)).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(12),
-
                                 ),
-
                                 child: Icon(
-
-                                  LucideIcons.landmark,
-
-                                  color: _bodegaInfo?.facturacionSunatActiva == true
-
-                                      ? AppTheme.accentGreen
-
-                                      : const Color(0xFF64748B),
-
+                                  LucideIcons.globe,
+                                  color: isPro ? AppTheme.accentGreen : const Color(0xFF64748B),
                                   size: 22,
-
                                 ),
-
                               ),
-
                               const SizedBox(width: 12),
-
                               Expanded(
-
                                 child: Column(
-
                                   crossAxisAlignment: CrossAxisAlignment.start,
-
                                   children: [
-
                                     Row(
-
                                       children: [
-
                                         Text(
-
-                                          'Facturación SUNAT',
-
+                                          'Mi Bodega Online',
                                           style: GoogleFonts.outfit(
-
                                             fontSize: 14.5,
-
                                             fontWeight: FontWeight.w800,
-
                                             color: isDark ? Colors.white : AppTheme.textDark,
-
                                           ),
-
                                         ),
-
                                         const SizedBox(width: 6),
-
                                         Container(
-
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-
                                           decoration: BoxDecoration(
-
-                                            color: AppTheme.accentGreen.withValues(alpha: 0.12),
-
+                                            color: (isPro ? AppTheme.accentGreen : const Color(0xFFD97706)).withValues(alpha: 0.12),
                                             borderRadius: BorderRadius.circular(6),
-
                                           ),
-
                                           child: Text(
-
-                                            'NUEVO RUS',
-
+                                            isPro ? 'PRO ONLINE' : 'PLAN PRO',
                                             style: GoogleFonts.outfit(
-
                                               fontSize: 9,
-
                                               fontWeight: FontWeight.w800,
-
-                                              color: AppTheme.accentGreen,
-
+                                              color: isPro ? AppTheme.accentGreen : const Color(0xFFD97706),
                                             ),
-
                                           ),
-
                                         ),
-
                                       ],
-
                                     ),
-
                                     Text(
-
-                                      _bodegaInfo?.facturacionSunatActiva == true
-
-                                          ? 'Emisión oficial activa • Boletas B001 y Tickets'
-
-                                          : 'Emisión en modo interno (Tickets de mostrador)',
-
+                                      isPro
+                                          ? 'Catálogo público activo para pedidos de vecinos'
+                                          : 'Catálogo web con pedidos directos por WhatsApp',
                                       style: GoogleFonts.plusJakartaSans(
-
                                         fontSize: 11,
-
-                                        color: _bodegaInfo?.facturacionSunatActiva == true
-
-                                            ? AppTheme.accentGreen
-
-                                            : AppTheme.textMuted,
-
+                                        color: isPro ? AppTheme.accentGreen : AppTheme.textMuted,
                                       ),
-
                                     ),
-
                                   ],
-
                                 ),
-
                               ),
-
-                              if (_userRol == 'CAJERO') ...[
-
-                                Tooltip(
-
-                                  message: 'Solo el Administrador puede activar o desactivar la emisión de Boletas',
-
-                                  child: Container(
-
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-
-                                    decoration: BoxDecoration(
-
-                                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-
-                                      borderRadius: BorderRadius.circular(8),
-
-                                    ),
-
-                                    child: Row(
-
-                                      mainAxisSize: MainAxisSize.min,
-
-                                      children: [
-
-                                        const Icon(LucideIcons.lock, size: 13, color: Color(0xFFD97706)),
-
-                                        const SizedBox(width: 4),
-
-                                        Text(
-
-                                          'BLOQUEADO',
-
-                                          style: GoogleFonts.outfit(
-
-                                            fontSize: 9.5,
-
-                                            fontWeight: FontWeight.w800,
-
-                                            color: const Color(0xFFD97706),
-
-                                          ),
-
-                                        ),
-
-                                      ],
-
-                                    ),
-
-                                  ),
-
-                                ),
-
-                              ] else ...[
-
-                                Switch(
-
-                                  value: _bodegaInfo?.facturacionSunatActiva ?? false,
-
-                                  activeThumbColor: AppTheme.accentGreen,
-
-                                  onChanged: (val) {
-
-                                    _abrirModalConfiguracionSunat(activarDirecto: val);
-
-                                  },
-
-                                ),
-
-                              ],
-
                             ],
-
                           ),
-
-                          if (_userRol == 'CAJERO') ...[
-
-                            const SizedBox(height: 10),
-
-                            Container(
-
-                              padding: const EdgeInsets.all(10),
-
-                              decoration: BoxDecoration(
-
-                                color: const Color(0xFFF59E0B).withValues(alpha: 0.08),
-
-                                borderRadius: BorderRadius.circular(10),
-
-                                border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.25)),
-
-                              ),
-
-                              child: Row(
-
-                                children: [
-
-                                  const Icon(LucideIcons.shieldAlert, size: 16, color: Color(0xFFD97706)),
-
-                                  const SizedBox(width: 8),
-
-                                  Expanded(
-
-                                    child: Text(
-
-                                      'Protegido por el Administrador: Los cajeros no pueden alterar la configuración de comprobantes.',
-
-                                      style: GoogleFonts.plusJakartaSans(
-
-                                        fontSize: 11,
-
-                                        fontWeight: FontWeight.w600,
-
-                                        color: isDark ? const Color(0xFFFBBF24) : const Color(0xFF92400E),
-
-                                      ),
-
-                                    ),
-
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  isPro
+                                      ? 'Comparte tu link propio o QR en tu mostrador'
+                                      : 'Desbloquea tu catálogo propio mejorando a PRO',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
                                   ),
-
-                                ],
-
-                              ),
-
-                            ),
-
-                          ] else ...[
-
-                            const SizedBox(height: 10),
-
-                            Row(
-
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                              children: [
-
-                                Expanded(
-
-                                  child: Text(
-
-                                    'Proveedor: ',
-
-                                    style: GoogleFonts.plusJakartaSans(
-
-                                      fontSize: 11,
-
-                                      color: AppTheme.textMuted,
-
-                                    ),
-
-                                    overflow: TextOverflow.ellipsis,
-
-                                  ),
-
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-
-                                const SizedBox(width: 8),
-
-                                InkWell(
-
-                                  onTap: () => _abrirModalConfiguracionSunat(),
-
-                                  borderRadius: BorderRadius.circular(8),
-
-                                  child: Padding(
-
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-
-                                    child: Row(
-
-                                      mainAxisSize: MainAxisSize.min,
-
-                                      children: [
-
-                                        const Icon(LucideIcons.slidersHorizontal, size: 12, color: AppTheme.brandPrimary),
-
-                                        const SizedBox(width: 4),
-
-                                        Text(
-
-                                          'Configurar Boletas',
-
-                                          style: GoogleFonts.plusJakartaSans(
-
-                                            fontSize: 11.5,
-
-                                            fontWeight: FontWeight.w700,
-
-                                            color: AppTheme.brandPrimary,
-
-                                          ),
-
-                                        ),
-
-                                      ],
-
-                                    ),
-
-                                  ),
-
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isPro ? AppTheme.brandPrimary : const Color(0xFFD97706),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
-
-                              ],
-
-                            ),
-
-                          ],
-
+                                onPressed: () {
+                                  if (isPro) {
+                                    MiBodegaOnlineModal.show(
+                                      context,
+                                      nombreBodega: widget.nombreBodega,
+                                      telefonoBodega: _bodegaInfo?.telefono ?? '',
+                                    );
+                                  } else {
+                                    _abrirModalPagoYape(context);
+                                  }
+                                },
+                                icon: Icon(isPro ? LucideIcons.share2 : LucideIcons.sparkles, size: 14),
+                                label: Text(
+                                  isPro ? 'Mi Enlace' : 'Activar PRO',
+                                  style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
-
                       ),
-
                     ),
-
                     const SizedBox(height: 16),
-
-
-
                     // Si está en plan básico, mostrar tarjeta de UPSELL
 
                     if (!isPro) ...[
