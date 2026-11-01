@@ -121,6 +121,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/health/diagnostico").hasRole("SUPERADMIN")
 
                 .requestMatchers("/api/productos/proxy-image", "/api/productos/proxy-image/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
 
                 // Webhook listener para bot de notificaciones push Yape / Plin (autenticado por X-Yape-Secret)
 
