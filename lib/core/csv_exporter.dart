@@ -51,7 +51,7 @@ class CsvExporter {
   /// Genera contenido CSV formateado para historial de ventas
   static String generarCsvVentas(List<VentaRegistro> ventas) {
     final buffer = StringBuffer();
-    buffer.writeln('IDVenta,FechaHora,TipoComprobante,SerieNumero,Cliente,Documento,MetodoPago,Total,EstadoSUNAT,EstadoVenta');
+    buffer.writeln('IDVenta,FechaHora,TipoComprobante,SerieNumero,Cliente,Documento,MetodoPago,Total,EstadoComprobante,EstadoVenta');
 
     for (final v in ventas) {
       buffer.write('${v.idVenta},');

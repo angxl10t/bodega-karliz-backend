@@ -1210,9 +1210,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             shape: BoxShape.circle,
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Icon(
-                              LucideIcons.shieldCheck,
+                              _userRol == 'CAJERO'
+                                  ? LucideIcons.userCheck
+                                  : (_userRol == 'SUPERADMIN' ? LucideIcons.shieldAlert : LucideIcons.shieldCheck),
                               size: 13,
                               color: Colors.white,
                             ),
@@ -1221,7 +1223,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         if (screenWidth >= 360) ...[
                           const SizedBox(width: 6),
                           Text(
-                            'Admin',
+                            _userRol == 'CAJERO'
+                                ? 'Cajero'
+                                : (_userRol == 'SUPERADMIN' ? 'Super' : 'Admin'),
                             style: GoogleFonts.outfit(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w800,

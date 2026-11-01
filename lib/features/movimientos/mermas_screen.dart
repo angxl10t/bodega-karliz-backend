@@ -286,7 +286,7 @@ class _MermasScreenState extends State<MermasScreen> {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          'Deducción Contable: Registrar mermas formalmente te permite justificar faltantes de inventario ante SUNAT como desmedro deducible.',
+                                          'Control de Pérdidas: Registrar mermas formalmente te permite auditar con precisión vencimientos y roturas para mantener tu margen real exacto.',
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11.5,
                                             height: 1.4,

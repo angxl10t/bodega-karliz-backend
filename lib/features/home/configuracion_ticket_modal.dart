@@ -84,7 +84,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
         _horarioCtrl.text = cfg.horarioAtencion;
         _redesCtrl.text = cfg.redesSociales;
         _mostrarQr = cfg.mostrarQr;
-        _tipoQr = cfg.tipoQr;
+        _tipoQr = (cfg.tipoQr == 'SUNAT') ? 'YAPE' : cfg.tipoQr;
         _numeroQrCtrl.text = cfg.numeroQr;
         _titularQrCtrl.text = cfg.titularQr;
         _isLoading = false;
@@ -502,15 +502,16 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                       children: [
                                         Expanded(
                                           child: DropdownButtonFormField<String>(
-                                            initialValue: _tipoQr,
+                                            initialValue: (_tipoQr == 'SUNAT' ? 'YAPE' : _tipoQr),
                                             decoration: InputDecoration(
-                                              labelText: 'Billetera Digital',
+                                              labelText: 'Destino del Código QR',
                                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                             ),
                                             items: const [
-                                              DropdownMenuItem(value: 'YAPE', child: Text('Yape')),
-                                              DropdownMenuItem(value: 'PLIN', child: Text('Plin')),
-                                              DropdownMenuItem(value: 'SUNAT', child: Text('Verificación SUNAT')),
+                                              DropdownMenuItem(value: 'YAPE', child: Text('Yape (Cobro Digital)')),
+                                              DropdownMenuItem(value: 'PLIN', child: Text('Plin (Cobro Digital)')),
+                                              DropdownMenuItem(value: 'CATALOGO', child: Text('Catálogo Digital de la Bodega (PRO)')),
+                                              DropdownMenuItem(value: 'PERSONALIZADO', child: Text('Enlace o Texto Personalizado')),
                                             ],
                                             onChanged: (val) {
                                               if (val != null) setState(() => _tipoQr = val);
@@ -522,22 +523,28 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     const SizedBox(height: 12),
                                     TextFormField(
                                       controller: _numeroQrCtrl,
-                                      keyboardType: TextInputType.phone,
+                                      keyboardType: (_tipoQr == 'YAPE' || _tipoQr == 'PLIN') ? TextInputType.phone : TextInputType.url,
                                       decoration: InputDecoration(
-                                        labelText: 'Número de Celular para Cobro',
-                                        hintText: '987 654 321',
+                                        labelText: (_tipoQr == 'YAPE' || _tipoQr == 'PLIN')
+                                            ? 'Número de Celular para Cobro'
+                                            : (_tipoQr == 'CATALOGO' ? 'Enlace del Catálogo Online' : 'Enlace o Contenido del QR'),
+                                        hintText: (_tipoQr == 'YAPE' || _tipoQr == 'PLIN')
+                                            ? '987 654 321'
+                                            : 'https://cajaya-pos.onrender.com/#/catalogo?tienda=mi-bodega',
                                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
-                                    TextFormField(
-                                      controller: _titularQrCtrl,
-                                      decoration: InputDecoration(
-                                        labelText: 'Nombre del Titular de la Cuenta',
-                                        hintText: 'Carlos Ramirez (Bodega Karliz)',
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    if (_tipoQr == 'YAPE' || _tipoQr == 'PLIN') ...[
+                                      const SizedBox(height: 12),
+                                      TextFormField(
+                                        controller: _titularQrCtrl,
+                                        decoration: InputDecoration(
+                                          labelText: 'Nombre del Titular de la Cuenta',
+                                          hintText: 'Carlos Ramirez (Bodega Karliz)',
+                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ],
                                 ],
                               ),

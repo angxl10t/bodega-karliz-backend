@@ -5802,8 +5802,8 @@ class _VentasScreenState extends State<VentasScreen> {
         buffer.writeln('DNI: $doc');
       }
       if (ventaGenerada?.serieCorrelativo != null) {
-        buffer.writeln('Serie-Correlativo: ${ventaGenerada!.serieCorrelativo}');
-        buffer.writeln('Estado: ${ventaGenerada.estadoSunat ?? "EMITIDO"}');
+        buffer.writeln('Comprobante: ${ventaGenerada!.serieCorrelativo}');
+        buffer.writeln('Estado: EMITIDO');
       }
       buffer.writeln('Fecha: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}');
       buffer.writeln('--------------------------------');

@@ -18,7 +18,7 @@ class PrintResult {
 
 /// Servicio de formateo y generación de tickets para impresoras térmicas ESC/POS (58mm y 80mm).
 /// Prepara el texto y bytes con alineaciones monoespacio, sanitización de caracteres,
-/// comandos de apertura de cajón monedero, códigos QR de Yape/Plin/SUNAT y dispatch directo.
+/// comandos de apertura de cajón monedero, códigos QR de Yape/Plin/Catálogo Digital y dispatch directo.
 class ThermalTicketService {
   /// Ancho estándar de papel: 58mm = 32 columnas | 80mm = 48 columnas
   static const int width58mm = 32;
@@ -206,10 +206,6 @@ class ThermalTicketService {
       buffer.writeln(twoColumns('COMPROBANTE:', ticketNum, width));
     }
 
-    if (esSunat && estadoSunat != null && estadoSunat.isNotEmpty) {
-      buffer.writeln(twoColumns('ESTADO SUNAT:', estadoSunat, width));
-    }
-
     buffer.writeln(twoColumns('FECHA:', dateStr, width));
     if (cajero != null && cajero.isNotEmpty) {
       buffer.writeln(twoColumns('CAJERO:', cajero, width));
@@ -264,15 +260,8 @@ class ThermalTicketService {
 
     buffer.writeln(divider(width, '-'));
 
-    // Información SUNAT si aplica
-    if (esSunat) {
-      if (sunatHash != null && sunatHash.trim().isNotEmpty) {
-        final shortHash = sunatHash.trim().length > 16 ? '${sunatHash.trim().substring(0, 16)}...' : sunatHash.trim();
-        buffer.writeln(twoColumns('HASH SUNAT:', shortHash, width));
-      }
-      buffer.writeln(center('Representacion impresa de la', width));
-      buffer.writeln(center(esFactura ? 'FACTURA ELECTRONICA' : 'BOLETA DE VENTA ELECTRONICA', width));
-      buffer.writeln(center('Autorizado mediante Resolucion SUNAT', width));
+    if (esBoleta || esFactura) {
+      buffer.writeln(center('Representacion impresa de comprobante electronico', width));
       buffer.writeln(divider(width, '-'));
     }
 
@@ -292,8 +281,14 @@ class ThermalTicketService {
         // Etiqueta interpretable por RawBT / drivers térmicos
         buffer.writeln(center('[qr]$qrData[/qr]', width));
         buffer.writeln(divider(width, '-'));
-      } else if (qrType == 'SUNAT' && esSunat) {
-        buffer.writeln(center('[qr:SUNAT-VERIFY][/qr]', width));
+      } else if (qrType == 'CATALOGO') {
+        buffer.writeln(center('CATALOGO DIGITAL Y PEDIDOS ONLINE:', width));
+        if (qrData.isNotEmpty) {
+          buffer.writeln(center('[qr]$qrData[/qr]', width));
+        }
+        buffer.writeln(divider(width, '-'));
+      } else if (qrType == 'PERSONALIZADO' && qrData.isNotEmpty) {
+        buffer.writeln(center('[qr]$qrData[/qr]', width));
         buffer.writeln(divider(width, '-'));
       }
     }
@@ -406,8 +401,8 @@ class ThermalTicketService {
         qrPayload = 'https://yape.pe/p/$qrPayload';
       } else if (qrType == 'PLIN') {
         qrPayload = 'https://plin.pe/p/$qrPayload';
-      } else if (qrType == 'SUNAT' && sunatHash != null && sunatHash.isNotEmpty) {
-        qrPayload = '$rucDni|$tipoComprobante|${serieCorrelativo ?? ""}|$total|$sunatHash';
+      } else if (qrType == 'CATALOGO' || qrType == 'PERSONALIZADO') {
+        // Enlace directo al catálogo digital o personalizado
       }
 
       if (qrPayload.isNotEmpty) {

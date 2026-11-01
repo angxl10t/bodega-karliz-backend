@@ -1875,7 +1875,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Esta Boleta ya fue aceptada por SUNAT. Al anularla en CajaYa, recuerda generar su respectiva Nota de Crédito en el portal SUNAT para regularizarla fiscalmente.',
+                            'Al anular este comprobante en CajaYa, todos los productos y unidades se repondrán de inmediato a tu inventario disponible.',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               fontWeight: FontWeight.w600,
@@ -1981,7 +1981,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
             ),
             const SizedBox(width: 12),
-            Text('Reenviando ${venta.etiquetaComprobante} a SUNAT...'),
+            Text('Sincronizando ${venta.etiquetaComprobante}...'),
           ],
         ),
         duration: const Duration(seconds: 4),
@@ -2000,8 +2000,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
         SnackBar(
           content: Text(
             esAceptado
-                ? '¡${v.serieCorrelativo ?? "#${v.idVenta}"} aceptado por SUNAT!'
-                : (v.sunatMensaje ?? 'Estado SUNAT: $estado'),
+                ? '¡${v.serieCorrelativo ?? "#${v.idVenta}"} sincronizado correctamente!'
+                : (v.sunatMensaje ?? 'Estado: $estado'),
           ),
           backgroundColor: esAceptado ? AppTheme.accentGreen : const Color(0xFFF59E0B),
         ),
@@ -3359,11 +3359,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                                   if (estado == 'ACEPTADO') {
                                     bg = AppTheme.accentGreen.withValues(alpha: 0.15);
                                     fg = AppTheme.accentGreen;
-                                    label = 'SUNAT OK';
+                                    label = 'EMITIDO';
                                   } else if (estado == 'ACEPTADO_BETA') {
                                     bg = const Color(0xFF0D9488).withValues(alpha: 0.15);
                                     fg = const Color(0xFF0D9488);
-                                    label = 'SUNAT BETA';
+                                    label = 'EMITIDO (TEST)';
                                   } else if (estado == 'RECHAZADO') {
                                     bg = AppTheme.alertRed.withValues(alpha: 0.15);
                                     fg = AppTheme.alertRed;
@@ -3583,7 +3583,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                       ),
                       icon: const Icon(LucideIcons.send, size: 14),
                       label: Text(
-                        'Reenviar SUNAT',
+                        'Sincronizar',
                         style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
                       ),
                       onPressed: () => _reintentarSunat(v),
