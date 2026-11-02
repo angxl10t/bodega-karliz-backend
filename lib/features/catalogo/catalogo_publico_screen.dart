@@ -551,13 +551,17 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             children: [
               const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFFEA580C)),
               const SizedBox(width: 6),
-              Text(
-                'OFERTAS Y PROMOCIONES ACTIVAS',
-                style: GoogleFonts.outfit(
-                  fontSize: isTablet ? 12 : 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                  color: const Color(0xFFEA580C),
+              Expanded(
+                child: Text(
+                  'OFERTAS Y PROMOCIONES ACTIVAS',
+                  style: GoogleFonts.outfit(
+                    fontSize: isTablet ? 12 : 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: isTablet ? 0.8 : 0.5,
+                    color: const Color(0xFFEA580C),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -830,12 +834,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       children: [
                                         const Icon(LucideIcons.messageCircle, size: 13, color: Color(0xFF16A34A)),
                                         const SizedBox(width: 5),
-                                        Text(
-                                          'WhatsApp: ${_bodega['telefono']}',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: isTablet ? 12 : 11,
-                                            fontWeight: FontWeight.w800,
-                                            color: const Color(0xFF16A34A),
+                                        Flexible(
+                                          child: Text(
+                                            'WhatsApp: ${_bodega['telefono']}',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: isTablet ? 12 : 11,
+                                              fontWeight: FontWeight.w800,
+                                              color: const Color(0xFF16A34A),
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
                                       ],
@@ -1474,21 +1482,28 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                               onPressed: () => Navigator.pop(modalCtx),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                categoria.toUpperCase(),
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.brandPrimary,
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  categoria.toUpperCase(),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.brandPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 6),
                             IconButton(
                               icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
                               onPressed: () => Navigator.pop(modalCtx),
@@ -1505,7 +1520,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             nombre: nombre,
                             codigoBarras: codigoBarras,
                             categoria: categoria,
-                            size: 160,
+                            size: (MediaQuery.of(modalCtx).size.height < 700 || MediaQuery.of(modalCtx).size.width < 380) ? 120 : 160,
                             borderRadius: 24,
                             isDark: isDark,
                             padding: 8,
@@ -1594,12 +1609,17 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               children: [
                                 Icon(LucideIcons.sparkles, size: 15, color: _parseColorBadge(prod['colorBadge'])),
                                 const SizedBox(width: 6),
-                                Text(
-                                  '${prod['badgePromocion'] ?? "OFERTA"} • ${prod['tituloPromocion'] ?? "Descuento Especial"}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: _parseColorBadge(prod['colorBadge']),
+                                Flexible(
+                                  child: Text(
+                                    '${prod['badgePromocion'] ?? "OFERTA"} • ${prod['tituloPromocion'] ?? "Descuento Especial"}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      color: _parseColorBadge(prod['colorBadge']),
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                               ],
@@ -1729,6 +1749,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   children: [
                                     IconButton(
                                       icon: const Icon(LucideIcons.minus, size: 16),
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                                       tooltip: 'Disminuir',
                                       onPressed: () {
                                         _modificarCantidad(id, -1);
@@ -1736,7 +1759,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       },
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                      padding: const EdgeInsets.symmetric(horizontal: 6),
                                       child: Text(
                                         '$cantActual',
                                         style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900),
@@ -1744,6 +1767,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     ),
                                     IconButton(
                                       icon: const Icon(LucideIcons.plus, size: 16),
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                                       tooltip: 'Aumentar',
                                       onPressed: () {
                                         _modificarCantidad(id, 1);
@@ -1753,7 +1779,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: SizedBox(
                                   height: 48,
@@ -1762,12 +1788,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       backgroundColor: const Color(0xFF16A34A),
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
                                       elevation: 0,
                                     ),
                                     icon: const Icon(LucideIcons.shoppingCart, size: 17),
-                                    label: Text(
-                                      'Ver Pedido (${_totalUnidadesCarrito})',
-                                      style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                                    label: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'Ver Pedido (${_totalUnidadesCarrito})',
+                                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                                      ),
                                     ),
                                     onPressed: () {
                                       Navigator.pop(modalCtx);
@@ -2254,31 +2284,37 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
                                       side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                     ),
                                     onPressed: () => Navigator.pop(modalCtx),
-                                    child: Text(
-                                      '← Seguir Comprando',
-                                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        '← Seguir',
+                                        style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700),
+                                      ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   flex: 3,
                                   child: ElevatedButton.icon(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF16A34A),
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                       elevation: 0,
                                     ),
-                                    icon: const Icon(LucideIcons.send, size: 18),
-                                    label: Text(
-                                      'Pedir por WhatsApp',
-                                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900),
+                                    icon: const Icon(LucideIcons.send, size: 17),
+                                    label: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'Pedir por WhatsApp',
+                                        style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900),
+                                      ),
                                     ),
                                     onPressed: () {
                                       final notas = notasCtrl.text;
@@ -2340,19 +2376,19 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     onTap: _mostrarCarritoModal,
                     borderRadius: BorderRadius.circular(14),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       child: Row(
                         children: [
                           Stack(
                             clipBehavior: Clip.none,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(10),
+                                padding: EdgeInsets.all(isTablet ? 10 : 8),
                                 decoration: BoxDecoration(
                                   color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(LucideIcons.shoppingBag, size: 20, color: AppTheme.brandPrimary),
+                                child: Icon(LucideIcons.shoppingBag, size: isTablet ? 20 : 18, color: AppTheme.brandPrimary),
                               ),
                               Positioned(
                                 top: -4,
@@ -2378,7 +2414,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2386,34 +2422,42 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? 'producto' : 'productos'}',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    Flexible(
+                                      child: Text(
+                                        '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? 'producto' : 'productos'}',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Icon(LucideIcons.chevronUp, size: 14, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                    const SizedBox(width: 3),
+                                    Icon(LucideIcons.chevronUp, size: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                   ],
                                 ),
                                 Text(
                                   'S/ ${_totalMontoCarrito.toStringAsFixed(2)}',
                                   style: GoogleFonts.outfit(
-                                    fontSize: isTablet ? 21 : 18,
+                                    fontSize: isTablet ? 21 : 16.5,
                                     fontWeight: FontWeight.w900,
                                     color: isDark ? Colors.white : AppTheme.textDark,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 if (_totalAhorroCarrito > 0)
                                   Text(
                                     'Ahorras S/ ${_totalAhorroCarrito.toStringAsFixed(2)}',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 10.5,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.w800,
                                       color: const Color(0xFF16A34A),
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                               ],
                             ),
@@ -2425,45 +2469,56 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 ),
                 const SizedBox(width: 8),
 
-                // Botón "Ver Pedido"
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white : AppTheme.brandPrimary,
-                    side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 16 : 12,
-                      vertical: isTablet ? 14 : 12,
+                if (isTablet) ...[
+                  // En pantallas tablet hay espacio para ambos botones completos
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isDark ? Colors.white : AppTheme.brandPrimary,
+                      side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  icon: const Icon(LucideIcons.shoppingCart, size: 16),
-                  label: Text(
-                    'Ver Pedido',
-                    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
-                  ),
-                  onPressed: _mostrarCarritoModal,
-                ),
-                const SizedBox(width: 8),
-
-                // Botón directo "Pedir por WhatsApp"
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF16A34A),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 20 : 14,
-                      vertical: isTablet ? 14 : 12,
+                    icon: const Icon(LucideIcons.shoppingCart, size: 16),
+                    label: Text(
+                      'Ver Pedido',
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    onPressed: _mostrarCarritoModal,
                   ),
-                  icon: Icon(LucideIcons.send, size: isTablet ? 18 : 16),
-                  label: Text(
-                    isTablet ? 'Pedir por WhatsApp' : 'Pedir WhatsApp',
-                    style: GoogleFonts.outfit(fontSize: isTablet ? 14.5 : 13, fontWeight: FontWeight.w900),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF16A34A),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(LucideIcons.send, size: 18),
+                    label: Text(
+                      'Pedir por WhatsApp',
+                      style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w900),
+                    ),
+                    onPressed: () => _enviarPedidoWhatsApp(),
                   ),
-                  onPressed: () => _enviarPedidoWhatsApp(),
-                ),
+                ] else ...[
+                  // En móviles: Botón directo para Ver Pedido y finalizar por WhatsApp
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF16A34A),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    icon: const Icon(LucideIcons.shoppingBag, size: 16),
+                    label: Text(
+                      'Ver Pedido',
+                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
+                    ),
+                    onPressed: _mostrarCarritoModal,
+                  ),
+                ],
               ],
             ),
           ),
