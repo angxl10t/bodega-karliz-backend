@@ -26,6 +26,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     long countByBodega_IdBodegaAndEstadoTrue(Long idBodega);
 
+    @Query("SELECT TRIM(p.marca), COUNT(p) FROM Producto p WHERE p.bodega.idBodega = :idBodega AND p.estado = true AND p.marca IS NOT NULL AND TRIM(p.marca) != '' GROUP BY TRIM(p.marca) ORDER BY COUNT(p) DESC, TRIM(p.marca) ASC")
+    List<Object[]> findMarcasConConteoByBodega(@Param("idBodega") Long idBodega);
+
+    @Query("SELECT DISTINCT TRIM(p.marca) FROM Producto p WHERE p.bodega.idBodega = :idBodega AND p.estado = true AND p.marca IS NOT NULL AND TRIM(p.marca) != '' ORDER BY TRIM(p.marca) ASC")
+    List<String> findDistinctMarcasByBodega(@Param("idBodega") Long idBodega);
+
     @Query("SELECT p.bodega.idBodega, COUNT(p) FROM Producto p WHERE p.estado = true GROUP BY p.bodega.idBodega")
     List<Object[]> countActiveProductsGroupedByBodega();
 

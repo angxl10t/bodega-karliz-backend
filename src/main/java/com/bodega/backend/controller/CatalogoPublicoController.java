@@ -114,8 +114,11 @@ public class CatalogoPublicoController {
                         promoAplicable = promo;
                         break;
                     }
-                } else if ("MARCA".equalsIgnoreCase(promo.getAlcance()) && promo.getMarcaObjetivo() != null && p.getMarca() != null) {
-                    if (promo.getMarcaObjetivo().trim().equalsIgnoreCase(p.getMarca().trim())) {
+                } else if ("MARCA".equalsIgnoreCase(promo.getAlcance()) && promo.getMarcaObjetivo() != null) {
+                    String marcaObj = promo.getMarcaObjetivo().trim();
+                    boolean coincideMarca = (p.getMarca() != null && p.getMarca().trim().equalsIgnoreCase(marcaObj));
+                    boolean coincideNombre = (p.getNombre() != null && p.getNombre().toLowerCase().contains(marcaObj.toLowerCase()));
+                    if (coincideMarca || coincideNombre) {
                         promoAplicable = promo;
                         break;
                     }
@@ -213,11 +216,19 @@ public class CatalogoPublicoController {
             return pm;
         }).collect(Collectors.toList());
 
+        List<String> marcas = prodsDto.stream()
+                .map(m -> (String) m.get("marca"))
+                .filter(m -> m != null && !m.isBlank())
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.toList());
+
         response.put("mensaje", null);
         response.put("totalProductos", prodsDto.size());
         response.put("totalPromociones", promosDto.size());
         response.put("promociones", promosDto);
         response.put("categorias", categorias);
+        response.put("marcas", marcas);
         response.put("productos", prodsDto);
 
         return ResponseEntity.ok(response);

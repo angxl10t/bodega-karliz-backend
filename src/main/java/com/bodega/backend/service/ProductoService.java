@@ -10,13 +10,16 @@ import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.MovimientoInventarioRepository;
 import com.bodega.backend.repository.PresentacionRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import com.bodega.backend.util.MarcaDetectorUtil;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -130,6 +133,19 @@ public class ProductoService {
     }
 
     @Transactional(readOnly = true)
+    public List<Map<String, Object>> listarMarcasConConteo() {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        List<Object[]> rows = productoRepository.findMarcasConConteoByBodega(idBodega);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            String marca = (String) row[0];
+            Long count = ((Number) row[1]).longValue();
+            result.add(Map.of("marca", marca, "cantidad", count));
+        }
+        return result;
+    }
+
+    @Transactional(readOnly = true)
     public String generarSiguienteCodigo(Long idCategoria) {
         Long idBodega = tenantService.getCurrentBodegaId();
         Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(idCategoria, idBodega)
@@ -209,6 +225,11 @@ public class ProductoService {
         }
         String nombreLimpio = dto.getNombre().trim();
         String marcaLimpia = (dto.getMarca() != null && !dto.getMarca().isBlank()) ? dto.getMarca().trim() : null;
+        if (marcaLimpia == null) {
+            marcaLimpia = MarcaDetectorUtil.detectarMarca(nombreLimpio);
+        } else {
+            marcaLimpia = MarcaDetectorUtil.normalizarMarca(marcaLimpia);
+        }
 
         if (dto.getPrecioVenta() == null || dto.getPrecioVenta().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("El precio de venta debe ser mayor a cero.");
@@ -305,8 +326,13 @@ public class ProductoService {
             }
             producto.setNombre(dto.getNombre().trim());
         }
-        if (dto.getMarca() != null) {
-            producto.setMarca(dto.getMarca().trim().isBlank() ? null : dto.getMarca().trim());
+        if (dto.getMarca() != null && !dto.getMarca().trim().isBlank()) {
+            producto.setMarca(MarcaDetectorUtil.normalizarMarca(dto.getMarca().trim()));
+        } else if (producto.getMarca() == null || producto.getMarca().trim().isBlank()) {
+            String auto = MarcaDetectorUtil.detectarMarca(producto.getNombre());
+            if (auto != null) {
+                producto.setMarca(auto);
+            }
         }
         if (dto.getPrecioVenta() != null) {
             if (dto.getPrecioVenta().compareTo(BigDecimal.ZERO) <= 0) {

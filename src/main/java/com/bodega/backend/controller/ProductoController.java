@@ -27,6 +27,12 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.listarActivos());
     }
 
+    @GetMapping("/marcas")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
+    public ResponseEntity<List<Map<String, Object>>> listarMarcas() {
+        return ResponseEntity.ok(productoService.listarMarcasConConteo());
+    }
+
     @GetMapping("/siguiente-codigo")
     public ResponseEntity<Map<String, String>> siguienteCodigo(@RequestParam Long idCategoria) {
         String codigo = productoService.generarSiguienteCodigo(idCategoria);

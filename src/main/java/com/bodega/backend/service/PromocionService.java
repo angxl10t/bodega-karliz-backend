@@ -8,6 +8,7 @@ import com.bodega.backend.entity.Promocion;
 import com.bodega.backend.repository.ProductoRepository;
 import com.bodega.backend.repository.PromocionRepository;
 import com.bodega.backend.repository.VentaDetalleRepository;
+import com.bodega.backend.util.MarcaDetectorUtil;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -79,7 +80,7 @@ public class PromocionService {
                 .alcance(dto.getAlcance() != null ? dto.getAlcance().trim().toUpperCase() : "CATEGORIA")
                 .valorDescuento(dto.getValorDescuento() != null ? dto.getValorDescuento() : BigDecimal.ZERO)
                 .categoriaObjetivo(dto.getCategoriaObjetivo() != null ? dto.getCategoriaObjetivo().trim() : null)
-                .marcaObjetivo(dto.getMarcaObjetivo() != null ? dto.getMarcaObjetivo().trim() : null)
+                .marcaObjetivo(dto.getMarcaObjetivo() != null && !dto.getMarcaObjetivo().isBlank() ? MarcaDetectorUtil.normalizarMarca(dto.getMarcaObjetivo().trim()) : null)
                 .idProductoPrincipal(dto.getIdProductoPrincipal())
                 .nombreProductoPrincipal(dto.getNombreProductoPrincipal())
                 .idProductoSecundario(dto.getIdProductoSecundario())
@@ -111,7 +112,7 @@ public class PromocionService {
         if (dto.getAlcance() != null) p.setAlcance(dto.getAlcance().trim().toUpperCase());
         if (dto.getValorDescuento() != null) p.setValorDescuento(dto.getValorDescuento());
         p.setCategoriaObjetivo(dto.getCategoriaObjetivo() != null ? dto.getCategoriaObjetivo().trim() : null);
-        p.setMarcaObjetivo(dto.getMarcaObjetivo() != null ? dto.getMarcaObjetivo().trim() : null);
+        p.setMarcaObjetivo(dto.getMarcaObjetivo() != null && !dto.getMarcaObjetivo().isBlank() ? MarcaDetectorUtil.normalizarMarca(dto.getMarcaObjetivo().trim()) : null);
         p.setIdProductoPrincipal(dto.getIdProductoPrincipal());
         p.setNombreProductoPrincipal(dto.getNombreProductoPrincipal());
         p.setIdProductoSecundario(dto.getIdProductoSecundario());
