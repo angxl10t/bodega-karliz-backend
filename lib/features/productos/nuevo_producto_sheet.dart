@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/catalogo_imagenes_service.dart';
 import '../../core/categoria_suggester_service.dart';
+import '../../core/marca_detector_service.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/catalogo_foto_picker_modal.dart';
 import '../categorias/categoria_model.dart';
@@ -147,6 +148,18 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
             _imagenUrl = sugerencia.imagenUrl;
           }
         });
+      }
+    }
+
+    // Detección automática de Marca inteligente
+    if (_marcaCtrl.text.trim().isEmpty) {
+      final marcaAuto = sugerencia?.marca ??
+          MarcaDetectorService.detectarMarca(
+            nombre: nombre.isNotEmpty ? nombre : null,
+            codigoBarras: barcode.isNotEmpty ? barcode : null,
+          );
+      if (marcaAuto != null && marcaAuto.trim().isNotEmpty) {
+        _marcaCtrl.text = MarcaDetectorService.normalizarMarca(marcaAuto);
       }
     } else {
       if (_fotoSugerida != null && !_imagenModificadaManualmente) {

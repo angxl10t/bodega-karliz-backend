@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../../core/api_client.dart';
+import '../../core/marca_detector_service.dart';
 import '../../core/offline/offline_catalog_service.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import 'producto_model.dart';
@@ -134,5 +135,36 @@ class ProductoService {
     } catch (e) {
       return false;
     }
+  }
+
+  /// Obtiene la lista de marcas disponibles en el inventario de la bodega con su conteo de productos.
+  /// Si el endpoint no responde o está offline, calcula las marcas automáticamente desde los productos locales.
+  Future<List<MarcaInfo>> getMarcas() async {
+    try {
+      final response = await _apiClient.get('/productos/marcas');
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
+        return list.map((item) => MarcaInfo.fromJson(item as Map<String, dynamic>)).toList();
+      }
+    } catch (_) {}
+
+    // Fallback local: calcular a partir de los productos en caché/inventario
+    final productos = await getProductos();
+    final Map<String, int> conteo = {};
+    for (final p in productos) {
+      final m = p.marca?.trim();
+      if (m != null && m.isNotEmpty) {
+        conteo[m] = (conteo[m] ?? 0) + 1;
+      }
+    }
+    final List<MarcaInfo> marcas = conteo.entries
+        .map((e) => MarcaInfo(nombre: e.key, cantidadProductos: e.value))
+        .toList();
+    marcas.sort((a, b) {
+      final cmp = b.cantidadProductos.compareTo(a.cantidadProductos);
+      if (cmp != 0) return cmp;
+      return a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase());
+    });
+    return marcas;
   }
 }

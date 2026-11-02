@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../categorias/categoria_model.dart';
 import '../categorias/categoria_service.dart';
+import '../../core/marca_detector_service.dart';
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
 import 'promocion_model.dart';
@@ -61,6 +62,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
 
   List<Categoria> _categorias = [];
   List<Producto> _productos = [];
+  List<MarcaInfo> _marcasDisponibles = [];
   bool _cargandoDatos = true;
 
   final List<Map<String, String>> _coloresDisponibles = [
@@ -112,10 +114,12 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
     try {
       final cats = await CategoriaService().getCategorias();
       final prods = await ProductoService().getProductos();
+      final marcas = await ProductoService().getMarcas();
       if (mounted) {
         setState(() {
           _categorias = cats;
           _productos = prods;
+          _marcasDisponibles = marcas;
           if (_categoriaSeleccionada == null && cats.isNotEmpty) {
             _categoriaSeleccionada = cats.first.nombre;
           }
@@ -358,21 +362,183 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                 ],
 
                 if (_alcance == 'MARCA') ...[
-                  Text(
-                    'MARCA DEL PRODUCTO',
-                    style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'MARCA DEL PRODUCTO',
+                        style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted),
+                      ),
+                      if (_marcasDisponibles.isNotEmpty)
+                        Text(
+                          '${_marcasDisponibles.length} marcas en tu tienda',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppTheme.brandPrimary),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _marcaCtrl,
-                    decoration: InputDecoration(
-                      hintText: 'Ej. Pepsi, Coca Cola, Bimbo, Molitalia...',
-                      prefixIcon: const Icon(LucideIcons.award, size: 18),
-                      filled: true,
-                      fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  Autocomplete<MarcaInfo>(
+                    initialValue: TextEditingValue(text: _marcaCtrl.text),
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return _marcasDisponibles.take(8);
+                      }
+                      return _marcasDisponibles.where((m) =>
+                          m.nombre.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+                    },
+                    displayStringForOption: (m) => m.nombre,
+                    onSelected: (MarcaInfo selection) {
+                      setState(() {
+                        _marcaCtrl.text = selection.nombre;
+                        _tituloCtrl.text = '¡Semana ${selection.nombre} con Descuento!';
+                      });
+                    },
+                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                      if (_marcaCtrl.text.isNotEmpty && controller.text.isEmpty) {
+                        controller.text = _marcaCtrl.text;
+                      }
+                      controller.addListener(() {
+                        if (_marcaCtrl.text != controller.text) {
+                          _marcaCtrl.text = controller.text;
+                        }
+                      });
+                      return TextFormField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Selecciona o escribe una marca (Ej. Pepsi, Bimbo...)',
+                          prefixIcon: const Icon(LucideIcons.award, size: 18),
+                          filled: true,
+                          fillColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                          suffixIcon: _marcaCtrl.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 16),
+                                  onPressed: () {
+                                    controller.clear();
+                                    _marcaCtrl.clear();
+                                    setState(() {});
+                                  },
+                                )
+                              : null,
+                        ),
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa o selecciona la marca' : null,
+                      );
+                    },
+                    optionsViewBuilder: (context, onSelected, options) {
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Material(
+                          elevation: 8,
+                          borderRadius: BorderRadius.circular(14),
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          child: Container(
+                            width: 320,
+                            constraints: const BoxConstraints(maxHeight: 220),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                            ),
+                            child: ListView.separated(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              shrinkWrap: true,
+                              itemCount: options.length,
+                              separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                              itemBuilder: (context, index) {
+                                final option = options.elementAt(index);
+                                return ListTile(
+                                  dense: true,
+                                  title: Text(
+                                    option.nombre,
+                                    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: isDark ? Colors.white : AppTheme.textDark),
+                                  ),
+                                  trailing: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.brandPrimary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '${option.cantidadProductos} prods',
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.brandPrimary),
+                                    ),
+                                  ),
+                                  onTap: () => onSelected(option),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  if (_marcasDisponibles.isNotEmpty) ...[
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _marcasDisponibles.take(6).map((m) {
+                          final isSelected = _marcaCtrl.text.trim().toLowerCase() == m.nombre.toLowerCase();
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ActionChip(
+                              label: Text('${m.nombre} (${m.cantidadProductos})'),
+                              labelStyle: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                              ),
+                              backgroundColor: isSelected ? AppTheme.brandPrimary : (isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                              side: BorderSide.none,
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                              onPressed: () {
+                                setState(() {
+                                  _marcaCtrl.text = m.nombre;
+                                  _tituloCtrl.text = '¡Semana ${m.nombre} con Descuento!';
+                                });
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
-                    validator: (v) => v == null || v.trim().isEmpty ? 'Ingresa la marca' : null,
+                    const SizedBox(height: 6),
+                  ],
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _marcaCtrl,
+                    builder: (context, val, _) {
+                      final currentMarca = val.text.trim();
+                      if (currentMarca.isEmpty) return const SizedBox.shrink();
+                      final match = _marcasDisponibles.firstWhere(
+                        (m) => m.nombre.toLowerCase() == currentMarca.toLowerCase(),
+                        orElse: () => MarcaInfo(
+                          nombre: currentMarca,
+                          cantidadProductos: _productos.where((p) => (p.marca ?? '').toLowerCase() == currentMarca.toLowerCase() || p.nombre.toLowerCase().contains(currentMarca.toLowerCase())).length,
+                        ),
+                      );
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.25)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(LucideIcons.checkCircle2, color: Color(0xFF10B981), size: 14),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                match.cantidadProductos > 0
+                                    ? 'Aplica automáticamente a los ${match.cantidadProductos} productos de "${match.nombre}" en tu catálogo online.'
+                                    : 'Marca personalizada: se aplicará a productos con marca o nombre "${match.nombre}".',
+                                style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w600, color: const Color(0xFF047857)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 14),
                 ],
