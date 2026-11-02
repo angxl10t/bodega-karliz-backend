@@ -376,10 +376,10 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: [1, 2, 3, 4, 6, 12].map((num) {
-                  final isSel = _cantidadBotellas == num;
+                children: [1, 2, 3, 4, 6, 12].map((cant) {
+                  final isSel = _cantidadBotellas == cant;
                   return ChoiceChip(
-                    label: Text('$num ${num == 1 ? "botella" : "botellas"}'),
+                    label: Text('$cant ${cant == 1 ? "botella" : "botellas"}'),
                     selected: isSel,
                     selectedColor: AppTheme.brandPrimary,
                     labelStyle: GoogleFonts.outfit(
@@ -390,7 +390,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                     onSelected: (sel) {
                       if (sel) {
                         setState(() {
-                          _cantidadBotellas = num;
+                          _cantidadBotellas = cant;
                           _recalcularMonto();
                         });
                       }

@@ -36,11 +36,11 @@ void main() {
     await tester.pumpAndSettle();
 
     final prods = data['productos'] as List;
-    print('Testing with total products: ${prods.length}');
+    debugPrint('Testing with total products: ${prods.length}');
 
     final p0 = prods[0];
     final nombre0 = p0['nombre'] as String;
-    print('Testing product [0]: $nombre0');
+    debugPrint('Testing product [0]: $nombre0');
 
     expect(find.text(nombre0), findsWidgets);
     await tester.tap(find.text(nombre0).first);
@@ -59,6 +59,6 @@ void main() {
     expect(find.textContaining('WhatsApp'), findsWidgets);
     expect(find.text('Ver Pedido'), findsOneWidget);
 
-    print('SUCCESS! Real catalog products flow passed without error.');
+    debugPrint('SUCCESS! Real catalog products flow passed without error.');
   });
 }

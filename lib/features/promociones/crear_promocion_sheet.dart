@@ -462,7 +462,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               shrinkWrap: true,
                               itemCount: options.length,
-                              separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
+                              separatorBuilder: (_, _) => Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                               itemBuilder: (context, index) {
                                 final option = options.elementAt(index);
                                 return ListTile(

@@ -1799,7 +1799,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     label: FittedBox(
                                       fit: BoxFit.scaleDown,
                                       child: Text(
-                                        'Ver Pedido (${_totalUnidadesCarrito})',
+                                        'Ver Pedido ($_totalUnidadesCarrito)',
                                         style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
                                       ),
                                     ),
@@ -1858,9 +1858,6 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         return StatefulBuilder(
           builder: (modalCtx, setModalState) {
             final mediaQuery = MediaQuery.of(modalCtx);
-            final double shortestSide = mediaQuery.size.shortestSide;
-            final bool isPhysicalTablet = shortestSide >= 600;
-            final bool isTablet = isPhysicalTablet || (mediaQuery.size.width >= 650 && mediaQuery.size.height >= 550);
 
             if (_carrito.isEmpty) {
               return Center(
@@ -2033,7 +2030,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                           itemCount: cartItemIds.length,
-                          separatorBuilder: (_, __) => const Divider(height: 16),
+                          separatorBuilder: (_, _) => const Divider(height: 16),
                           itemBuilder: (context, idx) {
                             final id = cartItemIds[idx];
                             final cant = _carrito[id] ?? 0;
