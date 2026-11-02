@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +11,10 @@ import 'cliente_service.dart';
 import 'nuevo_cliente_sheet.dart';
 import 'registrar_abono_sheet.dart';
 import 'estado_cuenta_modal.dart';
+import 'garantia_botella_model.dart';
+import 'garantia_botella_service.dart';
+import 'nueva_garantia_sheet.dart';
+import 'devolver_botella_dialog.dart';
 
 class ClientesScreen extends StatefulWidget {
   const ClientesScreen({super.key});
@@ -19,31 +23,48 @@ class ClientesScreen extends StatefulWidget {
   State<ClientesScreen> createState() => _ClientesScreenState();
 }
 
-class _ClientesScreenState extends State<ClientesScreen> {
+class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final ClienteService _clienteService = ClienteService();
+  final GarantiaBotellaService _garantiaService = GarantiaBotellaService();
   final BodegaService _bodegaService = BodegaService();
 
   List<Cliente> _clientes = [];
   ResumenCreditos? _resumen;
   BodegaInfo? _bodegaInfo;
 
+  List<GarantiaBotella> _garantias = [];
+  ResumenGarantias? _resumenGarantias;
+
   bool _isLoading = true;
   String _filtroTexto = '';
   String _filtroEstado = 'todos'; // 'todos', 'deudores', 'al_dia'
 
+  String _filtroTextoGarantias = '';
+  String _filtroEstadoGarantias = 'PENDIENTE'; // 'PENDIENTE', 'DEVUELTO', 'TODAS'
+
   final TextEditingController _searchCtrl = TextEditingController();
+  final TextEditingController _searchCtrlGarantias = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     ClienteService.clientesRevision.addListener(_onRevisionChanged);
+    GarantiaBotellaService.garantiasRevision.addListener(_onRevisionChanged);
     _cargarDatos();
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     ClienteService.clientesRevision.removeListener(_onRevisionChanged);
+    GarantiaBotellaService.garantiasRevision.removeListener(_onRevisionChanged);
     _searchCtrl.dispose();
+    _searchCtrlGarantias.dispose();
     super.dispose();
   }
 
@@ -58,6 +79,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
         _clienteService.getClientes(forceRefresh: forceRefresh),
         _clienteService.getResumenCreditos(),
         _bodegaService.obtenerMiBodega(),
+        _garantiaService.getGarantias(forceRefresh: forceRefresh),
+        _garantiaService.getResumenGarantias(),
       ]);
 
       if (mounted) {
@@ -65,6 +88,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
           _clientes = results[0] as List<Cliente>;
           _resumen = results[1] as ResumenCreditos?;
           _bodegaInfo = results[2] as BodegaInfo?;
+          _garantias = results[3] as List<GarantiaBotella>;
+          _resumenGarantias = results[4] as ResumenGarantias?;
           _isLoading = false;
         });
       }
@@ -207,6 +232,72 @@ class _ClientesScreenState extends State<ClientesScreen> {
     );
   }
 
+  List<GarantiaBotella> get _garantiasFiltradas {
+    final q = _filtroTextoGarantias.trim().toLowerCase();
+    return _garantias.where((g) {
+      if (q.isNotEmpty) {
+        final matchNom = g.nombrePersona.toLowerCase().contains(q);
+        final matchTel = (g.telefono ?? '').toLowerCase().contains(q);
+        final matchTipo = g.tipoBotella.toLowerCase().contains(q);
+        if (!matchNom && !matchTel && !matchTipo) return false;
+      }
+      if (_filtroEstadoGarantias == 'PENDIENTE') {
+        return g.estaPendiente;
+      } else if (_filtroEstadoGarantias == 'DEVUELTO') {
+        return g.estaDevuelto;
+      }
+      return true;
+    }).toList();
+  }
+
+  void _abrirNuevaGarantia() {
+    HapticFeedback.lightImpact();
+    NuevaGarantiaSheet.show(
+      context,
+      clientesDisponibles: _clientes,
+      onGuardado: () => _cargarDatos(forceRefresh: true),
+    );
+  }
+
+  void _abrirDevolverBotella(GarantiaBotella g) {
+    HapticFeedback.selectionClick();
+    DevolverBotellaDialog.show(
+      context,
+      garantia: g,
+      onDevuelto: () => _cargarDatos(forceRefresh: true),
+    );
+  }
+
+  void _confirmarEliminarGarantia(GarantiaBotella g) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar Registro'),
+        content: Text('¿Está seguro de eliminar el registro de garantía de botellas para "${g.nombrePersona}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.alertRed, foregroundColor: Colors.white),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await _garantiaService.eliminarGarantia(g.idGarantia);
+                _cargarDatos(forceRefresh: true);
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                  );
+                }
+              }
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -222,6 +313,8 @@ class _ClientesScreenState extends State<ClientesScreen> {
     final totalVecinos = _clientes.length;
     final vecinosAlDia = (totalVecinos - vecinosDeudores).clamp(0, totalVecinos);
     final creditoTotal = _clientes.fold<double>(0.0, (acc, c) => acc + c.limiteCredito);
+    final botellasPendientes = _resumenGarantias?.botellasPendientes ??
+        _garantias.where((g) => g.estaPendiente).fold<int>(0, (acc, g) => acc + g.botellasRestantes);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
@@ -238,7 +331,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Libreta de Fiados',
+                    'Fiados y Garantías de Botellas',
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -246,7 +339,7 @@ class _ClientesScreenState extends State<ClientesScreen> {
                     ),
                   ),
                   Text(
-                    'Cuentas por cobrar y vecinos de confianza',
+                    'Cuentas por cobrar y control de envases retornables',
                     style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                   ),
                 ],
@@ -268,15 +361,21 @@ class _ClientesScreenState extends State<ClientesScreen> {
       floatingActionButton: isWide
           ? null
           : FloatingActionButton.extended(
-              backgroundColor: AppTheme.brandPrimary,
+              backgroundColor: _tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB),
               foregroundColor: Colors.white,
               elevation: 4,
-              icon: const Icon(LucideIcons.userPlus, size: 18),
+              icon: Icon(_tabController.index == 0 ? LucideIcons.userPlus : LucideIcons.wine, size: 18),
               label: Text(
-                'Nuevo Vecino',
+                _tabController.index == 0 ? 'Nuevo Vecino' : 'Dejar Botellas',
                 style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
               ),
-              onPressed: () => _abrirNuevoCliente(),
+              onPressed: () {
+                if (_tabController.index == 0) {
+                  _abrirNuevoCliente();
+                } else {
+                  _abrirNuevaGarantia();
+                }
+              },
             ),
       body: RefreshIndicator(
         onRefresh: () => _cargarDatos(forceRefresh: true),
@@ -414,23 +513,27 @@ class _ClientesScreenState extends State<ClientesScreen> {
                     ),
                     const SizedBox(width: 6),
 
-                    // Botón + Nuevo Vecino
+                    // Botón + Acción según pestaña activa
                     Material(
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
                         onTap: () {
                           HapticFeedback.selectionClick();
-                          _abrirNuevoCliente();
+                          if (_tabController.index == 0) {
+                            _abrirNuevoCliente();
+                          } else {
+                            _abrirNuevaGarantia();
+                          }
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: isNarrow ? 8 : 11, vertical: 6.5),
                           decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary,
+                            color: _tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                                color: (_tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB)).withValues(alpha: 0.3),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -439,11 +542,11 @@ class _ClientesScreenState extends State<ClientesScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(LucideIcons.userPlus, size: 14, color: Colors.white),
+                              Icon(_tabController.index == 0 ? LucideIcons.userPlus : LucideIcons.wine, size: 14, color: Colors.white),
                               if (!isNarrow) ...[
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Nuevo',
+                                  _tabController.index == 0 ? 'Nuevo' : 'Dejar Botellas',
                                   style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w800,
@@ -460,58 +563,716 @@ class _ClientesScreenState extends State<ClientesScreen> {
                 ),
               ),
 
-            // 2. Panel Superior: KPIs de Crédito y Fiados (Diseño Responsivo Simétrico)
-            _buildKpisSection(
-              isDark: isDark,
-              totalPorCobrar: totalPorCobrar,
-              vecinosDeudores: vecinosDeudores,
-              cobradoMes: cobradoMes,
-              vecinosAlDia: vecinosAlDia,
-              creditoTotal: creditoTotal,
-            ),
+            // Selector de Pestaña: Libreta de Fiados vs Garantía de Botellas
+            _buildTabBar(isDark, totalVecinos, botellasPendientes),
 
-            // 3. Toolbar Unificada (Buscador + Filtros por Estado)
-            _buildToolbar(isDark, cardBg, isWide, vecinosDeudores, vecinosAlDia),
-
-            // 4. Lista o Grid de Vecinos / Clientes
+            // Contenido según Pestaña
             Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _clientesFiltrados.isEmpty
-                      ? _buildEmptyState(isDark)
-                      : LayoutBuilder(
-                          builder: (context, constraints) {
-                            if (constraints.maxWidth >= 720) {
-                              return GridView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 480,
-                                  mainAxisExtent: 232,
-                                  crossAxisSpacing: 14,
-                                  mainAxisSpacing: 14,
-                                ),
-                                itemCount: _clientesFiltrados.length,
-                                itemBuilder: (context, idx) {
-                                  final c = _clientesFiltrados[idx];
-                                  return _buildClienteCard(c, isDark);
-                                },
-                              );
-                            } else {
-                              return ListView.builder(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                                itemCount: _clientesFiltrados.length,
-                                itemBuilder: (context, idx) {
-                                  final c = _clientesFiltrados[idx];
-                                  return _buildClienteCard(c, isDark);
-                                },
-                              );
-                            }
-                          },
-                        ),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTabFiados(
+                    isDark: isDark,
+                    cardBg: cardBg,
+                    isWide: isWide,
+                    totalPorCobrar: totalPorCobrar,
+                    vecinosDeudores: vecinosDeudores,
+                    cobradoMes: cobradoMes,
+                    vecinosAlDia: vecinosAlDia,
+                    creditoTotal: creditoTotal,
+                  ),
+                  _buildTabGarantias(
+                    isDark: isDark,
+                    cardBg: cardBg,
+                    isWide: isWide,
+                  ),
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabBar(bool isDark, int totalVecinos, int botellasPendientes) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          color: _tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: (_tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB)).withValues(alpha: 0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        labelColor: Colors.white,
+        unselectedLabelColor: isDark ? Colors.white60 : const Color(0xFF475569),
+        labelStyle: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w800),
+        unselectedLabelStyle: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w600),
+        tabs: [
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(LucideIcons.bookUser, size: 15),
+                const SizedBox(width: 6),
+                Text('Libreta de Fiados ($totalVecinos)'),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(LucideIcons.wine, size: 15),
+                const SizedBox(width: 6),
+                Text('Garantía Botellas ($botellasPendientes)'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabFiados({
+    required bool isDark,
+    required Color cardBg,
+    required bool isWide,
+    required double totalPorCobrar,
+    required int vecinosDeudores,
+    required double cobradoMes,
+    required int vecinosAlDia,
+    required double creditoTotal,
+  }) {
+    return Column(
+      children: [
+        _buildKpisSection(
+          isDark: isDark,
+          totalPorCobrar: totalPorCobrar,
+          vecinosDeudores: vecinosDeudores,
+          cobradoMes: cobradoMes,
+          vecinosAlDia: vecinosAlDia,
+          creditoTotal: creditoTotal,
+        ),
+        _buildToolbar(isDark, cardBg, isWide, vecinosDeudores, vecinosAlDia),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _clientesFiltrados.isEmpty
+                  ? _buildEmptyState(isDark)
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth >= 720) {
+                          return GridView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 480,
+                              mainAxisExtent: 232,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                            ),
+                            itemCount: _clientesFiltrados.length,
+                            itemBuilder: (context, idx) {
+                              final c = _clientesFiltrados[idx];
+                              return _buildClienteCard(c, isDark);
+                            },
+                          );
+                        } else {
+                          return ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                            itemCount: _clientesFiltrados.length,
+                            itemBuilder: (context, idx) {
+                              final c = _clientesFiltrados[idx];
+                              return _buildClienteCard(c, isDark);
+                            },
+                          );
+                        }
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabGarantias({
+    required bool isDark,
+    required Color cardBg,
+    required bool isWide,
+  }) {
+    return Column(
+      children: [
+        _buildKpisGarantias(isDark),
+        _buildToolbarGarantias(isDark, cardBg, isWide),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _garantiasFiltradas.isEmpty
+                  ? _buildEmptyStateGarantias(isDark)
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth >= 720) {
+                          return GridView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 480,
+                              mainAxisExtent: 250,
+                              crossAxisSpacing: 14,
+                              mainAxisSpacing: 14,
+                            ),
+                            itemCount: _garantiasFiltradas.length,
+                            itemBuilder: (context, idx) {
+                              final g = _garantiasFiltradas[idx];
+                              return _buildGarantiaCard(g, isDark);
+                            },
+                          );
+                        } else {
+                          return ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                            itemCount: _garantiasFiltradas.length,
+                            itemBuilder: (context, idx) {
+                              final g = _garantiasFiltradas[idx];
+                              return _buildGarantiaCard(g, isDark);
+                            },
+                          );
+                        }
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKpisGarantias(bool isDark) {
+    final totalCustodia = _resumenGarantias?.totalDineroCustodia ?? 0.0;
+    final botellasPend = _resumenGarantias?.botellasPendientes ?? 0;
+    final personasPend = _resumenGarantias?.personasPendientes ?? 0;
+    final devueltoMes = _resumenGarantias?.totalDevueltoMes ?? 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 900;
+
+          if (isDesktop) {
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildKpiCard(
+                    isDark: isDark,
+                    icon: LucideIcons.handCoins,
+                    title: 'Dinero en Custodia',
+                    value: 'S/ ${totalCustodia.toStringAsFixed(2)}',
+                    subtitle: 'Garantía retenida en caja',
+                    accentColor: const Color(0xFF16A34A),
+                    bgColor: isDark ? const Color(0xFF06231A) : const Color(0xFFECFDF5),
+                    borderColor: isDark ? const Color(0xFF047857).withValues(alpha: 0.6) : const Color(0xFFA7F3D0),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildKpiCard(
+                    isDark: isDark,
+                    icon: LucideIcons.wine,
+                    title: 'Botellas Fuera',
+                    value: '$botellasPend botellas',
+                    subtitle: 'Por devolver a la bodega',
+                    accentColor: const Color(0xFFEA580C),
+                    bgColor: isDark ? const Color(0xFF2A1508) : const Color(0xFFFFF7ED),
+                    borderColor: isDark ? const Color(0xFFC2410C).withValues(alpha: 0.6) : const Color(0xFFFFEDD5),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildKpiCard(
+                    isDark: isDark,
+                    icon: LucideIcons.users,
+                    title: 'Personas Activas',
+                    value: '$personasPend personas',
+                    subtitle: 'Con botellas pendientes',
+                    accentColor: const Color(0xFF2563EB),
+                    bgColor: isDark ? const Color(0xFF101C38) : const Color(0xFFEFF6FF),
+                    borderColor: isDark ? const Color(0xFF1D4ED8).withValues(alpha: 0.6) : const Color(0xFFBFDBFE),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildKpiCard(
+                    isDark: isDark,
+                    icon: LucideIcons.packageCheck,
+                    title: 'Devuelto Mes',
+                    value: 'S/ ${devueltoMes.toStringAsFixed(2)}',
+                    subtitle: '${_resumenGarantias?.botellasDevueltasMes ?? 0} botellas recuperadas',
+                    accentColor: const Color(0xFF059669),
+                    bgColor: isDark ? const Color(0xFF042118) : const Color(0xFFECFDF5),
+                    borderColor: isDark ? const Color(0xFF059669).withValues(alpha: 0.5) : const Color(0xFFA7F3D0),
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                Expanded(
+                  child: _buildKpiCard(
+                    isDark: isDark,
+                    icon: LucideIcons.handCoins,
+                    title: 'Dinero en Custodia',
+                    value: 'S/ ${totalCustodia.toStringAsFixed(2)}',
+                    subtitle: '$botellasPend botellas fuera',
+                    accentColor: const Color(0xFF16A34A),
+                    bgColor: isDark ? const Color(0xFF06231A) : const Color(0xFFECFDF5),
+                    borderColor: isDark ? const Color(0xFF047857).withValues(alpha: 0.6) : const Color(0xFFA7F3D0),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildKpiCard(
+                    isDark: isDark,
+                    icon: LucideIcons.packageCheck,
+                    title: 'Devuelto Mes',
+                    value: 'S/ ${devueltoMes.toStringAsFixed(2)}',
+                    subtitle: '${_resumenGarantias?.botellasDevueltasMes ?? 0} recuperadas',
+                    accentColor: const Color(0xFF2563EB),
+                    bgColor: isDark ? const Color(0xFF101C38) : const Color(0xFFEFF6FF),
+                    borderColor: isDark ? const Color(0xFF1D4ED8).withValues(alpha: 0.6) : const Color(0xFFBFDBFE),
+                  ),
+                ),
+              ],
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildToolbarGarantias(bool isDark, Color cardBg, bool isWide) {
+    final pendientesCount = _garantias.where((g) => g.estaPendiente).length;
+    final devueltasCount = _garantias.where((g) => g.estaDevuelto).length;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 42,
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+              ),
+              child: TextField(
+                controller: _searchCtrlGarantias,
+                onChanged: (val) => setState(() => _filtroTextoGarantias = val),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Buscar persona, teléfono o botella...',
+                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
+                  prefixIcon: Icon(LucideIcons.search, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  suffixIcon: _filtroTextoGarantias.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(LucideIcons.x, size: 15),
+                          onPressed: () {
+                            _searchCtrlGarantias.clear();
+                            setState(() => _filtroTextoGarantias = '');
+                          },
+                        )
+                      : null,
+                  filled: false,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildFiltroGarantiaChip('PENDIENTE', 'Pendientes ($pendientesCount)', isDark),
+                _buildFiltroGarantiaChip('DEVUELTO', 'Devueltas ($devueltasCount)', isDark),
+                _buildFiltroGarantiaChip('TODAS', 'Todas', isDark),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            icon: const Icon(LucideIcons.wine, size: 15),
+            label: Text(
+              'Dejar Botellas',
+              style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w800),
+            ),
+            onPressed: _abrirNuevaGarantia,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFiltroGarantiaChip(String clave, String label, bool isDark) {
+    final isSelected = _filtroEstadoGarantias == clave;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _filtroEstadoGarantias = clave);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 11.5,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected
+                ? Colors.white
+                : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGarantiaCard(GarantiaBotella g, bool isDark) {
+    final isPendiente = g.estaPendiente;
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final borderColor = isPendiente
+        ? const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.4 : 0.3)
+        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor, width: isPendiente ? 1.5 : 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A))
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isPendiente ? LucideIcons.wine : LucideIcons.packageCheck,
+                  size: 18,
+                  color: isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      g.nombrePersona,
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (g.telefono != null && g.telefono!.isNotEmpty)
+                      Text(
+                        'Tel: ${g.telefono}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                decoration: BoxDecoration(
+                  color: (isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A))
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      isPendiente ? 'PENDIENTE' : 'DEVUELTO',
+                      style: GoogleFonts.outfit(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: isPendiente ? const Color(0xFFD97706) : const Color(0xFF16A34A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${g.cantidadBotellas} ${g.cantidadBotellas == 1 ? "botella" : "botellas"} • ${g.tipoBotella}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      if (g.botellasDevueltas > 0 && isPendiente)
+                        Text(
+                          '(${g.botellasDevueltas} entregadas, quedan ${g.botellasRestantes})',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            color: const Color(0xFF16A34A),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      if (g.notas != null && g.notas!.isNotEmpty)
+                        Text(
+                          g.notas!,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: isDark ? Colors.white60 : AppTheme.textMuted,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      isPendiente ? 'Dinero en Custodia:' : 'Dinero Devuelto:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white54 : AppTheme.textMuted,
+                      ),
+                    ),
+                    Text(
+                      'S/ ${(isPendiente ? g.montoRestante : g.montoDevuelto).toStringAsFixed(2)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: isPendiente ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          Row(
+            children: [
+              Icon(LucideIcons.calendar, size: 12, color: isDark ? Colors.white38 : AppTheme.textMuted),
+              const SizedBox(width: 4),
+              Text(
+                g.fechaRegistro != null
+                    ? '${g.fechaRegistro!.day.toString().padLeft(2, "0")}/${g.fechaRegistro!.month.toString().padLeft(2, "0")} ${g.fechaRegistro!.hour.toString().padLeft(2, "0")}:${g.fechaRegistro!.minute.toString().padLeft(2, "0")}'
+                    : 'Hoy',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  color: isDark ? Colors.white54 : AppTheme.textMuted,
+                ),
+              ),
+              if (g.fechaDevolucion != null) ...[
+                const SizedBox(width: 8),
+                Text('•', style: TextStyle(color: isDark ? Colors.white38 : AppTheme.textMuted, fontSize: 10)),
+                const SizedBox(width: 8),
+                const Icon(LucideIcons.check, size: 12, color: Color(0xFF16A34A)),
+                const SizedBox(width: 3),
+                Text(
+                  'Devuelto: ${g.fechaDevolucion!.day.toString().padLeft(2, "0")}/${g.fechaDevolucion!.month.toString().padLeft(2, "0")}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    color: const Color(0xFF16A34A),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+              const Spacer(),
+              IconButton(
+                icon: const Icon(LucideIcons.trash2, size: 15, color: Color(0xFFEF4444)),
+                tooltip: 'Eliminar Registro',
+                onPressed: () => _confirmarEliminarGarantia(g),
+              ),
+            ],
+          ),
+
+          if (isPendiente) ...[
+            const SizedBox(height: 4),
+            SizedBox(
+              width: double.infinity,
+              height: 38,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                icon: const Icon(LucideIcons.packageCheck, size: 15),
+                label: Text(
+                  'Devolver Botella(s) y Entregar S/ ${g.montoRestante.toStringAsFixed(2)}',
+                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800),
+                ),
+                onPressed: () => _abrirDevolverBotella(g),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateGarantias(bool isDark) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.15 : 0.08),
+                  border: Border.all(
+                    color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.35 : 0.22),
+                    width: 2,
+                  ),
+                ),
+                child: Center(
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.25 : 0.14),
+                    ),
+                    child: const Icon(LucideIcons.wine, size: 26, color: Color(0xFF2563EB)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Control de Garantías de Botellas',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Registra a las personas que dejan dinero en custodia por botellas de vidrio de cerveza o gaseosa. Al devolver el envase, se le reintegra su dinero con un solo toque.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                icon: const Icon(LucideIcons.plus, size: 16),
+                label: Text(
+                  'Registrar Primera Garantía',
+                  style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                ),
+                onPressed: _abrirNuevaGarantia,
+              ),
+            ],
+          ),
         ),
       ),
     );
