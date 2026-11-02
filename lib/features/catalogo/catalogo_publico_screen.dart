@@ -694,7 +694,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final direccion = _bodega['direccion']?.toString() ?? '';
     final prods = _productosFiltrados;
 
-    return Center(
+    return Align(
+      alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1400),
         child: CustomScrollView(
@@ -1957,12 +1958,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 children: [
                                   Row(
                                     children: [
-                                      Text(
-                                        'Mi Pedido',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w900,
-                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                      Flexible(
+                                        child: Text(
+                                          'Mi Pedido',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w900,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                       const SizedBox(width: 6),
@@ -2078,7 +2083,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 2),
-                                      Row(
+                                      Wrap(
+                                        spacing: 4,
+                                        runSpacing: 2,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
                                         children: [
                                           if (marca.isNotEmpty) ...[
                                             Text(
@@ -2089,9 +2097,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                 color: const Color(0xFF64748B),
                                               ),
                                             ),
-                                            const SizedBox(width: 6),
                                             const Text('•', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10)),
-                                            const SizedBox(width: 6),
                                           ],
                                           if (tienePromo) ...[
                                             Text(
@@ -2102,7 +2108,6 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                 color: const Color(0xFF94A3B8),
                                               ),
                                             ),
-                                            const SizedBox(width: 4),
                                             Text(
                                               'S/ ${precioFinal.toStringAsFixed(2)} c/u',
                                               style: GoogleFonts.outfit(
@@ -2255,18 +2260,23 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  'TOTAL ESTIMADO:',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                Flexible(
+                                  child: Text(
+                                    'TOTAL ESTIMADO:',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 Text(
                                   'S/ ${_totalMontoCarrito.toStringAsFixed(2)}',
                                   style: GoogleFonts.outfit(
-                                    fontSize: 22,
+                                    fontSize: 21,
                                     fontWeight: FontWeight.w900,
                                     color: isDark ? Colors.white : AppTheme.textDark,
                                   ),
@@ -2361,7 +2371,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         ),
       ),
       child: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.center,
+          heightFactor: 1.0,
           child: Container(
             constraints: const BoxConstraints(maxWidth: 1400),
             padding: EdgeInsets.symmetric(

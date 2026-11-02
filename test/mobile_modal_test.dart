@@ -73,12 +73,45 @@ void main() {
       expect(find.text('En tu pedido (1 unidad)'), findsOneWidget);
       expect(find.text('Quitar'), findsOneWidget);
 
-      // Verify we can tap "Quitar" to roll back selection
-      await tester.tap(find.text('Quitar'));
+      // Now tap "Ver Pedido (1)" inside the product modal
+      final verPedidoBtn = find.text('Ver Pedido (1)');
+      expect(verPedidoBtn, findsOneWidget);
+      await tester.tap(verPedidoBtn);
       await tester.pumpAndSettle();
 
-      expect(tester.takeException(), isNull);
-      expect(find.text('Agregar al Pedido'), findsOneWidget);
+      // We should now be in the Cart modal ("Mi Pedido")
+      expect(find.text('Mi Pedido'), findsOneWidget);
+
+      // In Cart modal, tap the Seguir button
+      final seguirBtn = find.byWidgetPredicate((w) => w is Text && (w.data?.contains('Seguir') ?? false));
+      expect(seguirBtn, findsWidgets);
+      await tester.tap(seguirBtn.last);
+      await tester.pumpAndSettle();
+
+      // Cart modal should now be closed
+      expect(find.text('Mi Pedido'), findsNothing);
+
+      // Verify that the catalog scroll view has FULL height and is active
+      final scrollFinder = find.byType(CustomScrollView);
+      expect(scrollFinder, findsOneWidget);
+      final scrollRect = tester.getRect(scrollFinder);
+      expect(scrollRect.height, greaterThan(400.0), reason: 'CustomScrollView must have full height and not collapse');
+
+      // Now tap the product card again or tap another product
+      expect(find.text(nombre0), findsWidgets);
+      await tester.tap(find.text(nombre0).first);
+      await tester.pumpAndSettle();
+
+      // Product modal opens
+      expect(find.text('Seguir Comprando en el Catálogo'), findsOneWidget);
+
+      // Tap "Seguir Comprando en el Catálogo"
+      await tester.tap(find.text('Seguir Comprando en el Catálogo'));
+      await tester.pumpAndSettle();
+
+      // Product modal closes cleanly and is NOT left as a residual view
+      expect(find.text('Disponible en tienda'), findsNothing);
+      expect(find.text('Seguir Comprando en el Catálogo'), findsNothing);
     });
   }
 }
