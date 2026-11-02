@@ -24,22 +24,22 @@ class MarcaDetectorService {
 
   static final List<_BrandRule> _rules = [
     // Bebidas y Gaseosas
-    _BrandRule('Inca Kola', RegExp(r'\b(inka|inca)\s*kola\b', caseSensitive: false)),
+    _BrandRule('Inca Kola', RegExp(r'\b(inka|inca)\s*[- ]?kola\b', caseSensitive: false)),
     _BrandRule('Coca-Cola', RegExp(r'\bcoca\s*[- ]?cola\b', caseSensitive: false)),
     _BrandRule('Pepsi', RegExp(r'\bpepsi(\s*black)?\b', caseSensitive: false)),
-    _BrandRule('7Up', RegExp(r'\b7\s*up\b', caseSensitive: false)),
+    _BrandRule('7Up', RegExp(r'\b7\s*[- ]?up\b|\bseven\s*[- ]?up\b', caseSensitive: false)),
     _BrandRule('Concordia', RegExp(r'\bconcordia\b', caseSensitive: false)),
-    _BrandRule('Kola Real', RegExp(r'\bkola\s*real\b', caseSensitive: false)),
+    _BrandRule('Kola Real', RegExp(r'\bkola\s*[- ]?real\b|\bkr\b', caseSensitive: false)),
     _BrandRule('Fanta', RegExp(r'\bfanta\b', caseSensitive: false)),
     _BrandRule('Sprite', RegExp(r'\bsprite\b', caseSensitive: false)),
-    _BrandRule('San Mateo', RegExp(r'\bsan\s*mateo\b', caseSensitive: false)),
-    _BrandRule('San Luis', RegExp(r'\bsan\s*luis\b', caseSensitive: false)),
+    _BrandRule('San Mateo', RegExp(r'\bsan\s*[- ]?mateo\b', caseSensitive: false)),
+    _BrandRule('San Luis', RegExp(r'\bsan\s*[- ]?luis\b', caseSensitive: false)),
     _BrandRule('Cielo', RegExp(r'\bagua\s*cielo\b|\bcielo\b', caseSensitive: false)),
     _BrandRule('Sporade', RegExp(r'\bsporade\b', caseSensitive: false)),
     _BrandRule('Gatorade', RegExp(r'\bgatorade\b', caseSensitive: false)),
     _BrandRule('Volt', RegExp(r'\bvolt\b', caseSensitive: false)),
     _BrandRule('Monster', RegExp(r'\bmonster(\s*energy)?\b', caseSensitive: false)),
-    _BrandRule('Red Bull', RegExp(r'\bred\s*bull\b', caseSensitive: false)),
+    _BrandRule('Red Bull', RegExp(r'\bred\s*[- ]?bull\b', caseSensitive: false)),
     _BrandRule('Frugos', RegExp(r'\bfrugos(\s*del\s*valle)?\b', caseSensitive: false)),
     _BrandRule('Pulp', RegExp(r'\bpulp\b', caseSensitive: false)),
     _BrandRule('Tampico', RegExp(r'\btampico\b', caseSensitive: false)),
@@ -155,7 +155,7 @@ class MarcaDetectorService {
 
     // Tabaco y Fósforos
     _BrandRule('Lucky Strike', RegExp(r'\blucky(\s*strike)?\b', caseSensitive: false)),
-    _BrandRule('Marlboro', RegExp(r'\bmarl?boro\b', caseSensitive: false)),
+    _BrandRule('Marlboro', RegExp(r'\b(marlboro|malboro)\b', caseSensitive: false)),
     _BrandRule('Hamilton', RegExp(r'\bhamilton\b', caseSensitive: false)),
     _BrandRule('Pall Mall', RegExp(r'\bpall\s*mall\b', caseSensitive: false)),
     _BrandRule('Tokai', RegExp(r'\btokai\b', caseSensitive: false)),
@@ -208,6 +208,75 @@ class MarcaDetectorService {
       if (palabra.isEmpty) return '';
       return palabra[0].toUpperCase() + (palabra.length > 1 ? palabra.substring(1).toLowerCase() : '');
     }).join(' ');
+  }
+
+  /// Simplifica un texto para comparación tolerante a variantes:
+  /// convierte a minúsculas, remueve acentos/diacríticos y elimina puntuación, guiones y espacios.
+  static String simplificar(String? s) {
+    if (s == null || s.trim().isEmpty) return '';
+    var str = s.toLowerCase();
+    const withDiacritics = 'áàäâãéèëêíìïîóòöôõúùüûñ';
+    const withoutDiacritics = 'aaaaaeeeeiiiiooooouuuun';
+    for (int i = 0; i < withDiacritics.length; i++) {
+      str = str.replaceAll(withDiacritics[i], withoutDiacritics[i]);
+    }
+    return str.replaceAll(RegExp(r'[^a-z0-9]'), '');
+  }
+
+  /// Evalúa con tolerancia exhaustiva a variantes (guiones, espacios, acentos, mayúsculas)
+  /// si un producto pertenece a la marca objetivo de una promoción o búsqueda.
+  static bool coincideMarca(String? marcaObjetivo, String? marcaProducto, String? nombreProducto) {
+    if (marcaObjetivo == null || marcaObjetivo.trim().isEmpty) return false;
+
+    final targetTrim = marcaObjetivo.trim();
+    final canonicalTarget = normalizarMarca(targetTrim);
+    final simpTarget = simplificar(targetTrim);
+    final simpCanonical = simplificar(canonicalTarget);
+
+    // 1. Reglas Regex Canónicas
+    _BrandRule? targetRule;
+    for (final rule in _rules) {
+      if (rule.canonicalName.toLowerCase() == canonicalTarget.toLowerCase() ||
+          simplificar(rule.canonicalName) == simpCanonical ||
+          rule.pattern.hasMatch(targetTrim)) {
+        targetRule = rule;
+        break;
+      }
+    }
+    if (targetRule != null) {
+      if (marcaProducto != null && marcaProducto.trim().isNotEmpty && targetRule.pattern.hasMatch(marcaProducto)) {
+        return true;
+      }
+      if (nombreProducto != null && nombreProducto.trim().isNotEmpty && targetRule.pattern.hasMatch(nombreProducto)) {
+        return true;
+      }
+    }
+
+    // 2. Coincidencia directa contra marcaProducto
+    if (marcaProducto != null && marcaProducto.trim().isNotEmpty) {
+      final prodTrim = marcaProducto.trim();
+      if (prodTrim.toLowerCase() == targetTrim.toLowerCase()) return true;
+      final canonicalProd = normalizarMarca(prodTrim);
+      if (canonicalTarget.toLowerCase() == canonicalProd.toLowerCase()) return true;
+
+      final simpProd = simplificar(prodTrim);
+      if (simpTarget == simpProd || simpCanonical == simpProd) return true;
+      if (simpProd.contains(simpTarget) || (simpTarget.length >= 4 && simpTarget.contains(simpProd))) return true;
+    }
+
+    // 3. Coincidencia contra nombreProducto
+    if (nombreProducto != null && nombreProducto.trim().isNotEmpty) {
+      final detected = detectarMarca(nombre: nombreProducto);
+      if (detected != null) {
+        if (detected.toLowerCase() == canonicalTarget.toLowerCase()) return true;
+        if (simplificar(detected) == simpCanonical) return true;
+      }
+      final simpName = simplificar(nombreProducto);
+      if (simpTarget.length >= 3 && simpName.contains(simpTarget)) return true;
+      if (simpCanonical.length >= 3 && simpName.contains(simpCanonical)) return true;
+    }
+
+    return false;
   }
 }
 

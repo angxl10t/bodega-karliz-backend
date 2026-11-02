@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/api_constants.dart';
+import '../../core/marca_detector_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
 
@@ -120,11 +121,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       } else {
         matchesCat = (p['categoria']?.toString().toUpperCase() == _categoriaSeleccionada.toUpperCase());
       }
-      final query = _filtroBusqueda.trim().toLowerCase();
+      final query = _filtroBusqueda.trim();
+      final queryLower = query.toLowerCase();
       final matchesQuery = query.isEmpty ||
-          (p['nombre']?.toString().toLowerCase().contains(query) ?? false) ||
-          (p['codigo']?.toString().toLowerCase().contains(query) ?? false) ||
-          (p['marca']?.toString().toLowerCase().contains(query) ?? false);
+          MarcaDetectorService.coincideMarca(query, p['marca']?.toString(), p['nombre']?.toString()) ||
+          (p['nombre']?.toString().toLowerCase().contains(queryLower) ?? false) ||
+          (p['codigo']?.toString().toLowerCase().contains(queryLower) ?? false) ||
+          (p['marca']?.toString().toLowerCase().contains(queryLower) ?? false);
       return matchesCat && matchesQuery;
     }).toList();
   }

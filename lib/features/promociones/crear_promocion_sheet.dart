@@ -513,7 +513,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                         (m) => m.nombre.toLowerCase() == currentMarca.toLowerCase(),
                         orElse: () => MarcaInfo(
                           nombre: currentMarca,
-                          cantidadProductos: _productos.where((p) => (p.marca ?? '').toLowerCase() == currentMarca.toLowerCase() || p.nombre.toLowerCase().contains(currentMarca.toLowerCase())).length,
+                          cantidadProductos: _productos.where((p) => MarcaDetectorService.coincideMarca(currentMarca, p.marca, p.nombre)).length,
                         ),
                       );
                       return Container(

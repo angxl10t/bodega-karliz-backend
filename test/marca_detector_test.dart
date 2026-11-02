@@ -29,6 +29,47 @@ void main() {
       expect(MarcaDetectorService.normalizarMarca('marca artesanal'), 'Marca Artesanal');
     });
 
+    test('Coincidencia exhaustiva de marcas con tolerancia a guiones, acentos y variantes', () {
+      // 1. Coca-Cola
+      expect(MarcaDetectorService.coincideMarca('Coca-Cola', 'Coca Cola', 'Coca Cola 500ml'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('coca cola', 'Coca-Cola', 'Coca Cola Sabor Original 3 Litros'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('Coca Cola', 'Coca Cola', 'Gaseosa 500ml'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('Coca-Cola', null, 'Coca Cola 1.5L descartable'), isTrue);
+
+      // 2. Lay's / Lays / Frito-Lay
+      expect(MarcaDetectorService.coincideMarca("Lay's", 'Lays', 'Papas Lays Clásicas 160g'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('Lays', "Lay's", 'Papas Fritas Ondas 150g'), isTrue);
+      expect(MarcaDetectorService.coincideMarca("Lay's", 'Frito-Lay', "Papas Lay's Al Hilo 100g"), isTrue);
+
+      // 3. 7Up / 7 Up
+      expect(MarcaDetectorService.coincideMarca('7Up', '7 Up', 'Gaseosa 7 Up 500ml'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('7 Up', '7Up', 'Gaseosa 7-Up 3L'), isTrue);
+
+      // 4. D'Onofrio / Donofrio
+      expect(MarcaDetectorService.coincideMarca("D'Onofrio", 'Donofrio', "Helado Sandwich D'Onofrio"), isTrue);
+      expect(MarcaDetectorService.coincideMarca('donofrio', "D'Onofrio", 'Helado Jet Paleta'), isTrue);
+
+      // 5. Inca Kola / Inka Kola
+      expect(MarcaDetectorService.coincideMarca('Inca Kola', 'Inka Kola', 'Inca Kola 500ml'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('Inka Kola', 'Inca Kola', 'Inka Kola Sabor Original 3L'), isTrue);
+
+      // 6. Marlboro / Malboro
+      expect(MarcaDetectorService.coincideMarca('Marlboro', 'Malboro', 'Malboro Gold Box 20'), isTrue);
+
+      // 7. Acentos y variantes: Ángel, Bolívar, AlaCena, San Mateo
+      expect(MarcaDetectorService.coincideMarca('Ángel', 'Angel', 'Cereal Angel Flakes 250g'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('Bolívar', 'Bolivar', 'Detergente Bolivar 900g'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('AlaCena', 'Alacena', 'Mayonesa Alacena 400g'), isTrue);
+      expect(MarcaDetectorService.coincideMarca('San Mateo', 'San-Mateo', 'Agua Mineral San Mateo 600ml'), isTrue);
+
+      // 8. Casos Negativos
+      expect(MarcaDetectorService.coincideMarca('Coca-Cola', 'Inca Kola', 'Inca Kola Sabor Original 500ml'), isFalse);
+      expect(MarcaDetectorService.coincideMarca('Pepsi', 'Coca Cola', 'Coca Cola 3 Litros'), isFalse);
+      expect(MarcaDetectorService.coincideMarca('Bimbo', 'Molitalia', 'Fideos Spaghetti Molitalia 500g'), isFalse);
+      expect(MarcaDetectorService.coincideMarca(null, 'Coca Cola', 'Coca Cola 500ml'), isFalse);
+      expect(MarcaDetectorService.coincideMarca('   ', 'Coca Cola', 'Coca Cola 500ml'), isFalse);
+    });
+
     test('Retorna null para nombres sin marca o vacíos', () {
       expect(MarcaDetectorService.detectarMarca(nombre: ''), isNull);
       expect(MarcaDetectorService.detectarMarca(nombre: 'Tomate fresco por kilo'), isNull);
