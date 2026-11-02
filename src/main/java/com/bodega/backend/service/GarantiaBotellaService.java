@@ -108,7 +108,9 @@ public class GarantiaBotellaService {
     @Transactional
     public GarantiaBotellaDTO devolver(Long idGarantia, DevolverGarantiaDTO dto) {
         Long idBodega = tenantService.getCurrentBodegaId();
-        GarantiaBotella g = garantiaRepository.findByIdGarantiaAndBodega_IdBodega(idGarantia, idBodega)
+        // Bloqueo pesimista (PESSIMISTIC_WRITE) para evitar condiciones de carrera y dobles reembolsos concurrentes
+        GarantiaBotella g = garantiaRepository.findByIdForUpdateAndBodega(idGarantia, idBodega)
+                .or(() -> garantiaRepository.findByIdGarantiaAndBodega_IdBodega(idGarantia, idBodega))
                 .orElseThrow(() -> new ResourceNotFoundException("Garantía no encontrada con id: " + idGarantia));
 
         if ("DEVUELTO".equalsIgnoreCase(g.getEstado())) {

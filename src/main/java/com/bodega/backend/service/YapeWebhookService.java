@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,9 +37,16 @@ public class YapeWebhookService {
 
     @Transactional
     public YapeTransaccionRecibida procesarNotificacionYape(String secretHeader, WebhookYapeDTO dto) {
-        // Validación de Autenticidad del Token Secreto (Blindaje contra llamadas no autorizadas)
-        if (secretHeader == null || !secretHeader.trim().equals(configuredSecret.trim())) {
-            log.warn("[YapeWebhook] Intento de acceso no autorizado con secret incorrecto o ausente.");
+        // Blindaje contra ataques de tiempo (Timing Attack) y validación de autenticidad en tiempo constante
+        if (secretHeader == null || configuredSecret == null) {
+            log.warn("[YapeWebhook] Intento de acceso no autorizado con secret ausente.");
+            throw new org.springframework.security.access.AccessDeniedException("Acceso no autorizado: Token secreto X-Yape-Secret inválido o ausente.");
+        }
+
+        byte[] provided = secretHeader.trim().getBytes(StandardCharsets.UTF_8);
+        byte[] expected = configuredSecret.trim().getBytes(StandardCharsets.UTF_8);
+        if (!MessageDigest.isEqual(provided, expected)) {
+            log.warn("[YapeWebhook] Intento de acceso no autorizado con secret incorrecto.");
             throw new org.springframework.security.access.AccessDeniedException("Acceso no autorizado: Token secreto X-Yape-Secret inválido o ausente.");
         }
 

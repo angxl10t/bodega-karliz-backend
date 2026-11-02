@@ -1,7 +1,9 @@
 package com.bodega.backend.repository;
 
 import com.bodega.backend.entity.GarantiaBotella;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,6 +20,13 @@ public interface GarantiaBotellaRepository extends JpaRepository<GarantiaBotella
     List<GarantiaBotella> findByBodega_IdBodegaAndEstadoOrderByFechaRegistroDesc(Long idBodega, String estado);
 
     Optional<GarantiaBotella> findByIdGarantiaAndBodega_IdBodega(Long idGarantia, Long idBodega);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT g FROM GarantiaBotella g WHERE g.idGarantia = :idGarantia AND g.bodega.idBodega = :idBodega")
+    Optional<GarantiaBotella> findByIdForUpdateAndBodega(
+            @Param("idGarantia") Long idGarantia,
+            @Param("idBodega") Long idBodega
+    );
 
     @Query("SELECT g FROM GarantiaBotella g WHERE g.bodega.idBodega = :idBodega " +
            "AND (:estado IS NULL OR g.estado = :estado) " +
