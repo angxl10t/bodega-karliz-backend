@@ -900,7 +900,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Detector Stock Hueso',
                               subtitle: 'Dinero Inmovilizado',
                               icon: LucideIcons.archive,
-                              color: const Color(0xFFEA580C),
+                              color: AppTheme.brandPrimary,
                               isDark: isDark,
                               isLocked: _plan.toUpperCase() != 'PRO',
                               onTap: () {
@@ -927,7 +927,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: 'Promociones & Combos',
                               subtitle: 'Descuentos & Huesos',
                               icon: LucideIcons.tag,
-                              color: const Color(0xFFEF4444),
+                              color: AppTheme.brandDark,
                               isDark: isDark,
                               isLocked: _plan.toUpperCase() != 'PRO',
                               onTap: () {

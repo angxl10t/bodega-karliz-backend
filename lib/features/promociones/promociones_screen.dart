@@ -161,7 +161,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppTheme.brandPrimary,
-          unselectedLabelColor: isDark ? Colors.white54 : AppTheme.textMuted,
+          unselectedLabelColor: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
           indicatorColor: AppTheme.brandPrimary,
           indicatorWeight: 3,
           labelStyle: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
@@ -181,7 +181,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(LucideIcons.sparkles, size: 15, color: Color(0xFFEA580C)),
+                  const Icon(LucideIcons.sparkles, size: 15, color: AppTheme.brandPrimary),
                   const SizedBox(width: 6),
                   Text('Combos Huesos (${_sugerencias.length})'),
                 ],
@@ -499,14 +499,14 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
     if (p.fechaInicio == null && p.fechaFin == null) {
       return Row(
         children: [
-          Icon(LucideIcons.infinity, size: 13, color: isDark ? Colors.white38 : AppTheme.textMuted),
+          Icon(LucideIcons.infinity, size: 13, color: isDark ? Colors.white70 : const Color(0xFF1E293B)),
           const SizedBox(width: 5),
           Text(
             'Sin fecha límite (Permanente)',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              color: isDark ? Colors.white54 : AppTheme.textMuted,
-              fontWeight: FontWeight.w500,
+              color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -545,8 +545,8 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
     } else if (dtFin != null && dtFin.difference(today).inDays <= 2) {
       final diasRestantes = dtFin.difference(today).inDays;
       estadoVigencia = diasRestantes == 0 ? 'Termina hoy' : (diasRestantes == 1 ? 'Termina mañana' : 'Termina en 2 días');
-      estadoColor = const Color(0xFFEA580C);
-      estadoBg = const Color(0xFFEA580C).withValues(alpha: 0.12);
+      estadoColor = const Color(0xFFD97706);
+      estadoBg = const Color(0xFFD97706).withValues(alpha: 0.12);
     } else {
       estadoVigencia = 'En curso';
       estadoColor = const Color(0xFF16A34A);
@@ -555,14 +555,14 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
 
     return Row(
       children: [
-        Icon(LucideIcons.calendarDays, size: 13, color: isDark ? Colors.white54 : AppTheme.textMuted),
+        Icon(LucideIcons.calendarDays, size: 13, color: isDark ? Colors.white70 : const Color(0xFF1E293B)),
         const SizedBox(width: 5),
         Text(
           vigenciaTexto,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 11,
-            color: isDark ? Colors.white70 : AppTheme.textDark,
-            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : AppTheme.textDark,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(width: 8),
@@ -595,10 +595,18 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFEA580C), Color(0xFFC2410C)],
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF1E2436), const Color(0xFF0F172A)]
+                    : [const Color(0xFF1E3A8A), const Color(0xFF1D4ED8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark ? const Color(0xFF262E44) : const Color(0xFF2563EB).withValues(alpha: 0.25),
+                width: 1.2,
+              ),
             ),
             child: Row(
               children: [
@@ -622,7 +630,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
                       const SizedBox(height: 2),
                       Text(
                         'CajaYa analiza tus productos hueso (capital inmovilizado) y propone combinarlos con tus productos estrella para acelerar ventas y recuperar liquidez sin pérdidas.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.white.withValues(alpha: 0.9)),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: Colors.white.withValues(alpha: 0.95), fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
@@ -642,13 +650,13 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
                     const SizedBox(height: 12),
                     Text(
                       '¡Excelente Rotación!',
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800),
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: isDark ? Colors.white : const Color(0xFF0F172A)),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'No tienes productos estancados por más de 30 días. Tu inventario está circulando de forma saludable.',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B)),
                     ),
                   ],
                 ),
@@ -666,12 +674,15 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? const Color(0xFF1E2436) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFEA580C).withValues(alpha: 0.3), width: 1.2),
+        border: Border.all(
+          color: isDark ? const Color(0xFF262E44) : const Color(0xFFE2E8F0),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -686,7 +697,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEA580C),
+                  color: AppTheme.brandPrimary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -703,14 +714,19 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
+                  color: const Color(0xFFDC2626).withValues(alpha: isDark ? 0.2 : 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFDC2626).withValues(alpha: 0.3)),
                 ),
                 child: Text(
-                  'S/ ${sug.capitalInmovilizado.toStringAsFixed(2)} congelados',
-                  style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFFEF4444)),
+                  'S/ ${sug.capitalInmovilizado.toStringAsFixed(2)} inmovilizados',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                  ),
                 ),
               ),
             ],
@@ -720,29 +736,38 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
           // Título del Combo
           Text(
             sug.tituloSugerido,
-            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: isDark ? Colors.white : AppTheme.textDark),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
 
           // Razón Estratégica
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFEA580C).withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
+              color: isDark ? const Color(0xFF131D31) : const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFBFDBFE),
+                width: 1,
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(LucideIcons.lightbulb, size: 15, color: Color(0xFFEA580C)),
+                const Icon(LucideIcons.lightbulb, size: 16, color: AppTheme.brandPrimary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     sug.razonEstrategica,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFFFDBA74) : const Color(0xFFC2410C),
+                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E3A8A),
+                      height: 1.35,
                     ),
                   ),
                 ),
@@ -759,41 +784,59 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    color: isDark ? const Color(0xFF141724) : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.2)),
+                    border: Border.all(color: const Color(0xFFDC2626).withValues(alpha: 0.25)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('PRODUCTO HUESO', style: GoogleFonts.outfit(fontSize: 9.5, fontWeight: FontWeight.w900, color: const Color(0xFFEF4444))),
+                      Text('PRODUCTO HUESO', style: GoogleFonts.outfit(fontSize: 9.5, fontWeight: FontWeight.w900, color: const Color(0xFFDC2626))),
                       const SizedBox(height: 2),
-                      Text(sug.nombreHueso, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700)),
-                      Text('Stock: ${sug.stockHueso.toInt()} un. • Costo: S/ ${sug.costoHueso.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontSize: 10, color: AppTheme.textMuted)),
+                      Text(
+                        sug.nombreHueso,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        'Stock: ${sug.stockHueso.toInt()} un. • Costo: S/ ${sug.costoHueso.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B)),
+                      ),
                     ],
                   ),
                 ),
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(LucideIcons.plus, size: 18, color: Color(0xFFEA580C)),
+                child: Icon(LucideIcons.plus, size: 18, color: AppTheme.brandPrimary),
               ),
               // Estrella
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    color: isDark ? const Color(0xFF141724) : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF16A34A).withValues(alpha: 0.2)),
+                    border: Border.all(color: const Color(0xFF059669).withValues(alpha: 0.25)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('ALTA ROTACIÓN', style: GoogleFonts.outfit(fontSize: 9.5, fontWeight: FontWeight.w900, color: const Color(0xFF16A34A))),
+                      Text('ALTA ROTACIÓN', style: GoogleFonts.outfit(fontSize: 9.5, fontWeight: FontWeight.w900, color: const Color(0xFF059669))),
                       const SizedBox(height: 2),
-                      Text(sug.nombreEstrella, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700)),
-                      Text('Precio Reg.: S/ ${sug.precioRegularEstrella.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontSize: 10, color: AppTheme.textMuted)),
+                      Text(
+                        sug.nombreEstrella,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        'Precio Reg.: S/ ${sug.precioRegularEstrella.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B)),
+                      ),
                     ],
                   ),
                 ),
@@ -813,27 +856,28 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
                     'Regular: S/ ${sug.precioRegularTotal.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
                       fontSize: 12,
+                      fontWeight: FontWeight.w600,
                       decoration: TextDecoration.lineThrough,
-                      color: AppTheme.textMuted,
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                     ),
                   ),
                   Text(
                     'S/ ${sug.precioComboSugerido.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
-                      fontSize: 20,
+                      fontSize: 21,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF16A34A),
+                      color: const Color(0xFF059669),
                     ),
                   ),
                 ],
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEA580C),
+                  backgroundColor: AppTheme.brandPrimary,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
                 icon: const Icon(LucideIcons.sparkles, size: 15),
                 label: Text(
@@ -877,10 +921,10 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEA580C).withValues(alpha: 0.15),
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.lock, size: 40, color: Color(0xFFEA580C)),
+                child: const Icon(LucideIcons.lock, size: 40, color: AppTheme.brandPrimary),
               ),
               const SizedBox(height: 18),
               Text(
@@ -892,7 +936,11 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
               Text(
                 'Aplica descuentos estratégicos por marcas, categorías o combos antiestancamiento para multiplicar las ventas de tu catálogo digital online.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppTheme.textMuted),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                ),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(

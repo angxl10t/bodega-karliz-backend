@@ -3411,7 +3411,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isPro
-                              ? const Color(0xFFEA580C).withValues(alpha: 0.3)
+                              ? AppTheme.brandPrimary.withValues(alpha: 0.3)
                               : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                         ),
                       ),
@@ -3423,10 +3423,10 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFEA580C).withValues(alpha: 0.12),
+                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(LucideIcons.tag, color: Color(0xFFEA580C), size: 18),
+                                child: const Icon(LucideIcons.tag, color: AppTheme.brandPrimary, size: 18),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -3447,7 +3447,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFEA580C),
+                                            color: AppTheme.brandPrimary,
                                             borderRadius: BorderRadius.circular(4),
                                           ),
                                           child: Text(
@@ -3463,7 +3463,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                           : 'Ofertas por marcas, categorías y combos',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11,
-                                        color: isPro ? const Color(0xFFEA580C) : AppTheme.textMuted,
+                                        color: isPro ? AppTheme.brandPrimary : AppTheme.textMuted,
                                       ),
                                     ),
                                   ],
@@ -3490,7 +3490,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               const SizedBox(width: 8),
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: isPro ? const Color(0xFFEA580C) : const Color(0xFFD97706),
+                                  backgroundColor: isPro ? AppTheme.brandPrimary : const Color(0xFFD97706),
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

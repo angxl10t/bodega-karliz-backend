@@ -852,7 +852,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               if (_fechaInicio != null)
                                 GestureDetector(
                                   onTap: () => setState(() => _fechaInicio = null),
-                                  child: const Icon(LucideIcons.x, size: 14, color: Color(0xFF94A3B8)),
+                                  child: Icon(LucideIcons.x, size: 14, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
                                 ),
                             ],
                           ),
@@ -888,7 +888,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
                               color: _fechaFin != null
-                                  ? const Color(0xFFEA580C).withValues(alpha: 0.5)
+                                  ? AppTheme.brandPrimary.withValues(alpha: 0.5)
                                   : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                             ),
                           ),
@@ -897,7 +897,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               Icon(
                                 LucideIcons.calendarClock,
                                 size: 16,
-                                color: _fechaFin != null ? const Color(0xFFEA580C) : AppTheme.textMuted,
+                                color: _fechaFin != null ? AppTheme.brandPrimary : AppTheme.textMuted,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -931,7 +931,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               if (_fechaFin != null)
                                 GestureDetector(
                                   onTap: () => setState(() => _fechaFin = null),
-                                  child: const Icon(LucideIcons.x, size: 14, color: Color(0xFF94A3B8)),
+                                  child: Icon(LucideIcons.x, size: 14, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
                                 ),
                             ],
                           ),

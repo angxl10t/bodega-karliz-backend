@@ -331,7 +331,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF1E293B),
                     ),
                   ),
                 ],
@@ -354,13 +354,19 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   Widget _buildBody(bool isDark) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: AppTheme.brandPrimary),
-            SizedBox(height: 16),
-            Text('Cargando catálogo en vivo...', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+            const CircularProgressIndicator(color: AppTheme.brandPrimary),
+            const SizedBox(height: 16),
+            Text(
+              'Cargando catálogo en vivo...',
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ],
         ),
       );
@@ -390,7 +396,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B)),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
@@ -484,7 +494,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.5,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                  color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
                   height: 1.5,
                 ),
               ),
@@ -496,7 +506,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(LucideIcons.mapPin, size: 15, color: Color(0xFF64748B)),
+                      Icon(LucideIcons.mapPin, size: 15, color: isDark ? const Color(0xFF93C5FD) : AppTheme.brandPrimary),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -562,7 +572,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFFEA580C)),
+              const Icon(LucideIcons.sparkles, size: 16, color: AppTheme.brandPrimary),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -571,7 +581,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     fontSize: isTablet ? 12 : 11,
                     fontWeight: FontWeight.w900,
                     letterSpacing: isTablet ? 0.8 : 0.5,
-                    color: const Color(0xFFEA580C),
+                    color: isDark ? const Color(0xFF93C5FD) : AppTheme.brandPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -658,7 +668,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                             ),
                             const Spacer(),
-                            const Icon(LucideIcons.chevronRight, size: 16, color: Color(0xFFEA580C)),
+                            const Icon(LucideIcons.chevronRight, size: 16, color: AppTheme.brandPrimary),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -799,21 +809,22 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: isTablet ? 13.5 : 12,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF1E293B),
                                   ),
                                 ),
                               if (direccion.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Icon(LucideIcons.mapPin, size: isTablet ? 14 : 12, color: const Color(0xFF94A3B8)),
+                                    Icon(LucideIcons.mapPin, size: isTablet ? 14 : 12, color: isDark ? const Color(0xFF93C5FD) : AppTheme.brandPrimary),
                                     const SizedBox(width: 4),
                                     Flexible(
                                       child: Text(
                                         direccion,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: isTablet ? 12.5 : 11.5,
-                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -884,7 +895,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         hintText: 'Buscar productos, abarrotes, bebidas...',
                         hintStyle: GoogleFonts.plusJakartaSans(
                           fontSize: isTablet ? 14 : 13,
-                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                         ),
                         prefixIcon: Icon(LucideIcons.search, size: isTablet ? 20 : 18, color: AppTheme.brandPrimary),
                         suffixIcon: _filtroBusqueda.isNotEmpty
@@ -960,7 +971,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: isTablet ? 18 : 16,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -968,7 +979,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         'Prueba con otro término de búsqueda o categoría.',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: isTablet ? 13 : 12,
-                          color: const Color(0xFF94A3B8),
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                         ),
                       ),
                     ],
@@ -1090,7 +1102,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   Widget _buildCategoriaChip(String key, String label, bool isDark, bool isTablet, {bool esOferta = false}) {
     final isSelected = _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
-    final chipColor = esOferta ? const Color(0xFFEA580C) : AppTheme.brandPrimary;
+    final chipColor = esOferta ? const Color(0xFF1D4ED8) : AppTheme.brandPrimary;
 
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
@@ -1099,26 +1111,27 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           label,
           style: GoogleFonts.plusJakartaSans(
             fontSize: isTablet ? 13.5 : 12,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
             color: isSelected
                 ? Colors.white
                 : (esOferta
-                    ? const Color(0xFFEA580C)
-                    : (isDark ? Colors.white70 : const Color(0xFF334155))),
+                    ? (isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8))
+                    : (isDark ? Colors.white : const Color(0xFF0F172A))),
           ),
         ),
         padding: isTablet ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2) : EdgeInsets.zero,
         selected: isSelected,
         selectedColor: chipColor,
         backgroundColor: isDark
-            ? (esOferta ? const Color(0xFFEA580C).withValues(alpha: 0.15) : const Color(0xFF1E293B))
-            : (esOferta ? const Color(0xFFEA580C).withValues(alpha: 0.08) : Colors.white),
+            ? (esOferta ? const Color(0xFF1E3A8A).withValues(alpha: 0.3) : const Color(0xFF1E2436))
+            : (esOferta ? const Color(0xFFEFF6FF) : Colors.white),
         side: BorderSide(
           color: isSelected
               ? chipColor
               : (esOferta
-                  ? const Color(0xFFEA580C).withValues(alpha: 0.4)
-                  : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))),
+                  ? const Color(0xFF2563EB).withValues(alpha: 0.4)
+                  : (isDark ? const Color(0xFF262E44) : const Color(0xFFCBD5E1))),
+          width: isSelected ? 1.4 : 1.0,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 14 : 12)),
         onSelected: (_) {
@@ -1294,15 +1307,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         vertical: isTablet ? 3 : 2,
                       ),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                        color: isDark ? const Color(0xFF262E44) : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(isTablet ? 7 : 5),
                       ),
                       child: Text(
                         categoria,
                         style: GoogleFonts.outfit(
                           fontSize: config.categoriaFontSize,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1364,9 +1377,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         'S/ ${precio.toStringAsFixed(2)}',
                         style: GoogleFonts.outfit(
                           fontSize: config.precioFontSize * 0.74,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           decoration: TextDecoration.lineThrough,
-                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                         ),
                       ),
                       const SizedBox(width: 5),
@@ -1533,7 +1546,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           children: [
                             TextButton.icon(
                               style: TextButton.styleFrom(
-                                foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                foregroundColor: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1568,7 +1581,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             ),
                             const SizedBox(width: 6),
                             IconButton(
-                              icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                              icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white : const Color(0xFF1E293B)),
                               onPressed: () => Navigator.pop(modalCtx),
                               visualDensity: VisualDensity.compact,
                             ),
@@ -1618,7 +1631,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 ),
                                 child: Text(
                                   'Marca: $marca',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
+                                  ),
                                 ),
                               ),
                             if (codigo.isNotEmpty)
@@ -1630,7 +1647,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 ),
                                 child: Text(
                                   'SKU: $codigo',
-                                  style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF64748B)),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A),
+                                  ),
                                 ),
                               ),
                             Container(
@@ -1701,7 +1722,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
                                     decoration: TextDecoration.lineThrough,
-                                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                    color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -1878,7 +1899,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             height: 42,
                             child: OutlinedButton.icon(
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
+                                foregroundColor: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                                 side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                               ),
@@ -1931,7 +1952,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(LucideIcons.shoppingBag, size: 48, color: Color(0xFF94A3B8)),
+                        const Icon(LucideIcons.shoppingBag, size: 48, color: AppTheme.brandPrimary),
                         const SizedBox(height: 14),
                         Text(
                           'Tu pedido está vacío',
@@ -1941,7 +1962,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         Text(
                           'Agrega productos desde el catálogo para enviar tu pedido por WhatsApp.',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13, color: const Color(0xFF64748B)),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                          ),
                         ),
                         const SizedBox(height: 20),
                         SizedBox(
@@ -2052,7 +2077,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                      color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
                                     ),
                                   ),
                                 ],
@@ -2075,7 +2100,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               },
                             ),
                             IconButton(
-                              icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white70 : Colors.black54),
+                              icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white : const Color(0xFF1E293B)),
                               onPressed: () => Navigator.pop(modalCtx),
                             ),
                           ],
@@ -2152,19 +2177,20 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               marca,
                                               style: GoogleFonts.plusJakartaSans(
                                                 fontSize: 11.5,
-                                                fontWeight: FontWeight.w600,
-                                                color: const Color(0xFF64748B),
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                                               ),
                                             ),
-                                            const Text('•', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 10)),
+                                            Text('•', style: TextStyle(color: isDark ? Colors.white70 : const Color(0xFF334155), fontSize: 10)),
                                           ],
                                           if (tienePromo) ...[
                                             Text(
                                               'S/ ${regular.toStringAsFixed(2)}',
                                               style: GoogleFonts.outfit(
                                                 fontSize: 11,
+                                                fontWeight: FontWeight.w600,
                                                 decoration: TextDecoration.lineThrough,
-                                                color: const Color(0xFF94A3B8),
+                                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
                                               ),
                                             ),
                                             Text(
@@ -2181,7 +2207,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               style: GoogleFonts.outfit(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w700,
-                                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                                color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                                               ),
                                             ),
                                           ],
@@ -2266,8 +2292,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           ),
                           decoration: InputDecoration(
                             hintText: 'Indicaciones (ej. mi hijo recogerá en 15 min, paso a las 6pm...)',
-                            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
-                            prefixIcon: const Icon(LucideIcons.fileText, size: 16, color: Color(0xFF64748B)),
+                            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+                            prefixIcon: Icon(LucideIcons.fileText, size: 16, color: isDark ? const Color(0xFF93C5FD) : AppTheme.brandPrimary),
                             filled: true,
                             fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2325,7 +2351,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 14.5,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                      color: isDark ? Colors.white : AppTheme.textDark,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -2351,7 +2377,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   flex: 2,
                                   child: OutlinedButton(
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
+                                      foregroundColor: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                                       side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
                                       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -2499,14 +2525,14 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
-                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(width: 3),
-                                    Icon(LucideIcons.chevronUp, size: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                    Icon(LucideIcons.chevronUp, size: 13, color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
                                   ],
                                 ),
                                 Text(

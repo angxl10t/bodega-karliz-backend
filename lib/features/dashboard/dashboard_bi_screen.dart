@@ -1117,7 +1117,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _tabRotacion == 1 ? AppTheme.alertRed : Colors.transparent,
+                        color: _tabRotacion == 1 ? (isDark ? const Color(0xFF262E44) : const Color(0xFF1E293B)) : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
@@ -1555,21 +1555,21 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEA580C).withValues(alpha: 0.12),
+                        color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.1),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFEA580C).withValues(alpha: 0.35)),
+                        border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.35)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.sparkles, size: 10, color: Color(0xFFEA580C)),
+                          const Icon(LucideIcons.sparkles, size: 10, color: AppTheme.brandPrimary),
                           const SizedBox(width: 4),
                           Text(
                             'Armar Combo',
                             style: GoogleFonts.outfit(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFFEA580C),
+                              color: isDark ? const Color(0xFF93C5FD) : AppTheme.brandPrimary,
                             ),
                           ),
                         ],

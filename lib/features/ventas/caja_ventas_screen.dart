@@ -2790,7 +2790,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   _buildMiniCanalBadge(
                     label: 'Tarjeta',
                     monto: item.totalTarjeta,
-                    color: const Color(0xFFEA580C),
+                    color: const Color(0xFF4F46E5),
                     isDark: isDark,
                   ),
               ],

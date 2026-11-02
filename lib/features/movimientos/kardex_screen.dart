@@ -179,7 +179,7 @@ class _KardexScreenState extends State<KardexScreen> {
                         const SizedBox(width: 6),
                         _buildKpiChip('Salidas', '$totalSalidas', AppTheme.brandPrimary, isDark),
                         const SizedBox(width: 6),
-                        _buildKpiChip('Mermas', '$totalAjustes', const Color(0xFFEA580C), isDark),
+                        _buildKpiChip('Mermas', '$totalAjustes', AppTheme.alertRed, isDark),
                         const SizedBox(width: 6),
                         _buildKpiChip('Devolución', '$totalDevoluciones', AppTheme.infoIndigo, isDark),
                       ],
@@ -475,7 +475,7 @@ class _KardexScreenState extends State<KardexScreen> {
 
     if (isAjuste) {
       final esSobrante = m.motivo.toUpperCase().contains('[SOBRANTE]') || tipo.contains('ENTRADA');
-      badgeColor = esSobrante ? AppTheme.accentGreen : const Color(0xFFEA580C);
+      badgeColor = esSobrante ? AppTheme.accentGreen : AppTheme.alertRed;
       icon = esSobrante ? LucideIcons.packagePlus : LucideIcons.packageMinus;
       sign = esSobrante ? '+' : '-';
     } else if (isEntrada) {

@@ -153,7 +153,7 @@ class _MermasScreenState extends State<MermasScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFFEA580C),
+        backgroundColor: AppTheme.brandPrimary,
         foregroundColor: Colors.white,
         icon: const Icon(LucideIcons.trash2, size: 18),
         label: Text(
@@ -191,7 +191,7 @@ class _MermasScreenState extends State<MermasScreen> {
                           titulo: 'Causa Principal',
                           valor: causaPrincipal,
                           subtitulo: 'Mayor frecuencia de baja',
-                          color: const Color(0xFFEA580C),
+                          color: AppTheme.brandPrimary,
                           icon: LucideIcons.pieChart,
                           isDark: isDark,
                         ),
@@ -422,14 +422,14 @@ class _MermasScreenState extends State<MermasScreen> {
       onSelected: (val) {
         if (val) setState(() => _filtroMotivo = key);
       },
-      selectedColor: const Color(0xFFEA580C).withValues(alpha: 0.2),
+      selectedColor: AppTheme.brandPrimary.withValues(alpha: 0.2),
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 11.5,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? const Color(0xFFEA580C) : (isDark ? Colors.white70 : AppTheme.textDark),
+        color: isSelected ? AppTheme.brandPrimary : (isDark ? Colors.white : AppTheme.textDark),
       ),
       side: BorderSide(
-        color: isSelected ? const Color(0xFFEA580C) : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+        color: isSelected ? AppTheme.brandPrimary : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
       ),
     );
   }
@@ -457,7 +457,7 @@ class _MermasScreenState extends State<MermasScreen> {
         break;
       case 'MERMA':
       default:
-        chipColor = const Color(0xFFEA580C);
+        chipColor = AppTheme.alertRed;
         chipIcon = LucideIcons.trash2;
         break;
     }
@@ -595,7 +595,7 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
   final List<Map<String, dynamic>> _motivos = [
     {'id': 'ROTURA', 'label': 'Rotura / Envase Roto', 'icon': LucideIcons.packageX, 'color': Color(0xFFDC2626)},
     {'id': 'VENCIMIENTO', 'label': 'Vencido / Caducado', 'icon': LucideIcons.calendarClock, 'color': Color(0xFFD97706)},
-    {'id': 'MERMA', 'label': 'Merma / Deterioro', 'icon': LucideIcons.trash2, 'color': Color(0xFFEA580C)},
+    {'id': 'MERMA', 'label': 'Merma / Deterioro', 'icon': LucideIcons.trash2, 'color': AppTheme.alertRed},
     {'id': 'CONSUMO_INTERNO', 'label': 'Consumo Interno', 'icon': LucideIcons.cupSoda, 'color': Color(0xFF7C3AED)},
     {'id': 'ROBO_DESMEDRO', 'label': 'Desmedro / Pérdida', 'icon': LucideIcons.alertTriangle, 'color': Color(0xFF6B7280)},
   ];
@@ -750,10 +750,10 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEA580C).withValues(alpha: 0.12),
+                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(LucideIcons.trash2, color: Color(0xFFEA580C), size: 20),
+                          child: const Icon(LucideIcons.trash2, color: AppTheme.brandPrimary, size: 20),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -1017,7 +1017,7 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                       height: 48,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEA580C),
+                          backgroundColor: AppTheme.brandPrimary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),

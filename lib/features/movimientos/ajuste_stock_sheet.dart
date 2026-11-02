@@ -59,7 +59,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
       'label': 'Merma / Deterioro',
       'sub': 'Fruta, verdura o daño físico',
       'esSalida': true,
-      'color': const Color(0xFFEA580C),
+      'color': AppTheme.alertRed,
       'icon': LucideIcons.trash2,
     },
     {

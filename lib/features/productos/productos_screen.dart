@@ -571,10 +571,10 @@ class _ProductosScreenState extends State<ProductosScreen> {
                             Container(
                               padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEA580C).withValues(alpha: 0.15),
+                                color: AppTheme.brandDark.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(LucideIcons.archive, size: 15, color: Color(0xFFEA580C)),
+                              child: const Icon(LucideIcons.archive, size: 15, color: AppTheme.brandDark),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -1667,8 +1667,8 @@ class _ProductosScreenState extends State<ProductosScreen> {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                          side: const BorderSide(color: Color(0xFFEA580C), width: 1.2),
-                          foregroundColor: const Color(0xFFEA580C),
+                          side: const BorderSide(color: AppTheme.brandDark, width: 1.2),
+                          foregroundColor: AppTheme.brandDark,
                         ),
                         icon: const Icon(LucideIcons.scale, size: 15),
                         label: Text(
