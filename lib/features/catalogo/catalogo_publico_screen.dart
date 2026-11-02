@@ -236,7 +236,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       buffer.writeln('📝 *Indicaciones del cliente:* ${notas.trim()}');
     }
     buffer.writeln('');
-    buffer.writeln('Por favor indíquenme si lo tienen listo para recogerlo o coordinar entrega. ¡Muchas gracias!');
+    buffer.writeln('Por favor indíquenme si lo tienen listo para pasar a recogerlo. ¡Muchas gracias!');
 
     final encoded = Uri.encodeComponent(buffer.toString());
     final urlStr = telefonoFinal.isNotEmpty
@@ -2206,7 +2206,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Indicaciones (ej. recoger 6pm, delivery a Mz A...)',
+                            hintText: 'Indicaciones (ej. mi hijo recogerá en 15 min, paso a las 6pm...)',
                             hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF94A3B8)),
                             prefixIcon: const Icon(LucideIcons.fileText, size: 16, color: Color(0xFF64748B)),
                             filled: true,
