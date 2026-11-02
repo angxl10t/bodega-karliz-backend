@@ -80,6 +80,16 @@ public class ProductoController {
     );
 
     /**
+     * Cliente HTTP reutilizable (Singleton) para el proxy de imágenes.
+     * Mantiene un pool de conexiones TCP persistentes (HTTP Keep-Alive / HTTP/2),
+     * previniendo fugas de descriptores de sockets (TIME_WAIT) y saturación de hilos.
+     */
+    private static final java.net.http.HttpClient IMAGE_PROXY_HTTP_CLIENT = java.net.http.HttpClient.newBuilder()
+            .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
+            .connectTimeout(java.time.Duration.ofSeconds(4))
+            .build();
+
+    /**
      * Validador defensivo anti-SSRF (Server-Side Request Forgery).
      * Bloquea terminantemente consultas a localhost, IPs privadas (RFC 1918),
      * enlace local (APIPA/Cloud Metadata 169.254.169.254) y dominios internos.
@@ -142,19 +152,13 @@ public class ProductoController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
-            // Client anti-SSRF: followRedirects DESHABILITADO para prevenir bypass por redirección 302
-            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
-                    .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
-                    .connectTimeout(java.time.Duration.ofSeconds(4))
-                    .build();
-
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder(uri)
                     .header("User-Agent", "CajaYa-POS-ImageProxy/1.4")
                     .timeout(java.time.Duration.ofSeconds(6))
                     .GET()
                     .build();
 
-            java.net.http.HttpResponse<byte[]> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofByteArray());
+            java.net.http.HttpResponse<byte[]> res = IMAGE_PROXY_HTTP_CLIENT.send(req, java.net.http.HttpResponse.BodyHandlers.ofByteArray());
             if (res.statusCode() == 200) {
                 // Validación estricta de tipo MIME: Solo formatos de imagen autorizados
                 String rawContentType = res.headers().firstValue("content-type").orElse("").toLowerCase();

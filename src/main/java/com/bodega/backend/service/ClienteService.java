@@ -216,15 +216,18 @@ public class ClienteService {
     @Transactional(readOnly = true)
     public ResumenCreditosDTO obtenerResumenCreditos() {
         Long idBodega = tenantService.getCurrentBodegaId();
-        List<Cliente> todos = clienteRepository.findByBodega_IdBodegaAndEstadoTrueOrderByNombreCompletoAsc(idBodega);
 
+        long totalClientes = 0;
         long clientesConDeuda = 0;
         BigDecimal totalSaldoDeudor = BigDecimal.ZERO;
 
-        for (Cliente c : todos) {
-            if (c.getSaldoDeudor() != null && c.getSaldoDeudor().compareTo(BigDecimal.ZERO) > 0) {
-                clientesConDeuda++;
-                totalSaldoDeudor = totalSaldoDeudor.add(c.getSaldoDeudor());
+        List<Object[]> rows = clienteRepository.obtenerMetricasCreditos(idBodega);
+        if (rows != null && !rows.isEmpty()) {
+            Object[] r = rows.get(0);
+            if (r != null && r.length >= 3) {
+                totalClientes = r[0] != null ? ((Number) r[0]).longValue() : 0L;
+                clientesConDeuda = r[1] != null ? ((Number) r[1]).longValue() : 0L;
+                totalSaldoDeudor = r[2] != null ? new BigDecimal(r[2].toString()) : BigDecimal.ZERO;
             }
         }
 
@@ -233,7 +236,7 @@ public class ClienteService {
         if (totalAbonosMes == null) totalAbonosMes = BigDecimal.ZERO;
 
         ResumenCreditosDTO resumen = new ResumenCreditosDTO();
-        resumen.setTotalClientes(todos.size());
+        resumen.setTotalClientes(totalClientes);
         resumen.setClientesConDeuda(clientesConDeuda);
         resumen.setTotalSaldoDeudor(totalSaldoDeudor);
         resumen.setTotalAbonosMes(totalAbonosMes);

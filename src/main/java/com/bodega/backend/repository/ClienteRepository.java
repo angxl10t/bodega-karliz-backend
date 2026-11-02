@@ -36,7 +36,9 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
            "ORDER BY c.nombreCompleto ASC")
     List<Cliente> buscarClientes(@Param("idBodega") Long idBodega, @Param("query") String query);
 
-    @Query("SELECT COUNT(c), COALESCE(SUM(c.saldoDeudor), 0) FROM Cliente c " +
-           "WHERE c.bodega.idBodega = :idBodega AND c.estado = true AND c.saldoDeudor > 0")
-    List<Object[]> obtenerResumenCreditos(@Param("idBodega") Long idBodega);
+    @Query("SELECT COUNT(c), " +
+           "COALESCE(SUM(CASE WHEN c.saldoDeudor > 0 THEN 1L ELSE 0L END), 0L), " +
+           "COALESCE(SUM(CASE WHEN c.saldoDeudor > 0 THEN c.saldoDeudor ELSE 0 END), 0) " +
+           "FROM Cliente c WHERE c.bodega.idBodega = :idBodega AND c.estado = true")
+    List<Object[]> obtenerMetricasCreditos(@Param("idBodega") Long idBodega);
 }

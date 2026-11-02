@@ -24,6 +24,21 @@ public class CatalogoPublicoController {
     private final ProductoRepository productoRepository;
     private final PromocionRepository promocionRepository;
 
+    private static final long PROMO_CACHE_TTL_MS = 60_000L;
+    private final java.util.concurrent.ConcurrentHashMap<Long, CachedPromosEntry> promosCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static class CachedPromosEntry {
+        final List<Promocion> promociones;
+        final long timestamp;
+        CachedPromosEntry(List<Promocion> promociones) {
+            this.promociones = promociones;
+            this.timestamp = System.currentTimeMillis();
+        }
+        boolean isValid() {
+            return System.currentTimeMillis() - timestamp < PROMO_CACHE_TTL_MS;
+        }
+    }
+
     public CatalogoPublicoController(BodegaRepository bodegaRepository,
                                     ProductoRepository productoRepository,
                                     PromocionRepository promocionRepository) {
@@ -89,12 +104,20 @@ public class CatalogoPublicoController {
         // Cargar productos de la bodega
         List<Producto> productos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega());
 
-        // Cargar promociones activas individuales de esta bodega respetando fechas de inicio y fin
+        // Cargar promociones activas individuales de esta bodega respetando fechas de inicio y fin (con cache en memoria de 60s)
         java.time.LocalDate hoy = java.time.LocalDate.now();
-        List<Promocion> promocionesActivas = (promocionRepository != null
-                ? promocionRepository.findByBodega_IdBodegaAndActivoTrue(bodega.getIdBodega())
-                : java.util.Collections.<Promocion>emptyList())
-                .stream()
+        List<Promocion> promocionesRaw;
+        CachedPromosEntry cachedEntry = promosCache.get(bodega.getIdBodega());
+        if (cachedEntry != null && cachedEntry.isValid()) {
+            promocionesRaw = cachedEntry.promociones;
+        } else {
+            promocionesRaw = (promocionRepository != null
+                    ? promocionRepository.findByBodega_IdBodegaAndActivoTrue(bodega.getIdBodega())
+                    : java.util.Collections.<Promocion>emptyList());
+            promosCache.put(bodega.getIdBodega(), new CachedPromosEntry(promocionesRaw));
+        }
+
+        List<Promocion> promocionesActivas = promocionesRaw.stream()
                 .filter(pr -> {
                     if (pr.getFechaInicio() != null && hoy.isBefore(pr.getFechaInicio())) return false;
                     if (pr.getFechaFin() != null && hoy.isAfter(pr.getFechaFin())) return false;
