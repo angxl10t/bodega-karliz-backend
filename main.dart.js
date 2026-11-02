@@ -60558,7 +60558,7 @@ c.a+=b}if(a0!=null&&B.b.L(a0).length!==0){m.a+="\n"
 c=m
 b="\ud83d\udcdd *Indicaciones del cliente:* "+B.b.L(a0)+"\n"
 c.a+=b}m.a+="\n"
-m.a+="Por favor ind\xedquenme si lo tienen listo para recogerlo o coordinar entrega. \xa1Muchas gracias!\n"
+m.a+="Por favor ind\xedquenme si lo tienen listo para pasar a recogerlo. \xa1Muchas gracias!\n"
 c=m.a
 e=A.fP(2,c.charCodeAt(0)==0?c:c,B.a_,!1)
 l=A.d0(g.length!==0?"https://wa.me/"+g+"?text="+e:"https://wa.me/?text="+e,0,null)
@@ -61288,7 +61288,7 @@ j=A.e().$2$color$fontSize(r?B.d:B.u,12.5)
 i=A.e().$2$color$fontSize(B.aF,12)
 g=r?B.u:B.ai
 f=A.d(12)
-j=A.k(b,A.cp(b,B.aw,!1,b,!0,B.A,b,A.ct(),k,b,b,b,b,b,2,A.bh(b,new A.b1(4,f,new A.ai(r?B.p:B.C,1,B.m,-1)),b,B.eF,b,b,b,b,!0,b,b,b,b,b,b,g,!0,b,b,b,b,b,b,b,b,b,b,b,b,b,i,"Indicaciones (ej. recoger 6pm, delivery a Mz A...)",b,b,b,b,b,!0,b,b,b,!0,!0,!1,b,B.a2s,b,b,b,b,b,b,b,b,b,b,b,b),B.F,!0,b,!0,b,!1,b,B.at,b,b,b,b,b,b,b,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.ag,b,b,b,b,b,b,b,b,b,b,b,j,!0,B.M,b,B.U,b,b,b,b),B.h,b,b,b,b,b,b,B.zj,b,b,b)
+j=A.k(b,A.cp(b,B.aw,!1,b,!0,B.A,b,A.ct(),k,b,b,b,b,b,2,A.bh(b,new A.b1(4,f,new A.ai(r?B.p:B.C,1,B.m,-1)),b,B.eF,b,b,b,b,!0,b,b,b,b,b,b,g,!0,b,b,b,b,b,b,b,b,b,b,b,b,b,i,"Indicaciones (ej. mi hijo recoger\xe1 en 15 min, paso a las 6pm...)",b,b,b,b,b,!0,b,b,b,!0,!0,!1,b,B.a2s,b,b,b,b,b,b,b,b,b,b,b,b),B.F,!0,b,!0,b,!1,b,B.at,b,b,b,b,b,b,b,b,1,b,b,!1,"\u2022",b,b,b,b,b,!1,b,b,!1,b,!0,b,B.ag,b,b,b,b,b,b,b,b,b,b,b,j,!0,B.M,b,B.U,b,b,b,b),B.h,b,b,b,b,b,b,B.zj,b,b,b)
 i=r?B.u:B.ai
 g=r?B.p:B.C
 f=A.a([],h)
