@@ -60,6 +60,7 @@ void main() {
 
       // Debería mostrar la sección de Mi Bodega Online y botón Mi Enlace
       expect(find.text('Mi Bodega Online'), findsOneWidget);
+      expect(find.text('Promociones y Descuentos'), findsOneWidget);
       expect(find.text('PRO ONLINE'), findsOneWidget);
       expect(find.text('Mi Enlace'), findsOneWidget);
       expect(find.textContaining('Yape / Plin'), findsOneWidget);
@@ -83,9 +84,10 @@ void main() {
 
       await tester.pump();
 
-      // Debería mostrar Mi Bodega Online con opción de Activar PRO
+      // Debería mostrar Mi Bodega Online y Promociones con opción de Activar PRO
       expect(find.text('Mi Bodega Online'), findsOneWidget);
-      expect(find.text('Activar PRO'), findsOneWidget);
+      expect(find.text('Promociones y Descuentos'), findsOneWidget);
+      expect(find.text('Activar PRO'), findsNWidgets(2));
       expect(find.textContaining('Yape / Plin'), findsOneWidget);
     });
   });

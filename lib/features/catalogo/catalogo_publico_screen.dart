@@ -35,6 +35,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   Map<String, dynamic> _bodega = {};
   List<Map<String, dynamic>> _productos = [];
   List<String> _categorias = [];
+  List<Map<String, dynamic>> _promociones = [];
   String _categoriaSeleccionada = 'TODAS';
   String _filtroBusqueda = '';
 
@@ -77,6 +78,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         final rawCats = (data['categorias'] as List<dynamic>?) ?? [];
         final catsList = rawCats.map((e) => e.toString()).toList();
 
+        final rawPromos = (data['promociones'] as List<dynamic>?) ?? [];
+        final promosList = rawPromos.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+
         if (mounted) {
           setState(() {
             _bodega = bodegaMap;
@@ -84,6 +88,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             _mensajeNoPro = msg;
             _productos = prodsList;
             _categorias = catsList;
+            _promociones = promosList;
             _isLoading = false;
           });
         }
@@ -107,8 +112,14 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   List<Map<String, dynamic>> get _productosFiltrados {
     return _productos.where((p) {
-      final matchesCat = _categoriaSeleccionada == 'TODAS' ||
-          (p['categoria']?.toString().toUpperCase() == _categoriaSeleccionada.toUpperCase());
+      bool matchesCat = false;
+      if (_categoriaSeleccionada == 'TODAS') {
+        matchesCat = true;
+      } else if (_categoriaSeleccionada == 'OFERTAS') {
+        matchesCat = p['tienePromocion'] == true;
+      } else {
+        matchesCat = (p['categoria']?.toString().toUpperCase() == _categoriaSeleccionada.toUpperCase());
+      }
       final query = _filtroBusqueda.trim().toLowerCase();
       final matchesQuery = query.isEmpty ||
           (p['nombre']?.toString().toLowerCase().contains(query) ?? false) ||
@@ -116,6 +127,21 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           (p['marca']?.toString().toLowerCase().contains(query) ?? false);
       return matchesCat && matchesQuery;
     }).toList();
+  }
+
+  double get _totalAhorroCarrito {
+    double ahorro = 0.0;
+    _carrito.forEach((id, cant) {
+      final prod = _productos.firstWhere((p) => p['idProducto'] == id, orElse: () => {});
+      if (prod['tienePromocion'] == true) {
+        final double regular = (prod['precioVenta'] is num) ? (prod['precioVenta'] as num).toDouble() : 0.0;
+        final double promo = (prod['precioPromocional'] is num) ? (prod['precioPromocional'] as num).toDouble() : regular;
+        if (regular > promo) {
+          ahorro += ((regular - promo) * cant);
+        }
+      }
+    });
+    return ahorro;
   }
 
   int get _totalUnidadesCarrito {
@@ -126,7 +152,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     double total = 0.0;
     _carrito.forEach((id, cant) {
       final prod = _productos.firstWhere((p) => p['idProducto'] == id, orElse: () => {});
-      final double precio = (prod['precioVenta'] is num) ? (prod['precioVenta'] as num).toDouble() : 0.0;
+      final double regular = (prod['precioVenta'] is num) ? (prod['precioVenta'] as num).toDouble() : 0.0;
+      final double promo = (prod['precioPromocional'] is num) ? (prod['precioPromocional'] as num).toDouble() : regular;
+      final double precio = (prod['tienePromocion'] == true && promo > 0) ? promo : regular;
       total += (precio * cant);
     });
     return total;
@@ -168,14 +196,25 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     _carrito.forEach((id, cant) {
       final prod = _productos.firstWhere((p) => p['idProducto'] == id, orElse: () => {});
       final nombre = prod['nombre']?.toString() ?? 'Producto';
-      final double precio = (prod['precioVenta'] is num) ? (prod['precioVenta'] as num).toDouble() : 0.0;
-      final subtotal = precio * cant;
-      buffer.writeln('$index. $cant x *$nombre* - S/ ${subtotal.toStringAsFixed(2)}');
+      final double regular = (prod['precioVenta'] is num) ? (prod['precioVenta'] as num).toDouble() : 0.0;
+      final double promo = (prod['precioPromocional'] is num) ? (prod['precioPromocional'] as num).toDouble() : regular;
+      final bool tienePromo = prod['tienePromocion'] == true && promo > 0;
+      final double precioFinal = tienePromo ? promo : regular;
+      final subtotal = precioFinal * cant;
+      if (tienePromo) {
+        final badge = prod['badgePromocion'] ?? 'OFERTA';
+        buffer.writeln('$index. $cant x *$nombre* - S/ ${subtotal.toStringAsFixed(2)} ~S/ ${(regular * cant).toStringAsFixed(2)}~ ($badge)');
+      } else {
+        buffer.writeln('$index. $cant x *$nombre* - S/ ${subtotal.toStringAsFixed(2)}');
+      }
       index++;
     });
 
     buffer.writeln('');
     buffer.writeln('*TOTAL ESTIMADO: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*');
+    if (_totalAhorroCarrito > 0) {
+      buffer.writeln('🎁 *¡Ahorro total por Promociones: S/ ${_totalAhorroCarrito.toStringAsFixed(2)}!*');
+    }
     buffer.writeln('');
     buffer.writeln('Por favor indíquenme si lo tienen listo para recogerlo o coordinar entrega. ¡Muchas gracias!');
 
@@ -464,6 +503,161 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     );
   }
 
+  Color _parseColorBadge(dynamic hex) {
+    if (hex == null) return const Color(0xFFEF4444);
+    try {
+      final s = hex.toString().replaceAll('#', '0xFF');
+      return Color(int.parse(s));
+    } catch (_) {
+      return const Color(0xFFEF4444);
+    }
+  }
+
+  Widget _buildPromocionesHeroBanner(bool isDark, bool isTablet) {
+    if (_promociones.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+        isTablet ? 20 : 16,
+        0,
+        isTablet ? 20 : 16,
+        isTablet ? 12 : 8,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFFEA580C)),
+              const SizedBox(width: 6),
+              Text(
+                'OFERTAS Y PROMOCIONES ACTIVAS',
+                style: GoogleFonts.outfit(
+                  fontSize: isTablet ? 12 : 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  color: const Color(0xFFEA580C),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: isTablet ? 140 : 124,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: _promociones.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (ctx, i) {
+                final pm = _promociones[i];
+                final color = _parseColorBadge(pm['colorBadge']);
+                final titulo = pm['titulo']?.toString() ?? 'Oferta Especial';
+                final desc = pm['descripcion']?.toString() ?? '';
+                final badge = pm['badgeTexto']?.toString() ?? '🔥 OFERTA';
+                final cat = pm['categoriaObjetivo']?.toString();
+                final marca = pm['marcaObjetivo']?.toString();
+
+                return InkWell(
+                  onTap: () {
+                    if (cat != null && cat.isNotEmpty) {
+                      setState(() {
+                        _categoriaSeleccionada = cat;
+                        _filtroBusqueda = '';
+                      });
+                    } else if (marca != null && marca.isNotEmpty) {
+                      setState(() {
+                        _categoriaSeleccionada = 'TODAS';
+                        _filtroBusqueda = marca;
+                      });
+                    } else {
+                      setState(() {
+                        _categoriaSeleccionada = 'OFERTAS';
+                        _filtroBusqueda = '';
+                      });
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: isTablet ? 300 : 260,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [color.withValues(alpha: 0.25), const Color(0xFF1E293B)]
+                            : [color.withValues(alpha: 0.12), Colors.white],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: color.withValues(alpha: 0.35), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: color,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                badge,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(LucideIcons.chevronRight, size: 16, color: Color(0xFFEA580C)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          titulo,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: isTablet ? 14.5 : 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Expanded(
+                          child: Text(
+                            desc.isNotEmpty ? desc : 'Aprovecha este descuento exclusivo disponible en tienda.',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: isTablet ? 11.5 : 11,
+                              color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCatalogoProView(bool isDark) {
     final mediaQuery = MediaQuery.of(context);
     final double shortestSide = mediaQuery.size.shortestSide;
@@ -677,6 +871,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               ),
             ),
 
+            // Carrusel Hero de Promociones Activas
+            SliverToBoxAdapter(
+              child: _buildPromocionesHeroBanner(isDark, isTablet),
+            ),
+
             // Filtros de Categoría Horizontales
             SliverToBoxAdapter(
               child: SingleChildScrollView(
@@ -689,6 +888,14 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 child: Row(
                   children: [
                     _buildCategoriaChip('TODAS', 'Todos (${_productos.length})', isDark, isTablet),
+                    if (_productos.any((p) => p['tienePromocion'] == true))
+                      _buildCategoriaChip(
+                        'OFERTAS',
+                        '🔥 Ofertas (${_productos.where((p) => p['tienePromocion'] == true).length})',
+                        isDark,
+                        isTablet,
+                        esOferta: true,
+                      ),
                     ..._categorias.map((c) => _buildCategoriaChip(c, c, isDark, isTablet)),
                   ],
                 ),
@@ -838,8 +1045,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     }
   }
 
-  Widget _buildCategoriaChip(String key, String label, bool isDark, bool isTablet) {
+  Widget _buildCategoriaChip(String key, String label, bool isDark, bool isTablet, {bool esOferta = false}) {
     final isSelected = _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
+    final chipColor = esOferta ? const Color(0xFFEA580C) : AppTheme.brandPrimary;
 
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
@@ -851,17 +1059,23 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             color: isSelected
                 ? Colors.white
-                : (isDark ? Colors.white70 : const Color(0xFF334155)),
+                : (esOferta
+                    ? const Color(0xFFEA580C)
+                    : (isDark ? Colors.white70 : const Color(0xFF334155))),
           ),
         ),
         padding: isTablet ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2) : EdgeInsets.zero,
         selected: isSelected,
-        selectedColor: AppTheme.brandPrimary,
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        selectedColor: chipColor,
+        backgroundColor: isDark
+            ? (esOferta ? const Color(0xFFEA580C).withValues(alpha: 0.15) : const Color(0xFF1E293B))
+            : (esOferta ? const Color(0xFFEA580C).withValues(alpha: 0.08) : Colors.white),
         side: BorderSide(
           color: isSelected
-              ? AppTheme.brandPrimary
-              : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+              ? chipColor
+              : (esOferta
+                  ? const Color(0xFFEA580C).withValues(alpha: 0.4)
+                  : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1))),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 14 : 12)),
         onSelected: (_) {
@@ -922,22 +1136,53 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(isTablet ? 16 : 14),
               ),
-              child: LayoutBuilder(
-                builder: (context, boxConstraints) {
-                  final availableMax = math.min(boxConstraints.maxWidth, boxConstraints.maxHeight);
-                  final double effectiveSize = (availableMax * 0.88).clamp(64.0, config.maxImageSize);
-                  return Center(
-                    child: ProductImageWidget(
-                      imagenUrl: imagenUrl,
-                      nombre: nombre,
-                      codigoBarras: codigoBarras,
-                      categoria: categoria,
-                      size: effectiveSize,
-                      borderRadius: isTablet ? 16 : 14,
-                      isDark: isDark,
+              child: Stack(
+                children: [
+                  LayoutBuilder(
+                    builder: (context, boxConstraints) {
+                      final availableMax = math.min(boxConstraints.maxWidth, boxConstraints.maxHeight);
+                      final double effectiveSize = (availableMax * 0.88).clamp(64.0, config.maxImageSize);
+                      return Center(
+                        child: ProductImageWidget(
+                          imagenUrl: imagenUrl,
+                          nombre: nombre,
+                          codigoBarras: codigoBarras,
+                          categoria: categoria,
+                          size: effectiveSize,
+                          borderRadius: isTablet ? 16 : 14,
+                          isDark: isDark,
+                        ),
+                      );
+                    },
+                  ),
+                  if (prod['tienePromocion'] == true)
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _parseColorBadge(prod['colorBadge']),
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _parseColorBadge(prod['colorBadge']).withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          prod['badgePromocion']?.toString() ?? '🔥 OFERTA',
+                          style: GoogleFonts.outfit(
+                            fontSize: isTablet ? 11 : 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                },
+                ],
               ),
             ),
           ),
@@ -982,14 +1227,43 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: isTablet ? 6 : 4),
-                Text(
-                  'S/ ${precio.toStringAsFixed(2)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: config.precioFontSize,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.brandPrimary,
+                if (prod['tienePromocion'] == true &&
+                    prod['precioPromocional'] != null &&
+                    (prod['precioPromocional'] as num).toDouble() < precio) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        'S/ ${precio.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: config.precioFontSize * 0.74,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.lineThrough,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'S/ ${(prod['precioPromocional'] as num).toDouble().toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: config.precioFontSize,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF16A34A),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                ] else ...[
+                  Text(
+                    'S/ ${precio.toStringAsFixed(2)}',
+                    style: GoogleFonts.outfit(
+                      fontSize: config.precioFontSize,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.brandPrimary,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -1231,17 +1505,74 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Precio Grande
-                      Center(
-                        child: Text(
-                          'S/ ${precio.toStringAsFixed(2)}',
-                          style: GoogleFonts.outfit(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.brandPrimary,
+                      // Precio y Banner de Promoción
+                      if (prod['tienePromocion'] == true &&
+                          prod['precioPromocional'] != null &&
+                          (prod['precioPromocional'] as num).toDouble() < precio) ...[
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 14),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: _parseColorBadge(prod['colorBadge']).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: _parseColorBadge(prod['colorBadge']).withValues(alpha: 0.35)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(LucideIcons.sparkles, size: 15, color: _parseColorBadge(prod['colorBadge'])),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${prod['badgePromocion'] ?? "OFERTA"} • ${prod['tituloPromocion'] ?? "Descuento Especial"}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: _parseColorBadge(prod['colorBadge']),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 10),
+                        Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                'S/ ${precio.toStringAsFixed(2)}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'S/ ${(prod['precioPromocional'] as num).toDouble().toStringAsFixed(2)}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFF16A34A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else ...[
+                        Center(
+                          child: Text(
+                            'S/ ${precio.toStringAsFixed(2)}',
+                            style: GoogleFonts.outfit(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.brandPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 20),
 
                       // Controles de Carrito

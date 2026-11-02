@@ -24,6 +24,7 @@ import '../movimientos/auditoria_ciega_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../home/mi_bodega_online_modal.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
+import '../promociones/promociones_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -898,6 +899,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => const DashboardBiScreen(initialTabRotacion: 1),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Promociones & Combos',
+                              subtitle: 'Descuentos & Huesos',
+                              icon: LucideIcons.tag,
+                              color: const Color(0xFFEF4444),
+                              isDark: isDark,
+                              isLocked: _plan.toUpperCase() != 'PRO',
+                              onTap: () {
+                                if (_plan.toUpperCase() != 'PRO') {
+                                  PlanUpgradeModal.show(
+                                    context,
+                                    featureName: 'Promociones y Descuentos',
+                                    featureDescription: 'Configura descuentos por marcas, categorías y combos estratégicos para liquidar productos estancados en tu catálogo online.',
+                                    icon: LucideIcons.tag,
+                                    onPlanUpdated: _cargarDatos,
+                                  );
+                                  return;
+                                }
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PromocionesScreen(
+                                      isPro: true,
+                                      nombreBodega: _nombreBodega,
+                                      onPlanUpdated: _cargarDatos,
+                                    ),
                                   ),
                                 );
                               },

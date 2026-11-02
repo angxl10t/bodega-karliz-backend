@@ -7,6 +7,7 @@ import 'dashboard_bi_model.dart';
 import 'dashboard_bi_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
+import '../promociones/promociones_screen.dart';
 
 class DashboardBiScreen extends StatefulWidget {
   final DashboardBiService? service;
@@ -1529,11 +1530,50 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${item.diasSinVentas}+ días sin ventas',
+                    '${item.diasSinVentas}+ días',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                    ),
+                  ),
+                  const Spacer(),
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PromocionesScreen(
+                            isPro: true,
+                            nombreBodega: 'Bodega KARLIZ',
+                            initialTab: 1,
+                          ),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEA580C).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFEA580C).withValues(alpha: 0.35)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(LucideIcons.sparkles, size: 10, color: Color(0xFFEA580C)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Armar Combo',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFFEA580C),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

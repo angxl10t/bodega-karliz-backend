@@ -12,6 +12,7 @@ import 'bodega_service.dart';
 
 import 'configuracion_marca_modal.dart';
 import 'mi_bodega_online_modal.dart';
+import '../promociones/promociones_screen.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
 
 import '../auth/auth_service.dart';
@@ -3393,6 +3394,126 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                 icon: Icon(isPro ? LucideIcons.share2 : LucideIcons.lock, size: 14),
                                 label: Text(
                                   isPro ? 'Mi Enlace' : 'Activar PRO',
+                                  style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // MÓDULO DE PROMOCIONES Y COMBOS ESTRATÉGICOS (PLAN PRO)
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isPro
+                              ? const Color(0xFFEA580C).withValues(alpha: 0.3)
+                              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEA580C).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(LucideIcons.tag, color: Color(0xFFEA580C), size: 18),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Promociones y Descuentos',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEA580C),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            'PRO',
+                                            style: GoogleFonts.outfit(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      isPro
+                                          ? 'Campañas activas en tu catálogo público'
+                                          : 'Ofertas por marcas, categorías y combos',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: isPro ? const Color(0xFFEA580C) : AppTheme.textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  isPro
+                                      ? 'Combos hueso antiestancamiento y ofertas'
+                                      : 'Desbloquea panel de promociones mejorando a PRO',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isPro ? const Color(0xFFEA580C) : const Color(0xFFD97706),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PromocionesScreen(
+                                        isPro: isPro,
+                                        nombreBodega: widget.nombreBodega,
+                                        onPlanUpdated: () {
+                                          _cargarDatos();
+                                          widget.onPlanUpdated?.call();
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: Icon(isPro ? LucideIcons.settings : LucideIcons.lock, size: 14),
+                                label: Text(
+                                  isPro ? 'Gestionar' : 'Activar PRO',
                                   style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w800),
                                 ),
                               ),
