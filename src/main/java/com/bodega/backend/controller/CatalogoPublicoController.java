@@ -279,10 +279,14 @@ public class CatalogoPublicoController {
         }
 
         String raw = idOrSlug.trim();
-        if (raw.matches("\\d+")) {
-            Long id = Long.parseLong(raw);
-            Optional<Bodega> bOpt = bodegaRepository.findByIdBodegaAndEstadoTrue(id);
-            if (bOpt.isPresent()) return bOpt.get();
+        if (raw.matches("\\d{1,18}")) {
+            try {
+                Long id = Long.parseLong(raw);
+                Optional<Bodega> bOpt = bodegaRepository.findByIdBodegaAndEstadoTrue(id);
+                if (bOpt.isPresent()) return bOpt.get();
+            } catch (NumberFormatException ignored) {
+                // Si excede el tamaño de Long, continuar con la búsqueda por slug
+            }
         }
 
         String targetSlug = normalizarSlug(raw);

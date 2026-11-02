@@ -186,9 +186,10 @@ public class GarantiaBotellaService {
             botellasPendientes += Math.max(0, tb - bd);
         }
 
-        // Devoluciones del mes actual
-        OffsetDateTime inicioMes = OffsetDateTime.now(ZoneOffset.UTC)
-                .withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        // Devoluciones del mes actual en hora de Perú (America/Lima)
+        java.time.ZoneId zonePeru = java.time.ZoneId.of("America/Lima");
+        OffsetDateTime inicioMes = java.time.LocalDate.now(zonePeru).withDayOfMonth(1)
+                .atStartOfDay(zonePeru).toOffsetDateTime();
         List<GarantiaBotella> devolucionesMes = garantiaRepository.findDevolucionesDesde(idBodega, inicioMes);
 
         BigDecimal totalDevueltoMes = devolucionesMes.stream()
