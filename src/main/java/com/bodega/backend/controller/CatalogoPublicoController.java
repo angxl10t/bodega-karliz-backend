@@ -89,8 +89,16 @@ public class CatalogoPublicoController {
         // Cargar productos de la bodega
         List<Producto> productos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega());
 
-        // Cargar promociones activas individuales de esta bodega
-        List<Promocion> promocionesActivas = promocionRepository.findByBodega_IdBodegaAndActivoTrue(bodega.getIdBodega());
+        // Cargar promociones activas individuales de esta bodega respetando fechas de inicio y fin
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        List<Promocion> promocionesActivas = promocionRepository.findByBodega_IdBodegaAndActivoTrue(bodega.getIdBodega())
+                .stream()
+                .filter(pr -> {
+                    if (pr.getFechaInicio() != null && hoy.isBefore(pr.getFechaInicio())) return false;
+                    if (pr.getFechaFin() != null && hoy.isAfter(pr.getFechaFin())) return false;
+                    return true;
+                })
+                .collect(Collectors.toList());
 
         List<Map<String, Object>> prodsDto = productos.stream().map(p -> {
             Map<String, Object> item = new LinkedHashMap<>();
@@ -213,6 +221,8 @@ public class CatalogoPublicoController {
             pm.put("precioCombo", pr.getPrecioCombo());
             pm.put("badgeTexto", pr.getBadgeTexto() != null ? pr.getBadgeTexto() : "🔥 OFERTA");
             pm.put("colorBadge", pr.getColorBadge() != null ? pr.getColorBadge() : "#EF4444");
+            pm.put("fechaInicio", pr.getFechaInicio() != null ? pr.getFechaInicio().toString() : null);
+            pm.put("fechaFin", pr.getFechaFin() != null ? pr.getFechaFin().toString() : null);
             pm.put("esSugerenciaHueso", Boolean.TRUE.equals(pr.getEsSugerenciaHueso()));
             return pm;
         }).collect(Collectors.toList());
