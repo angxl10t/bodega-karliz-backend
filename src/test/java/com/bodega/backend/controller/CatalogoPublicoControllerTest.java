@@ -5,6 +5,7 @@ import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.Producto;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import com.bodega.backend.repository.PromocionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,9 @@ class CatalogoPublicoControllerTest {
 
     @Mock
     private ProductoRepository productoRepository;
+
+    @Mock
+    private PromocionRepository promocionRepository;
 
     @InjectMocks
     private CatalogoPublicoController controller;

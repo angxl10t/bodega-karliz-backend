@@ -91,7 +91,9 @@ public class CatalogoPublicoController {
 
         // Cargar promociones activas individuales de esta bodega respetando fechas de inicio y fin
         java.time.LocalDate hoy = java.time.LocalDate.now();
-        List<Promocion> promocionesActivas = promocionRepository.findByBodega_IdBodegaAndActivoTrue(bodega.getIdBodega())
+        List<Promocion> promocionesActivas = (promocionRepository != null
+                ? promocionRepository.findByBodega_IdBodegaAndActivoTrue(bodega.getIdBodega())
+                : java.util.Collections.<Promocion>emptyList())
                 .stream()
                 .filter(pr -> {
                     if (pr.getFechaInicio() != null && hoy.isBefore(pr.getFechaInicio())) return false;
