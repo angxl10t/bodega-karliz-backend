@@ -43,6 +43,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   // Carrito de compras: {idProducto: cantidad}
   final Map<int, int> _carrito = {};
   final TextEditingController _searchCtrl = TextEditingController();
+  final TextEditingController _notasPedidoCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -53,6 +54,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _notasPedidoCtrl.dispose();
     if (widget.httpClient == null) {
       _client.close();
     }
@@ -1927,7 +1929,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   void _mostrarCarritoModal() {
     if (_carrito.isEmpty) return;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final TextEditingController notasCtrl = TextEditingController();
+    final notasCtrl = _notasPedidoCtrl;
 
     showModalBottomSheet(
       context: context,
