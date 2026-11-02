@@ -306,9 +306,9 @@ public class StarterPackService {
 
             // B. Consolidar productos duplicados de Agua San Mateo (IDs 130, 132, 133, 134 -> ID 131)
             try {
-                jdbcTemplate.execute("UPDATE venta_detalles SET id_producto = 131 WHERE id_producto IN (130, 132, 133, 134)");
+                jdbcTemplate.execute("UPDATE ventas_detalles SET id_producto = 131 WHERE id_producto IN (130, 132, 133, 134)");
             } catch (Exception e) {
-                log.debug("[StarterPackService] Reasignar venta_detalles omitido: {}", e.getMessage());
+                log.debug("[StarterPackService] Reasignar ventas_detalles omitido: {}", e.getMessage());
             }
             try {
                 jdbcTemplate.execute("UPDATE compras_detalles SET id_producto = 131 WHERE id_producto IN (130, 132, 133, 134)");

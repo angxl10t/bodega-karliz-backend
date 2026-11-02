@@ -6,7 +6,7 @@
 -- 1. Consolidar claves foráneas de los productos duplicados de Agua San Mateo (130, 132, 133, 134 -> 131)
 DO $$
 BEGIN
-    UPDATE venta_detalles SET id_producto = 131 WHERE id_producto IN (130, 132, 133, 134);
+    UPDATE ventas_detalles SET id_producto = 131 WHERE id_producto IN (130, 132, 133, 134);
     UPDATE compras_detalles SET id_producto = 131 WHERE id_producto IN (130, 132, 133, 134);
     UPDATE movimientos_inventario SET id_producto = 131 WHERE id_producto IN (130, 132, 133, 134);
     DELETE FROM productos WHERE id_producto IN (130, 132, 133, 134);
