@@ -18,8 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -135,13 +137,33 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarMarcasConConteo() {
         Long idBodega = tenantService.getCurrentBodegaId();
-        List<Object[]> rows = productoRepository.findMarcasConConteoByBodega(idBodega);
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Object[] row : rows) {
-            String marca = (String) row[0];
-            Long count = ((Number) row[1]).longValue();
-            result.add(Map.of("marca", marca, "cantidad", count));
+        List<Producto> productos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega);
+        Map<String, Long> conteoPorMarca = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+        for (Producto p : productos) {
+            String marca = p.getMarca();
+            if (marca == null || marca.isBlank()) {
+                marca = MarcaDetectorUtil.detectarMarca(p.getNombre());
+            }
+            if (marca != null && !marca.isBlank()) {
+                marca = MarcaDetectorUtil.normalizarMarca(marca);
+                conteoPorMarca.put(marca, conteoPorMarca.getOrDefault(marca, 0L) + 1L);
+            }
         }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        conteoPorMarca.entrySet().stream()
+                .sorted((a, b) -> {
+                    int c = b.getValue().compareTo(a.getValue());
+                    return (c != 0) ? c : a.getKey().compareToIgnoreCase(b.getKey());
+                })
+                .forEach(e -> {
+                    Map<String, Object> map = new LinkedHashMap<>();
+                    map.put("marca", e.getKey());
+                    map.put("cantidad", e.getValue());
+                    result.add(map);
+                });
+
         return result;
     }
 

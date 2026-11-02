@@ -41,6 +41,56 @@ class MarcaDetectorUtilTest {
     }
 
     @Test
+    @DisplayName("Evalúa coincidencia de marca en promociones con tolerancia exhaustiva a guiones, acentos y variantes")
+    void testCoincidenciaMarcaPromociones() {
+        // 1. Coca-Cola (con guión, sin guión, minúsculas, mayúsculas, en marca o en nombre)
+        assertTrue(MarcaDetectorUtil.coincideMarca("Coca-Cola", "Coca Cola", "Coca Cola 500ml botella"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("coca cola", "Coca-Cola", "Coca Cola Sabor Original 3 Litros"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Coca Cola", "Coca Cola", "Gaseosa 500ml"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Coca-Cola", null, "Coca Cola 1.5L descartable"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Coca Cola", "", "Coca-Cola Zero 500ml"));
+
+        // 2. Lay's / Lays / Frito-Lay
+        assertTrue(MarcaDetectorUtil.coincideMarca("Lay's", "Lays", "Papas Lays Clásicas 160g"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Lays", "Lay's", "Papas Fritas Ondas 150g"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Lay's", "Frito-Lay", "Papas Lay's Al Hilo 100g"));
+
+        // 3. 7Up / 7 Up / 7-Up
+        assertTrue(MarcaDetectorUtil.coincideMarca("7Up", "7 Up", "Gaseosa 7 Up 500ml"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("7 Up", "7Up", "Gaseosa 7-Up 3L"));
+
+        // 4. D'Onofrio / Donofrio
+        assertTrue(MarcaDetectorUtil.coincideMarca("D'Onofrio", "Donofrio", "Helado Sandwich D'Onofrio"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("donofrio", "D'Onofrio", "Helado Jet Paleta"));
+
+        // 5. Inca Kola / Inka Kola
+        assertTrue(MarcaDetectorUtil.coincideMarca("Inca Kola", "Inka Kola", "Inca Kola 500ml"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Inka Kola", "Inca Kola", "Inka Kola Sabor Original 3L"));
+
+        // 6. Marlboro / Malboro
+        assertTrue(MarcaDetectorUtil.coincideMarca("Marlboro", "Malboro", "Malboro Gold Box 20"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Malboro", "Marlboro", "Cigarrillos Marlboro"));
+
+        // 7. San Mateo / San Luis / Pilsen Callao
+        assertTrue(MarcaDetectorUtil.coincideMarca("San Mateo", "San-Mateo", "Agua Mineral San Mateo 600ml"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("San Luis", "San-Luis", "Agua San Luis 625ml"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Pilsen", "Pilsen Callao", "Cerveza Pilsen Callao 310ml"));
+
+        // 8. Acentos y diacríticos: Ángel / Bolívar / AlaCena / Nestlé
+        assertTrue(MarcaDetectorUtil.coincideMarca("Ángel", "Angel", "Cereal Angel Flakes 250g"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Bolívar", "Bolivar", "Detergente Bolivar 900g"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("AlaCena", "Alacena", "Mayonesa Alacena 400g"));
+        assertTrue(MarcaDetectorUtil.coincideMarca("Nestlé", "Nestle", "Chocolate Nestle"));
+
+        // 9. Casos Negativos (marcas diferentes nunca deben coincidir)
+        assertFalse(MarcaDetectorUtil.coincideMarca("Coca-Cola", "Inca Kola", "Inca Kola Sabor Original 500ml"));
+        assertFalse(MarcaDetectorUtil.coincideMarca("Pepsi", "Coca Cola", "Coca Cola 3 Litros"));
+        assertFalse(MarcaDetectorUtil.coincideMarca("Bimbo", "Molitalia", "Fideos Spaghetti Molitalia 500g"));
+        assertFalse(MarcaDetectorUtil.coincideMarca(null, "Coca Cola", "Coca Cola 500ml"));
+        assertFalse(MarcaDetectorUtil.coincideMarca("   ", "Coca Cola", "Coca Cola 500ml"));
+    }
+
+    @Test
     @DisplayName("Retorna null si no se detecta ninguna marca o string vacío")
     void testCasosVacios() {
         assertNull(MarcaDetectorUtil.detectarMarca(null));

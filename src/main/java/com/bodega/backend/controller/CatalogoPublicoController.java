@@ -6,6 +6,7 @@ import com.bodega.backend.entity.Promocion;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import com.bodega.backend.repository.PromocionRepository;
+import com.bodega.backend.util.MarcaDetectorUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -97,7 +98,10 @@ public class CatalogoPublicoController {
             item.put("codigo", p.getCodigo());
             item.put("codigoBarras", p.getCodigoBarras() != null ? p.getCodigoBarras() : "");
             item.put("nombre", p.getNombre());
-            item.put("marca", p.getMarca() != null ? p.getMarca() : "");
+            String marcaCanon = (p.getMarca() != null && !p.getMarca().isBlank())
+                    ? MarcaDetectorUtil.normalizarMarca(p.getMarca())
+                    : MarcaDetectorUtil.detectarMarca(p.getNombre());
+            item.put("marca", marcaCanon != null ? marcaCanon : "");
             item.put("precioVenta", p.getPrecioVenta());
             item.put("stockActual", p.getStockActual() != null ? p.getStockActual().doubleValue() : 0.0);
             String catNombre = p.getCategoria() != null ? p.getCategoria().getNombre() : "General";
@@ -106,7 +110,7 @@ public class CatalogoPublicoController {
             boolean disponible = p.getStockActual() != null && p.getStockActual().compareTo(BigDecimal.ZERO) > 0;
             item.put("disponible", disponible);
 
-            // Evaluar promociones aplicables a este producto
+            // Evaluar promociones aplicables a este producto con tolerancia total a variantes
             Promocion promoAplicable = null;
             for (Promocion promo : promocionesActivas) {
                 if ("PRODUCTO".equalsIgnoreCase(promo.getAlcance()) && promo.getIdProductoPrincipal() != null) {
@@ -115,10 +119,7 @@ public class CatalogoPublicoController {
                         break;
                     }
                 } else if ("MARCA".equalsIgnoreCase(promo.getAlcance()) && promo.getMarcaObjetivo() != null) {
-                    String marcaObj = promo.getMarcaObjetivo().trim();
-                    boolean coincideMarca = (p.getMarca() != null && p.getMarca().trim().equalsIgnoreCase(marcaObj));
-                    boolean coincideNombre = (p.getNombre() != null && p.getNombre().toLowerCase().contains(marcaObj.toLowerCase()));
-                    if (coincideMarca || coincideNombre) {
+                    if (MarcaDetectorUtil.coincideMarca(promo.getMarcaObjetivo(), p.getMarca(), p.getNombre())) {
                         promoAplicable = promo;
                         break;
                     }

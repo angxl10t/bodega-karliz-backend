@@ -8,6 +8,7 @@ import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import com.bodega.backend.repository.UsuarioRepository;
+import com.bodega.backend.util.MarcaDetectorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -82,7 +84,39 @@ public class DataInitializer implements ApplicationRunner {
         // 5. Enriquecer catálogo comercial y starter pack para Bodega KARLIZ y nuevas tiendas
         starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
 
+        // 6. Normalizar y canonicizar marcas de productos en base de datos
+        normalizarMarcasDeProductos();
+
         log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
+    }
+
+    private void normalizarMarcasDeProductos() {
+        try {
+            List<Producto> productos = productoRepository.findAll();
+            int actualizados = 0;
+            for (Producto p : productos) {
+                String marcaDetectada = MarcaDetectorUtil.detectarMarca(p.getNombre());
+                if (marcaDetectada != null) {
+                    if (p.getMarca() == null || !p.getMarca().equals(marcaDetectada)) {
+                        p.setMarca(marcaDetectada);
+                        productoRepository.save(p);
+                        actualizados++;
+                    }
+                } else if (p.getMarca() != null && !p.getMarca().isBlank()) {
+                    String norm = MarcaDetectorUtil.normalizarMarca(p.getMarca());
+                    if (!p.getMarca().equals(norm)) {
+                        p.setMarca(norm);
+                        productoRepository.save(p);
+                        actualizados++;
+                    }
+                }
+            }
+            if (actualizados > 0) {
+                log.info("[DataInitializer] Normalizadas y estandarizadas {} marcas de productos en base de datos.", actualizados);
+            }
+        } catch (Exception e) {
+            log.warn("[DataInitializer] Normalización de marcas omitida: {}", e.getMessage());
+        }
     }
 
     private void asegurarColumnasBodegas() {
