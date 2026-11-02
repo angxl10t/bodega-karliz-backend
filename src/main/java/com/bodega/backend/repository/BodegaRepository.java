@@ -21,6 +21,7 @@ public interface BodegaRepository extends JpaRepository<Bodega, Long> {
     long countByPlanIgnoreCase(String plan);
 
     Optional<Bodega> findFirstByOrderByIdBodegaAsc();
+    Optional<Bodega> findFirstByEstadoTrueAndPlanIgnoreCaseOrderByIdBodegaAsc(String plan);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT b FROM Bodega b WHERE b.idBodega = :id")

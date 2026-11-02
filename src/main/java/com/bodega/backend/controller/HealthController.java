@@ -39,6 +39,23 @@ public class HealthController {
         resp.put("version", "1.4.2-enterprise");
         resp.put("row_level_security", "ENABLED");
         resp.put("scalability_engine", "OPTIMIZED_V4");
+
+        // Telemetría JVM restringida exclusivamente a la consola SUPERADMIN
+        Runtime runtime = Runtime.getRuntime();
+        long maxMemMb = runtime.maxMemory() / (1024 * 1024);
+        long totalMemMb = runtime.totalMemory() / (1024 * 1024);
+        long freeMemMb = runtime.freeMemory() / (1024 * 1024);
+        long usedMemMb = totalMemMb - freeMemMb;
+        long uptimeSeconds = (System.currentTimeMillis() - START_TIME_MS) / 1000;
+
+        Map<String, Object> jvmStats = new HashMap<>();
+        jvmStats.put("used_memory_mb", usedMemMb);
+        jvmStats.put("total_memory_mb", totalMemMb);
+        jvmStats.put("max_memory_mb", maxMemMb);
+        jvmStats.put("uptime_seconds", uptimeSeconds);
+        jvmStats.put("active_threads", Thread.activeCount());
+        resp.put("jvm", jvmStats);
+
         try {
             resp.put("bodegas", bodegaRepository.findAll().stream().map(b -> Map.of(
                 "idBodega", b.getIdBodega(),
@@ -105,22 +122,6 @@ public class HealthController {
 
         response.put("database", cachedDbStatus);
         response.put("status", "CONNECTED".equals(cachedDbStatus) ? "UP" : "DEGRADED");
-
-        // Telemetría de diagnóstico JVM segura y ligera (sin credenciales ni paths sensibles)
-        Runtime runtime = Runtime.getRuntime();
-        long maxMemMb = runtime.maxMemory() / (1024 * 1024);
-        long totalMemMb = runtime.totalMemory() / (1024 * 1024);
-        long freeMemMb = runtime.freeMemory() / (1024 * 1024);
-        long usedMemMb = totalMemMb - freeMemMb;
-        long uptimeSeconds = (now - START_TIME_MS) / 1000;
-
-        Map<String, Object> jvmStats = new HashMap<>();
-        jvmStats.put("used_memory_mb", usedMemMb);
-        jvmStats.put("total_memory_mb", totalMemMb);
-        jvmStats.put("max_memory_mb", maxMemMb);
-        jvmStats.put("uptime_seconds", uptimeSeconds);
-        jvmStats.put("active_threads", Thread.activeCount());
-        response.put("jvm", jvmStats);
 
         return ResponseEntity.ok(response);
     }

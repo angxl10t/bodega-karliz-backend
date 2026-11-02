@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +32,7 @@ public class HealthControllerTest {
     private HealthController healthController;
 
     @Test
-    void testCheckHealth_WhenDbConnected_ReturnsUpAndJvmTelemetry() {
+    void testCheckHealth_WhenDbConnected_ReturnsUpAndHidesJvmTelemetry() {
         when(usuarioRepository.count()).thenReturn(5L);
 
         ResponseEntity<Map<String, Object>> response = healthController.checkHealth();
@@ -46,6 +47,23 @@ public class HealthControllerTest {
         assertEquals("1.4.2-enterprise", body.get("version"));
         assertEquals("CONNECTED", body.get("database"));
         assertNotNull(body.get("timestamp"));
+
+        // Seguridad: El endpoint público de salud NO debe fugar telemetría interna de memoria ni hilos de la JVM
+        assertNull(body.get("jvm"));
+    }
+
+    @Test
+    void testDiagnostico_ReturnsJvmTelemetryForSuperadmin() {
+        when(bodegaRepository.findAll()).thenReturn(Collections.emptyList());
+        when(usuarioRepository.findAll()).thenReturn(Collections.emptyList());
+        when(categoriaRepository.findAll()).thenReturn(Collections.emptyList());
+
+        ResponseEntity<Map<String, Object>> response = healthController.diagnostico();
+
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
 
         @SuppressWarnings("unchecked")
         Map<String, Object> jvm = (Map<String, Object>) body.get("jvm");

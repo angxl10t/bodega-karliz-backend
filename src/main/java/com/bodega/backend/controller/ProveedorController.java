@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/proveedores")
+@PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
@@ -25,19 +26,16 @@ public class ProveedorController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<ProveedorDTO> crear(@Valid @RequestBody ProveedorDTO dto) {
         return new ResponseEntity<>(proveedorService.crear(dto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<ProveedorDTO> actualizar(@PathVariable Long id, @Valid @RequestBody ProveedorDTO dto) {
         return ResponseEntity.ok(proveedorService.actualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> desactivar(@PathVariable Long id) {
         proveedorService.desactivar(id);
         return ResponseEntity.noContent().build();

@@ -249,11 +249,10 @@ public class CatalogoPublicoController {
 
     private Bodega resolverBodega(String idOrSlug) {
         if (idOrSlug == null || idOrSlug.trim().isEmpty()) {
-            // Preferir bodega PRO activa si existe, o la primera registrada
-            return bodegaRepository.findAll().stream()
-                    .filter(b -> Boolean.TRUE.equals(b.getEstado()) && "PRO".equalsIgnoreCase(b.getPlan()))
-                    .findFirst()
-                    .orElseGet(() -> bodegaRepository.findFirstByOrderByIdBodegaAsc().orElse(null));
+            // Optimización anti-DoS: consulta LIMIT 1 en base de datos en lugar de cargar todas las tiendas en memoria
+            return bodegaRepository.findFirstByEstadoTrueAndPlanIgnoreCaseOrderByIdBodegaAsc("PRO")
+                    .or(() -> bodegaRepository.findFirstByOrderByIdBodegaAsc())
+                    .orElse(null);
         }
 
         String raw = idOrSlug.trim();

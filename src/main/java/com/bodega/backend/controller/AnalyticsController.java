@@ -17,7 +17,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/dashboard-bi")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN', 'CAJERO')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<DashboardBiDTO> obtenerDashboardBi(
             @RequestParam(defaultValue = "30") int dias) {
         return ResponseEntity.ok(analyticsService.obtenerDashboardBi(dias));
