@@ -17,7 +17,16 @@ import 'nueva_garantia_sheet.dart';
 import 'devolver_botella_dialog.dart';
 
 class ClientesScreen extends StatefulWidget {
-  const ClientesScreen({super.key});
+  final int initialTabIndex;
+  const ClientesScreen({super.key, this.initialTabIndex = 0});
+
+  /// Notificador reactivo para permitir que otras pantallas (como DashboardScreen o POS)
+  /// cambien suavemente de pestaña entre Libreta de Fiados (0) y Garantía de Botellas (1).
+  static final ValueNotifier<int> tabRequestNotifier = ValueNotifier<int>(0);
+
+  static void cambiarPestana(int tabIndex) {
+    tabRequestNotifier.value = tabIndex;
+  }
 
   @override
   State<ClientesScreen> createState() => _ClientesScreenState();
@@ -49,17 +58,33 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTabIndex.clamp(0, 1),
+    );
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
+    ClientesScreen.tabRequestNotifier.addListener(_onTabRequest);
     ClienteService.clientesRevision.addListener(_onRevisionChanged);
     GarantiaBotellaService.garantiasRevision.addListener(_onRevisionChanged);
     _cargarDatos();
   }
 
+  void _onTabRequest() {
+    final target = ClientesScreen.tabRequestNotifier.value;
+    if (mounted && target >= 0 && target < _tabController.length) {
+      if (_tabController.index != target) {
+        _tabController.animateTo(target);
+        setState(() {});
+      }
+    }
+  }
+
   @override
   void dispose() {
+    ClientesScreen.tabRequestNotifier.removeListener(_onTabRequest);
     _tabController.dispose();
     ClienteService.clientesRevision.removeListener(_onRevisionChanged);
     GarantiaBotellaService.garantiasRevision.removeListener(_onRevisionChanged);
@@ -395,7 +420,7 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Libreta de Fiados',
+                            _tabController.index == 0 ? 'Libreta de Fiados' : 'Garantía de Botellas',
                             style: GoogleFonts.outfit(
                               fontSize: 16.5,
                               fontWeight: FontWeight.w800,
@@ -404,41 +429,78 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                '$totalVecinos vecinos',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                          if (_tabController.index == 0)
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  '$totalVecinos vecinos',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 3,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
-                                  shape: BoxShape.circle,
+                                const SizedBox(width: 6),
+                                Container(
+                                  width: 3,
+                                  height: 3,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                vecinosDeudores > 0
-                                    ? '$vecinosDeudores con saldo'
-                                    : 'Todos al día',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: vecinosDeudores > 0
-                                      ? (isDark ? const Color(0xFFF87171) : AppTheme.alertRed)
-                                      : AppTheme.accentGreen,
+                                const SizedBox(width: 6),
+                                Text(
+                                  vecinosDeudores > 0
+                                      ? '$vecinosDeudores con saldo'
+                                      : 'Todos al día',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: vecinosDeudores > 0
+                                        ? (isDark ? const Color(0xFFF87171) : AppTheme.alertRed)
+                                        : AppTheme.accentGreen,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            )
+                          else
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  '${_garantias.length} registros',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  width: 3,
+                                  height: 3,
+                                  decoration: BoxDecoration(
+                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  botellasPendientes > 0
+                                      ? '$botellasPendientes envases pendientes'
+                                      : 'Sin envases pendientes',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: botellasPendientes > 0
+                                        ? const Color(0xFF2563EB)
+                                        : AppTheme.accentGreen,
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -564,7 +626,7 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               ),
 
             // Selector de Pestaña: Libreta de Fiados vs Garantía de Botellas
-            _buildTabBar(isDark, totalVecinos, botellasPendientes),
+            _buildTabBar(isDark, isNarrow, totalVecinos, botellasPendientes),
 
             // Contenido según Pestaña
             Expanded(
@@ -595,7 +657,7 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildTabBar(bool isDark, int totalVecinos, int botellasPendientes) {
+  Widget _buildTabBar(bool isDark, bool isNarrow, int totalVecinos, int botellasPendientes) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
       padding: const EdgeInsets.all(4),
@@ -627,7 +689,7 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               children: [
                 const Icon(LucideIcons.bookUser, size: 15),
                 const SizedBox(width: 6),
-                Text('Libreta de Fiados ($totalVecinos)'),
+                Text(isNarrow ? 'Fiados ($totalVecinos)' : 'Libreta de Fiados ($totalVecinos)'),
               ],
             ),
           ),
@@ -637,7 +699,7 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               children: [
                 const Icon(LucideIcons.wine, size: 15),
                 const SizedBox(width: 6),
-                Text('Garantía Botellas ($botellasPendientes)'),
+                Text(isNarrow ? 'Botellas ($botellasPendientes)' : 'Garantía Botellas ($botellasPendientes)'),
               ],
             ),
           ),

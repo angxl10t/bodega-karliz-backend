@@ -22,6 +22,7 @@ import '../../core/widgets/briefing_turno_modal.dart';
 import '../clientes/cliente_model.dart';
 import '../clientes/cliente_service.dart';
 import '../clientes/nuevo_cliente_sheet.dart';
+import '../clientes/nueva_garantia_sheet.dart';
 import '../../core/offline/offline_models.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_status_bar.dart';
@@ -468,6 +469,30 @@ class _VentasScreenState extends State<VentasScreen> {
       _clienteSeleccionado = null;
       _alertaDocMensaje = null;
     });
+  }
+
+  void _abrirModalGarantiaEnvase() async {
+    HapticFeedback.lightImpact();
+    List<Cliente> clientes = [];
+    try {
+      clientes = await _clienteService.getClientes();
+    } catch (_) {}
+    if (!mounted) return;
+    NuevaGarantiaSheet.show(
+      context,
+      clientesDisponibles: clientes,
+      clienteInicial: _clienteSeleccionado,
+      onGuardado: () {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Garantía de botellas registrada exitosamente en custodia!'),
+            backgroundColor: Color(0xFF10B981),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _escanearCodigoParaVenta() async {
@@ -2630,6 +2655,15 @@ class _VentasScreenState extends State<VentasScreen> {
                       color: const Color(0xFFE11D48),
                       bgColor: isDark ? const Color(0xFF4C0519) : const Color(0xFFFFE4E6),
                       onTap: () => EgresoCajaModal.show(context),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.wine,
+                      label: 'Garantía Botellas',
+                      color: const Color(0xFF2563EB),
+                      bgColor: isDark ? const Color(0xFF2563EB).withValues(alpha: 0.18) : const Color(0xFFEFF6FF),
+                      onTap: _abrirModalGarantiaEnvase,
                       isDark: isDark,
                     ),
                     const SizedBox(width: 6),

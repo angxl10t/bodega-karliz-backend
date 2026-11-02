@@ -16,6 +16,7 @@ import '../ventas/venta_model.dart';
 import '../ventas/venta_service.dart';
 import '../clientes/cliente_model.dart';
 import '../clientes/cliente_service.dart';
+import '../clientes/clientes_screen.dart';
 import '../compras/compras_screen.dart';
 import 'dashboard_bi_screen.dart';
 import '../movimientos/mermas_screen.dart';
@@ -709,7 +710,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.bookUser,
                               accentColor: const Color(0xFFD97706),
                               isDark: isDark,
-                              onTap: () => widget.onNavigateTab(4), // Tab Fiados
+                              onTap: () {
+                                widget.onNavigateTab(4);
+                                ClientesScreen.cambiarPestana(0);
+                              },
                             ),
                             _buildMetricTile(
                               constraints: constraints,
@@ -797,7 +801,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               icon: LucideIcons.bookUser,
                               color: AppTheme.brandPrimary,
                               isDark: isDark,
-                              onTap: () => widget.onNavigateTab(4), // Tab Fiados
+                              onTap: () {
+                                widget.onNavigateTab(4);
+                                ClientesScreen.cambiarPestana(0);
+                              },
+                            ),
+                            _buildQuickActionBtn(
+                              width: btnWidth,
+                              title: 'Garantía Botellas',
+                              subtitle: 'Envases & Devolución',
+                              icon: LucideIcons.wine,
+                              color: const Color(0xFF2563EB),
+                              isDark: isDark,
+                              onTap: () {
+                                widget.onNavigateTab(4);
+                                ClientesScreen.cambiarPestana(1);
+                              },
                             ),
                             _buildQuickActionBtn(
                               width: btnWidth,

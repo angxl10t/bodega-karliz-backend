@@ -9,17 +9,26 @@ import 'garantia_botella_service.dart';
 class NuevaGarantiaSheet extends StatefulWidget {
   final List<Cliente> clientesDisponibles;
   final VoidCallback onGuardado;
+  final Cliente? clienteInicial;
+  final int? cantidadInicial;
+  final String? tipoBotellaInicial;
 
   const NuevaGarantiaSheet({
     super.key,
     required this.clientesDisponibles,
     required this.onGuardado,
+    this.clienteInicial,
+    this.cantidadInicial,
+    this.tipoBotellaInicial,
   });
 
   static void show(
     BuildContext context, {
     required List<Cliente> clientesDisponibles,
     required VoidCallback onGuardado,
+    Cliente? clienteInicial,
+    int? cantidadInicial,
+    String? tipoBotellaInicial,
   }) {
     showModalBottomSheet(
       context: context,
@@ -28,6 +37,9 @@ class NuevaGarantiaSheet extends StatefulWidget {
       builder: (ctx) => NuevaGarantiaSheet(
         clientesDisponibles: clientesDisponibles,
         onGuardado: onGuardado,
+        clienteInicial: clienteInicial,
+        cantidadInicial: cantidadInicial,
+        tipoBotellaInicial: tipoBotellaInicial,
       ),
     );
   }
@@ -63,6 +75,19 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
   @override
   void initState() {
     super.initState();
+    if (widget.clienteInicial != null) {
+      _clienteSeleccionado = widget.clienteInicial;
+      _nombreCtrl.text = widget.clienteInicial!.nombreCompleto;
+      if (widget.clienteInicial!.telefono != null && widget.clienteInicial!.telefono!.isNotEmpty) {
+        _telefonoCtrl.text = widget.clienteInicial!.telefono!;
+      }
+    }
+    if (widget.cantidadInicial != null && widget.cantidadInicial! > 0) {
+      _cantidadBotellas = widget.cantidadInicial!;
+    }
+    if (widget.tipoBotellaInicial != null && widget.tipoBotellaInicial!.isNotEmpty) {
+      _tipoBotella = widget.tipoBotellaInicial!;
+    }
     _recalcularMonto();
   }
 
@@ -482,20 +507,44 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
               ),
               const SizedBox(height: 8),
 
-              // Chips de sugerencia de precio unitario
+              // Chips de sugerencia de precio unitario con contexto comercial
+              Text(
+                'Tarifa sugerida por envase',
+                style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white60 : AppTheme.textMuted),
+              ),
+              const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: [1.50, 2.00, 2.50, 3.00, 4.00, 5.00].map((p) {
-                  return ActionChip(
-                    label: Text('S/ ${p.toStringAsFixed(2)} c/u'),
+                children: [
+                  {'tarifa': 1.00, 'label': 'S/ 1.00 (Personal)'},
+                  {'tarifa': 2.00, 'label': 'S/ 2.00 (Cerveza / 1L)'},
+                  {'tarifa': 2.50, 'label': 'S/ 2.50'},
+                  {'tarifa': 3.00, 'label': 'S/ 3.00 (Familiar)'},
+                  {'tarifa': 5.00, 'label': 'S/ 5.00 (Caja)'},
+                  {'tarifa': 10.00, 'label': 'S/ 10.00 (Bidón)'},
+                ].map((item) {
+                  final tarifa = item['tarifa'] as double;
+                  final label = item['label'] as String;
+                  final isSel = (_montoUnitarioSugerido - tarifa).abs() < 0.01;
+                  return ChoiceChip(
+                    label: Text(label),
+                    selected: isSel,
+                    selectedColor: const Color(0xFF2563EB),
                     backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                    labelStyle: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w700),
-                    onPressed: () {
-                      setState(() {
-                        _montoUnitarioSugerido = p;
-                        _recalcularMonto();
-                      });
+                    labelStyle: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isSel ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                    ),
+                    onSelected: (sel) {
+                      if (sel) {
+                        HapticFeedback.selectionClick();
+                        setState(() {
+                          _montoUnitarioSugerido = tarifa;
+                          _recalcularMonto();
+                        });
+                      }
                     },
                   );
                 }).toList(),

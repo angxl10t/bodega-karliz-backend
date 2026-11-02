@@ -234,6 +234,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     if (_totalAhorroCarrito > 0) {
       buffer.writeln('🎁 *¡Ahorro total por Promociones: S/ ${_totalAhorroCarrito.toStringAsFixed(2)}!*');
     }
+    final bool incluyeRetornables = _carrito.keys.any((id) {
+      final p = _productos.firstWhere(
+        (prod) => prod['idProducto']?.toString() == id.toString(),
+        orElse: () => <String, dynamic>{},
+      );
+      return _esProductoRetornable(p);
+    });
+    if (incluyeRetornables) {
+      buffer.writeln('🍾 *Envases:* El pedido incluye productos con botella retornable (llevo envase vacío o consulto garantía).');
+    }
     if (notas != null && notas.trim().isNotEmpty) {
       buffer.writeln('');
       buffer.writeln('📝 *Indicaciones del cliente:* ${notas.trim()}');
@@ -1119,6 +1129,18 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     );
   }
 
+  bool _esProductoRetornable(Map<String, dynamic> prod) {
+    final nombre = (prod['nombre'] ?? '').toString().toLowerCase();
+    final categoria = (prod['categoria'] ?? '').toString().toLowerCase();
+    if (nombre.contains('retornable') || nombre.contains('envase') || nombre.contains('vidrio')) {
+      return true;
+    }
+    final esCervezaBotella = (categoria.contains('cerveza') || nombre.contains('cerveza') || nombre.contains('pilsen') || nombre.contains('cristal') || nombre.contains('cusqueña') || nombre.contains('arequipeña') || nombre.contains('trujillana')) &&
+        (nombre.contains('650') || nombre.contains('630') || nombre.contains('620') || nombre.contains('1l') || nombre.contains('1.1l') || nombre.contains('litro')) &&
+        !nombre.contains('lata');
+    return esCervezaBotella;
+  }
+
   Widget _buildProductoCard(Map<String, dynamic> prod, bool isDark, _CatalogoDeviceConfig config) {
     final int id = (prod['idProducto'] is int) ? prod['idProducto'] as int : int.parse(prod['idProducto'].toString());
     final String nombre = prod['nombre']?.toString() ?? 'Producto';
@@ -1261,25 +1283,62 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 8 : 6,
-                    vertical: isTablet ? 3 : 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(isTablet ? 7 : 5),
-                  ),
-                  child: Text(
-                    categoria,
-                    style: GoogleFonts.outfit(
-                      fontSize: config.categoriaFontSize,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 3,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 8 : 6,
+                        vertical: isTablet ? 3 : 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(isTablet ? 7 : 5),
+                      ),
+                      child: Text(
+                        categoria,
+                        style: GoogleFonts.outfit(
+                          fontSize: config.categoriaFontSize,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    if (_esProductoRetornable(prod))
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 6 : 5,
+                          vertical: isTablet ? 3 : 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0284C7).withValues(alpha: isDark ? 0.25 : 0.12),
+                          borderRadius: BorderRadius.circular(isTablet ? 7 : 5),
+                          border: Border.all(
+                            color: const Color(0xFF0284C7).withValues(alpha: 0.3),
+                            width: 0.6,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(LucideIcons.wine, size: 9.5, color: Color(0xFF0284C7)),
+                            const SizedBox(width: 2.5),
+                            Text(
+                              'Retornable',
+                              style: GoogleFonts.outfit(
+                                fontSize: (config.categoriaFontSize * 0.95).clamp(8.5, 11.0),
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF0284C7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(height: isTablet ? 5 : 3),
                 Text(
