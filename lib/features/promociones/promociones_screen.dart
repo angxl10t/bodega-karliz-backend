@@ -434,6 +434,8 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
               ),
             ),
           ],
+          const SizedBox(height: 8),
+          _buildVigenciaRow(p, isDark),
           const SizedBox(height: 10),
 
           // Footer info + Actions
@@ -490,6 +492,96 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildVigenciaRow(Promocion p, bool isDark) {
+    if (p.fechaInicio == null && p.fechaFin == null) {
+      return Row(
+        children: [
+          Icon(LucideIcons.infinity, size: 13, color: isDark ? Colors.white38 : AppTheme.textMuted),
+          const SizedBox(width: 5),
+          Text(
+            'Sin fecha límite (Permanente)',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: isDark ? Colors.white54 : AppTheme.textMuted,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    DateTime? dtInicio = p.fechaInicio != null ? DateTime.tryParse(p.fechaInicio!) : null;
+    DateTime? dtFin = p.fechaFin != null ? DateTime.tryParse(p.fechaFin!) : null;
+
+    String vigenciaTexto = '';
+    String estadoVigencia = '';
+    Color estadoColor = const Color(0xFF16A34A);
+    Color estadoBg = const Color(0xFF16A34A).withValues(alpha: 0.12);
+
+    String fmt(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+    if (dtInicio != null && dtFin != null) {
+      vigenciaTexto = '${fmt(dtInicio)} al ${fmt(dtFin)}';
+    } else if (dtInicio != null) {
+      vigenciaTexto = 'Desde el ${fmt(dtInicio)}';
+    } else if (dtFin != null) {
+      vigenciaTexto = 'Hasta el ${fmt(dtFin)}';
+    }
+
+    if (dtInicio != null && dtInicio.isAfter(today)) {
+      final diasFaltantes = dtInicio.difference(today).inDays;
+      estadoVigencia = diasFaltantes == 1 ? 'Inicia mañana' : 'Inicia en $diasFaltantes días';
+      estadoColor = const Color(0xFF2563EB);
+      estadoBg = const Color(0xFF2563EB).withValues(alpha: 0.12);
+    } else if (dtFin != null && dtFin.isBefore(today)) {
+      estadoVigencia = 'Expirada';
+      estadoColor = const Color(0xFFDC2626);
+      estadoBg = const Color(0xFFDC2626).withValues(alpha: 0.12);
+    } else if (dtFin != null && dtFin.difference(today).inDays <= 2) {
+      final diasRestantes = dtFin.difference(today).inDays;
+      estadoVigencia = diasRestantes == 0 ? 'Termina hoy' : (diasRestantes == 1 ? 'Termina mañana' : 'Termina en 2 días');
+      estadoColor = const Color(0xFFEA580C);
+      estadoBg = const Color(0xFFEA580C).withValues(alpha: 0.12);
+    } else {
+      estadoVigencia = 'En curso';
+      estadoColor = const Color(0xFF16A34A);
+      estadoBg = const Color(0xFF16A34A).withValues(alpha: 0.12);
+    }
+
+    return Row(
+      children: [
+        Icon(LucideIcons.calendarDays, size: 13, color: isDark ? Colors.white54 : AppTheme.textMuted),
+        const SizedBox(width: 5),
+        Text(
+          vigenciaTexto,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            color: isDark ? Colors.white70 : AppTheme.textDark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: estadoBg,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            estadoVigencia,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: estadoColor,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -40,6 +40,34 @@ void main() {
       expect(map['tipoPromocion'], 'PORCENTAJE');
     });
 
+    test('Promocion with scheduled dates serializes and deserializes correctly', () {
+      final json = {
+        'idPromocion': 25,
+        'idBodega': 3,
+        'titulo': 'Semana Coca-Cola 20% OFF',
+        'descripcion': 'Promoción programada de bebidas de marca Coca-Cola',
+        'tipoPromocion': 'PORCENTAJE',
+        'alcance': 'MARCA',
+        'valorDescuento': 20.0,
+        'marcaObjetivo': 'Coca Cola',
+        'badgeTexto': '🔥 -20%',
+        'colorBadge': '#EF4444',
+        'fechaInicio': '2026-11-05',
+        'fechaFin': '2026-11-12',
+        'activo': true,
+      };
+
+      final promo = Promocion.fromJson(json);
+
+      expect(promo.fechaInicio, '2026-11-05');
+      expect(promo.fechaFin, '2026-11-12');
+      expect(promo.marcaObjetivo, 'Coca Cola');
+
+      final map = promo.toJson();
+      expect(map['fechaInicio'], '2026-11-05');
+      expect(map['fechaFin'], '2026-11-12');
+    });
+
     test('SugerenciaComboHueso deserializes financial & strategic combo metrics', () {
       final json = {
         'idProductoHueso': 45,

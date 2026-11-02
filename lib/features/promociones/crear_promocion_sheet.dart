@@ -58,6 +58,8 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
   Producto? _productoPrincipal;
   Producto? _productoSecundario;
   String _colorBadge = '#EF4444';
+  DateTime? _fechaInicio;
+  DateTime? _fechaFin;
   bool _guardando = false;
 
   List<Categoria> _categorias = [];
@@ -90,6 +92,12 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
       _tipoPromocion = edit.tipoPromocion;
       _categoriaSeleccionada = edit.categoriaObjetivo;
       _colorBadge = edit.colorBadge;
+      if (edit.fechaInicio != null && edit.fechaInicio!.trim().isNotEmpty) {
+        _fechaInicio = DateTime.tryParse(edit.fechaInicio!.trim());
+      }
+      if (edit.fechaFin != null && edit.fechaFin!.trim().isNotEmpty) {
+        _fechaFin = DateTime.tryParse(edit.fechaFin!.trim());
+      }
     } else if (sug != null) {
       _tituloCtrl = TextEditingController(text: sug.tituloSugerido);
       _descripcionCtrl = TextEditingController(text: sug.descripcionSugerida);
@@ -172,6 +180,15 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
     try {
       final double valDescuento = double.tryParse(_descuentoCtrl.text.trim()) ?? 0.0;
 
+      String? fInicioStr;
+      if (_fechaInicio != null) {
+        fInicioStr = "${_fechaInicio!.year.toString().padLeft(4, '0')}-${_fechaInicio!.month.toString().padLeft(2, '0')}-${_fechaInicio!.day.toString().padLeft(2, '0')}";
+      }
+      String? fFinStr;
+      if (_fechaFin != null) {
+        fFinStr = "${_fechaFin!.year.toString().padLeft(4, '0')}-${_fechaFin!.month.toString().padLeft(2, '0')}-${_fechaFin!.day.toString().padLeft(2, '0')}";
+      }
+
       final data = <String, dynamic>{
         'titulo': _tituloCtrl.text.trim(),
         'descripcion': _descripcionCtrl.text.trim(),
@@ -186,6 +203,8 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
         'nombreProductoSecundario': _alcance == 'COMBO' ? _productoSecundario?.nombre : null,
         'badgeTexto': _badgeTextoCtrl.text.trim().isNotEmpty ? _badgeTextoCtrl.text.trim() : '🔥 OFERTA',
         'colorBadge': _colorBadge,
+        'fechaInicio': fInicioStr,
+        'fechaFin': fFinStr,
         'activo': true,
         'esSugerenciaHueso': widget.sugerenciaHueso != null,
       };
@@ -736,9 +755,258 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
-                // Live Preview del Badge en el Catálogo
+                // PROGRAMACIÓN DE VIGENCIA (FECHA INICIO Y FIN)
+                Text(
+                  'PROGRAMACIÓN DE VIGENCIA (FECHA INICIO Y FIN)',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Define desde y hasta qué fecha estará activa la promoción en tu catálogo online (opcional).',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    // Selector Fecha de Inicio
+                    Expanded(
+                      child: InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _fechaInicio ?? DateTime.now(),
+                            firstDate: DateTime(2025),
+                            lastDate: DateTime(2030),
+                            builder: (ctx, child) => Theme(
+                              data: isDark ? ThemeData.dark() : ThemeData.light(),
+                              child: child!,
+                            ),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _fechaInicio = picked;
+                              if (_fechaFin != null && _fechaFin!.isBefore(picked)) {
+                                _fechaFin = picked.add(const Duration(days: 7));
+                              }
+                            });
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: _fechaInicio != null
+                                  ? AppTheme.brandPrimary.withValues(alpha: 0.5)
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                LucideIcons.calendarDays,
+                                size: 16,
+                                color: _fechaInicio != null ? AppTheme.brandPrimary : AppTheme.textMuted,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'FECHA INICIO',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      _fechaInicio != null
+                                          ? '${_fechaInicio!.day.toString().padLeft(2, '0')}/${_fechaInicio!.month.toString().padLeft(2, '0')}/${_fechaInicio!.year}'
+                                          : 'Hoy (Inmediato)',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_fechaInicio != null)
+                                GestureDetector(
+                                  onTap: () => setState(() => _fechaInicio = null),
+                                  child: const Icon(LucideIcons.x, size: 14, color: Color(0xFF94A3B8)),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Selector Fecha de Fin
+                    Expanded(
+                      child: InkWell(
+                        onTap: () async {
+                          final initial = _fechaFin ?? (_fechaInicio ?? DateTime.now()).add(const Duration(days: 7));
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: initial,
+                            firstDate: _fechaInicio ?? DateTime(2025),
+                            lastDate: DateTime(2030),
+                            builder: (ctx, child) => Theme(
+                              data: isDark ? ThemeData.dark() : ThemeData.light(),
+                              child: child!,
+                            ),
+                          );
+                          if (picked != null) {
+                            setState(() => _fechaFin = picked);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: _fechaFin != null
+                                  ? const Color(0xFFEA580C).withValues(alpha: 0.5)
+                                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                LucideIcons.calendarClock,
+                                size: 16,
+                                color: _fechaFin != null ? const Color(0xFFEA580C) : AppTheme.textMuted,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'FECHA FIN',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      _fechaFin != null
+                                          ? '${_fechaFin!.day.toString().padLeft(2, '0')}/${_fechaFin!.month.toString().padLeft(2, '0')}/${_fechaFin!.year}'
+                                          : 'Sin límite (Indefinido)',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_fechaFin != null)
+                                GestureDetector(
+                                  onTap: () => setState(() => _fechaFin = null),
+                                  child: const Icon(LucideIcons.x, size: 14, color: Color(0xFF94A3B8)),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Accesos Rápidos
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ActionChip(
+                        label: const Text('1 Semana'),
+                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700),
+                        side: BorderSide.none,
+                        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                        onPressed: () {
+                          final now = DateTime.now();
+                          setState(() {
+                            _fechaInicio = DateTime(now.year, now.month, now.day);
+                            _fechaFin = _fechaInicio!.add(const Duration(days: 7));
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        label: const Text('15 Días'),
+                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700),
+                        side: BorderSide.none,
+                        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                        onPressed: () {
+                          final now = DateTime.now();
+                          setState(() {
+                            _fechaInicio = DateTime(now.year, now.month, now.day);
+                            _fechaFin = _fechaInicio!.add(const Duration(days: 15));
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        label: const Text('Fin de Mes'),
+                        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700),
+                        side: BorderSide.none,
+                        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                        onPressed: () {
+                          final now = DateTime.now();
+                          final ultimoDia = DateTime(now.year, now.month + 1, 0);
+                          setState(() {
+                            _fechaInicio = DateTime(now.year, now.month, now.day);
+                            _fechaFin = ultimoDia;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      if (_fechaInicio != null || _fechaFin != null)
+                        ActionChip(
+                          label: const Text('Limpiar Fechas'),
+                          labelStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFFEF4444)),
+                          side: BorderSide.none,
+                          backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                          onPressed: () {
+                            setState(() {
+                              _fechaInicio = null;
+                              _fechaFin = null;
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
