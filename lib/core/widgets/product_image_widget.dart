@@ -125,6 +125,8 @@ class ProductImageWidget extends StatelessWidget {
           child: Image.network(
             effectiveUrl,
             fit: BoxFit.contain,
+            cacheWidth: (size * 2.5).round().clamp(100, 600),
+            cacheHeight: (size * 2.5).round().clamp(100, 600),
             filterQuality: FilterQuality.medium,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
@@ -155,6 +157,8 @@ class ProductImageWidget extends StatelessWidget {
                   return Image.network(
                     _resolverUrl(fallbackSug.imagenUrl),
                     fit: BoxFit.contain,
+                    cacheWidth: (size * 2.5).round().clamp(100, 600),
+                    cacheHeight: (size * 2.5).round().clamp(100, 600),
                     errorBuilder: (_, _, _) => _buildCategoryFallback(catIcon, catColor),
                   );
                 }
