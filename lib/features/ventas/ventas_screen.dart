@@ -471,7 +471,11 @@ class _VentasScreenState extends State<VentasScreen> {
     });
   }
 
-  void _abrirModalGarantiaEnvase() async {
+  void _abrirModalGarantiaEnvase({
+    int? cantidadSugerida,
+    String? tipoBotellaSugerida,
+    Cliente? clientePreseleccionado,
+  }) async {
     HapticFeedback.lightImpact();
     List<Cliente> clientes = [];
     try {
@@ -481,7 +485,9 @@ class _VentasScreenState extends State<VentasScreen> {
     NuevaGarantiaSheet.show(
       context,
       clientesDisponibles: clientes,
-      clienteInicial: _clienteSeleccionado,
+      clienteInicial: clientePreseleccionado ?? _clienteSeleccionado,
+      cantidadInicial: cantidadSugerida,
+      tipoBotellaInicial: tipoBotellaSugerida,
       onGuardado: () {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -492,6 +498,181 @@ class _VentasScreenState extends State<VentasScreen> {
           ),
         );
       },
+    );
+  }
+
+  bool _esBotellaRetornable(String nombreProducto, [String? categoria]) {
+    final n = nombreProducto.toLowerCase();
+    final cat = (categoria ?? '').toLowerCase();
+
+    // Descartar explícitamente no retornables o latas/packs descartables
+    if (n.contains('no retornable') ||
+        n.contains('descartable') ||
+        n.contains('lata') ||
+        n.contains('six pack') ||
+        n.contains('sixpack') ||
+        n.contains('pack') ||
+        n.contains('tetra') ||
+        n.contains('caja')) {
+      return false;
+    }
+
+    // Coincidencias directas por palabra clave
+    if (n.contains('retornable') || n.contains('retorn.') || n.contains('retorn') || n.contains('envase')) {
+      return true;
+    }
+
+    // Bidones y galoneras de agua que requieren garantía de envase
+    if (n.contains('bidon') || n.contains('bidón') || n.contains('galonera')) {
+      return true;
+    }
+
+    // Cervezas clásicas en botella de vidrio de bodega peruana
+    final esCerveza = cat.contains('cerveza') || cat.contains('licor') ||
+        n.contains('cerveza') || n.contains('cristal') || n.contains('pilsen') ||
+        n.contains('cusqueña') || n.contains('cusquena') || n.contains('arequipeña') ||
+        n.contains('trujillo') || n.contains('stella') || n.contains('corona');
+
+    if (esCerveza) {
+      if (n.contains('650') || n.contains('630') || n.contains('620') ||
+          n.contains('1l') || n.contains('1 litro') || n.contains('1.1l') ||
+          n.contains('litro') || n.contains('botella') || n.contains('vidrio')) {
+        return true;
+      }
+    }
+
+    // Gaseosas retornables clásicas
+    final esGaseosa = cat.contains('gaseosa') || cat.contains('bebida') ||
+        n.contains('inca kola') || n.contains('inka kola') || n.contains('coca cola') ||
+        n.contains('pepsi') || n.contains('concordia') || n.contains('kola real') || n.contains('fanta') || n.contains('sprite');
+
+    if (esGaseosa) {
+      if (n.contains('vidrio') || n.contains('gordita') || n.contains('1l') ||
+          n.contains('1.5l') || n.contains('litro')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  String _determinarTipoBotella(String nombre) {
+    final n = nombre.toLowerCase();
+    if (n.contains('bidon') || n.contains('bidón') || n.contains('galonera')) {
+      return 'Bidón / Galonera';
+    }
+    if (n.contains('personal') || n.contains('300') || n.contains('296') || n.contains('330') || n.contains('355')) {
+      return 'Personal Vidrio';
+    }
+    if (n.contains('1l') || n.contains('1 litro') || n.contains('litro') || n.contains('1.1l')) {
+      if (n.contains('cerveza') || n.contains('cristal') || n.contains('pilsen') || n.contains('cusque')) {
+        return 'Cerveza 1L';
+      }
+      return 'Gaseosa 1L / 1.5L';
+    }
+    if (n.contains('1.5l') || n.contains('1.25l')) {
+      return 'Gaseosa 1L / 1.5L';
+    }
+    if (n.contains('gaseosa') || n.contains('kola') || n.contains('cola')) {
+      return 'Gaseosa 1L / 1.5L';
+    }
+    return 'Cerveza 650ml';
+  }
+
+  int get _totalBotellasRetornablesEnCarrito {
+    int total = 0;
+    for (final item in _carrito) {
+      if (_esBotellaRetornable(item.producto.nombre, item.producto.nombreCategoria)) {
+        total += item.cantidad.toInt();
+      }
+    }
+    return total;
+  }
+
+  String get _tipoBotellaSugeridaEnCarrito {
+    for (final item in _carrito) {
+      if (_esBotellaRetornable(item.producto.nombre, item.producto.nombreCategoria)) {
+        return _determinarTipoBotella(item.producto.nombre);
+      }
+    }
+    return 'Cerveza 650ml';
+  }
+
+  Widget _buildRetornablesCartBanner(bool isDark) {
+    final int count = _totalBotellasRetornablesEnCarrito;
+    if (count <= 0) return const SizedBox.shrink();
+
+    final tipoSugerido = _tipoBotellaSugeridaEnCarrito;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? const Color(0xFF3B82F6).withValues(alpha: 0.4) : const Color(0xFFBFDBFE),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(LucideIcons.wine, size: 16, color: Color(0xFF2563EB)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$count ${count == 1 ? "botella retornable" : "botellas retornables"} en carrito',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : const Color(0xFF1E3A8A),
+                  ),
+                ),
+                Text(
+                  '¿El cliente trajo envases vacíos para cambio?',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10.5,
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          InkWell(
+            onTap: () => _abrirModalGarantiaEnvase(
+              cantidadSugerida: count,
+              tipoBotellaSugerida: tipoSugerido,
+              clientePreseleccionado: _clienteSeleccionado,
+            ),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Garantía',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1846,6 +2027,15 @@ class _VentasScreenState extends State<VentasScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool esCredito = metodo == 'Crédito' || clienteCredito != null;
 
+    int totalRetornablesVendidas = 0;
+    String tipoBotellaDetectada = 'Cerveza 650ml';
+    for (final it in items) {
+      if (_esBotellaRetornable(it.producto.nombre, it.producto.nombreCategoria)) {
+        totalRetornablesVendidas += it.cantidad.toInt();
+        tipoBotellaDetectada = _determinarTipoBotella(it.producto.nombre);
+      }
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -2130,6 +2320,86 @@ class _VentasScreenState extends State<VentasScreen> {
                 ],
               ),
             ),
+            if (totalRetornablesVendidas > 0) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF2563EB).withValues(alpha: 0.45),
+                    width: 1.3,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(LucideIcons.wine, size: 18, color: Color(0xFF2563EB)),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '¿El cliente se lleva envases vacíos?',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                              color: isDark ? Colors.white : const Color(0xFF1E3A8A),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Se ${totalRetornablesVendidas == 1 ? "vendió 1 botella retornable" : "vendieron $totalRetornablesVendidas botellas retornables"}. Si no dejó envases a cambio, registra la garantía en custodia para respaldar la devolución.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(LucideIcons.shieldAlert, size: 16),
+                        label: Text(
+                          'REGISTRAR GARANTÍA ($totalRetornablesVendidas ${totalRetornablesVendidas == 1 ? "BOTELLA" : "BOTELLAS"})',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _abrirModalGarantiaEnvase(
+                            cantidadSugerida: totalRetornablesVendidas,
+                            tipoBotellaSugerida: tipoBotellaDetectada,
+                            clientePreseleccionado: clienteCredito ?? _clienteSeleccionado,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -3077,6 +3347,10 @@ class _VentasScreenState extends State<VentasScreen> {
                         ),
                       ],
                     ),
+                    if (_totalBotellasRetornablesEnCarrito > 0) ...[
+                      const SizedBox(height: 12),
+                      _buildRetornablesCartBanner(isDark),
+                    ],
                     const SizedBox(height: 16),
                     _buildCobrarButton(isDark: isDark, height: 52, isTablet: false),
                   ],
@@ -4143,6 +4417,10 @@ class _VentasScreenState extends State<VentasScreen> {
               ],
             ),
           ),
+          if (_totalBotellasRetornablesEnCarrito > 0) ...[
+            const SizedBox(height: 8),
+            _buildRetornablesCartBanner(isDark),
+          ],
           const SizedBox(height: 8),
 
           // Botones de Acción (Ticket Térmico + Cobro)

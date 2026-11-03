@@ -87,6 +87,15 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
     }
     if (widget.tipoBotellaInicial != null && widget.tipoBotellaInicial!.isNotEmpty) {
       _tipoBotella = widget.tipoBotellaInicial!;
+      if (_tipoBotella.contains('Bidón') || _tipoBotella.contains('Galonera')) {
+        _montoUnitarioSugerido = 10.00;
+      } else if (_tipoBotella.contains('Personal')) {
+        _montoUnitarioSugerido = 1.00;
+      } else if (_tipoBotella.contains('1L') && !_tipoBotella.contains('Gaseosa')) {
+        _montoUnitarioSugerido = 2.50;
+      } else {
+        _montoUnitarioSugerido = 2.00;
+      }
     }
     _recalcularMonto();
   }
@@ -228,6 +237,13 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                         ),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white70 : const Color(0xFF475569)),
+                    tooltip: 'Cerrar',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
@@ -569,26 +585,51 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
               ),
               const SizedBox(height: 24),
 
-              // Botón Guardar
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 2,
+              // Botones Cancelar y Guardar
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                          side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ),
                   ),
-                  icon: _guardando
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Icon(LucideIcons.check, size: 18),
-                  label: Text(
-                    _guardando ? 'Guardando garantía...' : 'Registrar Garantía de Botellas',
-                    style: GoogleFonts.outfit(fontSize: 14.5, fontWeight: FontWeight.w800),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          elevation: 2,
+                        ),
+                        icon: _guardando
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Icon(LucideIcons.check, size: 18),
+                        label: Text(
+                          _guardando ? 'Guardando...' : 'Registrar Garantía',
+                          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800),
+                        ),
+                        onPressed: _guardando ? null : _guardar,
+                      ),
+                    ),
                   ),
-                  onPressed: _guardando ? null : _guardar,
-                ),
+                ],
               ),
             ],
           ),
