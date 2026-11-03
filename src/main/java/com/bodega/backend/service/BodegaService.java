@@ -2038,11 +2038,23 @@ public class BodegaService {
 
         String estadoNorm = (nuevoEstado != null && !nuevoEstado.isBlank()) ? nuevoEstado.trim().toUpperCase() : "CONFIRMADO";
 
-
-
         pago.setEstado(estadoNorm);
 
-
+        if ("CONFIRMADO".equalsIgnoreCase(estadoNorm)) {
+            Bodega b = pago.getBodega();
+            if (b != null) {
+                java.time.OffsetDateTime baseTime = (b.getFechaVencimientoPlan() != null && b.getFechaVencimientoPlan().isAfter(java.time.OffsetDateTime.now()))
+                        ? b.getFechaVencimientoPlan()
+                        : java.time.OffsetDateTime.now();
+                b.setFechaVencimientoPlan(baseTime.plusDays(30));
+                if (pago.getPlan() != null && !pago.getPlan().isBlank()) {
+                    b.setPlan(pago.getPlan().trim().toUpperCase());
+                }
+                b.setEstado(true);
+                bodegaRepository.save(b);
+                userSecurityCacheService.evictAll();
+            }
+        }
 
         com.bodega.backend.entity.PagoSuscripcion guardado = pagoSuscripcionRepository.save(pago);
 
@@ -2260,7 +2272,81 @@ public class BodegaService {
 
 
 
+
+    @Transactional
+    public com.bodega.backend.dto.PagoSuscripcionDTO reportarPagoManual(com.bodega.backend.dto.PagoYapeDTO dto) {
+        Bodega bodega = tenantService.getCurrentBodega();
+        String codOp = dto.getCodigoOperacion() != null ? dto.getCodigoOperacion().trim() : "";
+        String billetera = dto.getBilletera() != null ? dto.getBilletera().trim().toUpperCase() : "YAPE";
+        String planSolicitado = dto.getPlan() != null ? dto.getPlan().trim().toUpperCase() : "PRO";
+
+        if (pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion(billetera, codOp)) {
+            throw new RuntimeException("El código de operación '" + codOp + "' de " + billetera + " ya fue registrado previamente en el sistema.");
+        }
+
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String usuarioActual = (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) 
+                ? auth.getName() : "ADMIN";
+
+        com.bodega.backend.entity.PagoSuscripcion pago = new com.bodega.backend.entity.PagoSuscripcion();
+        pago.setBodega(bodega);
+        pago.setCodigoOperacion(codOp);
+        pago.setBilletera(billetera);
+        pago.setPlan(planSolicitado);
+        pago.setMonto(dto.getMonto() != null ? dto.getMonto() : (("PRO".equals(planSolicitado)) ? new java.math.BigDecimal("100.00") : new java.math.BigDecimal("50.00")));
+        pago.setUsuarioRegistro(usuarioActual);
+        pago.setEstado("PENDIENTE");
+
+        com.bodega.backend.entity.PagoSuscripcion guardado = pagoSuscripcionRepository.save(pago);
+        return mapPagoToDTO(guardado);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<java.util.Map<String, Object>> obtenerResumenSuscripcionesParaMacro() {
+        java.util.List<Bodega> bodegas = bodegaRepository.findAll();
+        java.util.List<java.util.Map<String, Object>> lista = new java.util.ArrayList<>();
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+
+        for (Bodega b : bodegas) {
+            java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+            map.put("idBodega", b.getIdBodega());
+            map.put("nombreComercial", b.getNombreComercial());
+            map.put("telefono", b.getTelefono() != null ? b.getTelefono() : "");
+            map.put("plan", b.getPlan() != null ? b.getPlan() : "BASICO");
+            map.put("estado", Boolean.TRUE.equals(b.getEstado()));
+            map.put("fechaVencimientoPlan", b.getFechaVencimientoPlan() != null ? b.getFechaVencimientoPlan().toString() : null);
+
+            long diasRestantes = 0;
+            String estadoSuscripcion = "VENCIDO";
+            if (b.getFechaVencimientoPlan() != null) {
+                diasRestantes = java.time.Duration.between(now, b.getFechaVencimientoPlan()).toDays();
+                if (diasRestantes > 5) {
+                    estadoSuscripcion = "ACTIVO";
+                } else if (diasRestantes >= 0) {
+                    estadoSuscripcion = "POR_VENCER";
+                } else {
+                    estadoSuscripcion = "VENCIDO";
+                }
+            }
+            map.put("diasRestantes", diasRestantes);
+            map.put("estadoSuscripcion", estadoSuscripcion);
+
+            var pagos = pagoSuscripcionRepository.findByBodega_IdBodegaOrderByFechaPagoDesc(b.getIdBodega());
+            if (pagos != null && !pagos.isEmpty()) {
+                var ultimo = pagos.get(0);
+                map.put("ultimoPagoCodigo", ultimo.getCodigoOperacion());
+                map.put("ultimoPagoMonto", ultimo.getMonto());
+                map.put("ultimoPagoEstado", ultimo.getEstado());
+                map.put("ultimoPagoFecha", ultimo.getFechaPago() != null ? ultimo.getFechaPago().toString() : null);
+            } else {
+                map.put("ultimoPagoCodigo", null);
+                map.put("ultimoPagoMonto", null);
+                map.put("ultimoPagoEstado", null);
+                map.put("ultimoPagoFecha", null);
+            }
+
+            lista.add(map);
+        }
+        return lista;
+    }
 }
-
-
-

@@ -165,4 +165,26 @@ public class BodegaController {
         bodegaService.eliminarAnuncioGlobal();
         return ResponseEntity.ok(java.util.Map.of("mensaje", "Anuncio global eliminado exitosamente"));
     }
+
+    @GetMapping("/macro/resumen-suscripciones")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> obtenerResumenSuscripcionesParaMacro() {
+        return ResponseEntity.ok(bodegaService.obtenerResumenSuscripcionesParaMacro());
+    }
+
+    @PostMapping("/reportar-pago-manual")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<com.bodega.backend.dto.PagoSuscripcionDTO> reportarPagoManual(
+            @jakarta.validation.Valid @RequestBody com.bodega.backend.dto.PagoYapeDTO dto) {
+        return ResponseEntity.ok(bodegaService.reportarPagoManual(dto));
+    }
+
+    @PostMapping("/{id}/extender-suscripcion")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<BodegaDTO> extenderSuscripcion(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "30") Integer dias,
+            @RequestParam(required = false) String plan) {
+        return ResponseEntity.ok(bodegaService.cambiarPlanBodega(id, plan, dias));
+    }
 }
