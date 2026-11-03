@@ -687,6 +687,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
   void _mostrarDialogoDetalleIngreso(Producto p, [StateSetter? setModalState]) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    Producto productoActual = p;
     final idxExistente = _canastaCompras.indexWhere((c) => c.idProducto == p.idProducto);
     final existente = idxExistente != -1 ? _canastaCompras[idxExistente] : null;
 
@@ -706,6 +707,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           final cant = double.tryParse(cantCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
           final costo = double.tryParse(costoCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
           final subtotal = cant * costo;
+          final pv = productoActual.precioVenta;
+          final gananciaUnitaria = pv - costo;
+          final margenPct = pv > 0 ? (gananciaUnitaria / pv) * 100 : 0.0;
+          final esMargenCritico = costo >= pv && costo > 0;
+          final esMargenBajo = !esMargenCritico && margenPct < 18.0 && costo > 0;
+          final precioSugerido = ((costo / 0.78) * 10).ceil() / 10.0;
 
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
@@ -732,7 +739,7 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800),
                       ),
                       Text(
-                        'P. Venta público: S/ ${p.precioVenta.toStringAsFixed(2)}',
+                        'P. Venta público: S/ ${productoActual.precioVenta.toStringAsFixed(2)}',
                         style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
                       ),
                     ],
@@ -802,6 +809,106 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     ],
                   ),
                 ),
+                if (esMargenCritico || esMargenBajo) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: esMargenCritico
+                          ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
+                          : (isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB)),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              esMargenCritico ? LucideIcons.alertOctagon : LucideIcons.trendingUp,
+                              size: 16,
+                              color: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                esMargenCritico
+                                    ? '¡Alerta de Pérdida por Inflación!'
+                                    : '¡Margen Comprometido (${margenPct.toStringAsFixed(1)}%)!',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          esMargenCritico
+                              ? 'El costo (S/ ${costo.toStringAsFixed(2)}) supera tu precio de venta actual (S/ ${pv.toStringAsFixed(2)}). Estarías vendiendo a pérdida.'
+                              : 'La subida de costo reduce tu ganancia a solo S/ ${gananciaUnitaria.toStringAsFixed(2)} por unidad. Sugerimos actualizar el precio para proteger tu margen.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            height: 1.25,
+                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 36,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            icon: const Icon(LucideIcons.arrowUpRight, size: 14),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Actualizar P. Venta a S/ ${precioSugerido.toStringAsFixed(2)} (Margen 22%)',
+                                style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                            onPressed: () async {
+                              final nuevoProd = productoActual.copyWith(
+                                precioVenta: precioSugerido,
+                                precioCosto: costo,
+                              );
+                              final ok = await _productoService.actualizarProducto(nuevoProd);
+                              if (ok) {
+                                setState(() {
+                                  final pIdx = _productos.indexWhere((it) => it.idProducto == p.idProducto);
+                                  if (pIdx != -1) _productos[pIdx] = nuevoProd;
+                                });
+                                setDlgState(() {
+                                  productoActual = nuevoProd;
+                                });
+                                setModalState?.call(() {});
+                                if (dlgCtx.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('¡Precio de venta actualizado a S/ ${precioSugerido.toStringAsFixed(2)}!'),
+                                      backgroundColor: AppTheme.accentGreen,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
             actions: [

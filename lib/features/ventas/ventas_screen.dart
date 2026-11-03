@@ -29,6 +29,20 @@ import '../../core/offline/offline_status_bar.dart';
 import '../../core/offline/uuid_helper.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../home/configuracion_ticket_modal.dart';
+import '../promociones/promocion_model.dart';
+import '../promociones/promocion_service.dart';
+
+class PromoAplicada {
+  final Promocion promocion;
+  final double descuento;
+  final String descripcion;
+
+  PromoAplicada({
+    required this.promocion,
+    required this.descuento,
+    required this.descripcion,
+  });
+}
 
 class VentasScreen extends StatefulWidget {
   const VentasScreen({super.key});
@@ -42,6 +56,8 @@ class _VentasScreenState extends State<VentasScreen> {
   final VentaService _ventaService = VentaService();
   final DocumentoService _documentoService = DocumentoService();
   final ClienteService _clienteService = ClienteService();
+  final PromocionService _promocionService = PromocionService();
+  List<Promocion> _promocionesActivas = [];
 
   List<Producto> _productosDisponibles = [];
   final List<CartItem> _carrito = [];
@@ -76,6 +92,13 @@ class _VentasScreenState extends State<VentasScreen> {
   bool _isProcesando = false;
 
   List<Producto> get _safeDisponibles => _productosDisponibles;
+
+  String _formatCantidad(double cant) {
+    if (cant % 1 == 0) return cant.toInt().toString();
+    if ((cant * 10) % 1 == 0) return cant.toStringAsFixed(1);
+    if ((cant * 100) % 1 == 0) return cant.toStringAsFixed(2);
+    return cant.toStringAsFixed(3);
+  }
 
   String _formatStock(double stock) {
     return stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(2);
@@ -216,6 +239,7 @@ class _VentasScreenState extends State<VentasScreen> {
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
     _cargarConfiguracionTributaria();
     _cargarProductos();
+    _cargarPromociones();
   }
 
   Future<void> _cargarConfiguracionTributaria() async {
@@ -301,12 +325,149 @@ class _VentasScreenState extends State<VentasScreen> {
         _productosDisponibles = List<Producto>.from(productos.where((p) => p.stockActual > 0));
         _recalcularTabletCatalogCache();
         _isLoading = false;
+        if (forceRefresh) {
+          _cargarPromociones();
+        }
       });
     }
   }
 
   double get _totalVenta {
+    final finalTotal = _subtotalVenta - _totalDescuentoPromociones;
+    return finalTotal < 0 ? 0.0 : finalTotal;
+  }
+
+  Future<void> _cargarPromociones() async {
+    try {
+      final promos = await _promocionService.obtenerPromociones();
+      if (mounted) {
+        setState(() {
+          _promocionesActivas = promos.where((p) => p.activo).toList();
+        });
+      }
+    } catch (_) {
+      // Offline fallback: continuar sin bloquear el POS
+    }
+  }
+
+  List<PromoAplicada> get _promocionesAplicadas {
+    if (_promocionesActivas.isEmpty || _carrito.isEmpty) return [];
+    final List<PromoAplicada> aplicadas = [];
+
+    for (final promo in _promocionesActivas) {
+      if (!promo.activo) continue;
+
+      if (promo.tipoPromocion == 'COMBO' || promo.tipoPromocion == 'COMBO_HUESO') {
+        if (promo.idProductoPrincipal != null &&
+            promo.idProductoSecundario != null &&
+            promo.precioCombo != null) {
+          CartItem? itA;
+          CartItem? itB;
+          for (final it in _carrito) {
+            if (it.producto.idProducto == promo.idProductoPrincipal) itA = it;
+            if (it.producto.idProducto == promo.idProductoSecundario) itB = it;
+          }
+          if (itA != null && itB != null) {
+            final countCombos = (itA.cantidad < itB.cantidad ? itA.cantidad : itB.cantidad).toInt();
+            if (countCombos > 0) {
+              final precioNormal = (itA.producto.precioVenta + itB.producto.precioVenta) * countCombos;
+              final precioConPromo = promo.precioCombo! * countCombos;
+              final ahorro = (precioNormal - precioConPromo).clamp(0.0, 999999.0);
+              if (ahorro > 0.01) {
+                aplicadas.add(PromoAplicada(
+                  promocion: promo,
+                  descuento: ahorro,
+                  descripcion: '${promo.titulo}: -S/ ${ahorro.toStringAsFixed(2)} ($countCombos combo${countCombos > 1 ? 's' : ''})',
+                ));
+              }
+            }
+          }
+        }
+      } else if (promo.tipoPromocion == 'DOS_POR_UNO') {
+        if (promo.idProductoPrincipal != null) {
+          CartItem? it;
+          for (final c in _carrito) {
+            if (c.producto.idProducto == promo.idProductoPrincipal) {
+              it = c;
+              break;
+            }
+          }
+          if (it != null && it.cantidad >= 2) {
+            final pares = (it.cantidad ~/ 2);
+            final ahorro = pares * it.producto.precioVenta;
+            if (ahorro > 0.01) {
+              aplicadas.add(PromoAplicada(
+                promocion: promo,
+                descuento: ahorro,
+                descripcion: '${promo.titulo}: 2x1 en ${it.producto.nombre} (-S/ ${ahorro.toStringAsFixed(2)})',
+              ));
+            }
+          }
+        }
+      } else if (promo.tipoPromocion == 'PORCENTAJE') {
+        if (promo.alcance == 'PRODUCTO' && promo.idProductoPrincipal != null) {
+          for (final it in _carrito) {
+            if (it.producto.idProducto == promo.idProductoPrincipal) {
+              final ahorro = it.subtotal * (promo.valorDescuento / 100.0);
+              if (ahorro > 0.01) {
+                aplicadas.add(PromoAplicada(
+                  promocion: promo,
+                  descuento: ahorro,
+                  descripcion: '${promo.titulo}: ${promo.valorDescuento.toStringAsFixed(0)}% dscto. (-S/ ${ahorro.toStringAsFixed(2)})',
+                ));
+              }
+            }
+          }
+        } else if (promo.alcance == 'CATEGORIA' && promo.categoriaObjetivo != null) {
+          final catNorm = promo.categoriaObjetivo!.toLowerCase().trim();
+          double subtotalCat = 0.0;
+          for (final it in _carrito) {
+            if ((it.producto.nombreCategoria ?? '').toLowerCase().trim() == catNorm) {
+              subtotalCat += it.subtotal;
+            }
+          }
+          if (subtotalCat > 0) {
+            final ahorro = subtotalCat * (promo.valorDescuento / 100.0);
+            if (ahorro > 0.01) {
+              aplicadas.add(PromoAplicada(
+                promocion: promo,
+                descuento: ahorro,
+                descripcion: '${promo.titulo}: ${promo.valorDescuento.toStringAsFixed(0)}% dscto. (-S/ ${ahorro.toStringAsFixed(2)})',
+              ));
+            }
+          }
+        }
+      } else if (promo.tipoPromocion == 'MONTO_FIJO') {
+        if (promo.alcance == 'PRODUCTO' && promo.idProductoPrincipal != null) {
+          for (final it in _carrito) {
+            if (it.producto.idProducto == promo.idProductoPrincipal) {
+              final ahorro = (promo.valorDescuento * it.cantidad).clamp(0.0, it.subtotal);
+              if (ahorro > 0.01) {
+                aplicadas.add(PromoAplicada(
+                  promocion: promo,
+                  descuento: ahorro,
+                  descripcion: '${promo.titulo}: -S/ ${ahorro.toStringAsFixed(2)}',
+                ));
+              }
+            }
+          }
+        }
+      }
+    }
+    return aplicadas;
+  }
+
+  double get _subtotalVenta {
     return _carrito.fold(0.0, (acc, item) => acc + item.subtotal);
+  }
+
+  double get _totalDescuentoPromociones {
+    return _promocionesAplicadas.fold<double>(0.0, (acc, p) => acc + p.descuento);
+  }
+
+  String get _totalUnidadesTexto {
+    final total = _carrito.fold<double>(0.0, (acc, item) => acc + item.cantidad);
+    return _formatCantidad(total);
   }
 
   int get _totalUnidades {
@@ -386,9 +547,10 @@ class _VentasScreenState extends State<VentasScreen> {
     return lista.take(5).toList();
   }
 
-  void _agregarAlCarrito(Producto p, {bool playSound = true}) {
+  void _agregarAlCarrito(Producto p, {bool playSound = true, double cantidad = 1.0}) {
     final idx = _carrito.indexWhere((item) => item.producto.idProducto == p.idProducto);
-    if (idx != -1 && _carrito[idx].cantidad >= p.stockActual) {
+    final cantidadActual = idx != -1 ? _carrito[idx].cantidad : 0.0;
+    if (cantidadActual + cantidad > p.stockActual) {
       KarlizSoundService.instance.playErrorBeep();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -408,9 +570,9 @@ class _VentasScreenState extends State<VentasScreen> {
     final totalAnterior = _totalVenta;
     setState(() {
       if (idx != -1) {
-        _carrito[idx].cantidad += 1;
+        _carrito[idx].cantidad += cantidad;
       } else {
-        _carrito.add(CartItem(producto: p, cantidad: 1.0));
+        _carrito.add(CartItem(producto: p, cantidad: cantidad));
       }
       _actualizarMontoExactoSiCorresponde(totalAnterior);
     });
@@ -718,7 +880,41 @@ class _VentasScreenState extends State<VentasScreen> {
       }
     }
 
-    // 3. Evaluar el producto si fue encontrado
+    double cantidadPesada = 1.0;
+    bool esBalanzaDetectada = false;
+
+    // 3. Decodificador Inteligente de Balanza Electrónica (Estándar GS1 in-store 13 dígitos)
+    // Prefijo (2 dígitos: 20 ó 21) + SKU Producto (4 ó 5 dígitos) + Peso en gramos (5 dígitos) + Checksum (1 dígito)
+    if (productoEncontrado == null &&
+        codeClean.length == 13 &&
+        (codeClean.startsWith('20') || codeClean.startsWith('21'))) {
+      final prodSku5 = codeClean.substring(2, 7);
+      final prodSku4 = codeClean.substring(2, 6);
+      final rawWeight = int.tryParse(codeClean.substring(7, 12)) ?? 0;
+
+      if (rawWeight > 0) {
+        cantidadPesada = rawWeight / 1000.0;
+        for (final p in _safeDisponibles) {
+          if (_coincideCodigoBalanza(p, prodSku5, prodSku4)) {
+            productoEncontrado = p;
+            esBalanzaDetectada = true;
+            break;
+          }
+        }
+        if (productoEncontrado == null) {
+          final productosFrescos = await _productoService.getProductos(forceRefresh: true);
+          for (final p in productosFrescos) {
+            if (_coincideCodigoBalanza(p, prodSku5, prodSku4)) {
+              productoEncontrado = p;
+              esBalanzaDetectada = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // 4. Evaluar el producto si fue encontrado
     if (productoEncontrado != null) {
       // Verificar si realmente tiene stock
       if (productoEncontrado.stockActual <= 0) {
@@ -754,7 +950,7 @@ class _VentasScreenState extends State<VentasScreen> {
         orElse: () => CartItem(producto: productoEncontrado!, cantidad: 0),
       );
 
-      if (currentInCart.cantidad >= productoEncontrado.stockActual) {
+      if (currentInCart.cantidad + cantidadPesada > productoEncontrado.stockActual) {
         KarlizSoundService.instance.playErrorBeep();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -782,10 +978,33 @@ class _VentasScreenState extends State<VentasScreen> {
       }
 
       // Añadir directamente a la canasta con audio de éxito
-      _agregarAlCarrito(productoEncontrado, playSound: true);
+      _agregarAlCarrito(productoEncontrado, playSound: true, cantidad: cantidadPesada);
 
       if (mounted) {
-        final restante = (productoEncontrado.stockActual - currentInCart.cantidad - 1).clamp(0, 999999);
+        final restante = (productoEncontrado.stockActual - currentInCart.cantidad - cantidadPesada).clamp(0.0, 999999.0);
+        if (esBalanzaDetectada) {
+          final importeBalanza = productoEncontrado.precioVenta * cantidadPesada;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(LucideIcons.scale, color: Colors.white, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '⚖️ Balanza detectada: ${productoEncontrado.nombre} • ${_formatCantidad(cantidadPesada)} kg (S/ ${importeBalanza.toStringAsFixed(2)})',
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF0D9488),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          );
+        } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -794,7 +1013,7 @@ class _VentasScreenState extends State<VentasScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Agregado: ${productoEncontrado.nombre} (S/ ${productoEncontrado.precioVenta.toStringAsFixed(2)}) • Quedan ${restante.toStringAsFixed(0)} u.',
+                    'Agregado: ${productoEncontrado.nombre} (S/ ${productoEncontrado.precioVenta.toStringAsFixed(2)}) • Quedan ${_formatStock(restante)}',
                     style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -806,6 +1025,7 @@ class _VentasScreenState extends State<VentasScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
         );
+        }
       }
       return;
     }
@@ -838,125 +1058,481 @@ class _VentasScreenState extends State<VentasScreen> {
 
   void _editarCantidadDirecta(int index) {
     final item = _carrito[index];
-    final initialQty = item.cantidad % 1 == 0 ? item.cantidad.toInt().toString() : item.cantidad.toStringAsFixed(2);
-    final ctrl = TextEditingController(text: initialQty);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final stockFormatted = item.producto.stockActual % 1 == 0
-        ? item.producto.stockActual.toInt().toString()
-        : item.producto.stockActual.toStringAsFixed(2);
+    final esPesable = item.producto.esPesableOGranel;
+    final pv = item.producto.precioVenta;
+    final stockFormatted = _formatStock(item.producto.stockActual);
+
+    int modo = 0; // 0 = Cantidad / Peso, 1 = Por Dinero (S/.)
+    final initialQty = _formatCantidad(item.cantidad);
+    final cantCtrl = TextEditingController(text: initialQty);
+    final dineroCtrl = TextEditingController(
+      text: (item.cantidad * pv).toStringAsFixed(2),
+    );
 
     showDialog(
       context: context,
-      builder: (dlgCtx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            const Icon(LucideIcons.hash, color: AppTheme.brandPrimary, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Modificar Cantidad',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              item.producto.nombre,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Stock disponible: $stockFormatted unidades',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-              ),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: ctrl,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.brandPrimary),
-              decoration: InputDecoration(
-                labelText: 'Cantidad a vender',
-                suffixText: 'unidades',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
+      builder: (dlgCtx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final cantActual = double.tryParse(cantCtrl.text.trim().replaceAll(',', '.')) ?? item.cantidad;
+          final importeActual = double.tryParse(dineroCtrl.text.trim().replaceAll(',', '.')) ?? (cantActual * pv);
+          final cantCalculada = pv > 0 ? (importeActual / pv) : 0.0;
+
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            title: Row(
               children: [
-                if (item.producto.stockActual >= 6)
-                  ActionChip(
-                    label: const Text('+6 (Six-pack)'),
-                    onPressed: () => ctrl.text = '6',
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                if (item.producto.stockActual >= 12)
-                  ActionChip(
-                    label: const Text('+12 (Docena)'),
-                    onPressed: () => ctrl.text = '12',
+                  child: Icon(
+                    esPesable ? LucideIcons.scale : LucideIcons.hash,
+                    color: AppTheme.brandPrimary,
+                    size: 20,
                   ),
-                if (item.producto.stockActual >= 24)
-                  ActionChip(
-                    label: const Text('+24 (Caja)'),
-                    onPressed: () => ctrl.text = '24',
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        esPesable ? 'Venta por Peso / Granel' : 'Modificar Cantidad',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                      ),
+                      Text(
+                        item.producto.nombre,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  onPressed: () => Navigator.pop(dlgCtx),
+                  tooltip: 'Cerrar',
+                ),
               ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dlgCtx),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.brandPrimary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            content: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Segmented Selector de Modo
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                setModalState(() {
+                                  modo = 0;
+                                  cantCtrl.text = _formatCantidad(cantCalculada > 0 ? cantCalculada : item.cantidad);
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: modo == 0
+                                      ? (isDark ? AppTheme.cardDarkElevated : Colors.white)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: modo == 0
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.05),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: Text(
+                                  esPesable ? '⚖️ Por Kilos / Cantidad' : '🔢 Cantidad',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: modo == 0 ? FontWeight.w800 : FontWeight.w600,
+                                    fontSize: 12,
+                                    color: modo == 0
+                                        ? AppTheme.brandPrimary
+                                        : (isDark ? AppTheme.textDarkMuted : const Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                setModalState(() {
+                                  modo = 1;
+                                  dineroCtrl.text = (cantActual * pv).toStringAsFixed(2);
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: modo == 1
+                                      ? (isDark ? AppTheme.cardDarkElevated : Colors.white)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: modo == 1
+                                      ? [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.05),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: Text(
+                                  '💵 Por Dinero (S/.)',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: modo == 1 ? FontWeight.w800 : FontWeight.w600,
+                                    fontSize: 12,
+                                    color: modo == 1
+                                        ? const Color(0xFF0D9488)
+                                        : (isDark ? AppTheme.textDarkMuted : const Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Información de stock y precio base
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Stock: $stockFormatted ${esPesable ? 'kg/u' : 'unid.'}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                          ),
+                        ),
+                        Text(
+                          'P. Venta: S/ ${pv.toStringAsFixed(2)}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.brandPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    if (modo == 0) ...[
+                      // MODO 0: Cantidad / Peso
+                      TextField(
+                        controller: cantCtrl,
+                        autofocus: true,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (_) => setModalState(() {}),
+                        style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.brandPrimary),
+                        decoration: InputDecoration(
+                          labelText: esPesable ? 'Peso / Cantidad' : 'Cantidad a vender',
+                          suffixText: esPesable ? 'kg' : 'unid.',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Chips de acceso rápido
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (esPesable) ...[
+                            ActionChip(
+                              label: const Text('¼ kg (0.25)'),
+                              onPressed: () {
+                                cantCtrl.text = '0.25';
+                                setModalState(() {});
+                              },
+                            ),
+                            ActionChip(
+                              label: const Text('½ kg (0.50)'),
+                              onPressed: () {
+                                cantCtrl.text = '0.50';
+                                setModalState(() {});
+                              },
+                            ),
+                            ActionChip(
+                              label: const Text('¾ kg (0.75)'),
+                              onPressed: () {
+                                cantCtrl.text = '0.75';
+                                setModalState(() {});
+                              },
+                            ),
+                            ActionChip(
+                              label: const Text('1 kg'),
+                              onPressed: () {
+                                cantCtrl.text = '1.0';
+                                setModalState(() {});
+                              },
+                            ),
+                            ActionChip(
+                              label: const Text('2 kg'),
+                              onPressed: () {
+                                cantCtrl.text = '2.0';
+                                setModalState(() {});
+                              },
+                            ),
+                          ] else ...[
+                            if (item.producto.stockActual >= 6)
+                              ActionChip(
+                                label: const Text('+6 (Six-pack)'),
+                                onPressed: () {
+                                  cantCtrl.text = '6';
+                                  setModalState(() {});
+                                },
+                              ),
+                            if (item.producto.stockActual >= 12)
+                              ActionChip(
+                                label: const Text('+12 (Docena)'),
+                                onPressed: () {
+                                  cantCtrl.text = '12';
+                                  setModalState(() {});
+                                },
+                              ),
+                            if (item.producto.stockActual >= 24)
+                              ActionChip(
+                                label: const Text('+24 (Caja)'),
+                                onPressed: () {
+                                  cantCtrl.text = '24';
+                                  setModalState(() {});
+                                },
+                              ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Importe Total:',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                            ),
+                            Text(
+                              'S/ ${(cantActual * pv).toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.brandPrimary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      // MODO 1: Calculadora Inversa ("Deme S/ 2 de queso")
+                      TextField(
+                        controller: dineroCtrl,
+                        autofocus: true,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        onChanged: (_) => setModalState(() {}),
+                        style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w900, color: const Color(0xFF0D9488)),
+                        decoration: InputDecoration(
+                          labelText: 'Importe solicitado en Soles',
+                          prefixText: 'S/ ',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final m in [1.0, 1.5, 2.0, 3.0, 5.0, 10.0])
+                            ActionChip(
+                              label: Text('S/ ${m.toStringAsFixed(2)}'),
+                              onPressed: () {
+                                dineroCtrl.text = m.toStringAsFixed(2);
+                                setModalState(() {});
+                              },
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(LucideIcons.sparkles, size: 16, color: Color(0xFF0D9488)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Cálculo Inverso Automático',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                    color: const Color(0xFF0D9488),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '💡 Equivale a ${_formatCantidad(cantCalculada)} ${esPesable ? 'kg (${(cantCalculada * 1000).toStringAsFixed(0)} g)' : 'unidades'}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
-            onPressed: () {
-              final parsed = double.tryParse(ctrl.text.trim().replaceAll(',', '.')) ?? item.cantidad;
-              if (parsed <= 0) {
-                _eliminarDelCarrito(index);
-                Navigator.pop(dlgCtx);
-                return;
-              }
-              if (parsed > item.producto.stockActual) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Stock insuficiente: solo hay $stockFormatted disponibles.'),
-                    backgroundColor: AppTheme.alertRed,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dlgCtx),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: modo == 0 ? AppTheme.brandPrimary : const Color(0xFF0D9488),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: () {
+                  final finalQty = modo == 0
+                      ? (double.tryParse(cantCtrl.text.trim().replaceAll(',', '.')) ?? item.cantidad)
+                      : cantCalculada;
+
+                  if (finalQty <= 0) {
+                    _eliminarDelCarrito(index);
+                    Navigator.pop(dlgCtx);
+                    return;
+                  }
+                  if (finalQty > item.producto.stockActual) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Stock insuficiente: solo hay $stockFormatted disponibles.'),
+                        backgroundColor: AppTheme.alertRed,
+                      ),
+                    );
+                    return;
+                  }
+                  setState(() {
+                    item.cantidad = finalQty;
+                    if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
+                      _pagoConController.text = _totalVenta.toStringAsFixed(2);
+                    }
+                  });
+                  Navigator.pop(dlgCtx);
+                },
+                child: const Text('Aceptar'),
+              ),
+            ],
+          );
+        },
+      ),
+    ).then((_) {
+      cantCtrl.dispose();
+      dineroCtrl.dispose();
+    });
+  }
+
+  Widget _buildPromocionesCartBanner(bool isDark) {
+    if (_totalDescuentoPromociones <= 0.01) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10B981).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(LucideIcons.tag, size: 16, color: Color(0xFF059669)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '🎉 ¡Ahorro en Promociones: -S/ ${_totalDescuentoPromociones.toStringAsFixed(2)}!',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? const Color(0xFF34D399) : const Color(0xFF065F46),
                   ),
-                );
-                return;
-              }
-              setState(() {
-                item.cantidad = parsed;
-                if (_metodoPago == 'Efectivo' && _pagoConController.text.isNotEmpty) {
-                  _pagoConController.text = _totalVenta.toStringAsFixed(2);
-                }
-              });
-              Navigator.pop(dlgCtx);
-            },
-            child: const Text('Aceptar'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              for (final pa in _promocionesAplicadas)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    pa.descripcion,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? const Color(0xFFA7F3D0) : const Color(0xFF065F46),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
-    ).then((_) => ctrl.dispose());
+    );
   }
 
   bool _coincideCodigo(Producto p, String rawCode) {
@@ -984,6 +1560,22 @@ class _VentasScreenState extends State<VentasScreen> {
     }
 
     return false;
+  }
+
+  bool _coincideCodigoBalanza(Producto p, String sku5, String sku4) {
+    final cod = p.codigo.trim().toLowerCase();
+    final bc = (p.codigoBarras ?? '').trim().toLowerCase();
+    final sku5Num = int.tryParse(sku5)?.toString() ?? '';
+    final sku4Num = int.tryParse(sku4)?.toString() ?? '';
+
+    return cod == sku5.toLowerCase() ||
+        (sku5Num.isNotEmpty && cod == sku5Num) ||
+        cod == sku4.toLowerCase() ||
+        (sku4Num.isNotEmpty && cod == sku4Num) ||
+        bc == sku5.toLowerCase() ||
+        (sku5Num.isNotEmpty && bc == sku5Num) ||
+        bc == sku4.toLowerCase() ||
+        (sku4Num.isNotEmpty && bc == sku4Num);
   }
 
   void _mostrarModalInfoProducto(Producto p) {
@@ -1747,6 +2339,138 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
+  Future<bool?> _mostrarDialogoAutorizarExcesoCredito(Cliente c, double montoVenta) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final nuevoSaldo = c.saldoDeudor + montoVenta;
+    final exceso = nuevoSaldo - c.limiteCredito;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (dlgCtx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.alertRed.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(LucideIcons.shieldAlert, color: AppTheme.alertRed, size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Límite de Crédito Superado',
+                    style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w800),
+                  ),
+                  Text(
+                    'Se requiere autorización para fiar',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.alertRed,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(LucideIcons.x, size: 18),
+              onPressed: () => Navigator.pop(dlgCtx, false),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'El cliente ${c.nombreCompleto} superará su límite de crédito autorizado con esta compra:',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Límite asignado:', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted)),
+                      Text('S/ ${c.limiteCredito.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Deuda actual:', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted)),
+                      Text('S/ ${c.saldoDeudor.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: const Color(0xFFD97706))),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Venta actual:', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted)),
+                      Text('+ S/ ${montoVenta.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: AppTheme.brandPrimary)),
+                    ],
+                  ),
+                  const Divider(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Nuevo saldo total:', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800)),
+                      Text('S/ ${nuevoSaldo.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w900, color: AppTheme.alertRed)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Exceso sobre el límite:', style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.alertRed)),
+                      Text('+ S/ ${exceso.toStringAsFixed(2)}', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.alertRed)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(dlgCtx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.alertRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            icon: const Icon(LucideIcons.check, size: 16),
+            label: const Text('Autorizar Exceso'),
+            onPressed: () => Navigator.pop(dlgCtx, true),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _procesarVenta() async {
     if (_isProcesando) return;
 
@@ -1838,6 +2562,14 @@ class _VentasScreenState extends State<VentasScreen> {
         );
         _mostrarSelectorCliente();
         return;
+      }
+
+      // Semáforo de Riesgo: Validar límite de crédito antes de fiar
+      if (_clienteSeleccionado!.excedeCon(_totalVenta)) {
+        KarlizSoundService.instance.playErrorBeep();
+        final bool? autorizar = await _mostrarDialogoAutorizarExcesoCredito(_clienteSeleccionado!, _totalVenta);
+        if (autorizar != true) return;
+        if (!mounted) return;
       }
     }
 
@@ -1943,6 +2675,7 @@ class _VentasScreenState extends State<VentasScreen> {
         final pagadoCon = _montoRecibido > 0 ? _montoRecibido : totalCobrado;
         final itemsVendidos = List<CartItem>.from(_carrito);
         final clienteFiado = _clienteSeleccionado;
+        final ahorroPromos = _totalDescuentoPromociones;
 
         _vaciarCarrito();
 
@@ -1976,6 +2709,7 @@ class _VentasScreenState extends State<VentasScreen> {
             pagadoCon: pagadoCon,
             vuelto: cambio,
             ventaGenerada: result.venta,
+            descuento: ahorroPromos,
             silencioso: true,
           );
         }
@@ -1988,6 +2722,7 @@ class _VentasScreenState extends State<VentasScreen> {
           vuelto: cambio,
           ventaGenerada: result.venta,
           clienteCredito: clienteFiado,
+          descuento: ahorroPromos,
         );
       } else {
         KarlizSoundService.instance.playErrorBeep();
@@ -2023,6 +2758,7 @@ class _VentasScreenState extends State<VentasScreen> {
     required double vuelto,
     VentaRegistro? ventaGenerada,
     Cliente? clienteCredito,
+    double? descuento,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool esCredito = metodo == 'Crédito' || clienteCredito != null;
@@ -2199,7 +2935,7 @@ class _VentasScreenState extends State<VentasScreen> {
                   return Row(
                     children: [
                       Text(
-                        '${it.cantidad.toStringAsFixed(0)}x ',
+                        '${_formatCantidad(it.cantidad)}x ',
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w800,
                           fontSize: 12.5,
@@ -2243,6 +2979,30 @@ class _VentasScreenState extends State<VentasScreen> {
               ),
               child: Column(
                 children: [
+                  if (descuento != null && descuento > 0.01) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Ahorro en Promociones:',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF059669),
+                          ),
+                        ),
+                        Text(
+                          '-S/ ${descuento.toStringAsFixed(2)}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF059669),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -2451,6 +3211,7 @@ class _VentasScreenState extends State<VentasScreen> {
                           pagadoCon: pagadoCon,
                           vuelto: vuelto,
                           ventaGenerada: ventaGenerada,
+                          descuento: descuento,
                           silencioso: false,
                         );
                       },
@@ -2473,6 +3234,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       pagadoCon: pagadoCon,
                       vuelto: vuelto,
                       ventaGenerada: ventaGenerada,
+                      descuento: descuento,
                     );
                   },
                 ),
@@ -2508,6 +3270,7 @@ class _VentasScreenState extends State<VentasScreen> {
     required double pagadoCon,
     required double vuelto,
     VentaRegistro? ventaGenerada,
+    double? descuento,
     bool silencioso = false,
   }) async {
     final cfg = ConfiguracionTicketService.actual;
@@ -2550,6 +3313,7 @@ class _VentasScreenState extends State<VentasScreen> {
       metodoPago: metodo,
       items: ticketItems,
       total: total,
+      descuento: descuento,
       pagadoCon: pagadoCon,
       vuelto: vuelto,
       width: cfg.anchoPapel,
@@ -2589,6 +3353,7 @@ class _VentasScreenState extends State<VentasScreen> {
     required double pagadoCon,
     required double vuelto,
     VentaRegistro? ventaGenerada,
+    double? descuento,
   }) {
     final ticketItems = items.map((it) {
       return TicketItem(
@@ -2615,6 +3380,7 @@ class _VentasScreenState extends State<VentasScreen> {
             metodoPago: metodo,
             items: ticketItems,
             total: total,
+            descuento: descuento,
             pagadoCon: pagadoCon,
             vuelto: vuelto,
             width: selectedWidth,
@@ -3004,7 +3770,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  '$_totalUnidades u.',
+                                  '$_totalUnidadesTexto u.',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -3133,7 +3899,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
-                                        item.cantidad.toStringAsFixed(0),
+                                        _formatCantidad(item.cantidad),
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w800,
@@ -3319,7 +4085,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                 ),
                               ),
                               Text(
-                                '$_totalUnidades productos en canasta',
+                                '$_totalUnidadesTexto productos en canasta',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.plusJakartaSans(
@@ -3347,6 +4113,10 @@ class _VentasScreenState extends State<VentasScreen> {
                         ),
                       ],
                     ),
+                    if (_totalDescuentoPromociones > 0.01) ...[
+                      const SizedBox(height: 8),
+                      _buildPromocionesCartBanner(isDark),
+                    ],
                     if (_totalBotellasRetornablesEnCarrito > 0) ...[
                       const SizedBox(height: 12),
                       _buildRetornablesCartBanner(isDark),
@@ -4279,7 +5049,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                                     alignment: Alignment.center,
                                     child: Text(
-                                      item.cantidad.toStringAsFixed(0),
+                                      _formatCantidad(item.cantidad),
                                       style: GoogleFonts.outfit(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w800,
@@ -4417,6 +5187,10 @@ class _VentasScreenState extends State<VentasScreen> {
               ],
             ),
           ),
+          if (_totalDescuentoPromociones > 0.01) ...[
+            const SizedBox(height: 8),
+            _buildPromocionesCartBanner(isDark),
+          ],
           if (_totalBotellasRetornablesEnCarrito > 0) ...[
             const SizedBox(height: 8),
             _buildRetornablesCartBanner(isDark),
@@ -5834,26 +6608,46 @@ class _VentasScreenState extends State<VentasScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                                           decoration: BoxDecoration(
-                                            color: c.tieneDeuda
-                                                ? const Color(0xFFD97706).withValues(alpha: 0.15)
-                                                : AppTheme.accentGreen.withValues(alpha: 0.15),
+                                            color: c.colorRiesgo.withValues(alpha: isDark ? 0.2 : 0.12),
                                             borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            c.tieneDeuda ? 'Debe S/ ${c.saldoDeudor.toStringAsFixed(2)}' : 'Al día',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: c.tieneDeuda ? const Color(0xFFD97706) : AppTheme.accentGreen,
+                                            border: Border.all(
+                                              color: c.colorRiesgo.withValues(alpha: isDark ? 0.4 : 0.3),
+                                              width: 1,
                                             ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                width: 6,
+                                                height: 6,
+                                                decoration: BoxDecoration(
+                                                  color: c.colorRiesgo,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                c.tieneDeuda ? 'S/ ${c.saldoDeudor.toStringAsFixed(2)}' : 'Al día',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: c.colorRiesgo,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)}',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                          'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)} • ${c.etiquetaRiesgo}',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: c.colorRiesgo,
+                                          ),
                                         ),
                                       ],
                                     ),

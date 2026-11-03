@@ -61,6 +61,36 @@ class Producto {
   /// Costo estimado de adquisición para cálculos contables de merma y auditoría
   double get costoUnitarioEstimado => precioCosto ?? (precioVenta * 0.75);
 
+  /// Indica si el producto se comercializa usualmente al peso o a granel (verduras, frutas, carnes, embutidos, queso, pan, granel)
+  bool get esPesableOGranel {
+    final cat = (nombreCategoria ?? '').toLowerCase();
+    final nom = nombre.toLowerCase();
+    final cod = codigo.toLowerCase();
+    return cat.contains('verdura') ||
+        cat.contains('fruta') ||
+        cat.contains('carne') ||
+        cat.contains('embutido') ||
+        cat.contains('granel') ||
+        cat.contains('queso') ||
+        cat.contains('panader') ||
+        nom.contains('kg') ||
+        nom.contains('kilo') ||
+        nom.contains('granel') ||
+        nom.contains('gramo') ||
+        nom.contains('queso') ||
+        nom.contains('jamon') ||
+        nom.contains('jamón') ||
+        nom.contains('huevo') ||
+        nom.contains('pollo') ||
+        nom.contains('carne') ||
+        nom.contains('papa') ||
+        nom.contains('arroz') ||
+        nom.contains('azucar') ||
+        nom.contains('azúcar') ||
+        cod.startsWith('20') ||
+        cod.startsWith('21');
+  }
+
   factory Producto.fromJson(Map<String, dynamic> json) {
     DateTime? parseFecha(dynamic raw) {
       if (raw == null) return null;

@@ -136,6 +136,7 @@ class ThermalTicketService {
     required String metodoPago,
     required List<TicketItem> items,
     required double total,
+    double? descuento,
     double? pagadoCon,
     double? vuelto,
     String? cajero,
@@ -230,7 +231,11 @@ class ThermalTicketService {
 
     // Lista de ítems vendidos
     for (final item in items) {
-      final cantStr = item.cantidad.toStringAsFixed(item.cantidad.truncateToDouble() == item.cantidad ? 0 : 2);
+      final cantStr = item.cantidad % 1 == 0
+          ? item.cantidad.toInt().toString()
+          : (item.cantidad * 100 % 1 == 0
+              ? item.cantidad.toStringAsFixed(2)
+              : item.cantidad.toStringAsFixed(3));
       final precioStr = 'S/ ${item.subtotal.toStringAsFixed(2)}';
       final desc = item.nombre;
 
@@ -241,6 +246,11 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Totales y Liquidación de Pago
+    if (descuento != null && descuento > 0.01) {
+      final sub = total + descuento;
+      buffer.writeln(twoColumns('SUBTOTAL:', 'S/ ${sub.toStringAsFixed(2)}', width));
+      buffer.writeln(twoColumns('AHORRO EN PROMOS:', '-S/ ${descuento.toStringAsFixed(2)}', width));
+    }
     if (esFactura && regimenTributario != 'NUEVO_RUS') {
       final opGravada = total / 1.18;
       final igv = total - opGravada;
@@ -320,6 +330,7 @@ class ThermalTicketService {
     required String metodoPago,
     required List<TicketItem> items,
     required double total,
+    double? descuento,
     double? pagadoCon,
     double? vuelto,
     String? cajero,
@@ -369,6 +380,7 @@ class ThermalTicketService {
       metodoPago: metodoPago,
       items: items,
       total: total,
+      descuento: descuento,
       pagadoCon: pagadoCon,
       vuelto: vuelto,
       cajero: cajero,

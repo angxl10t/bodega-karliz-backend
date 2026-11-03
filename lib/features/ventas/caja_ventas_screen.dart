@@ -473,14 +473,29 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
       }
     }
 
+    // Top productos del turno
+    final prodCounts = <String, double>{};
+    for (final v in _ventas) {
+      for (final d in v.detalles) {
+        prodCounts[d.nombreProducto] = (prodCounts[d.nombreProducto] ?? 0.0) + d.cantidad;
+      }
+    }
+    final topProductos = prodCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final listaEgresos = c?.egresos ?? [];
+    final ticketPromedio = cantidadVentas > 0 ? (totalVendido / cantidadVentas) : 0.0;
+    final ahora = DateTime.now();
+    final horaStr = '${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}';
+
     final msg = StringBuffer();
-    msg.writeln('📊 *REPORTE EJECUTIVO DE CIERRE DE CAJA*');
-    msg.writeln('✨ *CajaYa Cloud POS - Resumen del Dueño*');
+    msg.writeln('📊 *REPORTE Z DE CIERRE DE CAJA*');
+    msg.writeln('✨ *CajaYa Cloud POS - Monitoreo del Dueño*');
     msg.writeln('🏪 *Bodega:* $_nombreBodega');
-    msg.writeln('📅 *Fecha:* ${_formatearFechaCompleta(_fechaSeleccionada)}');
-    msg.writeln('👤 *Cajero:* $_username');
+    msg.writeln('📅 *Fecha:* ${_formatearFechaCompleta(_fechaSeleccionada)} • $horaStr');
+    msg.writeln('👤 *Cajero de Turno:* $_username');
     msg.writeln('------------------------------------------');
-    msg.writeln('💵 *FLUJO DE EFECTIVO:*');
+    msg.writeln('💵 *FLUJO DE EFECTIVO EN GAVETA:*');
     msg.writeln('• Base Inicial (Sencillo): S/ ${fondoInicial.toStringAsFixed(2)}');
     msg.writeln('• (+) Ventas Efectivo: S/ ${totalEfectivo.toStringAsFixed(2)}');
     if (totalAbonosEf > 0) {
@@ -490,7 +505,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     msg.writeln('• (=) Efectivo Esperado: S/ ${totalEsperado.toStringAsFixed(2)}');
     if (_efectivoContado != null) {
       msg.writeln('• Efectivo Real Contado: S/ ${_efectivoContado!.toStringAsFixed(2)}');
-      msg.writeln('• 📌 *Diferencia:* $estadoDif');
+      msg.writeln('• 📌 *Estado de Cuadre:* $estadoDif');
+    } else {
+      msg.writeln('• ⚠️ *Arqueo Físico:* No registrado aún');
     }
     msg.writeln('------------------------------------------');
     msg.writeln('📱 *CANALES DIGITALES:*');
@@ -498,19 +515,46 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
     msg.writeln('• Plin: S/ ${totalPlin.toStringAsFixed(2)}');
     msg.writeln('• Tarjetas: S/ ${totalTarjeta.toStringAsFixed(2)}');
     if (totalAbonosDig > 0) {
-      msg.writeln('• Cobro Fiados por Yape/Plin: S/ ${totalAbonosDig.toStringAsFixed(2)}');
+      msg.writeln('• Cobro Fiados Digitales: S/ ${totalAbonosDig.toStringAsFixed(2)}');
     }
     if (totalCredito > 0) {
-      msg.writeln('• Fiados / Crédito Otorgado: S/ ${totalCredito.toStringAsFixed(2)}');
+      msg.writeln('• Fiados Otorgados hoy: S/ ${totalCredito.toStringAsFixed(2)}');
     }
     msg.writeln('------------------------------------------');
-    msg.writeln('💰 *TOTAL RECAUDADO:* S/ ${totalVendido.toStringAsFixed(2)} ($cantidadVentas ventas)');
+    msg.writeln('💰 *CONSOLIDADO GENERAL:*');
+    msg.writeln('• Ventas Totales: S/ ${totalVendido.toStringAsFixed(2)} ($cantidadVentas transacciones)');
+    msg.writeln('• Ticket Promedio: S/ ${ticketPromedio.toStringAsFixed(2)}');
     if (totalAbonosCobrados > 0) {
-      msg.writeln('🤝 *Cobranza de Deudas:* S/ ${totalAbonosCobrados.toStringAsFixed(2)} ($cantidadAbonos abonos)');
+      msg.writeln('• Cobranza de Deudas: S/ ${totalAbonosCobrados.toStringAsFixed(2)} ($cantidadAbonos pagos recibidos)');
     }
 
+    if (topProductos.isNotEmpty) {
+      msg.writeln('------------------------------------------');
+      msg.writeln('🏆 *TOP PRODUCTOS MÁS VENDIDOS:*');
+      for (final entry in topProductos.take(3)) {
+        final cantFmt = entry.value % 1 == 0 ? entry.value.toInt().toString() : entry.value.toStringAsFixed(2);
+        msg.writeln('• ${entry.key}: $cantFmt u.');
+      }
+    }
+
+    if (listaEgresos.isNotEmpty) {
+      msg.writeln('------------------------------------------');
+      msg.writeln('📤 *EGRESOS REGISTRADOS:*');
+      for (final eg in listaEgresos) {
+        msg.writeln('• ${eg.motivo}: -S/ ${eg.monto.toStringAsFixed(2)}');
+      }
+    }
+    msg.writeln('------------------------------------------');
+    msg.writeln('✅ _Cierre auditado automáticamente con CajaYa POS._');
+
     final encoded = Uri.encodeComponent(msg.toString());
-    final url = Uri.parse('https://wa.me/?text=$encoded');
+    final telDigits = _telefonoBodega.replaceAll(RegExp(r'[^0-9]'), '');
+    final phoneParam = telDigits.isNotEmpty
+        ? (telDigits.length == 9 ? '51$telDigits' : telDigits)
+        : '';
+    final url = phoneParam.isNotEmpty
+        ? Uri.parse('https://wa.me/$phoneParam?text=$encoded')
+        : Uri.parse('https://wa.me/?text=$encoded');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
@@ -1318,7 +1362,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen> with SingleTickerPr
                   ],
                 ),
                 label: Text(
-                  _plan.toUpperCase() != 'PRO' ? 'WhatsApp (PRO)' : 'WhatsApp',
+                  _plan.toUpperCase() != 'PRO' ? 'Reporte Z (PRO)' : 'Reporte Z al Dueño',
                   style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 12),
                 ),
                 onPressed: _compartirArqueoWhatsApp,

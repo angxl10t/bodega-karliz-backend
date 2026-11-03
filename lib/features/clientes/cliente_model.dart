@@ -1,4 +1,12 @@
-﻿class Cliente {
+import 'package:flutter/material.dart';
+
+enum NivelRiesgoCliente {
+  bajo,
+  medio,
+  alto,
+}
+
+class Cliente {
   final int? idCliente;
   final int? idBodega;
   final String? documento;
@@ -32,6 +40,42 @@
   bool get tieneDeuda => saldoDeudor > 0.009;
   bool get esCaserito => (notas ?? '').toUpperCase().contains('CASERITO');
   double get porcentajeCreditoUsado => limiteCredito > 0 ? (saldoDeudor / limiteCredito).clamp(0.0, 1.0) : 0.0;
+
+  NivelRiesgoCliente get nivelRiesgo {
+    if (!tieneDeuda) return NivelRiesgoCliente.bajo;
+    if (limiteCredito <= 0) return NivelRiesgoCliente.alto;
+    final ratio = saldoDeudor / limiteCredito;
+    if (ratio >= 0.85 || saldoDeudor >= limiteCredito) return NivelRiesgoCliente.alto;
+    if (ratio >= 0.50) return NivelRiesgoCliente.medio;
+    return NivelRiesgoCliente.bajo;
+  }
+
+  Color get colorRiesgo {
+    switch (nivelRiesgo) {
+      case NivelRiesgoCliente.bajo:
+        return const Color(0xFF10B981);
+      case NivelRiesgoCliente.medio:
+        return const Color(0xFFF59E0B);
+      case NivelRiesgoCliente.alto:
+        return const Color(0xFFEF4444);
+    }
+  }
+
+  String get etiquetaRiesgo {
+    switch (nivelRiesgo) {
+      case NivelRiesgoCliente.bajo:
+        return tieneDeuda ? 'Deuda Baja' : 'Al Día';
+      case NivelRiesgoCliente.medio:
+        return 'Deuda Moderada';
+      case NivelRiesgoCliente.alto:
+        return saldoDeudor >= limiteCredito ? 'Límite Superado' : 'Riesgo Alto';
+    }
+  }
+
+  bool excedeCon(double montoAdicional) {
+    if (limiteCredito <= 0) return false;
+    return (saldoDeudor + montoAdicional) > limiteCredito;
+  }
 
   factory Cliente.fromJson(Map<String, dynamic> json) {
     return Cliente(

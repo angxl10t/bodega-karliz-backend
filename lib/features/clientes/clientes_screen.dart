@@ -1963,26 +1963,41 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                   ),
                 ),
                 const SizedBox(width: 6),
-                // Badge Deuda
+                // Badge Deuda con Semáforo de Riesgo
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                   decoration: BoxDecoration(
-                    color: tieneDeuda
-                        ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2))
-                        : (isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7)),
+                    color: c.colorRiesgo.withValues(alpha: isDark ? 0.2 : 0.12),
                     borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      tieneDeuda ? 'Debe S/ ${c.saldoDeudor.toStringAsFixed(2)}' : 'Al Día',
-                      maxLines: 1,
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: tieneDeuda ? AppTheme.alertRed : AppTheme.accentGreen,
-                      ),
+                    border: Border.all(
+                      color: c.colorRiesgo.withValues(alpha: isDark ? 0.4 : 0.3),
+                      width: 1,
                     ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: c.colorRiesgo,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        tieneDeuda
+                            ? 'S/ ${c.saldoDeudor.toStringAsFixed(2)} • ${c.etiquetaRiesgo}'
+                            : 'Al Día',
+                        maxLines: 1,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: c.colorRiesgo,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 PopupMenuButton<String>(
