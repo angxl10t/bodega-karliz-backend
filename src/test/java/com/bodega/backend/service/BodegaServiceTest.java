@@ -1108,8 +1108,80 @@ public class BodegaServiceTest {
 
     }
 
+    @Test
+    void testObtenerResumenNuevoRus_Categoria1_Exitoso() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        Bodega bodega = new Bodega();
+        bodega.setIdBodega(1L);
+        bodega.setNombreComercial("Bodega Karliz");
+        bodega.setRegimenTributario("NUEVO_RUS");
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
 
+        when(ventaRepository.sumTotalVentasByBodegaAndRangoFechas(eq(1L), any(), any()))
+                .thenReturn(new BigDecimal("3500.00"));
+        when(compraRepository.sumTotalComprasByBodegaAndRangoFechas(eq(1L), any(), any()))
+                .thenReturn(new BigDecimal("2100.00"));
 
+        com.bodega.backend.dto.ResumenNuevoRusDTO resumen = bodegaService.obtenerResumenNuevoRus(2026, 11);
+
+        assertNotNull(resumen);
+        assertTrue(resumen.getEsNuevoRus());
+        assertEquals("CATEGORIA_1", resumen.getCategoriaActual());
+        assertEquals(new BigDecimal("20.00"), resumen.getCuotaMensualEstimada());
+        assertEquals(new BigDecimal("3500.00"), resumen.getTotalVentasMes());
+        assertEquals(new BigDecimal("2100.00"), resumen.getTotalComprasMes());
+        assertEquals(new BigDecimal("3500.00"), resumen.getMontoDeterminante());
+        assertEquals(new BigDecimal("1500.00"), resumen.getRestanteCat1());
+        assertEquals(new BigDecimal("4500.00"), resumen.getRestanteCat2());
+        assertEquals("VERDE", resumen.getEstadoSemaforo());
+        assertNotNull(resumen.getSugerenciaPagoSunat());
+    }
+
+    @Test
+    void testObtenerResumenNuevoRus_Categoria2_PorComprasSuperiores() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        Bodega bodega = new Bodega();
+        bodega.setIdBodega(1L);
+        bodega.setNombreComercial("Bodega Karliz");
+        bodega.setRegimenTributario("NUEVO_RUS");
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+
+        // Ventas S/ 4,000 pero Compras a mayoristas S/ 6,200 -> Monto determinante S/ 6,200 (Cat 2)
+        when(ventaRepository.sumTotalVentasByBodegaAndRangoFechas(eq(1L), any(), any()))
+                .thenReturn(new BigDecimal("4000.00"));
+        when(compraRepository.sumTotalComprasByBodegaAndRangoFechas(eq(1L), any(), any()))
+                .thenReturn(new BigDecimal("6200.00"));
+
+        com.bodega.backend.dto.ResumenNuevoRusDTO resumen = bodegaService.obtenerResumenNuevoRus(2026, 11);
+
+        assertNotNull(resumen);
+        assertEquals("CATEGORIA_2", resumen.getCategoriaActual());
+        assertEquals(new BigDecimal("50.00"), resumen.getCuotaMensualEstimada());
+        assertEquals(new BigDecimal("6200.00"), resumen.getMontoDeterminante());
+        assertEquals(new BigDecimal("0.00"), resumen.getRestanteCat1());
+        assertEquals(new BigDecimal("1800.00"), resumen.getRestanteCat2());
+    }
+
+    @Test
+    void testActualizarRegimenTributario_ToggleEntreRusYMype() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        Bodega bodega = new Bodega();
+        bodega.setIdBodega(1L);
+        bodega.setNombreComercial("Bodega Karliz");
+        bodega.setRegimenTributario("NUEVO_RUS");
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+        when(bodegaRepository.save(any(Bodega.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Cambiar a MYPE Tributario (No RUS)
+        BodegaDTO dtoMype = bodegaService.actualizarRegimenTributario("MYPE_TRIBUTARIO");
+        assertEquals("MYPE_TRIBUTARIO", dtoMype.getRegimenTributario());
+        assertFalse(dtoMype.getEsNuevoRus());
+
+        // Regresar a NUEVO_RUS
+        BodegaDTO dtoRus = bodegaService.actualizarRegimenTributario("NUEVO_RUS");
+        assertEquals("NUEVO_RUS", dtoRus.getRegimenTributario());
+        assertTrue(dtoRus.getEsNuevoRus());
+    }
 }
 
 

@@ -7,14 +7,15 @@ package com.bodega.backend.service;
 
 
 import com.bodega.backend.dto.ActualizarBodegaDTO;
-
-
-
 import com.bodega.backend.dto.BodegaDTO;
-
-
-
 import com.bodega.backend.dto.ProvisionarBodegaDTO;
+import com.bodega.backend.dto.ResumenNuevoRusDTO;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.OffsetDateTime;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 
 
@@ -1321,6 +1322,7 @@ public class BodegaService {
 
 
         dto.setRegimenTributario(b.getRegimenTributario() != null ? b.getRegimenTributario() : "NUEVO_RUS");
+        dto.setEsNuevoRus(b.getRegimenTributario() == null || "NUEVO_RUS".equalsIgnoreCase(b.getRegimenTributario()));
 
 
 
@@ -2348,5 +2350,140 @@ public class BodegaService {
             lista.add(map);
         }
         return lista;
+    }
+
+    /**
+     * Calcula en tiempo real las ventas, compras, categoría SUNAT del Nuevo RUS (Cat 1 vs Cat 2),
+     * cuota mensual fija (S/ 20 o S/ 50) y estado de semáforo preventivo para la bodega autenticada.
+     */
+    @Transactional(readOnly = true)
+    public ResumenNuevoRusDTO obtenerResumenNuevoRus(Integer anioParam, Integer mesParam) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Bodega bodega = bodegaRepository.findById(idBodega)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Bodega no encontrada"));
+
+        ZoneId zoneLima = ZoneId.of("America/Lima");
+        ZonedDateTime nowLima = ZonedDateTime.now(zoneLima);
+        int anio = (anioParam != null && anioParam > 2000) ? anioParam : nowLima.getYear();
+        int mes = (mesParam != null && mesParam >= 1 && mesParam <= 12) ? mesParam : nowLima.getMonthValue();
+
+        YearMonth ym = YearMonth.of(anio, mes);
+        OffsetDateTime start = ym.atDay(1).atStartOfDay(zoneLima).toOffsetDateTime();
+        OffsetDateTime end = ym.plusMonths(1).atDay(1).atStartOfDay(zoneLima).toOffsetDateTime();
+
+        BigDecimal ventas = ventaRepository.sumTotalVentasByBodegaAndRangoFechas(idBodega, start, end);
+        if (ventas == null) ventas = BigDecimal.ZERO;
+
+        BigDecimal compras = compraRepository.sumTotalComprasByBodegaAndRangoFechas(idBodega, start, end);
+        if (compras == null) compras = BigDecimal.ZERO;
+
+        BigDecimal montoDet = ventas.max(compras);
+        String reg = bodega.getRegimenTributario() != null ? bodega.getRegimenTributario() : "NUEVO_RUS";
+        boolean esRus = "NUEVO_RUS".equalsIgnoreCase(reg);
+
+        BigDecimal limite1 = new BigDecimal("5000.00");
+        BigDecimal limite2 = new BigDecimal("8000.00");
+
+        String categoria;
+        String catNombre;
+        BigDecimal cuota;
+        String semaforo;
+        String mensaje;
+        String advertencia = null;
+
+        if (montoDet.compareTo(limite1) <= 0) {
+            categoria = "CATEGORIA_1";
+            catNombre = "Categoría 1 (Hasta S/ 5,000)";
+            cuota = new BigDecimal("20.00");
+            double pct = montoDet.multiply(new BigDecimal("100")).divide(limite1, 2, RoundingMode.HALF_UP).doubleValue();
+            if (pct >= 85.0) {
+                semaforo = "AMBAR";
+                mensaje = "Estás cerca del límite de la Categoría 1. Si superas los S/ 5,000 en ventas o compras, pasarás a la Categoría 2 (cuota mensual S/ 50.00).";
+            } else {
+                semaforo = "VERDE";
+                mensaje = "¡Excelente control! Tu negocio se mantiene cómodamente dentro de la Categoría 1 del Nuevo RUS. Tu cuota mensual fija a pagar a SUNAT es de S/ 20.00.";
+            }
+        } else if (montoDet.compareTo(limite2) <= 0) {
+            categoria = "CATEGORIA_2";
+            catNombre = "Categoría 2 (Hasta S/ 8,000)";
+            cuota = new BigDecimal("50.00");
+            double pct = montoDet.multiply(new BigDecimal("100")).divide(limite2, 2, RoundingMode.HALF_UP).doubleValue();
+            if (pct >= 90.0) {
+                semaforo = "ROJO";
+                mensaje = "¡Atención! Estás muy cerca del tope máximo del Nuevo RUS (S/ 8,000). Si superas este límite, deberás tributar en el Régimen MYPE Tributario.";
+                advertencia = "Te quedan menos de S/ " + limite2.subtract(montoDet).setScale(2, RoundingMode.HALF_UP) + " para el límite máximo mensual permitido por SUNAT.";
+            } else {
+                semaforo = "AMBAR";
+                mensaje = "Tu negocio se ubica en la Categoría 2 del Nuevo RUS. Tu cuota mensual fija a pagar a SUNAT es de S/ 50.00.";
+            }
+        } else {
+            categoria = "EXCEDIDO";
+            catNombre = "Límite Máximo Superado (> S/ 8,000)";
+            cuota = BigDecimal.ZERO;
+            semaforo = "ROJO";
+            mensaje = "Has superado el tope mensual de S/ 8,000 permitido para el Nuevo RUS. Según la normativa SUNAT, deberás declarar en el Régimen MYPE Tributario o RER.";
+            advertencia = "Has excedido el tope del Nuevo RUS por S/ " + montoDet.subtract(limite2).setScale(2, RoundingMode.HALF_UP) + ". Coordina con tu contador para evitar multas de reclasificación.";
+        }
+
+        BigDecimal restante1 = limite1.subtract(montoDet).max(BigDecimal.ZERO);
+        BigDecimal restante2 = limite2.subtract(montoDet).max(BigDecimal.ZERO);
+        double pct1 = Math.min(100.0, montoDet.multiply(new BigDecimal("100")).divide(limite1, 2, RoundingMode.HALF_UP).doubleValue());
+        double pct2 = Math.min(100.0, montoDet.multiply(new BigDecimal("100")).divide(limite2, 2, RoundingMode.HALF_UP).doubleValue());
+
+        String[] mesesNombres = {"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"};
+        String periodoNombre = mesesNombres[mes] + " " + anio;
+
+        String sugerencia = "Paga tu cuota en agentes BCP, BBVA, Interbank, Banco de la Nación o App SUNAT con la 'Guía Pago Fácil Nuevo RUS' (Formulario 1611) usando tu RUC y periodo " + String.format("%02d/%d", mes, anio) + ".";
+
+        return ResumenNuevoRusDTO.builder()
+                .anio(anio)
+                .mes(mes)
+                .periodoNombre(periodoNombre)
+                .esNuevoRus(esRus)
+                .regimenTributario(reg)
+                .totalVentasMes(ventas.setScale(2, RoundingMode.HALF_UP))
+                .totalComprasMes(compras.setScale(2, RoundingMode.HALF_UP))
+                .montoDeterminante(montoDet.setScale(2, RoundingMode.HALF_UP))
+                .categoriaActual(categoria)
+                .categoriaNombre(catNombre)
+                .cuotaMensualEstimada(cuota)
+                .limiteCat1(limite1)
+                .limiteCat2(limite2)
+                .restanteCat1(restante1.setScale(2, RoundingMode.HALF_UP))
+                .restanteCat2(restante2.setScale(2, RoundingMode.HALF_UP))
+                .porcentajeCat1(pct1)
+                .porcentajeCat2(pct2)
+                .estadoSemaforo(semaforo)
+                .mensajeDiagnostico(mensaje)
+                .advertencia(advertencia)
+                .sugerenciaPagoSunat(sugerencia)
+                .build();
+    }
+
+    /**
+     * Permite activar o desactivar la condición de Nuevo RUS de la bodega (o cambiar de régimen fiscal).
+     */
+    @Transactional
+    public BodegaDTO actualizarRegimenTributario(String regimen) {
+        Long idBodega = tenantService.getCurrentBodegaId();
+        Bodega bodega = bodegaRepository.findById(idBodega)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "Bodega no encontrada"));
+
+        String regNormalizado = (regimen != null && !regimen.isBlank()) ? regimen.trim().toUpperCase() : "NUEVO_RUS";
+        if (!regNormalizado.equals("NUEVO_RUS") && !regNormalizado.equals("MYPE_TRIBUTARIO") &&
+            !regNormalizado.equals("REGIMEN_GENERAL") && !regNormalizado.equals("RER")) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Régimen inválido: debe ser NUEVO_RUS, MYPE_TRIBUTARIO, REGIMEN_GENERAL o RER");
+        }
+
+        bodega.setRegimenTributario(regNormalizado);
+        if ("NUEVO_RUS".equalsIgnoreCase(regNormalizado)) {
+            bodega.setFacturacionSunatActiva(false);
+        }
+        Bodega guardada = bodegaRepository.save(bodega);
+        return mapToDTO(guardada);
     }
 }

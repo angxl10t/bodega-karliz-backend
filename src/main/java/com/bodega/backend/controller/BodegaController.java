@@ -187,4 +187,19 @@ public class BodegaController {
             @RequestParam(required = false) String plan) {
         return ResponseEntity.ok(bodegaService.cambiarPlanBodega(id, plan, dias));
     }
+
+    @GetMapping("/nuevo-rus/monitor")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<com.bodega.backend.dto.ResumenNuevoRusDTO> obtenerMonitorNuevoRus(
+            @RequestParam(required = false) Integer anio,
+            @RequestParam(required = false) Integer mes) {
+        return ResponseEntity.ok(bodegaService.obtenerResumenNuevoRus(anio, mes));
+    }
+
+    @PutMapping("/regimen-tributario")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<BodegaDTO> actualizarRegimenTributario(
+            @RequestParam String regimen) {
+        return ResponseEntity.ok(bodegaService.actualizarRegimenTributario(regimen));
+    }
 }

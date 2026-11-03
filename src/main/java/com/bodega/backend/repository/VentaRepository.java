@@ -42,6 +42,9 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
     @Query("SELECT COALESCE(SUM(v.total), 0) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.fechaVenta >= :start")
     BigDecimal sumTotalVentasByPeriodo(@Param("idBodega") Long idBodega, @Param("start") OffsetDateTime start);
 
+    @Query("SELECT COALESCE(SUM(v.total), 0) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.fechaVenta >= :start AND v.fechaVenta < :end")
+    BigDecimal sumTotalVentasByBodegaAndRangoFechas(@Param("idBodega") Long idBodega, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
     @Query("SELECT COUNT(v) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.fechaVenta >= :start")
     long countVentasByPeriodo(@Param("idBodega") Long idBodega, @Param("start") OffsetDateTime start);
 

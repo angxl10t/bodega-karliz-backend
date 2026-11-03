@@ -20,6 +20,7 @@ public class BodegaDTO {
 
     // Régimen Tributario SUNAT: NUEVO_RUS, RER, MYPE_TRIBUTARIO, REGIMEN_GENERAL
     private String regimenTributario;
+    private Boolean esNuevoRus;
 
     // Configuración Facturación Electrónica SUNAT
     private Boolean facturacionSunatActiva;
