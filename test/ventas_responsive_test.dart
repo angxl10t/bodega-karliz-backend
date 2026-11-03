@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bodega_mobile/core/responsive_layout.dart';
+import 'package:bodega_mobile/features/ventas/ventas_screen.dart';
+import 'package:bodega_mobile/features/productos/producto_model.dart';
+import 'package:bodega_mobile/features/productos/producto_service.dart';
 
 void main() {
   group('ResponsiveLayout Breakpoint & Builder Tests', () {
@@ -55,7 +59,6 @@ void main() {
     testWidgets(
       'ResponsiveLayout detects physical tablet (shortestSide >= 600) and landscape',
       (tester) async {
-        // Configuración de tablet 10 pulgadas en orientación horizontal (1280 x 800)
         tester.view.physicalSize = const Size(1280, 800);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
@@ -84,7 +87,6 @@ void main() {
     testWidgets(
       'ResponsiveLayout detects smartphone (shortestSide < 600) in portrait',
       (tester) async {
-        // Smartphone estándar en orientación vertical (390 x 844)
         tester.view.physicalSize = const Size(390, 844);
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.resetPhysicalSize);
@@ -107,6 +109,52 @@ void main() {
 
         expect(isTabletDetected, isFalse);
         expect(isLandscapeDetected, isFalse);
+      },
+    );
+  });
+
+  group('VentasScreen Tablet / Desktop Visibility Tests', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      ProductoService.setMockProductos([
+        Producto(
+          idProducto: 1,
+          nombre: 'Inca Kola 1.5L Vidrio Retornable',
+          precioVenta: 5.50,
+          stockActual: 10.0,
+          codigo: 'IK1500',
+          nombreCategoria: 'Bebidas',
+        ),
+      ]);
+    });
+
+    testWidgets(
+      'VentasScreen en resolución Tablet/Desktop (1024x768) muestra Garantía Botellas y todas las acciones de caja',
+      (tester) async {
+        tester.view.physicalSize = const Size(1024, 768);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: VentasScreen(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Verificar que en vista de tablet/ordenador aparezca el chip de Garantía Botellas
+        expect(find.text('Garantía Botellas'), findsAtLeastNWidgets(1));
+
+        // Verificar que las demás acciones críticas de caja estén visibles
+        expect(find.text('En Espera'), findsAtLeastNWidgets(1));
+        expect(find.text('Pedidos Web'), findsAtLeastNWidgets(1));
+        expect(find.text('Egreso Caja'), findsAtLeastNWidgets(1));
+        expect(find.text('Cierre Caja'), findsAtLeastNWidgets(1));
+        expect(find.text('Tips Turno'), findsAtLeastNWidgets(1));
+        expect(find.text('Ticket'), findsAtLeastNWidgets(1));
       },
     );
   });

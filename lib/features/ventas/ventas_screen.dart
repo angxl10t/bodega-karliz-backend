@@ -6184,7 +6184,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               IconButton(
                                 tooltip: 'Registrar como Consumo Interno de Bodega',
                                 icon: const Icon(LucideIcons.coffee, size: 18, color: Color(0xFF8B5CF6)),
@@ -6192,7 +6192,15 @@ class _VentasScreenState extends State<VentasScreen> {
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
+                              IconButton(
+                                tooltip: 'Garantía de Botellas / Retornables',
+                                icon: const Icon(LucideIcons.wine, size: 18, color: Color(0xFF2563EB)),
+                                onPressed: _abrirModalGarantiaEnvase,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: 6),
                               TextButton(
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppTheme.alertRed,
@@ -6657,8 +6665,134 @@ class _VentasScreenState extends State<VentasScreen> {
         return Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const OfflineStatusBar(),
+              // Barra de Acciones POS Integral para Tablet / Escritorio (Scrollable horizontal)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    ValueListenableBuilder<int>(
+                      valueListenable: VentaEnEsperaService.countNotifier,
+                      builder: (context, count, _) {
+                        return _buildPosActionChip(
+                          icon: LucideIcons.pauseCircle,
+                          label: count > 0 ? 'En Espera ($count)' : 'En Espera',
+                          color: count > 0
+                              ? const Color(0xFFD97706)
+                              : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                          bgColor: count > 0
+                              ? (isDark
+                                    ? const Color(0xFF78350F).withValues(alpha: 0.3)
+                                    : const Color(0xFFFEF3C7))
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                          onTap: _mostrarModalVentasEnEspera,
+                          isDark: isDark,
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                    ValueListenableBuilder<int>(
+                      valueListenable: PedidoWebService.pedidosPendientesCountNotifier,
+                      builder: (context, count, _) {
+                        return _buildPosActionChip(
+                          icon: LucideIcons.globe,
+                          label: count > 0 ? 'Pedidos Web ($count)' : 'Pedidos Web',
+                          color: count > 0
+                              ? const Color(0xFF0D9488)
+                              : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                          bgColor: count > 0
+                              ? (isDark
+                                    ? const Color(0xFF134E4A).withValues(alpha: 0.3)
+                                    : const Color(0xFFCCFBF1))
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                          onTap: _mostrarBandejaPedidosWeb,
+                          isDark: isDark,
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.wine,
+                      label: 'Garantía Botellas',
+                      color: const Color(0xFF2563EB),
+                      bgColor: isDark
+                          ? const Color(0xFF2563EB).withValues(alpha: 0.18)
+                          : const Color(0xFFEFF6FF),
+                      onTap: _abrirModalGarantiaEnvase,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.arrowDownRight,
+                      label: 'Egreso Caja',
+                      color: const Color(0xFFE11D48),
+                      bgColor: isDark
+                          ? const Color(0xFF4C0519)
+                          : const Color(0xFFFFE4E6),
+                      onTap: () => EgresoCajaModal.show(context),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.receiptText,
+                      label: 'Cierre Caja',
+                      color: AppTheme.brandPrimary,
+                      bgColor: isDark
+                          ? AppTheme.brandPrimary.withValues(alpha: 0.15)
+                          : AppTheme.surfaceTint,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CajaVentasScreen(),
+                          ),
+                        );
+                      },
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.sparkles,
+                      label: 'Tips Turno',
+                      color: const Color(0xFF0284C7),
+                      bgColor: isDark
+                          ? const Color(0xFF38BDF8).withValues(alpha: 0.15)
+                          : const Color(0xFFE0F2FE),
+                      onTap: () => BriefingTurnoModal.show(context),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.settings,
+                      label: 'Ticket',
+                      color: const Color(0xFF6B7280),
+                      bgColor: isDark
+                          ? const Color(0xFF1F2937)
+                          : const Color(0xFFF3F4F6),
+                      onTap: () => ConfiguracionTicketModal.show(context),
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: _isLoading ? null : LucideIcons.refreshCw,
+                      isLoading: _isLoading,
+                      label: 'Sincronizar',
+                      color: isDark ? Colors.white : const Color(0xFF475569),
+                      bgColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFF1F5F9),
+                      onTap: _isLoading
+                          ? null
+                          : () => _cargarProductos(forceRefresh: true),
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
               Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -6991,79 +7125,6 @@ class _VentasScreenState extends State<VentasScreen> {
                 tooltip: 'Actualizar Catálogo & Stock',
                 icon: const Icon(LucideIcons.refreshCw, size: 18),
                 onPressed: () => _cargarProductos(forceRefresh: true),
-              ),
-              const SizedBox(width: 6),
-
-              // Botón Egreso Rápido de Caja Chica
-              IconButton.filledTonal(
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? const Color(0xFF4C0519)
-                      : const Color(0xFFFFE4E6),
-                  foregroundColor: const Color(0xFFE11D48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  minimumSize: const Size(44, 44),
-                ),
-                tooltip: 'Egreso Rápido de Caja Chica',
-                icon: const Icon(LucideIcons.arrowDownRight, size: 19),
-                onPressed: () => EgresoCajaModal.show(context),
-              ),
-              const SizedBox(width: 6),
-
-              // Botón Cierre de Caja & Ventas
-              IconButton.filledTonal(
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? AppTheme.brandPrimary.withValues(alpha: 0.15)
-                      : AppTheme.surfaceTint,
-                  foregroundColor: AppTheme.brandPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  minimumSize: const Size(44, 44),
-                ),
-                tooltip: 'Cierre del Día & Ventas',
-                icon: const Icon(LucideIcons.receiptText, size: 19),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CajaVentasScreen()),
-                  );
-                },
-              ),
-              const SizedBox(width: 6),
-              ValueListenableBuilder<int>(
-                valueListenable: VentaEnEsperaService.countNotifier,
-                builder: (context, count, _) {
-                  return _buildPosActionChip(
-                    icon: LucideIcons.pauseCircle,
-                    label: count > 0 ? 'En Espera ($count)' : 'En Espera',
-                    color: count > 0 ? const Color(0xFFD97706) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
-                    bgColor: count > 0
-                        ? (isDark ? const Color(0xFF78350F).withValues(alpha: 0.3) : const Color(0xFFFEF3C7))
-                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                    onTap: _mostrarModalVentasEnEspera,
-                    isDark: isDark,
-                  );
-                },
-              ),
-              const SizedBox(width: 6),
-              ValueListenableBuilder<int>(
-                valueListenable: PedidoWebService.pedidosPendientesCountNotifier,
-                builder: (context, count, _) {
-                  return _buildPosActionChip(
-                    icon: LucideIcons.globe,
-                    label: count > 0 ? 'Pedidos Web ($count)' : 'Pedidos Web',
-                    color: count > 0 ? const Color(0xFF0D9488) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
-                    bgColor: count > 0
-                        ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.3) : const Color(0xFFCCFBF1))
-                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
-                    onTap: _mostrarBandejaPedidosWeb,
-                    isDark: isDark,
-                  );
-                },
               ),
             ],
           ),
@@ -7722,10 +7783,18 @@ class _VentasScreenState extends State<VentasScreen> {
                   ],
                 ),
               ),
-              if (_carrito.isNotEmpty)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Garantía de Botellas / Retornables',
+                    icon: const Icon(LucideIcons.wine, size: 18, color: Color(0xFF2563EB)),
+                    onPressed: _abrirModalGarantiaEnvase,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  if (_carrito.isNotEmpty) ...[
+                    const SizedBox(width: 6),
                     IconButton(
                       tooltip: 'Poner en Espera (Pausar Ticket)',
                       icon: const Icon(LucideIcons.pauseCircle, size: 18, color: Color(0xFFD97706)),
@@ -7761,7 +7830,8 @@ class _VentasScreenState extends State<VentasScreen> {
                       ),
                     ),
                   ],
-                ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 8),
