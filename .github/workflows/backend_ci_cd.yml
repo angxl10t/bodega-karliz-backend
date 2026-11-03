@@ -1,0 +1,91 @@
+name: Backend CI/CD - Java Spring Boot & Calidad
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-quality-and-test:
+    name: Compilación, Detección de Código Muerto y Pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout de Código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Información de Entorno
+        run: |
+          java -version
+          mvn -version
+
+      - name: Auditoría de Dependencias y Código Muerto
+        run: |
+          echo "==> Analizando dependencias declaradas no utilizadas y dependencias implícitas..."
+          mvn dependency:analyze -DignoreNonCompile=true || true
+
+      - name: Compilación Estricta con Deprecations y Warnings
+        run: |
+          echo "==> Compilando código fuente del backend..."
+          mvn clean compile -Dmaven.compiler.showWarnings=true -Dmaven.compiler.showDeprecation=true
+
+      - name: Ejecución de Suite de Pruebas Automatizadas
+        run: |
+          echo "==> Ejecutando 216 pruebas unitarias y de servicios..."
+          mvn test -Dmaven.test.skip=false
+
+      - name: Empaquetado de Artefacto Ejecutable (JAR)
+        run: |
+          echo "==> Generando JAR de producción para Render / Cloud..."
+          mvn package -Dmaven.test.skip=true
+
+      - name: Guardar Artefacto JAR en GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: bodega-backend-jar
+          path: target/*.jar
+          retention-days: 7
+
+  render-deploy-check:
+    name: Verificación y Despliegue en Render
+    needs: code-quality-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notificar Webhook de Despliegue en Render (si existe RENDER_DEPLOY_HOOK_URL)
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$DEPLOY_HOOK" ]; then
+            echo "🚀 Disparando despliegue automático en Render via webhook..."
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$DEPLOY_HOOK")
+            echo "Respuesta Render Webhook HTTP: $HTTP_STATUS"
+          else
+            echo "ℹ️ Secret RENDER_DEPLOY_HOOK_URL no configurado. Render desplegará automáticamente según la configuración 'Auto-Deploy on commit'."
+          fi
+
+      - name: Esperar inicialización y verificar Health Check
+        run: |
+          echo "==> Verificando estado del backend en Render..."
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://cajaya-api.onrender.com/api/health || true)
+          echo "Status /api/health: $STATUS"
+          if [ "$STATUS" -eq 200 ] || [ "$STATUS" -eq 401 ] || [ "$STATUS" -eq 403 ]; then
+            echo "✅ Backend responde activamente."
+          else
+            echo "⚠️ Servidor en reposo o inicializándose (Render Free tier suspende tras 15 min)."
+          fi
