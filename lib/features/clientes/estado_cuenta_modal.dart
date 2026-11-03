@@ -346,6 +346,23 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
                 style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w700),
               ),
             ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cerrar',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+              ),
+            ),
+          ),
         ],
       ),
     ),

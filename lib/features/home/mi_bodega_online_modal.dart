@@ -259,6 +259,11 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                       ],
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.x, size: 20),
+                    tooltip: 'Cerrar',
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ],
               ),
               const SizedBox(height: 18),
@@ -554,6 +559,20 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
                     }
                   },
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 40,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cerrar Ventana',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],

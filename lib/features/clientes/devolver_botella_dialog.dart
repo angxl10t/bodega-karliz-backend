@@ -125,6 +125,11 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
               style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w800),
             ),
           ),
+          IconButton(
+            icon: const Icon(LucideIcons.x, size: 20),
+            tooltip: 'Cerrar',
+            onPressed: () => Navigator.pop(context),
+          ),
         ],
       ),
       content: SingleChildScrollView(

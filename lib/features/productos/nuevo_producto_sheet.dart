@@ -1169,34 +1169,66 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
 
               const SizedBox(height: 22),
 
-              // Botón Guardar
-              SizedBox(
-                height: 54,
-                child: ElevatedButton.icon(
-                  onPressed: _isGuardando ? null : _guardarProducto,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.brandPrimary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
-                    elevation: 3,
-                    shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
-                  ),
-                  icon: _isGuardando
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Icon(LucideIcons.checkCheck, size: 20),
-                  label: Text(
-                    _isGuardando ? 'GUARDANDO...' : 'REGISTRAR PRODUCTO',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.3,
+              // Botón Guardar y Cancelar
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: 54,
+                      child: OutlinedButton(
+                        onPressed: _isGuardando ? null : () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: borderColor),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
+                        ),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 54,
+                      child: ElevatedButton.icon(
+                        onPressed: _isGuardando ? null : _guardarProducto,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.brandPrimary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
+                          elevation: 3,
+                          shadowColor: AppTheme.brandPrimary.withValues(alpha: 0.35),
+                        ),
+                        icon: _isGuardando
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Icon(LucideIcons.checkCheck, size: 20),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _isGuardando ? 'GUARDANDO...' : 'REGISTRAR PRODUCTO',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

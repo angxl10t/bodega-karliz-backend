@@ -399,6 +399,16 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                 ),
 
+                IconButton(
+
+                  icon: const Icon(LucideIcons.x, size: 20),
+
+                  tooltip: 'Cerrar',
+
+                  onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+
+                ),
+
               ],
 
             ),

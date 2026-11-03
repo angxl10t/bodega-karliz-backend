@@ -634,6 +634,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  tooltip: 'Cerrar',
+                  onPressed: () => Navigator.pop(ctx),
+                ),
               ],
             ),
             const SizedBox(height: 18),
@@ -806,8 +811,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    final status = await updateService.checkManual();
-    final patch = await updateService.getCurrentPatchNumber();
+    UpdateStatus status;
+    int? patch;
+    try {
+      status = await updateService.checkManual().timeout(const Duration(seconds: 10));
+      patch = await updateService.getCurrentPatchNumber().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo comprobar actualizaciones: '),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+      }
+      return;
+    }
 
     if (mounted) {
       Navigator.pop(context);

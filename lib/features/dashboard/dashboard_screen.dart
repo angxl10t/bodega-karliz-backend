@@ -130,6 +130,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
+            IconButton(
+              icon: const Icon(LucideIcons.x, size: 18),
+              tooltip: 'Cerrar',
+              onPressed: () => Navigator.pop(ctx),
+            ),
           ],
         ),
         content: Column(

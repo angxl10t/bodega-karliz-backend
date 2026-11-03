@@ -192,6 +192,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     ],
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  tooltip: 'Cerrar',
+                  onPressed: () => Navigator.pop(dlgCtx),
+                ),
               ],
             ),
             content: ConstrainedBox(
@@ -490,6 +495,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  tooltip: 'Cerrar',
+                  onPressed: () => Navigator.pop(dlgCtx),
+                ),
               ],
             ),
             content: Column(
@@ -724,6 +734,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  tooltip: 'Cerrar',
+                  onPressed: () => Navigator.pop(dlgCtx),
                 ),
               ],
             ),

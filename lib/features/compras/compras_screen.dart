@@ -277,6 +277,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           }
                         },
                       ),
+                      const SizedBox(width: 6),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, size: 20),
+                        tooltip: 'Cerrar',
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -486,6 +492,12 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             color: AppTheme.brandPrimary,
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 6),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, size: 20),
+                        tooltip: 'Cerrar',
+                        onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
                   ),
@@ -725,6 +737,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 18),
+                  tooltip: 'Cerrar',
+                  onPressed: () => Navigator.pop(dlgCtx),
                 ),
               ],
             ),
@@ -1225,6 +1242,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       ],
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(LucideIcons.x, size: 20),
+                    tooltip: 'Cerrar',
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -1244,6 +1266,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         Text(
                           'No hay productos con stock por debajo del límite mínimo.',
                           style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                        ),
+                        const SizedBox(height: 16),
+                        OutlinedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Cerrar Ventana'),
                         ),
                       ],
                     ),

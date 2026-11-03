@@ -840,25 +840,57 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
               ],
               const SizedBox(height: 22),
 
-              // Botón Guardar
-              SizedBox(
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: _isGuardando ? null : _guardarCambios,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.brandPrimary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                    elevation: 3,
+              // Botón Guardar y Cancelar
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: 52,
+                      child: OutlinedButton(
+                        onPressed: _isGuardando ? null : () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                        ),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  icon: _isGuardando
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Icon(LucideIcons.checkCheck, size: 18),
-                  label: Text(
-                    _isGuardando ? 'GUARDANDO...' : 'GUARDAR CAMBIOS',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        onPressed: _isGuardando ? null : _guardarCambios,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.brandPrimary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                          elevation: 3,
+                        ),
+                        icon: _isGuardando
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Icon(LucideIcons.checkCheck, size: 18),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _isGuardando ? 'GUARDANDO...' : 'GUARDAR CAMBIOS',
+                            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 10),
 

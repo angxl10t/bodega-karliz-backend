@@ -1012,24 +1012,51 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                       color: cardBg,
                       border: Border(top: BorderSide(color: borderColor)),
                     ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.brandPrimary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: borderColor),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              onPressed: _isSaving ? null : () => Navigator.pop(context),
+                              child: Text(
+                                'Cancelar',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        icon: _isSaving
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : const Icon(LucideIcons.check, size: 18),
-                        label: Text(
-                          _isSaving ? 'REGISTRANDO...' : 'CONFIRMAR BAJA DE INVENTARIO',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.brandPrimary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              icon: _isSaving
+                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : const Icon(LucideIcons.check, size: 18),
+                              label: Text(
+                                _isSaving ? 'REGISTRANDO...' : 'CONFIRMAR BAJA',
+                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                              ),
+                              onPressed: (_isSaving || _productoSeleccionado == null) ? null : _guardarMerma,
+                            ),
+                          ),
                         ),
-                        onPressed: (_isSaving || _productoSeleccionado == null) ? null : _guardarMerma,
-                      ),
+                      ],
                     ),
                   ),
                 ],
