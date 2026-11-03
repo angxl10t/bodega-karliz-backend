@@ -49,7 +49,7 @@ public class Promocion {
     private String descripcion;
 
     /**
-     * Tipo: PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, COMBO_HUESO
+     * Tipo: PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, TRES_POR_DOS, COMBO_HUESO
      */
     @Column(name = "tipo_promocion", nullable = false, length = 40)
     private String tipoPromocion;

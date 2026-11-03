@@ -195,6 +195,9 @@ public class CatalogoPublicoController {
                 } else if ("DOS_POR_UNO".equalsIgnoreCase(promoAplicable.getTipoPromocion())) {
                     precioPromo = precioOriginal.divide(new BigDecimal("2"), 2, RoundingMode.HALF_UP);
                     descPct = 50;
+                } else if ("TRES_POR_DOS".equalsIgnoreCase(promoAplicable.getTipoPromocion())) {
+                    precioPromo = precioOriginal.multiply(new BigDecimal("2")).divide(new BigDecimal("3"), 2, RoundingMode.HALF_UP);
+                    descPct = 33;
                 } else if ("COMBO".equalsIgnoreCase(promoAplicable.getTipoPromocion()) || "COMBO_HUESO".equalsIgnoreCase(promoAplicable.getTipoPromocion())) {
                     if (promoAplicable.getValorDescuento() != null && promoAplicable.getValorDescuento().compareTo(BigDecimal.ZERO) > 0) {
                         BigDecimal factor = BigDecimal.ONE.subtract(

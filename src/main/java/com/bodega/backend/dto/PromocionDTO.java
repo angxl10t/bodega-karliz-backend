@@ -18,7 +18,7 @@ public class PromocionDTO {
     private Long idBodega;
     private String titulo;
     private String descripcion;
-    private String tipoPromocion; // PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, COMBO_HUESO
+    private String tipoPromocion; // PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, TRES_POR_DOS, COMBO_HUESO
     private String alcance;       // CATEGORIA, MARCA, PRODUCTO, COMBO
     private BigDecimal valorDescuento;
     private String categoriaObjetivo;
