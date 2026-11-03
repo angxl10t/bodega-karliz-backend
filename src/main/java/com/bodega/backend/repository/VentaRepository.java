@@ -48,6 +48,12 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
     @Query("SELECT COUNT(v) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.fechaVenta >= :start")
     long countVentasByPeriodo(@Param("idBodega") Long idBodega, @Param("start") OffsetDateTime start);
 
+    @Query("SELECT COALESCE(SUM(v.total), 0) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.tipoComprobante = 'TICKET' AND v.total <= :limite AND v.fechaVenta >= :start AND v.fechaVenta < :end")
+    BigDecimal sumVentasMenores(@Param("idBodega") Long idBodega, @Param("limite") BigDecimal limite, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
+    @Query("SELECT COUNT(v) FROM Venta v WHERE v.bodega.idBodega = :idBodega AND v.estado != 'ANULADA' AND v.tipoComprobante = 'TICKET' AND v.total <= :limite AND v.fechaVenta >= :start AND v.fechaVenta < :end")
+    long countVentasMenores(@Param("idBodega") Long idBodega, @Param("limite") BigDecimal limite, @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
     @Query(value = "SELECT EXTRACT(HOUR FROM (v.fecha_venta AT TIME ZONE 'America/Lima'))\\:\\:int as hora, " +
             "COUNT(v.id_venta) as tickets, " +
             "COALESCE(SUM(v.total), 0) as ventas " +
