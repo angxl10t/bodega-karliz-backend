@@ -236,10 +236,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       telefonoFinal = limpio.startsWith('51') ? limpio : '51$limpio';
     }
 
+    final String codigoShort = '#W-${(DateTime.now().millisecondsSinceEpoch % 9000) + 1000}';
+    final String codigoPedido = 'WEB-${(DateTime.now().millisecondsSinceEpoch % 90000) + 10000}';
+
     final buffer = StringBuffer();
-    buffer.writeln('*Pedido Web - $nombreBodega*');
+    buffer.writeln('*Pedido $codigoShort - $nombreBodega*');
     if (notas != null && notas.trim().isNotEmpty) {
-      buffer.writeln('Cliente/Nota: ${notas.trim()}');
+      buffer.writeln('Cliente: ${notas.trim()}');
     }
     buffer.writeln('--------------------------------');
 
@@ -296,9 +299,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     buffer.writeln('');
     buffer.writeln('¿Me confirman disponibilidad para recoger?');
 
-    // Registrar en la bandeja de pedidos web de CajaYa
+    // Registrar en la bandeja de pedidos web de CajaYa y sincronizar en la nube
+    final slugOrId = _bodega['idBodega']?.toString() ?? widget.tiendaSlug;
     final nuevoPedido = PedidoWeb(
-      idPedido: 'WEB-${DateTime.now().millisecondsSinceEpoch % 100000}',
+      idPedido: codigoPedido,
+      codigoPedido: codigoShort,
       fecha: DateTime.now(),
       nombreCliente: (notas != null && notas.trim().isNotEmpty) ? notas.trim() : 'Cliente Web',
       telefonoCliente: limpio,
@@ -309,7 +314,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       incluyeRetornables: incluyeRetornables,
       estado: 'PENDIENTE',
     );
-    PedidoWebService.registrarPedido(nuevoPedido);
+    PedidoWebService.registrarPedido(nuevoPedido, slugOrIdBodega: slugOrId);
 
     final encoded = Uri.encodeComponent(buffer.toString());
     final urlStr = telefonoFinal.isNotEmpty

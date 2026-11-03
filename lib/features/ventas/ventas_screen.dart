@@ -346,6 +346,8 @@ class _VentasScreenState extends State<VentasScreen> {
   void initState() {
     super.initState();
     PedidoWebService.inicializar();
+    PedidoWebService.iniciarPollingRevision();
+    PedidoWebService.onNuevoPedidoRecibido = _onNuevoPedidoWebRecibido;
     VentaEnEsperaService.inicializar();
     OfflineSyncManager.instance.init();
     ConfiguracionTicketService.cargar();
@@ -413,8 +415,37 @@ class _VentasScreenState extends State<VentasScreen> {
     }
   }
 
+  void _onNuevoPedidoWebRecibido(PedidoWeb pedido) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(LucideIcons.globe, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '¡Nuevo Pedido Web recibido (${pedido.codigoDisplay}) de ${pedido.nombreCliente}!',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF0D9488),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'VER',
+          textColor: Colors.white,
+          onPressed: _mostrarBandejaPedidosWeb,
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
+    PedidoWebService.detenerPollingRevision();
+    PedidoWebService.onNuevoPedidoRecibido = null;
     ProductoService.productosRevision.removeListener(
       _onProductosRevisionChanged,
     );
@@ -1215,15 +1246,26 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   void _mostrarBandejaPedidosWeb() {
+    // Sincronizar de inmediato con la nube al abrir la bandeja
+    PedidoWebService.sincronizarConNube(forzar: true);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        String filtroBusqueda = '';
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final lista = PedidoWebService.pedidos;
+            final todos = PedidoWebService.pedidos;
+            final lista = filtroBusqueda.isEmpty
+                ? todos
+                : todos.where((p) =>
+                    p.codigoDisplay.toLowerCase().contains(filtroBusqueda) ||
+                    p.nombreCliente.toLowerCase().contains(filtroBusqueda) ||
+                    (p.telefonoCliente != null && p.telefonoCliente!.contains(filtroBusqueda))
+                  ).toList();
             return Container(
               height: MediaQuery.of(context).size.height * 0.8,
               decoration: BoxDecoration(
@@ -1263,6 +1305,27 @@ class _VentasScreenState extends State<VentasScreen> {
                             ],
                           ),
                         ),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: PedidoWebService.estaSincronizandoNotifier,
+                          builder: (context, sincronizando, _) {
+                            return IconButton(
+                              icon: sincronizando
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0D9488)),
+                                    )
+                                  : const Icon(LucideIcons.refreshCw, size: 18, color: Color(0xFF0D9488)),
+                              tooltip: 'Sincronizar con la nube',
+                              onPressed: sincronizando
+                                  ? null
+                                  : () async {
+                                      await PedidoWebService.sincronizarConNube(forzar: true);
+                                      setModalState(() {});
+                                    },
+                            );
+                          },
+                        ),
                         IconButton(
                           icon: const Icon(LucideIcons.x, size: 20),
                           onPressed: () => Navigator.pop(ctx),
@@ -1271,6 +1334,21 @@ class _VentasScreenState extends State<VentasScreen> {
                     ),
                   ),
                   const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+                    child: TextField(
+                      onChanged: (val) => setModalState(() => filtroBusqueda = val.trim().toLowerCase()),
+                      decoration: InputDecoration(
+                        hintText: 'Buscar por código #W-XXXX, cliente o teléfono...',
+                        prefixIcon: const Icon(LucideIcons.search, size: 18),
+                        isDense: true,
+                        filled: true,
+                        fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                    ),
+                  ),
                   Expanded(
                     child: lista.isEmpty
                         ? Center(
@@ -1326,11 +1404,28 @@ class _VentasScreenState extends State<VentasScreen> {
                                   children: [
                                     Row(
                                       children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                          margin: const EdgeInsets.only(right: 8),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.3)),
+                                          ),
+                                          child: Text(
+                                            pedido.codigoDisplay,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w800,
+                                              color: const Color(0xFF0D9488),
+                                            ),
+                                          ),
+                                        ),
                                         Expanded(
                                           child: Text(
                                             pedido.nombreCliente,
                                             style: GoogleFonts.outfit(
-                                              fontSize: 16,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.w800,
                                             ),
                                           ),
@@ -1441,7 +1536,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                               icon: const Icon(LucideIcons.trash2, size: 18, color: AppTheme.alertRed),
                                               tooltip: 'Eliminar pedido',
                                               onPressed: () async {
-                                                await PedidoWebService.eliminarPedido(pedido.idPedido);
+                                                await PedidoWebService.eliminarPedido(pedido.idPedido, idPedidoWeb: pedido.idPedidoWeb);
                                                 setModalState(() {});
                                               },
                                             ),
@@ -1489,7 +1584,7 @@ class _VentasScreenState extends State<VentasScreen> {
                                                     }
                                                   });
 
-                                                  await PedidoWebService.marcarComoCargadoEnPos(pedido.idPedido);
+                                                  await PedidoWebService.marcarComoCargadoEnPos(pedido.idPedido, idPedidoWeb: pedido.idPedidoWeb);
                                                   KarlizSoundService.instance.playBarcodeBeep();
 
                                                   if (ctx.mounted) {
