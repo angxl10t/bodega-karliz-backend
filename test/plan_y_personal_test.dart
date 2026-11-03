@@ -40,7 +40,9 @@ void main() {
   });
 
   group('PlanYPersonalSheet Widget Security & UI Tests', () {
-    testWidgets('Displays Mi Bodega Online and PRO features for PRO plan', (WidgetTester tester) async {
+    testWidgets('Displays Mi Bodega Online and PRO features for PRO plan', (
+      WidgetTester tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(800, 1200));
 
       await tester.pumpWidget(
@@ -66,7 +68,9 @@ void main() {
       expect(find.textContaining('Yape / Plin'), findsOneWidget);
     });
 
-    testWidgets('Displays Activar PRO upgrade card for BASICO plan', (WidgetTester tester) async {
+    testWidgets('Displays Activar PRO upgrade card for BASICO plan', (
+      WidgetTester tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(800, 1200));
 
       await tester.pumpWidget(

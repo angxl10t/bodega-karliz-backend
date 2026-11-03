@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../catalogo_imagenes_service.dart';
 import '../theme.dart';
 import 'product_image_widget.dart';
@@ -49,7 +50,8 @@ class CatalogoFotoPickerModal extends StatefulWidget {
   }
 
   @override
-  State<CatalogoFotoPickerModal> createState() => _CatalogoFotoPickerModalState();
+  State<CatalogoFotoPickerModal> createState() =>
+      _CatalogoFotoPickerModalState();
 }
 
 class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
@@ -112,7 +114,11 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
+        border: isDark
+            ? const Border(
+                top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2),
+              )
+            : null,
       ),
       child: Column(
         children: [
@@ -122,7 +128,9 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             width: 44,
             height: 5,
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
+              color: isDark
+                  ? AppTheme.borderDarkElevated
+                  : const Color(0xFFE2E8F0),
               borderRadius: BorderRadius.circular(10),
             ),
           ),
@@ -136,10 +144,16 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
+                    color: isDark
+                        ? AppTheme.surfaceTintDark
+                        : AppTheme.surfaceTint,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(LucideIcons.camera, color: AppTheme.brandPrimary, size: 20),
+                  child: const Icon(
+                    LucideIcons.camera,
+                    color: AppTheme.brandPrimary,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -158,7 +172,9 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                         'Formato profesional de estudio (Vista Frontal 1:1)',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -184,8 +200,13 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             child: TabBar(
               controller: _tabController,
               labelColor: isDark ? Colors.white : AppTheme.brandPrimary,
-              unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
-              labelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+              unselectedLabelColor: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF475569),
+              labelStyle: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
               indicator: BoxDecoration(
                 color: isDark ? AppTheme.cardDark : Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -246,7 +267,9 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+              color: isDark
+                  ? AppTheme.cardDarkElevated
+                  : const Color(0xFFF8FAFC),
               border: Border(top: BorderSide(color: borderColor)),
             ),
             child: Row(
@@ -255,14 +278,25 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.alertRed,
-                      side: const BorderSide(color: AppTheme.alertRed, width: 1),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      side: const BorderSide(
+                        color: AppTheme.alertRed,
+                        width: 1,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                     icon: const Icon(LucideIcons.trash2, size: 16),
                     label: Text(
                       'Quitar Foto',
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
                     ),
                     onPressed: () {
                       widget.onItemSeleccionado?.call(null);
@@ -277,7 +311,9 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandPrimary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () {
@@ -312,11 +348,23 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           child: TextField(
             controller: _searchCtrl,
-            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
             decoration: InputDecoration(
               hintText: 'Buscar packshot (ej. Inca Kola, Gloria, Primor)...',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-              prefixIcon: const Icon(LucideIcons.search, size: 18, color: AppTheme.brandPrimary),
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+              ),
+              prefixIcon: const Icon(
+                LucideIcons.search,
+                size: 18,
+                color: AppTheme.brandPrimary,
+              ),
               suffixIcon: _searchCtrl.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(LucideIcons.x, size: 16),
@@ -324,8 +372,13 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                     )
                   : null,
               filled: true,
-              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              fillColor: isDark
+                  ? AppTheme.cardDarkSunken
+                  : const Color(0xFFF1F5F9),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 10,
+                horizontal: 14,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(color: borderColor),
@@ -336,7 +389,10 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: AppTheme.brandPrimary, width: 1.5),
+                borderSide: const BorderSide(
+                  color: AppTheme.brandPrimary,
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -347,7 +403,9 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.15 : 0.08),
+            color: AppTheme.brandPrimary.withValues(
+              alpha: isDark ? 0.15 : 0.08,
+            ),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: AppTheme.brandPrimary.withValues(alpha: 0.25),
@@ -356,7 +414,11 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           ),
           child: Row(
             children: [
-              const Icon(LucideIcons.checkCircle2, size: 16, color: AppTheme.brandPrimary),
+              const Icon(
+                LucideIcons.checkCircle2,
+                size: 16,
+                color: AppTheme.brandPrimary,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -380,26 +442,41 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.imageOff, size: 40, color: AppTheme.textMuted),
+                      Icon(
+                        LucideIcons.imageOff,
+                        size: 40,
+                        color: AppTheme.textMuted,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'No se encontraron fotos oficiales para esa búsqueda.',
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Puedes ingresar una URL personalizada en la siguiente pestaña.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
                       ),
                     ],
                   ),
                 )
               : GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 130,
                     mainAxisSpacing: 12,
@@ -422,18 +499,24 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF131B2A) : Colors.white,
+                          color: isDark
+                              ? const Color(0xFF131B2A)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected
                                 ? AppTheme.brandPrimary
-                                : (isDark ? const Color(0xFF243044) : const Color(0xFFE2E8F0)),
+                                : (isDark
+                                      ? const Color(0xFF243044)
+                                      : const Color(0xFFE2E8F0)),
                             width: isSelected ? 2.2 : 1.0,
                           ),
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: AppTheme.brandPrimary.withValues(alpha: 0.25),
+                                    color: AppTheme.brandPrimary.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -485,7 +568,9 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : AppTheme.textDark,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
                                 height: 1.15,
                               ),
                             ),
@@ -526,7 +611,13 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           const SizedBox(height: 6),
           Text(
             'Pega una URL directa de imagen (PNG, JPG, WEBP). Se recomienda formato cuadrado y fondo blanco/neutro.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
+            ),
           ),
           const SizedBox(height: 14),
 
@@ -535,11 +626,24 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             style: GoogleFonts.plusJakartaSans(fontSize: 13),
             decoration: InputDecoration(
               hintText: 'https://ejemplo.com/producto-frontal.png',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-              prefixIcon: const Icon(LucideIcons.link2, size: 18, color: AppTheme.brandPrimary),
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+              ),
+              prefixIcon: const Icon(
+                LucideIcons.link2,
+                size: 18,
+                color: AppTheme.brandPrimary,
+              ),
               suffixIcon: _urlCtrl.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(LucideIcons.checkCircle, size: 18, color: AppTheme.accentGreen),
+                      icon: const Icon(
+                        LucideIcons.checkCircle,
+                        size: 18,
+                        color: AppTheme.accentGreen,
+                      ),
                       onPressed: () {
                         setState(() {
                           _selectedUrl = _urlCtrl.text.trim();
@@ -548,7 +652,9 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                     )
                   : null,
               filled: true,
-              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+              fillColor: isDark
+                  ? AppTheme.cardDarkSunken
+                  : const Color(0xFFF1F5F9),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(color: borderColor),

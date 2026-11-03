@@ -1,8 +1,9 @@
-﻿import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
 import '../proveedores/proveedor_model.dart';
@@ -21,7 +22,8 @@ class ComprasScreen extends StatefulWidget {
   State<ComprasScreen> createState() => _ComprasScreenState();
 }
 
-class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProviderStateMixin {
+class _ComprasScreenState extends State<ComprasScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ProductoService _productoService = ProductoService();
   final ProveedorService _proveedorService = ProveedorService();
@@ -42,7 +44,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
   bool _isProcesando = false;
   String _busquedaHistorial = '';
   String _userRol = 'ADMIN';
-  bool get _esAdmin => _userRol.toUpperCase() == 'ADMIN' || _userRol.toUpperCase() == 'SUPERADMIN';
+  bool get _esAdmin =>
+      _userRol.toUpperCase() == 'ADMIN' ||
+      _userRol.toUpperCase() == 'SUPERADMIN';
 
   List<Producto> get _safeProductos => _productos;
   List<Proveedor> get _safeProveedores => _proveedores;
@@ -52,15 +56,21 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
-    ProveedorService.proveedoresRevision.addListener(_onProveedoresRevisionChanged);
+    ProveedorService.proveedoresRevision.addListener(
+      _onProveedoresRevisionChanged,
+    );
     CompraService.comprasRevision.addListener(_onComprasRevisionChanged);
     _cargarDatos();
   }
 
   @override
   void dispose() {
-    ProductoService.productosRevision.removeListener(_onProductosRevisionChanged);
-    ProveedorService.proveedoresRevision.removeListener(_onProveedoresRevisionChanged);
+    ProductoService.productosRevision.removeListener(
+      _onProductosRevisionChanged,
+    );
+    ProveedorService.proveedoresRevision.removeListener(
+      _onProveedoresRevisionChanged,
+    );
     CompraService.comprasRevision.removeListener(_onComprasRevisionChanged);
     _tabController.dispose();
     _comprobanteController.dispose();
@@ -90,7 +100,8 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     final rol = await AuthService().getUserRole();
     if (!mounted) return;
     _userRol = rol;
-    final esAdmin = rol.toUpperCase() == 'ADMIN' || rol.toUpperCase() == 'SUPERADMIN';
+    final esAdmin =
+        rol.toUpperCase() == 'ADMIN' || rol.toUpperCase() == 'SUPERADMIN';
 
     final results = await Future.wait([
       _productoService.getProductos(forceRefresh: forceRefresh),
@@ -102,7 +113,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       setState(() {
         _productos = List<Producto>.from(results[0] as List<Producto>);
         _proveedores = List<Proveedor>.from(results[1] as List<Proveedor>);
-        _historialCompras = List<CompraRegistro>.from(results[2] as List<CompraRegistro>);
+        _historialCompras = List<CompraRegistro>.from(
+          results[2] as List<CompraRegistro>,
+        );
         if (_safeProveedores.isNotEmpty && _proveedorSeleccionado == null) {
           _proveedorSeleccionado = _safeProveedores.first;
         }
@@ -140,11 +153,15 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     if (scannedCode == null || scannedCode.trim().isEmpty) return;
 
     final codeClean = scannedCode.trim();
-    int matchIdx = _safeProductos.indexWhere((p) => _coincideCodigo(p, codeClean));
+    int matchIdx = _safeProductos.indexWhere(
+      (p) => _coincideCodigo(p, codeClean),
+    );
 
     if (matchIdx == -1) {
       // Intentar refrescar catálogo en vivo desde el servidor para detectar productos recién creados
-      final prodsFrescos = await _productoService.getProductos(forceRefresh: true);
+      final prodsFrescos = await _productoService.getProductos(
+        forceRefresh: true,
+      );
       if (mounted) {
         setState(() {
           _productos = prodsFrescos;
@@ -161,7 +178,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Código "$scannedCode" no encontrado en el catálogo de productos'),
+            content: Text(
+              'Código "$scannedCode" no encontrado en el catálogo de productos',
+            ),
             backgroundColor: AppTheme.alertRed,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
@@ -188,10 +207,22 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       if (bcDigits.isNotEmpty) {
         if (bcDigits == codeDigits) return true;
         // Variaciones UPC-A / EAN-13 (con/sin ceros a la izquierda)
-        if (codeDigits.length == 13 && codeDigits.startsWith('0') && codeDigits.substring(1) == bcDigits) return true;
-        if (bcDigits.length == 13 && bcDigits.startsWith('0') && bcDigits.substring(1) == codeDigits) return true;
-        if (codeDigits.length == 14 && codeDigits.startsWith('00') && codeDigits.substring(2) == bcDigits) return true;
-        if (bcDigits.length == 14 && bcDigits.startsWith('00') && bcDigits.substring(2) == codeDigits) return true;
+        if (codeDigits.length == 13 &&
+            codeDigits.startsWith('0') &&
+            codeDigits.substring(1) == bcDigits)
+          return true;
+        if (bcDigits.length == 13 &&
+            bcDigits.startsWith('0') &&
+            bcDigits.substring(1) == codeDigits)
+          return true;
+        if (codeDigits.length == 14 &&
+            codeDigits.startsWith('00') &&
+            codeDigits.substring(2) == bcDigits)
+          return true;
+        if (bcDigits.length == 14 &&
+            bcDigits.startsWith('00') &&
+            bcDigits.substring(2) == codeDigits)
+          return true;
       }
     }
 
@@ -213,7 +244,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
         return StatefulBuilder(
           builder: (context, setModalState) {
             final proveedoresFiltrados = _safeProveedores.where((p) {
-              return p.razonSocial.toLowerCase().contains(filtro.toLowerCase()) ||
+              return p.razonSocial.toLowerCase().contains(
+                    filtro.toLowerCase(),
+                  ) ||
                   p.ruc.contains(filtro);
             }).toList();
 
@@ -224,184 +257,239 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.75,
                   padding: const EdgeInsets.all(22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Distribuidores / Proveedores',
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Distribuidores / Proveedores',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.brandPrimary,
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            icon: const Icon(LucideIcons.plusCircle, size: 16),
+                            label: Text(
+                              'Nuevo',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            onPressed: () async {
+                              Navigator.pop(ctx);
+                              final nuevo = await NuevoProveedorSheet.show(
+                                context,
+                              );
+                              if (nuevo != null && mounted) {
+                                setState(() => _proveedorSeleccionado = nuevo);
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 6),
+                          IconButton(
+                            icon: const Icon(LucideIcons.x, size: 20),
+                            tooltip: 'Cerrar',
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF5F6F8),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: TextField(
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton.icon(
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.brandPrimary,
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        icon: const Icon(LucideIcons.plusCircle, size: 16),
-                        label: Text(
-                          'Nuevo',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                          decoration: InputDecoration(
+                            hintText: 'Buscar por Razón Social o RUC...',
+                            hintStyle: GoogleFonts.plusJakartaSans(
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                              fontSize: 13,
+                            ),
+                            prefixIcon: const Icon(
+                              LucideIcons.search,
+                              size: 18,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                           ),
+                          onChanged: (val) => setModalState(() => filtro = val),
                         ),
-                        onPressed: () async {
-                          Navigator.pop(ctx);
-                          final nuevo = await NuevoProveedorSheet.show(context);
-                          if (nuevo != null && mounted) {
-                            setState(() => _proveedorSeleccionado = nuevo);
-                          }
-                        },
                       ),
-                      const SizedBox(width: 6),
-                      IconButton(
-                        icon: const Icon(LucideIcons.x, size: 20),
-                        tooltip: 'Cerrar',
-                        onPressed: () => Navigator.pop(ctx),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: proveedoresFiltrados.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 56,
+                                        height: 56,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppTheme.brandPrimary
+                                              .withValues(
+                                                alpha: isDark ? 0.2 : 0.1,
+                                              ),
+                                        ),
+                                        child: const Icon(
+                                          LucideIcons.truck,
+                                          size: 24,
+                                          color: AppTheme.brandPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        filtro.isEmpty
+                                            ? 'No hay proveedores registrados'
+                                            : 'Sin coincidencias para "$filtro"',
+                                        style: GoogleFonts.outfit(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 15,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Agrega distribuidoras (Backus, Alicorp, Gloria) para asociar comprobantes.',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12,
+                                          color: AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: proveedoresFiltrados.length,
+                                separatorBuilder: (_, index) => Divider(
+                                  height: 1,
+                                  color: isDark
+                                      ? AppTheme.borderDark
+                                      : AppTheme.borderLight,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final p = proveedoresFiltrados[index];
+                                  final isSelected =
+                                      p.idProveedor ==
+                                      _proveedorSeleccionado?.idProveedor;
+                                  return ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    leading: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppTheme.brandPrimary
+                                            : (isDark
+                                                  ? AppTheme.surfaceTintDark
+                                                  : AppTheme.surfaceTint),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        LucideIcons.building2,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppTheme.brandPrimary,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      p.razonSocial,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontWeight: isSelected
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      'RUC: ${p.ruc}',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
+                                    ),
+                                    trailing: isSelected
+                                        ? const Icon(
+                                            LucideIcons.check,
+                                            color: AppTheme.brandPrimary,
+                                            size: 20,
+                                          )
+                                        : null,
+                                    onTap: () {
+                                      setState(
+                                        () => _proveedorSeleccionado = p,
+                                      );
+                                      Navigator.pop(ctx);
+                                    },
+                                  );
+                                },
+                              ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: TextField(
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Buscar por Razón Social o RUC...',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
-                        prefixIcon: const Icon(LucideIcons.search, size: 18),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                      onChanged: (val) => setModalState(() => filtro = val),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: proveedoresFiltrados.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 56,
-                                    height: 56,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.1),
-                                    ),
-                                    child: const Icon(LucideIcons.truck, size: 24, color: AppTheme.brandPrimary),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    filtro.isEmpty
-                                        ? 'No hay proveedores registrados'
-                                        : 'Sin coincidencias para "$filtro"',
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Agrega distribuidoras (Backus, Alicorp, Gloria) para asociar comprobantes.',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      color: AppTheme.textMuted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            itemCount: proveedoresFiltrados.length,
-                            separatorBuilder: (_, index) => Divider(
-                              height: 1,
-                              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                            ),
-                            itemBuilder: (context, index) {
-                              final p = proveedoresFiltrados[index];
-                              final isSelected = p.idProveedor == _proveedorSeleccionado?.idProveedor;
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                leading: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppTheme.brandPrimary
-                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    LucideIcons.building2,
-                                    color: isSelected ? Colors.white : AppTheme.brandPrimary,
-                                    size: 20,
-                                  ),
-                                ),
-                                title: Text(
-                                  p.razonSocial,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                    color: isDark ? Colors.white : AppTheme.textDark,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  'RUC: ${p.ruc}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                                ),
-                                trailing: isSelected
-                                    ? const Icon(LucideIcons.check, color: AppTheme.brandPrimary, size: 20)
-                                    : null,
-                                onTap: () {
-                                  setState(() => _proveedorSeleccionado = p);
-                                  Navigator.pop(ctx);
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        );
+            );
           },
         );
       },
@@ -437,248 +525,332 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.85,
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Catálogo de Abastecimiento',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : AppTheme.textDark,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              'Toca cualquier producto para añadirlo a la compra',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${_canastaCompras.length} en orden',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.brandPrimary,
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      IconButton(
-                        icon: const Icon(LucideIcons.x, size: 20),
-                        tooltip: 'Cerrar',
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: TextField(
-                      controller: searchCtrl,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Buscar por nombre, código o barra...',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
-                        prefixIcon: const Icon(LucideIcons.search, size: 18),
-                        suffixIcon: IconButton(
-                          icon: const Icon(LucideIcons.scanLine, size: 18, color: Color(0xFF0D9488)),
-                          tooltip: 'Escanear código de barras',
-                          onPressed: () async {
-                            final code = await KarlizBarcodeScannerModal.scan(context);
-                            if (code != null && code.isNotEmpty) {
-                              searchCtrl.text = code;
-                              setModalState(() => filtro = code);
-                            }
-                          },
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
-                      onChanged: (val) => setModalState(() => filtro = val),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: prodsFiltrados.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 56,
-                                    height: 56,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: const Color(0xFF0D9488).withValues(alpha: isDark ? 0.2 : 0.1),
-                                    ),
-                                    child: const Icon(LucideIcons.packageSearch, size: 24, color: Color(0xFF0D9488)),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    filtro.isEmpty
-                                        ? 'No hay productos en inventario'
-                                        : 'Sin coincidencias para "$filtro"',
-                                    style: GoogleFonts.outfit(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Prueba buscando por nombre o código de barras.',
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12,
-                                      color: AppTheme.textMuted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            itemCount: prodsFiltrados.length,
-                            separatorBuilder: (_, index) => Divider(
-                              height: 1,
-                              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                            ),
-                            itemBuilder: (context, index) {
-                              final p = prodsFiltrados[index];
-                              final idxCanasta = _canastaCompras.indexWhere((c) => c.idProducto == p.idProducto);
-                              final bool yaEnOrden = idxCanasta != -1;
-                              final itemEnOrden = yaEnOrden ? _canastaCompras[idxCanasta] : null;
-
-                              return ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                leading: Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: yaEnOrden
-                                        ? AppTheme.accentGreen.withValues(alpha: 0.15)
-                                        : (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    yaEnOrden ? LucideIcons.check : LucideIcons.package,
-                                    color: yaEnOrden ? AppTheme.accentGreen : AppTheme.brandPrimary,
-                                    size: 20,
-                                  ),
-                                ),
-                                title: Text(
-                                  p.nombre,
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Catálogo de Abastecimiento',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: yaEnOrden ? FontWeight.w800 : FontWeight.w600,
-                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                subtitle: Text(
-                                  yaEnOrden
-                                      ? 'En orden: ${itemEnOrden!.cantidad.toStringAsFixed(0)} u. (Costo: S/ ${itemEnOrden.precioUnitario.toStringAsFixed(2)})'
-                                      : 'Stock actual: ${p.stockActual.toStringAsFixed(0)} u. • P. Venta: S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                Text(
+                                  'Toca cualquier producto para añadirlo a la compra',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
-                                    color: yaEnOrden ? AppTheme.accentGreen : AppTheme.textMuted,
-                                    fontWeight: yaEnOrden ? FontWeight.w700 : FontWeight.w500,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                trailing: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: yaEnOrden ? AppTheme.accentGreen : AppTheme.brandPrimary,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Row(
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.surfaceTintDark
+                                  : AppTheme.surfaceTint,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '${_canastaCompras.length} en orden',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.brandPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          IconButton(
+                            icon: const Icon(LucideIcons.x, size: 20),
+                            tooltip: 'Cerrar',
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF5F6F8),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: TextField(
+                          controller: searchCtrl,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Buscar por nombre, código o barra...',
+                            hintStyle: GoogleFonts.plusJakartaSans(
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                              fontSize: 13,
+                            ),
+                            prefixIcon: const Icon(
+                              LucideIcons.search,
+                              size: 18,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: const Icon(
+                                LucideIcons.scanLine,
+                                size: 18,
+                                color: Color(0xFF0D9488),
+                              ),
+                              tooltip: 'Escanear código de barras',
+                              onPressed: () async {
+                                final code =
+                                    await KarlizBarcodeScannerModal.scan(
+                                      context,
+                                    );
+                                if (code != null && code.isNotEmpty) {
+                                  searchCtrl.text = code;
+                                  setModalState(() => filtro = code);
+                                }
+                              },
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                          onChanged: (val) => setModalState(() => filtro = val),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: prodsFiltrados.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
-                                        yaEnOrden ? LucideIcons.pencil : LucideIcons.plus,
-                                        size: 14,
-                                        color: Colors.white,
+                                      Container(
+                                        width: 56,
+                                        height: 56,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: const Color(0xFF0D9488)
+                                              .withValues(
+                                                alpha: isDark ? 0.2 : 0.1,
+                                              ),
+                                        ),
+                                        child: const Icon(
+                                          LucideIcons.packageSearch,
+                                          size: 24,
+                                          color: Color(0xFF0D9488),
+                                        ),
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(height: 12),
                                       Text(
-                                        yaEnOrden ? 'Editar' : 'Añadir',
+                                        filtro.isEmpty
+                                            ? 'No hay productos en inventario'
+                                            : 'Sin coincidencias para "$filtro"',
+                                        style: GoogleFonts.outfit(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 15,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Prueba buscando por nombre o código de barras.',
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.plusJakartaSans(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w800,
                                           fontSize: 12,
+                                          color: AppTheme.textMuted,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                onTap: () => _mostrarDialogoDetalleIngreso(p, setModalState),
-                              );
-                            },
-                          ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.brandPrimary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                              )
+                            : ListView.separated(
+                                itemCount: prodsFiltrados.length,
+                                separatorBuilder: (_, index) => Divider(
+                                  height: 1,
+                                  color: isDark
+                                      ? AppTheme.borderDark
+                                      : AppTheme.borderLight,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final p = prodsFiltrados[index];
+                                  final idxCanasta = _canastaCompras.indexWhere(
+                                    (c) => c.idProducto == p.idProducto,
+                                  );
+                                  final bool yaEnOrden = idxCanasta != -1;
+                                  final itemEnOrden = yaEnOrden
+                                      ? _canastaCompras[idxCanasta]
+                                      : null;
+
+                                  return ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    leading: Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: BoxDecoration(
+                                        color: yaEnOrden
+                                            ? AppTheme.accentGreen.withValues(
+                                                alpha: 0.15,
+                                              )
+                                            : (isDark
+                                                  ? AppTheme.surfaceTintDark
+                                                  : AppTheme.surfaceTint),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        yaEnOrden
+                                            ? LucideIcons.check
+                                            : LucideIcons.package,
+                                        color: yaEnOrden
+                                            ? AppTheme.accentGreen
+                                            : AppTheme.brandPrimary,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      p.nombre,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontWeight: yaEnOrden
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      yaEnOrden
+                                          ? 'En orden: ${itemEnOrden!.cantidad.toStringAsFixed(0)} u. (Costo: S/ ${itemEnOrden.precioUnitario.toStringAsFixed(2)})'
+                                          : 'Stock actual: ${p.stockActual.toStringAsFixed(0)} u. • P. Venta: S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        color: yaEnOrden
+                                            ? AppTheme.accentGreen
+                                            : AppTheme.textMuted,
+                                        fontWeight: yaEnOrden
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                      ),
+                                    ),
+                                    trailing: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: yaEnOrden
+                                            ? AppTheme.accentGreen
+                                            : AppTheme.brandPrimary,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            yaEnOrden
+                                                ? LucideIcons.pencil
+                                                : LucideIcons.plus,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            yaEnOrden ? 'Editar' : 'Añadir',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    onTap: () => _mostrarDialogoDetalleIngreso(
+                                      p,
+                                      setModalState,
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
-                      onPressed: () => Navigator.pop(ctx),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          'VER ORDEN (${_canastaCompras.length} ITEMS - S/ ${_totalCompra.toStringAsFixed(2)})',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.brandPrimary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                          onPressed: () => Navigator.pop(ctx),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'VER ORDEN (${_canastaCompras.length} ITEMS - S/ ${_totalCompra.toStringAsFixed(2)})',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13.5,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        );
+            );
           },
         );
       },
@@ -688,7 +860,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
   void _mostrarDialogoDetalleIngreso(Producto p, [StateSetter? setModalState]) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     Producto productoActual = p;
-    final idxExistente = _canastaCompras.indexWhere((c) => c.idProducto == p.idProducto);
+    final idxExistente = _canastaCompras.indexWhere(
+      (c) => c.idProducto == p.idProducto,
+    );
     final existente = idxExistente != -1 ? _canastaCompras[idxExistente] : null;
 
     final cantCtrl = TextEditingController(
@@ -704,28 +878,40 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       context: context,
       builder: (dlgCtx) => StatefulBuilder(
         builder: (context, setDlgState) {
-          final cant = double.tryParse(cantCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
-          final costo = double.tryParse(costoCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+          final cant =
+              double.tryParse(cantCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+          final costo =
+              double.tryParse(costoCtrl.text.replaceAll(',', '.').trim()) ??
+              0.0;
           final subtotal = cant * costo;
           final pv = productoActual.precioVenta;
           final gananciaUnitaria = pv - costo;
           final margenPct = pv > 0 ? (gananciaUnitaria / pv) * 100 : 0.0;
           final esMargenCritico = costo >= pv && costo > 0;
-          final esMargenBajo = !esMargenCritico && margenPct < 18.0 && costo > 0;
+          final esMargenBajo =
+              !esMargenCritico && margenPct < 18.0 && costo > 0;
           final precioSugerido = ((costo / 0.78) * 10).ceil() / 10.0;
 
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(26),
+            ),
             title: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
+                    color: isDark
+                        ? AppTheme.surfaceTintDark
+                        : AppTheme.surfaceTint,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(LucideIcons.packagePlus, color: AppTheme.brandPrimary, size: 20),
+                  child: const Icon(
+                    LucideIcons.packagePlus,
+                    color: AppTheme.brandPrimary,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -736,11 +922,20 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         p.nombre,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       Text(
                         'P. Venta público: S/ ${productoActual.precioVenta.toStringAsFixed(2)}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
                       ),
                     ],
                   ),
@@ -760,8 +955,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     Expanded(
                       child: TextField(
                         controller: cantCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
                         decoration: const InputDecoration(
                           labelText: 'Cantidad',
                           suffixText: 'u.',
@@ -773,8 +973,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     Expanded(
                       child: TextField(
                         controller: costoCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
                         decoration: const InputDecoration(
                           labelText: 'Costo Unit.',
                           prefixText: 'S/ ',
@@ -786,7 +991,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 14),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
@@ -796,7 +1004,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     children: [
                       Text(
                         'Subtotal a pagar:',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       Text(
                         'S/ ${subtotal.toStringAsFixed(2)}',
@@ -815,11 +1026,17 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: esMargenCritico
-                          ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
-                          : (isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB)),
+                          ? (isDark
+                                ? const Color(0xFF450A0A)
+                                : const Color(0xFFFEF2F2))
+                          : (isDark
+                                ? const Color(0xFF451A03)
+                                : const Color(0xFFFFFBEB)),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                        color: esMargenCritico
+                            ? AppTheme.alertRed
+                            : const Color(0xFFD97706),
                         width: 1.2,
                       ),
                     ),
@@ -829,9 +1046,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         Row(
                           children: [
                             Icon(
-                              esMargenCritico ? LucideIcons.alertOctagon : LucideIcons.trendingUp,
+                              esMargenCritico
+                                  ? LucideIcons.alertOctagon
+                                  : LucideIcons.trendingUp,
                               size: 16,
-                              color: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                              color: esMargenCritico
+                                  ? AppTheme.alertRed
+                                  : const Color(0xFFD97706),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -842,7 +1063,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 style: GoogleFonts.outfit(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w800,
-                                  color: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                                  color: esMargenCritico
+                                      ? AppTheme.alertRed
+                                      : const Color(0xFFD97706),
                                 ),
                               ),
                             ),
@@ -856,7 +1079,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             height: 1.25,
-                            color: isDark ? Colors.white70 : const Color(0xFF475569),
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF475569),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -865,17 +1090,29 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           height: 36,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: esMargenCritico ? AppTheme.alertRed : const Color(0xFFD97706),
+                              backgroundColor: esMargenCritico
+                                  ? AppTheme.alertRed
+                                  : const Color(0xFFD97706),
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                            icon: const Icon(LucideIcons.arrowUpRight, size: 14),
+                            icon: const Icon(
+                              LucideIcons.arrowUpRight,
+                              size: 14,
+                            ),
                             label: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 'Actualizar P. Venta a S/ ${precioSugerido.toStringAsFixed(2)} (Margen 22%)',
-                                style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w800),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                             onPressed: () async {
@@ -883,10 +1120,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 precioVenta: precioSugerido,
                                 precioCosto: costo,
                               );
-                              final ok = await _productoService.actualizarProducto(nuevoProd);
+                              final ok = await _productoService
+                                  .actualizarProducto(nuevoProd);
                               if (ok) {
                                 setState(() {
-                                  final pIdx = _productos.indexWhere((it) => it.idProducto == p.idProducto);
+                                  final pIdx = _productos.indexWhere(
+                                    (it) => it.idProducto == p.idProducto,
+                                  );
                                   if (pIdx != -1) _productos[pIdx] = nuevoProd;
                                 });
                                 setDlgState(() {
@@ -896,7 +1136,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 if (dlgCtx.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('¡Precio de venta actualizado a S/ ${precioSugerido.toStringAsFixed(2)}!'),
+                                      content: Text(
+                                        '¡Precio de venta actualizado a S/ ${precioSugerido.toStringAsFixed(2)}!',
+                                      ),
                                       backgroundColor: AppTheme.accentGreen,
                                     ),
                                   );
@@ -914,27 +1156,47 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dlgCtx),
-                child: Text('Cancelar', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Cancelar',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.brandPrimary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
                 onPressed: () {
-                  final c = double.tryParse(cantCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
-                  final cost = double.tryParse(costoCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+                  final c =
+                      double.tryParse(
+                        cantCtrl.text.replaceAll(',', '.').trim(),
+                      ) ??
+                      0.0;
+                  final cost =
+                      double.tryParse(
+                        costoCtrl.text.replaceAll(',', '.').trim(),
+                      ) ??
+                      0.0;
 
                   if (c <= 0 || cost < 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ingresa valores válidos'), backgroundColor: AppTheme.alertRed),
+                      const SnackBar(
+                        content: Text('Ingresa valores válidos'),
+                        backgroundColor: AppTheme.alertRed,
+                      ),
                     );
                     return;
                   }
 
                   setState(() {
-                    final idx = _canastaCompras.indexWhere((item) => item.idProducto == p.idProducto);
+                    final idx = _canastaCompras.indexWhere(
+                      (item) => item.idProducto == p.idProducto,
+                    );
                     if (idx != -1) {
                       _canastaCompras[idx].cantidad = c;
                       _canastaCompras[idx].precioUnitario = cost;
@@ -954,10 +1216,14 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   setModalState?.call(() {});
                   Navigator.pop(dlgCtx);
 
-                  final cantFormatted = c % 1 == 0 ? c.toInt().toString() : c.toStringAsFixed(2);
+                  final cantFormatted = c % 1 == 0
+                      ? c.toInt().toString()
+                      : c.toStringAsFixed(2);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Agregado: ${p.nombre} ($cantFormatted u.)'),
+                      content: Text(
+                        'Agregado: ${p.nombre} ($cantFormatted u.)',
+                      ),
                       backgroundColor: AppTheme.accentGreen,
                       duration: const Duration(seconds: 1),
                     ),
@@ -965,7 +1231,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 },
                 child: Text(
                   yaEnExistencia(p) ? 'Actualizar' : 'Añadir al Lote',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -987,7 +1255,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
     if (_proveedorSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona un proveedor'), backgroundColor: AppTheme.alertRed),
+        const SnackBar(
+          content: Text('Selecciona un proveedor'),
+          backgroundColor: AppTheme.alertRed,
+        ),
       );
       return;
     }
@@ -1019,16 +1290,22 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       setState(() => _isProcesando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No se pudo determinar el ID del proveedor. Vuelve a seleccionarlo de la lista.'),
+          content: Text(
+            'No se pudo determinar el ID del proveedor. Vuelve a seleccionarlo de la lista.',
+          ),
           backgroundColor: AppTheme.alertRed,
         ),
       );
       return;
     }
 
-    final numeroDoc = _comprobanteController.text.trim().isEmpty ? 'S/C' : _comprobanteController.text.trim();
+    final numeroDoc = _comprobanteController.text.trim().isEmpty
+        ? 'S/C'
+        : _comprobanteController.text.trim();
     final comprobanteCompleto = '$_tipoComprobante $numeroDoc'.trim();
-    final comprobanteFinal = comprobanteCompleto.length > 50 ? comprobanteCompleto.substring(0, 50) : comprobanteCompleto;
+    final comprobanteFinal = comprobanteCompleto.length > 50
+        ? comprobanteCompleto.substring(0, 50)
+        : comprobanteCompleto;
 
     final compra = CompraEnvio(
       idProveedor: idProv,
@@ -1062,62 +1339,90 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
           builder: (ctx) {
             final isDark = Theme.of(ctx).brightness == Brightness.dark;
             return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFD1FAE5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(LucideIcons.checkCheck, color: AppTheme.accentGreen, size: 34),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '¡Mercadería Ingresada con Éxito!',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Se han actualizado los stocks de $totalProds productos por un valor de S/ ${totalInvertido.toStringAsFixed(2)}.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.brandPrimary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(26),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFD1FAE5),
+                      shape: BoxShape.circle,
                     ),
-                    onPressed: () => Navigator.pop(ctx),
-                    child: Text('CONTINUAR', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800)),
+                    child: const Icon(
+                      LucideIcons.checkCheck,
+                      color: AppTheme.accentGreen,
+                      size: 34,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 16),
+                  Text(
+                    '¡Mercadería Ingresada con Éxito!',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Se han actualizado los stocks de $totalProds productos por un valor de S/ ${totalInvertido.toStringAsFixed(2)}.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF334155),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 44,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.brandPrimary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(
+                        'CONTINUAR',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                const Icon(LucideIcons.alertTriangle, color: Colors.white, size: 20),
+                const Icon(
+                  LucideIcons.alertTriangle,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     errorMsg,
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -1125,7 +1430,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
             backgroundColor: AppTheme.alertRed,
             duration: const Duration(seconds: 4),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
         );
       }
@@ -1168,7 +1475,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
             ),
           ),
         ),
-        body: const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary)),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+        ),
       );
     }
 
@@ -1203,14 +1512,25 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
     final tabBar = TabBar(
       controller: _tabController,
       labelColor: AppTheme.brandPrimary,
-      unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+      unselectedLabelColor: isDark
+          ? AppTheme.textDarkSecondary
+          : const Color(0xFF475569),
       indicatorColor: AppTheme.brandPrimary,
       indicatorWeight: 2.5,
       labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
-      unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
+      unselectedLabelStyle: GoogleFonts.outfit(
+        fontWeight: FontWeight.w500,
+        fontSize: 13,
+      ),
       tabs: const [
-        Tab(icon: Icon(LucideIcons.truck, size: 17), text: 'Nueva Compra en Lote'),
-        Tab(icon: Icon(LucideIcons.clipboardList, size: 17), text: 'Historial de Compras'),
+        Tab(
+          icon: Icon(LucideIcons.truck, size: 17),
+          text: 'Nueva Compra en Lote',
+        ),
+        Tab(
+          icon: Icon(LucideIcons.clipboardList, size: 17),
+          text: 'Historial de Compras',
+        ),
       ],
     );
 
@@ -1246,7 +1566,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF64748B),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -1256,12 +1578,20 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
         actions: [
           IconButton(
             tooltip: 'Sugerencia de Pedido (Reposición)',
-            icon: const Icon(LucideIcons.sparkles, size: 19, color: AppTheme.accentGreen),
+            icon: const Icon(
+              LucideIcons.sparkles,
+              size: 19,
+              color: AppTheme.accentGreen,
+            ),
             onPressed: _mostrarSugerenciaPedidoModal,
           ),
           IconButton(
             tooltip: 'Registrar Proveedor',
-            icon: const Icon(LucideIcons.userPlus, size: 19, color: AppTheme.brandPrimary),
+            icon: const Icon(
+              LucideIcons.userPlus,
+              size: 19,
+              color: AppTheme.brandPrimary,
+            ),
             onPressed: _abrirNuevoProveedorModal,
           ),
           IconButton(
@@ -1285,7 +1615,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
 
   void _mostrarSugerenciaPedidoModal() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final productosCriticos = _safeProductos.where((p) => p.stockActual <= p.stockMinimo).toList();
+    final productosCriticos = _safeProductos
+        .where((p) => p.stockActual <= p.stockMinimo)
+        .toList();
 
     showModalBottomSheet(
       context: context,
@@ -1324,7 +1656,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       color: AppTheme.accentGreen.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(LucideIcons.sparkles, color: AppTheme.accentGreen, size: 20),
+                    child: const Icon(
+                      LucideIcons.sparkles,
+                      color: AppTheme.accentGreen,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -1343,7 +1679,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           'Productos con stock mínimo o crítico para pedir hoy',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
-                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],
@@ -1363,16 +1701,26 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   child: Center(
                     child: Column(
                       children: [
-                        const Icon(LucideIcons.checkCircle2, color: AppTheme.accentGreen, size: 40),
+                        const Icon(
+                          LucideIcons.checkCircle2,
+                          color: AppTheme.accentGreen,
+                          size: 40,
+                        ),
                         const SizedBox(height: 10),
                         Text(
                           '¡Tu inventario está abastecido!',
-                          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'No hay productos con stock por debajo del límite mínimo.',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: AppTheme.textMuted,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         OutlinedButton(
@@ -1387,27 +1735,45 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 Expanded(
                   child: ListView.separated(
                     itemCount: productosCriticos.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
                     itemBuilder: (ctx, i) {
                       final p = productosCriticos[i];
-                      final cantidadSugerida = ((p.stockMinimo * 2) - p.stockActual).clamp(1.0, 999.0);
+                      final cantidadSugerida =
+                          ((p.stockMinimo * 2) - p.stockActual).clamp(
+                            1.0,
+                            999.0,
+                          );
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: CircleAvatar(
                           backgroundColor: const Color(0xFFFEE2E2),
                           radius: 18,
-                          child: const Icon(LucideIcons.packageMinus, size: 16, color: AppTheme.alertRed),
+                          child: const Icon(
+                            LucideIcons.packageMinus,
+                            size: 16,
+                            color: AppTheme.alertRed,
+                          ),
                         ),
                         title: Text(
                           p.nombre,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         subtitle: Text(
                           'Stock actual: ${p.stockActual.toInt()} | Mínimo: ${p.stockMinimo.toInt()}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppTheme.alertRed),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: AppTheme.alertRed,
+                          ),
                         ),
                         trailing: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.accentGreen.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(8),
@@ -1433,27 +1799,41 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       backgroundColor: AppTheme.accentGreen,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     icon: const Icon(LucideIcons.send, size: 16),
                     label: Text(
                       'Enviar Pedido por WhatsApp al Proveedor',
-                      style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     onPressed: () async {
                       final buffer = StringBuffer();
                       buffer.writeln('📦 *PEDIDO DE REPOSICIÓN - BODEGA*');
-                      buffer.writeln('Hola estimado proveedor, por favor programar el siguiente pedido:');
+                      buffer.writeln(
+                        'Hola estimado proveedor, por favor programar el siguiente pedido:',
+                      );
                       buffer.writeln('');
                       for (final p in productosCriticos) {
-                        final cant = ((p.stockMinimo * 2) - p.stockActual).clamp(1.0, 999.0).toInt();
+                        final cant = ((p.stockMinimo * 2) - p.stockActual)
+                            .clamp(1.0, 999.0)
+                            .toInt();
                         buffer.writeln('• *${p.nombre}*: $cant unidades');
                       }
                       buffer.writeln('');
                       buffer.writeln('Muchas gracias.');
-                      final url = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(buffer.toString())}');
+                      final url = Uri.parse(
+                        'https://wa.me/?text=${Uri.encodeComponent(buffer.toString())}',
+                      );
                       if (await canLaunchUrl(url)) {
-                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                        await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        );
                       }
                     },
                   ),
@@ -1482,7 +1862,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.shieldAlert, size: 36, color: AppTheme.brandPrimary),
+                child: const Icon(
+                  LucideIcons.shieldAlert,
+                  size: 36,
+                  color: AppTheme.brandPrimary,
+                ),
               ),
               const SizedBox(height: 20),
               Text(
@@ -1512,8 +1896,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.brandPrimary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
               ),
             ],
@@ -1571,7 +1960,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           icon: const Icon(LucideIcons.search, size: 15),
                           label: Text(
                             'Cambiar',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ],
@@ -1584,7 +1976,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
+                            color: isDark
+                                ? AppTheme.cardDarkSunken
+                                : const Color(0xFFF8F9FB),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
@@ -1593,10 +1987,16 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
+                                  color: isDark
+                                      ? AppTheme.surfaceTintDark
+                                      : AppTheme.surfaceTint,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(LucideIcons.building2, color: AppTheme.brandPrimary, size: 20),
+                                child: const Icon(
+                                  LucideIcons.building2,
+                                  color: AppTheme.brandPrimary,
+                                  size: 20,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -1608,17 +2008,31 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                       style: GoogleFonts.plusJakartaSans(
                                         fontWeight: FontWeight.w700,
                                         fontSize: 14,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                     Text(
                                       'RUC: ${_proveedorSeleccionado!.ruc}',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                              Icon(LucideIcons.chevronRight, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF94A3B8), size: 18),
+                              Icon(
+                                LucideIcons.chevronRight,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF94A3B8),
+                                size: 18,
+                              ),
                             ],
                           ),
                         ),
@@ -1641,7 +2055,11 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   children: [
                     Text(
                       'Comprobante de Ingreso',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: labelColor),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: labelColor,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -1649,7 +2067,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
+                            color: isDark
+                                ? AppTheme.cardDarkSunken
+                                : const Color(0xFFF5F6F8),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -1658,13 +2078,21 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : AppTheme.textDark,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
                               ),
-                              items: ['Factura', 'Boleta', 'Guía', 'Nota'].map((e) {
-                                return DropdownMenuItem(value: e, child: Text(e));
+                              items: ['Factura', 'Boleta', 'Guía', 'Nota'].map((
+                                e,
+                              ) {
+                                return DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e),
+                                );
                               }).toList(),
                               onChanged: (val) {
-                                if (val != null) setState(() => _tipoComprobante = val);
+                                if (val != null)
+                                  setState(() => _tipoComprobante = val);
                               },
                             ),
                           ),
@@ -1674,12 +2102,18 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                           child: TextField(
                             controller: _comprobanteController,
                             maxLength: 35,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                            ),
                             decoration: const InputDecoration(
                               labelText: 'N° Factura / Boleta del Proveedor',
                               hintText: 'Ej: F001-000452 o B001-124',
                               counterText: '',
-                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
                             ),
                           ),
                         ),
@@ -1714,7 +2148,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         ),
                         if (_canastaCompras.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceTint,
                               borderRadius: BorderRadius.circular(14),
@@ -1744,12 +2181,22 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 backgroundColor: AppTheme.brandPrimary,
                                 foregroundColor: Colors.white,
                                 elevation: 1,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
                               ),
-                              icon: const Icon(LucideIcons.packagePlus, size: 18),
+                              icon: const Icon(
+                                LucideIcons.packagePlus,
+                                size: 18,
+                              ),
                               label: Text(
-                                _canastaCompras.isEmpty ? 'Catálogo' : 'Agregar (${_canastaCompras.length})',
-                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                                _canastaCompras.isEmpty
+                                    ? 'Catálogo'
+                                    : 'Agregar (${_canastaCompras.length})',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
                               ),
                               onPressed: _abrirModalAgregarProductos,
                             ),
@@ -1765,12 +2212,17 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 backgroundColor: const Color(0xFF0D9488),
                                 foregroundColor: Colors.white,
                                 elevation: 1,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
                               ),
                               icon: const Icon(LucideIcons.scanLine, size: 18),
                               label: Text(
                                 'Escanear',
-                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
                               ),
                               onPressed: _escanearCodigoParaCompra,
                             ),
@@ -1783,12 +2235,19 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                     // Lista de Productos en la Canasta
                     if (_canastaCompras.isEmpty)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 26),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 26,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
+                          color: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF8F9FB),
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                            color: isDark
+                                ? AppTheme.borderDark
+                                : AppTheme.borderLight,
                           ),
                         ),
                         child: Center(
@@ -1799,14 +2258,22 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 height: 56,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.18 : 0.09),
+                                  color: AppTheme.brandPrimary.withValues(
+                                    alpha: isDark ? 0.18 : 0.09,
+                                  ),
                                   border: Border.all(
-                                    color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.35 : 0.2),
+                                    color: AppTheme.brandPrimary.withValues(
+                                      alpha: isDark ? 0.35 : 0.2,
+                                    ),
                                     width: 1.5,
                                   ),
                                 ),
                                 child: const Center(
-                                  child: Icon(LucideIcons.shoppingBag, size: 24, color: AppTheme.brandPrimary),
+                                  child: Icon(
+                                    LucideIcons.shoppingBag,
+                                    size: 24,
+                                    color: AppTheme.brandPrimary,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -1816,7 +2283,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 15,
-                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -1840,7 +2309,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         itemCount: _canastaCompras.length,
                         separatorBuilder: (_, index) => Divider(
                           height: 16,
-                          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : AppTheme.borderLight,
                         ),
                         itemBuilder: (context, idx) {
                           final item = _canastaCompras[idx];
@@ -1879,8 +2350,17 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                 children: [
                                   IconButton(
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    icon: Icon(LucideIcons.minusCircle, size: 20, color: isDark ? const Color(0xFFF87171) : const Color(0xFF94A3B8)),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
+                                    icon: Icon(
+                                      LucideIcons.minusCircle,
+                                      size: 20,
+                                      color: isDark
+                                          ? const Color(0xFFF87171)
+                                          : const Color(0xFF94A3B8),
+                                    ),
                                     onPressed: () {
                                       setState(() {
                                         if (item.cantidad > 1) {
@@ -1892,9 +2372,14 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                     },
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF101622) : const Color(0xFFF1F5F9),
+                                      color: isDark
+                                          ? const Color(0xFF101622)
+                                          : const Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Text(
@@ -1902,14 +2387,23 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w800,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                   ),
                                   IconButton(
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    icon: const Icon(LucideIcons.plusCircle, size: 20, color: AppTheme.brandPrimary),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
+                                    icon: const Icon(
+                                      LucideIcons.plusCircle,
+                                      size: 20,
+                                      color: AppTheme.brandPrimary,
+                                    ),
                                     onPressed: () {
                                       setState(() {
                                         item.cantidad += 1;
@@ -1922,8 +2416,15 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                               // Botón Eliminar
                               IconButton(
                                 padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                icon: const Icon(LucideIcons.trash2, size: 17, color: Color(0xFFEF4444)),
+                                constraints: const BoxConstraints(
+                                  minWidth: 28,
+                                  minHeight: 28,
+                                ),
+                                icon: const Icon(
+                                  LucideIcons.trash2,
+                                  size: 17,
+                                  color: Color(0xFFEF4444),
+                                ),
                                 onPressed: () => _eliminarItemDeCanasta(idx),
                               ),
                             ],
@@ -1990,7 +2491,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerRight,
                             child: TweenAnimationBuilder<double>(
-                              tween: Tween<double>(begin: 0.0, end: _totalCompra),
+                              tween: Tween<double>(
+                                begin: 0.0,
+                                end: _totalCompra,
+                              ),
                               duration: const Duration(milliseconds: 500),
                               curve: Curves.easeOutCubic,
                               builder: (context, val, child) {
@@ -2013,12 +2517,17 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton.icon(
-                        onPressed: (_isProcesando || _canastaCompras.isEmpty) ? null : _procesarCompra,
+                        onPressed: (_isProcesando || _canastaCompras.isEmpty)
+                            ? null
+                            : _procesarCompra,
                         icon: _isProcesando
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(LucideIcons.arrowDownToDot, size: 18),
                         label: FittedBox(
@@ -2027,13 +2536,18 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             _isProcesando
                                 ? 'INGRESANDO...'
                                 : 'REGISTRAR COMPRA (${_canastaCompras.length} PRODUCTOS)',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w800),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.brandPrimary,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
                         ),
                       ),
                     ),
@@ -2052,7 +2566,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
       final prov = c.razonSocialProveedor.toLowerCase();
       final comp = c.comprobante.toLowerCase();
       final q = _busquedaHistorial.toLowerCase();
-      return prov.contains(q) || comp.contains(q) || c.idCompra.toString().contains(q);
+      return prov.contains(q) ||
+          comp.contains(q) ||
+          c.idCompra.toString().contains(q);
     }).toList();
 
     return Column(
@@ -2073,10 +2589,18 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
               ),
               decoration: InputDecoration(
                 hintText: 'Buscar por proveedor o comprobante...',
-                hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
+                hintStyle: GoogleFonts.plusJakartaSans(
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
+                  fontSize: 13,
+                ),
                 prefixIcon: const Icon(LucideIcons.search, size: 18),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               onChanged: (val) => setState(() => _busquedaHistorial = val),
             ),
@@ -2090,7 +2614,13 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.truck, size: 40, color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
+                      Icon(
+                        LucideIcons.truck,
+                        size: 40,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : AppTheme.textMuted,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'No hay compras registradas',
@@ -2104,7 +2634,10 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                   ),
                 )
               : ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   itemCount: filtradas.length,
                   separatorBuilder: (_, index) => const SizedBox(height: 12),
                   itemBuilder: (context, idx) {
@@ -2118,7 +2651,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                         color: isDark ? AppTheme.cardDark : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : AppTheme.borderLight,
                           width: 1.2,
                         ),
                       ),
@@ -2135,15 +2670,22 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
+                                        color: isDark
+                                            ? AppTheme.surfaceTintDark
+                                            : AppTheme.surfaceTint,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: const Icon(LucideIcons.truck, color: AppTheme.brandPrimary, size: 18),
+                                      child: const Icon(
+                                        LucideIcons.truck,
+                                        color: AppTheme.brandPrimary,
+                                        size: 18,
+                                      ),
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             c.razonSocialProveedor,
@@ -2152,7 +2694,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                             style: GoogleFonts.plusJakartaSans(
                                               fontWeight: FontWeight.w800,
                                               fontSize: 14,
-                                              color: isDark ? Colors.white : AppTheme.textDark,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : AppTheme.textDark,
                                             ),
                                           ),
                                           Text(
@@ -2183,15 +2727,20 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FB),
+                                color: isDark
+                                    ? AppTheme.cardDarkSunken
+                                    : const Color(0xFFF8F9FB),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Column(
                                 children: c.detalles.map((d) {
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Expanded(
                                           child: Text(
@@ -2199,7 +2748,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                             style: GoogleFonts.plusJakartaSans(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600,
-                                              color: isDark ? Colors.white : AppTheme.textDark,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : AppTheme.textDark,
                                             ),
                                           ),
                                         ),
@@ -2208,7 +2759,9 @@ class _ComprasScreenState extends State<ComprasScreen> with SingleTickerProvider
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
                                           ),
                                         ),
                                       ],

@@ -1,17 +1,21 @@
 import 'dart:convert';
+
 import '../../core/api_client.dart';
 import 'promocion_model.dart';
 
 class PromocionService {
   final ApiClient _apiClient;
 
-  PromocionService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  PromocionService({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient();
 
   Future<List<Promocion>> obtenerPromociones() async {
     final response = await _apiClient.get('/promociones');
     if (response.statusCode == 200) {
       final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
-      return list.map((item) => Promocion.fromJson(item as Map<String, dynamic>)).toList();
+      return list
+          .map((item) => Promocion.fromJson(item as Map<String, dynamic>))
+          .toList();
     } else {
       throw Exception('Error al cargar promociones: ${response.statusCode}');
     }
@@ -21,9 +25,16 @@ class PromocionService {
     final response = await _apiClient.get('/promociones/sugerencias-hueso');
     if (response.statusCode == 200) {
       final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
-      return list.map((item) => SugerenciaComboHueso.fromJson(item as Map<String, dynamic>)).toList();
+      return list
+          .map(
+            (item) =>
+                SugerenciaComboHueso.fromJson(item as Map<String, dynamic>),
+          )
+          .toList();
     } else {
-      throw Exception('Error al cargar sugerencias de combos: ${response.statusCode}');
+      throw Exception(
+        'Error al cargar sugerencias de combos: ${response.statusCode}',
+      );
     }
   }
 
@@ -37,7 +48,10 @@ class PromocionService {
     }
   }
 
-  Future<Promocion> actualizarPromocion(int id, Map<String, dynamic> data) async {
+  Future<Promocion> actualizarPromocion(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     final response = await _apiClient.put('/promociones/$id', data);
     if (response.statusCode == 200) {
       return Promocion.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
@@ -48,7 +62,9 @@ class PromocionService {
   }
 
   Future<bool> cambiarEstado(int id, bool activo) async {
-    final response = await _apiClient.patch('/promociones/$id/estado', {'activo': activo});
+    final response = await _apiClient.patch('/promociones/$id/estado', {
+      'activo': activo,
+    });
     return response.statusCode == 200;
   }
 

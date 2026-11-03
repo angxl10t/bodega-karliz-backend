@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import '../../core/api_client.dart';
 
 class UsuarioItem {
@@ -24,7 +25,9 @@ class UsuarioItem {
 
   factory UsuarioItem.fromJson(Map<String, dynamic> json) {
     return UsuarioItem(
-      idUsuario: json['idUsuario'] is int ? json['idUsuario'] : int.parse(json['idUsuario'].toString()),
+      idUsuario: json['idUsuario'] is int
+          ? json['idUsuario']
+          : int.parse(json['idUsuario'].toString()),
       username: json['username'] ?? '',
       nombreCompleto: json['nombreCompleto'],
       rol: json['rol'] ?? 'CAJERO',
@@ -64,15 +67,24 @@ class UsuariosService {
     }
     final response = await _client.post('/usuarios', body);
     if (response.statusCode != 200 && response.statusCode != 201) {
-      final msg = ApiClient.extractErrorMessage(response, 'No se pudo crear el usuario');
+      final msg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo crear el usuario',
+      );
       throw Exception(msg);
     }
   }
 
   Future<void> cambiarEstado(int idUsuario, bool activo) async {
-    final response = await _client.patch('/usuarios/$idUsuario/estado?activo=$activo', {});
+    final response = await _client.patch(
+      '/usuarios/$idUsuario/estado?activo=$activo',
+      {},
+    );
     if (response.statusCode != 200) {
-      final msg = ApiClient.extractErrorMessage(response, 'No se pudo cambiar el estado del usuario');
+      final msg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo cambiar el estado del usuario',
+      );
       throw Exception(msg);
     }
   }
@@ -82,7 +94,10 @@ class UsuariosService {
       'nuevaPassword': nuevaPassword,
     });
     if (response.statusCode != 200) {
-      final msg = ApiClient.extractErrorMessage(response, 'No se pudo restablecer la contraseña');
+      final msg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo restablecer la contraseña',
+      );
       throw Exception(msg);
     }
   }

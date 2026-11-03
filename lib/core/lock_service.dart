@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+
 import 'secure_storage_service.dart';
 
 /// Servicio Híbrido de Seguridad POS (PIN Numérico + Biometría en Hardware)
@@ -23,7 +24,10 @@ class LockService {
   }
 
   Future<void> setAutoLockEnabled(bool enabled) async {
-    await SecureStorageService.write(_autoLockEnabledKey, enabled ? 'true' : 'false');
+    await SecureStorageService.write(
+      _autoLockEnabledKey,
+      enabled ? 'true' : 'false',
+    );
   }
 
   /// Minutos de inactividad antes de bloquear (por defecto 5 min)
@@ -85,7 +89,9 @@ class LockService {
       _failedPinAttempts++;
       if (_failedPinAttempts >= maxFailedAttempts) {
         // Bloqueo temporal por 30 segundos tras 5 intentos fallidos
-        _blockedUntil = DateTime.now().add(const Duration(seconds: cooldownDurationSeconds));
+        _blockedUntil = DateTime.now().add(
+          const Duration(seconds: cooldownDurationSeconds),
+        );
       }
       return false;
     }

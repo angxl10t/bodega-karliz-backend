@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../../core/api_client.dart';
 import '../productos/producto_service.dart';
 import 'compra_model.dart';
@@ -23,7 +25,10 @@ class CompraService {
         notifyComprasChanged();
         return null; // Éxito
       }
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al procesar la compra en el servidor');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Error al procesar la compra en el servidor',
+      );
       return errorMsg;
     } catch (e) {
       return 'Error de conexión con el servidor. Verifica tu conexión a internet.';
@@ -34,7 +39,9 @@ class CompraService {
     try {
       final response = await _apiClient.get('/compras');
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         return jsonList.map((json) => CompraRegistro.fromJson(json)).toList();
       }
       return [];

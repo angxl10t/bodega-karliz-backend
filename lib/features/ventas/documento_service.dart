@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import '../../core/api_client.dart';
 import 'documento_model.dart';
 
@@ -15,7 +16,8 @@ class DocumentoService {
     try {
       final response = await _apiClient.get('/v1/documentos/dni/$cleanDoc');
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         return DniResponse.fromJson(data);
       }
     } catch (_) {
@@ -39,7 +41,8 @@ class DocumentoService {
     try {
       final response = await _apiClient.get('/v1/documentos/ruc/$cleanRuc');
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         return RucResponse.fromJson(data);
       }
     } catch (_) {

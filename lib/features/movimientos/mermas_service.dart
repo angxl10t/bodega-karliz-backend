@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../../core/secure_storage_service.dart';
 import '../auth/auth_service.dart';
 import '../productos/producto_model.dart';
@@ -25,7 +27,8 @@ class MermasService {
     final usuario = await AuthService().getUsername();
     final costoTotal = cantidad * costoUnitario;
 
-    final motivoKardex = '[${motivo.toUpperCase()}] Merma: $observaciones (Pérdida S/ ${costoTotal.toStringAsFixed(2)})';
+    final motivoKardex =
+        '[${motivo.toUpperCase()}] Merma: $observaciones (Pérdida S/ ${costoTotal.toStringAsFixed(2)})';
 
     // 1. Descontar del inventario en backend / Kardex
     final ok = await _movimientoService.registrarAjuste(
@@ -65,7 +68,9 @@ class MermasService {
       final raw = await SecureStorageService.read(_storageKey);
       if (raw != null && raw.trim().isNotEmpty) {
         final List<dynamic> decoded = jsonDecode(raw);
-        return decoded.map((j) => MermaRegistro.fromJson(j as Map<String, dynamic>)).toList();
+        return decoded
+            .map((j) => MermaRegistro.fromJson(j as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
     return [];
@@ -83,7 +88,9 @@ class MermasService {
     final mermas = await obtenerMermas();
     final now = DateTime.now();
 
-    final mermasMes = mermas.where((m) => m.fecha.year == now.year && m.fecha.month == now.month).toList();
+    final mermasMes = mermas
+        .where((m) => m.fecha.year == now.year && m.fecha.month == now.month)
+        .toList();
 
     double totalPerdidaSoles = 0.0;
     double totalUnidades = 0.0;

@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+
 import 'configuracion_ticket_service.dart';
 
 /// Resultado del intento de impresión térmica
@@ -26,14 +28,12 @@ class ThermalTicketService {
 
   /// Pulso ESC/POS para abrir gaveta de dinero (Pin 2 y Pin 5: ESC p 0 25 250)
   static List<int> get openDrawerBytes => const [
-        0x1B, 0x70, 0x00, 0x19, 0xFA, // Pin 2
-        0x1B, 0x70, 0x01, 0x19, 0xFA, // Pin 5
-      ];
+    0x1B, 0x70, 0x00, 0x19, 0xFA, // Pin 2
+    0x1B, 0x70, 0x01, 0x19, 0xFA, // Pin 5
+  ];
 
   /// Comando de corte parcial / total de papel (GS V 66 0)
-  static List<int> get cutPaperBytes => const [
-        0x1D, 0x56, 0x42, 0x00,
-      ];
+  static List<int> get cutPaperBytes => const [0x1D, 0x56, 0x42, 0x00];
 
   /// Sanitiza el texto reemplazando tildes y caracteres especiales para evitar
   /// impresión de caracteres corruptos en impresoras térmicas de tabla CP437/ASCII básica.
@@ -55,7 +55,10 @@ class ThermalTicketService {
         .replaceAll('Ñ', 'N')
         .replaceAll('¡', '')
         .replaceAll('¿', '')
-        .replaceAll(RegExp(r'[^\x20-\x7E]'), '') // Solo caracteres ASCII imprimibles
+        .replaceAll(
+          RegExp(r'[^\x20-\x7E]'),
+          '',
+        ) // Solo caracteres ASCII imprimibles
         .trim();
   }
 
@@ -110,7 +113,16 @@ class ThermalTicketService {
     qrBytes.addAll([0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]);
 
     // 3. Ajustar tamaño del módulo de punto (GS ( k 3 0 49 67 size)
-    qrBytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, moduleSize.clamp(3, 8)]);
+    qrBytes.addAll([
+      0x1D,
+      0x28,
+      0x6B,
+      0x03,
+      0x00,
+      0x31,
+      0x43,
+      moduleSize.clamp(3, 8),
+    ]);
 
     // 4. Ajustar nivel de corrección de error (Nivel M = 15%: GS ( k 3 0 49 69 49)
     qrBytes.addAll([0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x31]);
@@ -190,19 +202,30 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Datos del Comprobante
-    final bool esBoleta = tipoComprobante == 'BOLETA_ELECTRONICA' || tipoComprobante == 'BOLETA';
+    final bool esBoleta =
+        tipoComprobante == 'BOLETA_ELECTRONICA' || tipoComprobante == 'BOLETA';
     final bool esFactura = tipoComprobante == 'FACTURA_ELECTRONICA';
 
     if (esBoleta) {
       buffer.writeln(center('BOLETA DE VENTA', width));
       if (serieCorrelativo != null && serieCorrelativo.isNotEmpty) {
-        buffer.writeln(twoColumns('SERIE-CORRELATIVO:', serieCorrelativo, width));
+        buffer.writeln(
+          twoColumns('SERIE-CORRELATIVO:', serieCorrelativo, width),
+        );
       }
     } else if (esFactura) {
       buffer.writeln(center('FACTURA ELECTRONICA', width));
-      buffer.writeln(twoColumns('SERIE-CORRELATIVO:', serieCorrelativo ?? 'F001-00000001', width));
+      buffer.writeln(
+        twoColumns(
+          'SERIE-CORRELATIVO:',
+          serieCorrelativo ?? 'F001-00000001',
+          width,
+        ),
+      );
     } else {
-      final ticketNum = ticketId != null ? '#${ticketId.toString().padLeft(6, '0')}' : 'TICKET DE VENTA';
+      final ticketNum = ticketId != null
+          ? '#${ticketId.toString().padLeft(6, '0')}'
+          : 'TICKET DE VENTA';
       buffer.writeln(twoColumns('COMPROBANTE:', ticketNum, width));
     }
 
@@ -211,12 +234,17 @@ class ThermalTicketService {
       buffer.writeln(twoColumns('CAJERO:', cajero, width));
     }
 
-    final docCli = (clienteDocumento != null && clienteDocumento.isNotEmpty && clienteDocumento != '00000000')
+    final docCli =
+        (clienteDocumento != null &&
+            clienteDocumento.isNotEmpty &&
+            clienteDocumento != '00000000')
         ? clienteDocumento
         : null;
     buffer.writeln(twoColumns('CLIENTE:', clienteNombre, width));
     if (docCli != null) {
-      final docLabel = docCli.length == 11 ? 'RUC:' : (docCli.length == 8 ? 'DNI:' : 'DOC:');
+      final docLabel = docCli.length == 11
+          ? 'RUC:'
+          : (docCli.length == 8 ? 'DNI:' : 'DOC:');
       buffer.writeln(twoColumns(docLabel, docCli, width));
     }
     buffer.writeln(divider(width, '-'));
@@ -225,7 +253,9 @@ class ThermalTicketService {
     if (width == width58mm) {
       buffer.writeln('CANT  DESCRIPCION         IMPORTE');
     } else {
-      buffer.writeln('CANT  DESCRIPCION                                IMPORTE');
+      buffer.writeln(
+        'CANT  DESCRIPCION                                IMPORTE',
+      );
     }
     buffer.writeln(divider(width, '-'));
 
@@ -234,8 +264,8 @@ class ThermalTicketService {
       final cantStr = item.cantidad % 1 == 0
           ? item.cantidad.toInt().toString()
           : (item.cantidad * 100 % 1 == 0
-              ? item.cantidad.toStringAsFixed(2)
-              : item.cantidad.toStringAsFixed(3));
+                ? item.cantidad.toStringAsFixed(2)
+                : item.cantidad.toStringAsFixed(3));
       final precioStr = 'S/ ${item.subtotal.toStringAsFixed(2)}';
       final desc = item.nombre;
 
@@ -248,36 +278,68 @@ class ThermalTicketService {
     // Totales y Liquidación de Pago
     if (descuento != null && descuento > 0.01) {
       final sub = total + descuento;
-      buffer.writeln(twoColumns('SUBTOTAL:', 'S/ ${sub.toStringAsFixed(2)}', width));
-      buffer.writeln(twoColumns('AHORRO EN PROMOS:', '-S/ ${descuento.toStringAsFixed(2)}', width));
+      buffer.writeln(
+        twoColumns('SUBTOTAL:', 'S/ ${sub.toStringAsFixed(2)}', width),
+      );
+      buffer.writeln(
+        twoColumns(
+          'AHORRO EN PROMOS:',
+          '-S/ ${descuento.toStringAsFixed(2)}',
+          width,
+        ),
+      );
     }
     if (esFactura && regimenTributario != 'NUEVO_RUS') {
       final opGravada = total / 1.18;
       final igv = total - opGravada;
-      buffer.writeln(twoColumns('OP. GRAVADA:', 'S/ ${opGravada.toStringAsFixed(2)}', width));
-      buffer.writeln(twoColumns('I.G.V. (18%):', 'S/ ${igv.toStringAsFixed(2)}', width));
+      buffer.writeln(
+        twoColumns('OP. GRAVADA:', 'S/ ${opGravada.toStringAsFixed(2)}', width),
+      );
+      buffer.writeln(
+        twoColumns('I.G.V. (18%):', 'S/ ${igv.toStringAsFixed(2)}', width),
+      );
     }
-    buffer.writeln(twoColumns('TOTAL A PAGAR:', 'S/ ${total.toStringAsFixed(2)}', width));
-    buffer.writeln(twoColumns('METODO DE PAGO:', metodoPago.toUpperCase(), width));
+    buffer.writeln(
+      twoColumns('TOTAL A PAGAR:', 'S/ ${total.toStringAsFixed(2)}', width),
+    );
+    buffer.writeln(
+      twoColumns('METODO DE PAGO:', metodoPago.toUpperCase(), width),
+    );
 
     if (metodoPago.toLowerCase().contains('efectivo')) {
       final recibido = pagadoCon ?? total;
       final cambio = vuelto ?? (recibido - total).clamp(0.0, 999999.0);
-      buffer.writeln(twoColumns('IMPORTE RECIBIDO:', 'S/ ${recibido.toStringAsFixed(2)}', width));
-      buffer.writeln(twoColumns('VUELTO / CAMBIO:', 'S/ ${cambio.toStringAsFixed(2)}', width));
+      buffer.writeln(
+        twoColumns(
+          'IMPORTE RECIBIDO:',
+          'S/ ${recibido.toStringAsFixed(2)}',
+          width,
+        ),
+      );
+      buffer.writeln(
+        twoColumns(
+          'VUELTO / CAMBIO:',
+          'S/ ${cambio.toStringAsFixed(2)}',
+          width,
+        ),
+      );
     }
 
     buffer.writeln(divider(width, '-'));
 
     if (esBoleta || esFactura) {
-      buffer.writeln(center('Representacion impresa de comprobante electronico', width));
+      buffer.writeln(
+        center('Representacion impresa de comprobante electronico', width),
+      );
       buffer.writeln(divider(width, '-'));
     }
 
     // Código QR de Cobro / SUNAT (Pie de Ticket)
     if (cfg.mostrarQr) {
       final qrType = cfg.tipoQr.toUpperCase();
-      final qrData = cfg.numeroQr.trim().isNotEmpty ? cfg.numeroQr.trim() : (telefono ?? '');
+      final qrData = cfg.numeroQr.trim().isNotEmpty
+          ? cfg.numeroQr.trim()
+          : (telefono ?? '');
 
       if (qrType == 'YAPE' || qrType == 'PLIN') {
         buffer.writeln(center('PAGA CON $qrType ESCANEANDO:', width));
@@ -353,7 +415,8 @@ class ThermalTicketService {
     final List<int> bytes = [];
 
     // 1. Apertura de gaveta de dinero si está configurado o forzado
-    final bool debeAbrirGaveta = forzarAperturaGaveta ??
+    final bool debeAbrirGaveta =
+        forzarAperturaGaveta ??
         (cfg.abrirGaveta && metodoPago.toLowerCase().contains('efectivo'));
     if (debeAbrirGaveta) {
       bytes.addAll(openDrawerBytes);
@@ -406,7 +469,9 @@ class ThermalTicketService {
     // 7. Si hay código QR activo, imprimir el código QR binario nativo ESC/POS
     if (cfg.mostrarQr) {
       final qrType = cfg.tipoQr.toUpperCase();
-      String qrPayload = cfg.numeroQr.trim().isNotEmpty ? cfg.numeroQr.trim() : (telefono ?? '');
+      String qrPayload = cfg.numeroQr.trim().isNotEmpty
+          ? cfg.numeroQr.trim()
+          : (telefono ?? '');
 
       if (qrType == 'YAPE') {
         qrPayload = 'https://yape.pe/p/$qrPayload';
@@ -417,7 +482,10 @@ class ThermalTicketService {
       }
 
       if (qrPayload.isNotEmpty) {
-        final qrBytes = generateEscPosQrBytes(qrPayload, moduleSize: width == width58mm ? 4 : 6);
+        final qrBytes = generateEscPosQrBytes(
+          qrPayload,
+          moduleSize: width == width58mm ? 4 : 6,
+        );
         bytes.addAll(qrBytes);
       }
     }
@@ -453,7 +521,8 @@ class ThermalTicketService {
     final cfg = configTicket ?? ConfiguracionTicketService.actual;
     final buffer = StringBuffer();
     final d = fecha ?? DateTime.now();
-    final dateStr = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
     // 1. Datos del Comercio
     if (nombreComercio.isNotEmpty) {
@@ -486,17 +555,33 @@ class ThermalTicketService {
       final docLabel = clienteDocumento.length == 8 ? 'DNI:' : 'DOC:';
       buffer.writeln(twoColumns(docLabel, clienteDocumento, width));
     }
-    buffer.writeln(twoColumns('MEDIO DE PAGO:', metodoPago.toUpperCase(), width));
+    buffer.writeln(
+      twoColumns('MEDIO DE PAGO:', metodoPago.toUpperCase(), width),
+    );
     if (notas != null && notas.trim().isNotEmpty) {
       buffer.writeln(twoColumns('NOTAS:', notas.trim(), width));
     }
     buffer.writeln(divider(width, '-'));
 
     // Resumen de Deuda y Amortización
-    buffer.writeln(twoColumns('DEUDA ANTERIOR:', 'S/ ${saldoAnterior.toStringAsFixed(2)}', width));
-    buffer.writeln(twoColumns('MONTO ABONADO:', 'S/ ${montoAbonado.toStringAsFixed(2)}', width));
+    buffer.writeln(
+      twoColumns(
+        'DEUDA ANTERIOR:',
+        'S/ ${saldoAnterior.toStringAsFixed(2)}',
+        width,
+      ),
+    );
+    buffer.writeln(
+      twoColumns(
+        'MONTO ABONADO:',
+        'S/ ${montoAbonado.toStringAsFixed(2)}',
+        width,
+      ),
+    );
     buffer.writeln(divider(width, '-'));
-    final estadoDeuda = saldoRestante <= 0.01 ? 'DEUDA CANCELADA' : 'S/ ${saldoRestante.toStringAsFixed(2)}';
+    final estadoDeuda = saldoRestante <= 0.01
+        ? 'DEUDA CANCELADA'
+        : 'S/ ${saldoRestante.toStringAsFixed(2)}';
     buffer.writeln(twoColumns('SALDO PENDIENTE:', estadoDeuda, width));
     buffer.writeln(divider(width, '='));
 
@@ -539,7 +624,8 @@ class ThermalTicketService {
     final List<int> bytes = [];
 
     // 1. Abrir gaveta si el pago fue en efectivo
-    final bool debeAbrirGaveta = forzarAperturaGaveta ??
+    final bool debeAbrirGaveta =
+        forzarAperturaGaveta ??
         (cfg.abrirGaveta && metodoPago.toLowerCase().contains('efectivo'));
     if (debeAbrirGaveta) {
       bytes.addAll(openDrawerBytes);
@@ -596,9 +682,14 @@ class ThermalTicketService {
     if (cfg.modoConexion == 'rawbt') {
       try {
         final b64 = base64Encode(escPosBytes);
-        final rawbtUri = Uri.parse('rawbt:data:application/octet-stream;base64,$b64');
+        final rawbtUri = Uri.parse(
+          'rawbt:data:application/octet-stream;base64,$b64',
+        );
 
-        final launched = await launchUrl(rawbtUri, mode: LaunchMode.externalApplication);
+        final launched = await launchUrl(
+          rawbtUri,
+          mode: LaunchMode.externalApplication,
+        );
         if (launched) {
           return const PrintResult(
             exito: true,
@@ -646,18 +737,21 @@ class ThermalTicketService {
         if (response.statusCode >= 200 && response.statusCode < 300) {
           return const PrintResult(
             exito: true,
-            mensaje: 'Comando enviado con éxito al servidor local de impresión.',
+            mensaje:
+                'Comando enviado con éxito al servidor local de impresión.',
           );
         } else {
           return PrintResult(
             exito: false,
-            mensaje: 'El servidor local de impresión respondió con código ${response.statusCode}.',
+            mensaje:
+                'El servidor local de impresión respondió con código ${response.statusCode}.',
           );
         }
       } catch (e) {
         return PrintResult(
           exito: false,
-          mensaje: 'No se pudo conectar al servidor de impresión en ${cfg.servidorLocalUrl}. Revisa que esté activo.',
+          mensaje:
+              'No se pudo conectar al servidor de impresión en ${cfg.servidorLocalUrl}. Revisa que esté activo.',
         );
       }
     }

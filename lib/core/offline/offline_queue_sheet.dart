@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../theme.dart';
 import 'offline_models.dart';
 import 'offline_sync_manager.dart';
@@ -33,7 +34,14 @@ class OfflineQueueSheet extends StatelessWidget {
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: isDark ? const Border(top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)) : null,
+            border: isDark
+                ? const Border(
+                    top: BorderSide(
+                      color: AppTheme.borderDarkElevated,
+                      width: 1.2,
+                    ),
+                  )
+                : null,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.25),
@@ -57,7 +65,9 @@ class OfflineQueueSheet extends StatelessWidget {
                       width: 44,
                       height: 4.5,
                       decoration: BoxDecoration(
-                        color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
+                        color: isDark
+                            ? AppTheme.borderDarkElevated
+                            : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
@@ -70,10 +80,15 @@ class OfflineQueueSheet extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                          color: const Color(0xFFF59E0B)
+                              .withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(LucideIcons.cloudOff, size: 20, color: Color(0xFFF59E0B)),
+                        child: const Icon(
+                          LucideIcons.cloudOff,
+                          size: 20,
+                          color: Color(0xFFF59E0B),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -82,11 +97,20 @@ class OfflineQueueSheet extends StatelessWidget {
                           children: [
                             Text(
                               'Cola de Ventas Offline',
-                              style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w800),
+                              style: GoogleFonts.outfit(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                             Text(
                               'Ventas firmadas en local sin conexión a internet',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
+                              ),
                             ),
                           ],
                         ),
@@ -101,12 +125,19 @@ class OfflineQueueSheet extends StatelessWidget {
 
                   // Resumen Financiero de la Cola
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
+                      color: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFFFFBEB),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF78350F) : const Color(0xFFFDE68A),
+                        color: isDark
+                            ? const Color(0xFF78350F)
+                            : const Color(0xFFFDE68A),
                       ),
                     ),
                     child: Row(
@@ -117,7 +148,13 @@ class OfflineQueueSheet extends StatelessWidget {
                           children: [
                             Text(
                               'Total Pendiente en Caja',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -125,15 +162,22 @@ class OfflineQueueSheet extends StatelessWidget {
                               style: GoogleFonts.outfit(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
-                                color: isDark ? Colors.white : const Color(0xFFB45309),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFFB45309),
                               ),
                             ),
                           ],
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF451A03) : const Color(0xFFFEF3C7),
+                            color: isDark
+                                ? const Color(0xFF451A03)
+                                : const Color(0xFFFEF3C7),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -157,7 +201,11 @@ class OfflineQueueSheet extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(LucideIcons.cloudCheck, size: 48, color: AppTheme.accentGreen),
+                                const Icon(
+                                  LucideIcons.cloudCheck,
+                                  size: 48,
+                                  color: AppTheme.accentGreen,
+                                ),
                                 const SizedBox(height: 10),
                                 Text(
                                   '¡Todo sincronizado con la nube!',
@@ -170,37 +218,54 @@ class OfflineQueueSheet extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   'No hay ventas locales pendientes de envío.',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
+                                  ),
                                 ),
                               ],
                             ),
                           )
                         : ListView.separated(
                             itemCount: ventas.length,
-                            separatorBuilder: (_, index) => const SizedBox(height: 8),
+                            separatorBuilder: (_, index) =>
+                                const SizedBox(height: 8),
                             itemBuilder: (context, idx) {
                               final v = ventas[idx];
                               return Card(
                                 margin: EdgeInsets.zero,
                                 elevation: 0,
-                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF8FAFC),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                   side: BorderSide(
-                                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                                    color: isDark
+                                        ? AppTheme.borderDark
+                                        : AppTheme.borderLight,
                                   ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Row(
                                             children: [
-                                              const Icon(LucideIcons.ticket, size: 14, color: Color(0xFFD97706)),
+                                              const Icon(
+                                                LucideIcons.ticket,
+                                                size: 14,
+                                                color: Color(0xFFD97706),
+                                              ),
                                               const SizedBox(width: 5),
                                               Text(
                                                 v.localTicket,
@@ -224,12 +289,24 @@ class OfflineQueueSheet extends StatelessWidget {
                                       const SizedBox(height: 4),
                                       Text(
                                         'Cliente: ${v.clienteNombre} • ${v.metodoPago}',
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF334155),
+                                        ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         '${v.detalles.length} artículo(s) • ${v.fechaCreacion.hour.toString().padLeft(2, '0')}:${v.fechaCreacion.minute.toString().padLeft(2, '0')}',
-                                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF334155),
+                                        ),
                                       ),
                                       if (v.ultimoError != null) ...[
                                         const SizedBox(height: 4),
@@ -263,16 +340,22 @@ class OfflineQueueSheet extends StatelessWidget {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.brandPrimary,
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                           onPressed: (isSyncing || ventas.isEmpty)
                               ? null
                               : () async {
-                                  final res = await syncManager.syncPendingSales(isManual: true);
+                                  final res = await syncManager
+                                      .syncPendingSales(isManual: true);
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(res.mensaje ?? 'Sincronización terminada'),
+                                        content: Text(
+                                          res.mensaje ??
+                                              'Sincronización terminada',
+                                        ),
                                         backgroundColor: res.todosExitosos
                                             ? AppTheme.accentGreen
                                             : AppTheme.brandPrimary,
@@ -284,12 +367,20 @@ class OfflineQueueSheet extends StatelessWidget {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(LucideIcons.refreshCw, size: 16),
                           label: Text(
-                            isSyncing ? 'Sincronizando con la nube...' : 'Sincronizar Ahora',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
+                            isSyncing
+                                ? 'Sincronizando con la nube...'
+                                : 'Sincronizar Ahora',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       );

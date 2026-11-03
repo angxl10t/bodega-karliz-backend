@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 import '../api_constants.dart';
 import '../catalogo_imagenes_service.dart';
 import '../category_helper.dart';
@@ -53,7 +54,8 @@ class ProductImageWidget extends StatelessWidget {
       }
 
       // 2. Si ya pertenece al dominio oficial o ya tiene proxy
-      if (clean.contains('cajaya-pos.onrender.com') || clean.contains('proxy-image')) {
+      if (clean.contains('cajaya-pos.onrender.com') ||
+          clean.contains('proxy-image')) {
         return clean;
       }
 
@@ -80,7 +82,10 @@ class ProductImageWidget extends StatelessWidget {
     final catIcon = CategoryHelper.getIcon(categoria);
 
     // 1. Determinar URL efectiva: si la URL viene vacía o genérica, intentar auto-match inteligente por nombre/código
-    String? rawUrl = (imagenUrl != null && imagenUrl!.trim().isNotEmpty && !imagenUrl!.contains('producto_generico'))
+    String? rawUrl =
+        (imagenUrl != null &&
+            imagenUrl!.trim().isNotEmpty &&
+            !imagenUrl!.contains('producto_generico'))
         ? imagenUrl!.trim()
         : null;
 
@@ -107,7 +112,9 @@ class ProductImageWidget extends StatelessWidget {
           color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
-            color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
+            color: isDark
+                ? AppTheme.borderDarkElevated
+                : const Color(0xFFE2E8F0),
             width: 1.0,
           ),
           boxShadow: [
@@ -138,7 +145,7 @@ class ProductImageWidget extends StatelessWidget {
                     strokeWidth: 2,
                     value: loadingProgress.expectedTotalBytes != null
                         ? loadingProgress.cumulativeBytesLoaded /
-                            (loadingProgress.expectedTotalBytes ?? 1)
+                              (loadingProgress.expectedTotalBytes ?? 1)
                         : null,
                     color: AppTheme.brandPrimary.withValues(alpha: 0.6),
                   ),
@@ -146,7 +153,9 @@ class ProductImageWidget extends StatelessWidget {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              debugPrint('⚠️ Error al cargar imagen de producto ($effectiveUrl): $error');
+              debugPrint(
+                '⚠️ Error al cargar imagen de producto ($effectiveUrl): $error',
+              );
               // Si falló y tenemos nombre, intentar sugerencia oficial de catálogo
               if (nombre != null || codigoBarras != null) {
                 final fallbackSug = CatalogoImagenesService.buscarSugerencia(
@@ -159,7 +168,8 @@ class ProductImageWidget extends StatelessWidget {
                     fit: BoxFit.contain,
                     cacheWidth: (size * 2.5).round().clamp(100, 600),
                     cacheHeight: (size * 2.5).round().clamp(100, 600),
-                    errorBuilder: (_, _, _) => _buildCategoryFallback(catIcon, catColor),
+                    errorBuilder: (_, _, _) =>
+                        _buildCategoryFallback(catIcon, catColor),
                   );
                 }
               }
@@ -173,10 +183,7 @@ class ProductImageWidget extends StatelessWidget {
     }
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: content,
-      );
+      return GestureDetector(onTap: onTap, child: content);
     }
 
     return content;
@@ -202,11 +209,7 @@ class ProductImageWidget extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Icon(
-          catIcon,
-          size: size * 0.48,
-          color: catColor,
-        ),
+        child: Icon(catIcon, size: size * 0.48, color: catColor),
       ),
     );
   }

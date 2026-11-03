@@ -1,8 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../lock_service.dart';
 import '../theme.dart';
 import '../../features/auth/auth_service.dart';
@@ -18,7 +20,8 @@ class KarlizLockScreen extends StatefulWidget {
     required this.onLogout,
   });
 
-  static Future<void> show(BuildContext context, {
+  static Future<void> show(
+    BuildContext context, {
     required VoidCallback onUnlocked,
     required VoidCallback onLogout,
   }) {
@@ -44,7 +47,8 @@ class KarlizLockScreen extends StatefulWidget {
   State<KarlizLockScreen> createState() => _KarlizLockScreenState();
 }
 
-class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerProviderStateMixin {
+class _KarlizLockScreenState extends State<KarlizLockScreen>
+    with SingleTickerProviderStateMixin {
   String _pin = '';
   String _username = 'Cajero';
   bool _canBiometrics = false;
@@ -167,7 +171,8 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
       if (LockService().isPinBlocked) {
         _startCooldown(LockService().remainingBlockedSeconds);
       } else {
-        final restantes = LockService.maxFailedAttempts - LockService().failedAttempts;
+        final restantes =
+            LockService.maxFailedAttempts - LockService().failedAttempts;
         setState(() {
           _errorMessage = restantes > 0
               ? 'PIN incorrecto. Te quedan $restantes intentos.'
@@ -185,161 +190,195 @@ class _KarlizLockScreenState extends State<KarlizLockScreen> with SingleTickerPr
     return PopScope(
       canPop: false, // Impide cerrar con el botón atrás de Android
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0B0F17) : const Color(0xFFF1F5F9),
+        backgroundColor: isDark
+            ? const Color(0xFF0B0F17)
+            : const Color(0xFFF1F5F9),
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 380),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Cabecera de Bloqueo
-                    Column(
-                      children: [
-                        const SizedBox(height: 12),
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppTheme.brandPrimary.withValues(alpha: 0.3),
-                              width: 1.5,
+                      Column(
+                        children: [
+                          const SizedBox(height: 12),
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: AppTheme.brandPrimary.withValues(
+                                alpha: 0.12,
+                              ),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppTheme.brandPrimary.withValues(
+                                  alpha: 0.3,
+                                ),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: const Icon(
+                              LucideIcons.lock,
+                              size: 30,
+                              color: AppTheme.brandPrimary,
                             ),
                           ),
-                          child: const Icon(LucideIcons.lock, size: 30, color: AppTheme.brandPrimary),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Caja Protegida',
-                          style: GoogleFonts.outfit(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: isDark ? Colors.white : AppTheme.brandInk,
+                          const SizedBox(height: 16),
+                          Text(
+                            'Caja Protegida',
+                            style: GoogleFonts.outfit(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : AppTheme.brandInk,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Turno activo de $_username',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Turno activo de $_username',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        // Indicadores de PIN (4 bolitas)
-                        AnimatedBuilder(
-                          animation: _shakeController,
-                          builder: (context, child) {
-                            final dx = 12 * (1 - _shakeController.value) *
-                                (0.5 - ((_shakeController.value * 6).floor() % 2));
-                            return Transform.translate(
-                              offset: Offset(dx, 0),
-                              child: child,
-                            );
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(4, (index) {
-                              final filled = index < _pin.length;
-                              return Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10),
-                                width: 16,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: filled
-                                      ? AppTheme.brandPrimary
-                                      : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFCBD5E1)),
-                                  border: Border.all(
+                          // Indicadores de PIN (4 bolitas)
+                          AnimatedBuilder(
+                            animation: _shakeController,
+                            builder: (context, child) {
+                              final dx =
+                                  12 *
+                                  (1 - _shakeController.value) *
+                                  (0.5 -
+                                      ((_shakeController.value * 6).floor() %
+                                          2));
+                              return Transform.translate(
+                                offset: Offset(dx, 0),
+                                child: child,
+                              );
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(4, (index) {
+                                final filled = index < _pin.length;
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                  width: 16,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
                                     color: filled
                                         ? AppTheme.brandPrimary
-                                        : (isDark ? Colors.white24 : Colors.transparent),
-                                    width: 1.5,
+                                        : (isDark
+                                              ? AppTheme.cardDarkHighlight
+                                              : const Color(0xFFCBD5E1)),
+                                    border: Border.all(
+                                      color: filled
+                                          ? AppTheme.brandPrimary
+                                          : (isDark
+                                                ? Colors.white24
+                                                : Colors.transparent),
+                                      width: 1.5,
+                                    ),
                                   ),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-
-                        if (_errorMessage.isNotEmpty) ...[
-                          const SizedBox(height: 14),
-                          Text(
-                            _errorMessage,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.alertRed,
+                                );
+                              }),
                             ),
                           ),
-                        ],
-                      ],
-                    ),
 
-                    // Teclado Numérico Táctil POS (Numpad)
-                    Column(
-                      children: [
-                        _buildRow(['1', '2', '3'], isDark),
-                        const SizedBox(height: 14),
-                        _buildRow(['4', '5', '6'], isDark),
-                        const SizedBox(height: 14),
-                        _buildRow(['7', '8', '9'], isDark),
-                        const SizedBox(height: 14),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // Botón de Biometría / Huella
-                            _buildActionButton(
-                              icon: LucideIcons.fingerprint,
-                              onPressed: _canBiometrics ? _autenticarBiometria : null,
-                              isDark: isDark,
-                              color: _canBiometrics ? AppTheme.brandPrimary : Colors.transparent,
-                            ),
-                            // Tecla 0
-                            _buildKeyButton('0', isDark),
-                            // Tecla Borrar
-                            _buildActionButton(
-                              icon: LucideIcons.delete,
-                              onPressed: _onDeletePressed,
-                              isDark: isDark,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                          if (_errorMessage.isNotEmpty) ...[
+                            const SizedBox(height: 14),
+                            Text(
+                              _errorMessage,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.alertRed,
+                              ),
                             ),
                           ],
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
 
-                    // Pie: Opción de cerrar sesión
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.alertRed,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      // Teclado Numérico Táctil POS (Numpad)
+                      Column(
+                        children: [
+                          _buildRow(['1', '2', '3'], isDark),
+                          const SizedBox(height: 14),
+                          _buildRow(['4', '5', '6'], isDark),
+                          const SizedBox(height: 14),
+                          _buildRow(['7', '8', '9'], isDark),
+                          const SizedBox(height: 14),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // Botón de Biometría / Huella
+                              _buildActionButton(
+                                icon: LucideIcons.fingerprint,
+                                onPressed: _canBiometrics
+                                    ? _autenticarBiometria
+                                    : null,
+                                isDark: isDark,
+                                color: _canBiometrics
+                                    ? AppTheme.brandPrimary
+                                    : Colors.transparent,
+                              ),
+                              // Tecla 0
+                              _buildKeyButton('0', isDark),
+                              // Tecla Borrar
+                              _buildActionButton(
+                                icon: LucideIcons.delete,
+                                onPressed: _onDeletePressed,
+                                isDark: isDark,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF475569),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      icon: const Icon(LucideIcons.logOut, size: 16),
-                      label: Text(
-                        'Cerrar Sesión Completa',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
+
+                      // Pie: Opción de cerrar sesión
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.alertRed,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                         ),
+                        icon: const Icon(LucideIcons.logOut, size: 16),
+                        label: Text(
+                          'Cerrar Sesión Completa',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop();
+                          widget.onLogout();
+                        },
                       ),
-                      onPressed: () {
-                        Navigator.of(context, rootNavigator: true).pop();
-                        widget.onLogout();
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
             ),
           ),
         ),
@@ -428,7 +467,10 @@ class ConfigurarPinModal extends StatefulWidget {
 
   const ConfigurarPinModal({super.key, required this.onPinGuardado});
 
-  static Future<void> show(BuildContext context, {required VoidCallback onPinGuardado}) {
+  static Future<void> show(
+    BuildContext context, {
+    required VoidCallback onPinGuardado,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -459,7 +501,9 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
     final p2 = _pinCtrl2.text.trim();
 
     if (p1.length != 4 || int.tryParse(p1) == null) {
-      setState(() => _error = 'El PIN debe contener exactamente 4 dígitos numéricos.');
+      setState(
+        () => _error = 'El PIN debe contener exactamente 4 dígitos numéricos.',
+      );
       return;
     }
 
@@ -524,7 +568,11 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
                       color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(LucideIcons.keyRound, size: 20, color: AppTheme.brandPrimary),
+                    child: const Icon(
+                      LucideIcons.keyRound,
+                      size: 20,
+                      color: AppTheme.brandPrimary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Text(
@@ -542,7 +590,11 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
                   padding: const EdgeInsets.all(6),
                   minimumSize: const Size(32, 32),
                 ),
-                icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                icon: Icon(
+                  LucideIcons.x,
+                  size: 18,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
                 tooltip: 'Cerrar',
                 onPressed: () => Navigator.pop(context),
               ),
@@ -553,7 +605,9 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
             'Ingresa un PIN de 4 números para desbloquear la caja rápidamente cuando esté inactiva:',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
-              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
             ),
           ),
           const SizedBox(height: 16),
@@ -562,13 +616,19 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
             keyboardType: TextInputType.number,
             maxLength: 4,
             obscureText: true,
-            style: GoogleFonts.outfit(fontSize: 18, letterSpacing: 8, fontWeight: FontWeight.bold),
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              letterSpacing: 8,
+              fontWeight: FontWeight.bold,
+            ),
             decoration: InputDecoration(
               counterText: '',
               hintText: '••••',
               labelText: 'Nuevo PIN (4 dígitos)',
               prefixIcon: const Icon(LucideIcons.lockKeyhole, size: 18),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -577,20 +637,30 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
             keyboardType: TextInputType.number,
             maxLength: 4,
             obscureText: true,
-            style: GoogleFonts.outfit(fontSize: 18, letterSpacing: 8, fontWeight: FontWeight.bold),
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              letterSpacing: 8,
+              fontWeight: FontWeight.bold,
+            ),
             decoration: InputDecoration(
               counterText: '',
               hintText: '••••',
               labelText: 'Confirma el PIN',
               prefixIcon: const Icon(LucideIcons.checkCheck, size: 18),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
           if (_error.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(
               _error,
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.alertRed, fontWeight: FontWeight.w700),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: AppTheme.alertRed,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
           const SizedBox(height: 20),
@@ -601,15 +671,23 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
                   onPressed: _guardando ? null : () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   child: Text(
                     'Cancelar',
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF475569),
                     ),
                   ),
                 ),
@@ -623,11 +701,26 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
                     backgroundColor: AppTheme.brandPrimary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: _guardando
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text('Guardar PIN', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'Guardar PIN',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                          ),
+                        ),
                 ),
               ),
             ],

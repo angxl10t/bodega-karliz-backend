@@ -1,8 +1,10 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../core/karliz_vectors.dart';
 
@@ -11,11 +13,7 @@ class KarlizNavItem {
   final IconData? icon;
   final String label;
 
-  const KarlizNavItem({
-    this.icon,
-    this.iconWidgetBuilder,
-    required this.label,
-  });
+  const KarlizNavItem({this.icon, this.iconWidgetBuilder, required this.label});
 
   Widget buildIcon({required Color color, required double size}) {
     if (iconWidgetBuilder != null) {
@@ -60,14 +58,12 @@ class KarlizPixelPerfectNavBar extends StatefulWidget {
       icon: LucideIcons.boxes,
       label: 'Stock',
     ),
-    KarlizNavItem(
-      icon: LucideIcons.bookUser,
-      label: 'Fiados',
-    ),
+    KarlizNavItem(icon: LucideIcons.bookUser, label: 'Fiados'),
   ];
 
   @override
-  State<KarlizPixelPerfectNavBar> createState() => _KarlizPixelPerfectNavBarState();
+  State<KarlizPixelPerfectNavBar> createState() =>
+      _KarlizPixelPerfectNavBarState();
 }
 
 class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
@@ -86,8 +82,10 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _animPosition = Tween<double>(begin: _currentTab, end: _currentTab)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _animPosition = Tween<double>(
+      begin: _currentTab,
+      end: _currentTab,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -95,10 +93,10 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
     super.didUpdateWidget(oldWidget);
     if (widget.selectedIndex != oldWidget.selectedIndex) {
       _targetTab = widget.selectedIndex.toDouble();
-      _animPosition = Tween<double>(
-        begin: _animPosition.value,
-        end: _targetTab,
-      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+      _animPosition = Tween<double>(begin: _animPosition.value, end: _targetTab)
+          .animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+          );
       _controller.forward(from: 0.0);
     }
   }
@@ -116,9 +114,13 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
 
     // Paleta ejecutiva adaptada al modo claro y oscuro
     final barBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
-    final barBorder = isDark ? AppTheme.borderDarkElevated : const Color(0xFFE4E4E7);
+    final barBorder = isDark
+        ? AppTheme.borderDarkElevated
+        : const Color(0xFFE4E4E7);
     final activeColor = isDark ? AppTheme.brandLight : AppTheme.brandPrimary;
-    final inactiveColor = isDark ? AppTheme.textDarkSecondary : const Color(0xFFA1A1AA);
+    final inactiveColor = isDark
+        ? AppTheme.textDarkSecondary
+        : const Color(0xFFA1A1AA);
 
     return Container(
       color: Colors.transparent,
@@ -135,7 +137,8 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
           const barTop = 18.0;
           const cornerRadius = 22.0;
           final pad = max(18.0, cornerRadius);
-          final tabWidth = (w - 2 * pad) / KarlizPixelPerfectNavBar.items.length;
+          final tabWidth =
+              (w - 2 * pad) / KarlizPixelPerfectNavBar.items.length;
           final span = min(30.0, tabWidth * 0.44);
 
           return AnimatedBuilder(
@@ -173,10 +176,14 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                           children: List.generate(
                             KarlizPixelPerfectNavBar.items.length,
                             (index) {
-                              final item = KarlizPixelPerfectNavBar.items[index];
+                              final item =
+                                  KarlizPixelPerfectNavBar.items[index];
                               final isSelected = index == widget.selectedIndex;
-                              final selectProgress = (1.0 - (activeTabVal - index).abs())
-                                  .clamp(0.0, 1.0);
+                              final selectProgress =
+                                  (1.0 - (activeTabVal - index).abs()).clamp(
+                                    0.0,
+                                    1.0,
+                                  );
 
                               return Expanded(
                                 child: GestureDetector(
@@ -194,7 +201,8 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                                         height: 24,
                                         child: Center(
                                           child: Opacity(
-                                            opacity: (1.0 - selectProgress).clamp(0.0, 1.0),
+                                            opacity: (1.0 - selectProgress)
+                                                .clamp(0.0, 1.0),
                                             child: item.buildIcon(
                                               size: 20,
                                               color: inactiveColor,
@@ -210,8 +218,12 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                                         item.label,
                                         style: GoogleFonts.outfit(
                                           fontSize: 11,
-                                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                          color: isSelected ? activeColor : inactiveColor,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w800
+                                              : FontWeight.w600,
+                                          color: isSelected
+                                              ? activeColor
+                                              : inactiveColor,
                                           letterSpacing: 0.1,
                                         ),
                                       ),
@@ -237,20 +249,27 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                             shape: BoxShape.circle,
                             gradient: isDark
                                 ? const LinearGradient(
-                                    colors: [AppTheme.brandPrimary, AppTheme.brandDark],
+                                    colors: [
+                                      AppTheme.brandPrimary,
+                                      AppTheme.brandDark,
+                                    ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   )
                                 : null,
                             color: isDark ? null : Colors.white,
                             border: Border.all(
-                              color: isDark ? AppTheme.brandLight : const Color(0xFFE4E4E7),
+                              color: isDark
+                                  ? AppTheme.brandLight
+                                  : const Color(0xFFE4E4E7),
                               width: isDark ? 1.8 : 1.6,
                             ),
                             boxShadow: [
                               BoxShadow(
                                 color: isDark
-                                    ? AppTheme.brandPrimary.withValues(alpha: 0.45)
+                                    ? AppTheme.brandPrimary.withValues(
+                                        alpha: 0.45,
+                                      )
                                     : Colors.black.withValues(alpha: 0.08),
                                 blurRadius: isDark ? 14 : 10,
                                 offset: const Offset(0, 3),
@@ -260,16 +279,24 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                           child: Center(
                             child: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 200),
-                              transitionBuilder: (child, anim) => FadeTransition(
-                                opacity: anim,
-                                child: ScaleTransition(scale: anim, child: child),
-                              ),
+                              transitionBuilder: (child, anim) =>
+                                  FadeTransition(
+                                    opacity: anim,
+                                    child: ScaleTransition(
+                                      scale: anim,
+                                      child: child,
+                                    ),
+                                  ),
                               child: KeyedSubtree(
                                 key: ValueKey(widget.selectedIndex),
-                                child: KarlizPixelPerfectNavBar.items[widget.selectedIndex].buildIcon(
-                                  size: 21,
-                                  color: isDark ? Colors.white : AppTheme.brandPrimary,
-                                ),
+                                child: KarlizPixelPerfectNavBar
+                                    .items[widget.selectedIndex]
+                                    .buildIcon(
+                                      size: 21,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.brandPrimary,
+                                    ),
                               ),
                             ),
                           ),
@@ -347,15 +374,21 @@ class _ScoopedNavBarPainter extends CustomPainter {
     // 7. Hendidura Cóncava (Scoop / Cradle Cutout hacia abajo en el cuerpo de la barra)
     // De xRight bajando suavemente hasta el fondo del hueco en (cx, notchDepth)
     path.cubicTo(
-      cx + span * 0.5, barTop,
-      cx + span * 0.5, notchDepth,
-      cx, notchDepth,
+      cx + span * 0.5,
+      barTop,
+      cx + span * 0.5,
+      notchDepth,
+      cx,
+      notchDepth,
     );
     // De (cx, notchDepth) subiendo suavemente de vuelta a la línea plana en xLeft
     path.cubicTo(
-      cx - span * 0.5, notchDepth,
-      cx - span * 0.5, barTop,
-      xLeft, barTop,
+      cx - span * 0.5,
+      notchDepth,
+      cx - span * 0.5,
+      barTop,
+      xLeft,
+      barTop,
     );
 
     // 8. Borde superior desde xLeft hasta esquina superior izquierda

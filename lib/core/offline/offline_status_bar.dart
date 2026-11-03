@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import 'offline_models.dart';
 import 'offline_queue_sheet.dart';
 import 'offline_sync_manager.dart';
@@ -31,10 +32,14 @@ class OfflineStatusBar extends StatelessWidget {
               margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF271B0A) : const Color(0xFFFEF3C7),
+                color: isDark
+                    ? const Color(0xFF271B0A)
+                    : const Color(0xFFFEF3C7),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF92400E) : const Color(0xFFFBBF24),
+                  color: isDark
+                      ? const Color(0xFF92400E)
+                      : const Color(0xFFFBBF24),
                   width: 1.2,
                 ),
                 boxShadow: [
@@ -54,7 +59,9 @@ class OfflineStatusBar extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      tienePendientes ? LucideIcons.cloudOff : LucideIcons.wifiOff,
+                      tienePendientes
+                          ? LucideIcons.cloudOff
+                          : LucideIcons.wifiOff,
                       size: 16,
                       color: const Color(0xFFD97706),
                     ),
@@ -68,7 +75,9 @@ class OfflineStatusBar extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              isOffline ? 'MODO OFFLINE (SIN RED)' : 'VENTAS PENDIENTES DE ENVÍO',
+                              isOffline
+                                  ? 'MODO OFFLINE (SIN RED)'
+                                  : 'VENTAS PENDIENTES DE ENVÍO',
                               style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w900,
@@ -79,7 +88,10 @@ class OfflineStatusBar extends StatelessWidget {
                             if (tienePendientes) ...[
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFD97706),
                                   borderRadius: BorderRadius.circular(8),
@@ -104,7 +116,9 @@ class OfflineStatusBar extends StatelessWidget {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                            color: isDark
+                                ? const Color(0xFFFDE68A)
+                                : const Color(0xFF92400E),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -120,7 +134,10 @@ class OfflineStatusBar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                         onTap: () => OfflineQueueSheet.show(context),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFD97706),
                             borderRadius: BorderRadius.circular(10),
@@ -132,10 +149,17 @@ class OfflineStatusBar extends StatelessWidget {
                                 const SizedBox(
                                   width: 12,
                                   height: 12,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               else
-                                const Icon(LucideIcons.refreshCw, size: 12, color: Colors.white),
+                                const Icon(
+                                  LucideIcons.refreshCw,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
                               const SizedBox(width: 4),
                               Text(
                                 isSyncing ? 'Enviando...' : 'Ver Cola',

@@ -4,32 +4,38 @@ import 'package:bodega_mobile/core/csv_exporter.dart';
 
 void main() {
   group('CierreCaja & Arqueo Financial Reconciliation Tests', () {
-    test('CierreCaja.fromJson parses cash received and change returned correctly', () {
-      final json = {
-        'totalVentas': 350.50,
-        'totalEfectivo': 150.50,
-        'totalEfectivoRecibido': 200.00,
-        'totalVueltoEntregado': 49.50,
-        'totalYape': 100.00,
-        'totalPlin': 50.00,
-        'totalTarjeta': 50.00,
-        'cantidadVentas': 8,
-        'fecha': '2026-10-17T18:00:00Z',
-      };
+    test(
+      'CierreCaja.fromJson parses cash received and change returned correctly',
+      () {
+        final json = {
+          'totalVentas': 350.50,
+          'totalEfectivo': 150.50,
+          'totalEfectivoRecibido': 200.00,
+          'totalVueltoEntregado': 49.50,
+          'totalYape': 100.00,
+          'totalPlin': 50.00,
+          'totalTarjeta': 50.00,
+          'cantidadVentas': 8,
+          'fecha': '2026-10-17T18:00:00Z',
+        };
 
-      final cierre = CierreCaja.fromJson(json);
+        final cierre = CierreCaja.fromJson(json);
 
-      expect(cierre.totalVentas, 350.50);
-      expect(cierre.totalEfectivo, 150.50);
-      expect(cierre.totalEfectivoRecibido, 200.00);
-      expect(cierre.totalVueltoEntregado, 49.50);
-      expect(cierre.totalEfectivoRecibido - cierre.totalVueltoEntregado, 150.50);
-      expect(cierre.totalYape, 100.00);
-      expect(cierre.totalPlin, 50.00);
-      expect(cierre.totalTarjeta, 50.00);
-      expect(cierre.cantidadVentas, 8);
-      expect(cierre.fecha, isNotNull);
-    });
+        expect(cierre.totalVentas, 350.50);
+        expect(cierre.totalEfectivo, 150.50);
+        expect(cierre.totalEfectivoRecibido, 200.00);
+        expect(cierre.totalVueltoEntregado, 49.50);
+        expect(
+          cierre.totalEfectivoRecibido - cierre.totalVueltoEntregado,
+          150.50,
+        );
+        expect(cierre.totalYape, 100.00);
+        expect(cierre.totalPlin, 50.00);
+        expect(cierre.totalTarjeta, 50.00);
+        expect(cierre.cantidadVentas, 8);
+        expect(cierre.fecha, isNotNull);
+      },
+    );
 
     test('CierreCaja.fromJson gracefully handles legacy backends without breakdown', () {
       final jsonLegacy = {
@@ -83,7 +89,11 @@ void main() {
 
       // Case 1: Initial date from sale recorded later in the evening (18:00) of today
       final eveningToday = DateTime(2026, 10, 20, 18, 45, 0);
-      DateTime safeInitial1 = DateTime(eveningToday.year, eveningToday.month, eveningToday.day);
+      DateTime safeInitial1 = DateTime(
+        eveningToday.year,
+        eveningToday.month,
+        eveningToday.day,
+      );
       if (safeInitial1.isAfter(lastDate)) safeInitial1 = lastDate;
       if (safeInitial1.isBefore(firstDate)) safeInitial1 = firstDate;
 
@@ -93,7 +103,11 @@ void main() {
 
       // Case 2: Future date requested
       final futureDate = DateTime(2026, 10, 25);
-      DateTime safeInitial2 = DateTime(futureDate.year, futureDate.month, futureDate.day);
+      DateTime safeInitial2 = DateTime(
+        futureDate.year,
+        futureDate.month,
+        futureDate.day,
+      );
       if (safeInitial2.isAfter(lastDate)) safeInitial2 = lastDate;
       if (safeInitial2.isBefore(firstDate)) safeInitial2 = firstDate;
 
@@ -101,7 +115,11 @@ void main() {
 
       // Case 3: Distant past date requested (> 365 days ago)
       final distantPast = DateTime(2024, 1, 1);
-      DateTime safeInitial3 = DateTime(distantPast.year, distantPast.month, distantPast.day);
+      DateTime safeInitial3 = DateTime(
+        distantPast.year,
+        distantPast.month,
+        distantPast.day,
+      );
       if (safeInitial3.isAfter(lastDate)) safeInitial3 = lastDate;
       if (safeInitial3.isBefore(firstDate)) safeInitial3 = firstDate;
 
@@ -131,7 +149,7 @@ void main() {
             'motivo': 'Hielo en bolsa',
             'categoriaGasto': 'HIELO',
             'estado': true,
-          }
+          },
         ],
       };
 

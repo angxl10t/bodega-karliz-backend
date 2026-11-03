@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import 'theme.dart';
 
 /// Logotipo vectorial oficial de CajaYa (SaaS Cloud POS)
@@ -19,7 +20,9 @@ class CajaYaLogoMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = customColor ?? AppTheme.brandPrimary;
-    final dark = customColor != null ? customColor!.withValues(alpha: 0.85) : AppTheme.brandDark;
+    final dark = customColor != null
+        ? customColor!.withValues(alpha: 0.85)
+        : AppTheme.brandDark;
 
     return Container(
       width: size,
@@ -88,7 +91,8 @@ class _CajaYaLogoPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CajaYaLogoPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _CajaYaLogoPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// Gráfico Vectorial Tecnológico B2B para la pantalla de Login y Portada SaaS
@@ -97,11 +101,7 @@ class CajaYaHeroGraphic extends StatelessWidget {
   final double width;
   final double height;
 
-  const CajaYaHeroGraphic({
-    super.key,
-    this.width = 240,
-    this.height = 175,
-  });
+  const CajaYaHeroGraphic({super.key, this.width = 240, this.height = 175});
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +205,9 @@ class CajaYaHeroGraphic extends StatelessWidget {
                     Icon(
                       LucideIcons.cloudCheck,
                       size: 15,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
                     ),
                   ],
                 ),
@@ -223,7 +225,9 @@ class CajaYaHeroGraphic extends StatelessWidget {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF64748B),
                           ),
                         ),
                         Text(
@@ -319,7 +323,9 @@ class CajaYaHeroGraphic extends StatelessWidget {
                 color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
+                  color: isDark
+                      ? AppTheme.borderDarkElevated
+                      : const Color(0xFFCBD5E1),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -332,7 +338,11 @@ class CajaYaHeroGraphic extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(LucideIcons.printer, size: 12, color: AppTheme.accentGreen),
+                  const Icon(
+                    LucideIcons.printer,
+                    size: 12,
+                    color: AppTheme.accentGreen,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     'TICKET ESC/POS',
@@ -351,7 +361,11 @@ class CajaYaHeroGraphic extends StatelessWidget {
     );
   }
 
-  static Widget _buildBar({required double height, required Color primary, bool active = false}) {
+  static Widget _buildBar({
+    required double height,
+    required Color primary,
+    bool active = false,
+  }) {
     return Container(
       width: 5,
       height: height,

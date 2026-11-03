@@ -111,20 +111,27 @@ class AuditoriaSesion {
     required this.items,
   });
 
-  int get totalItemsAuditados => items.where((it) => it.conteoFisico > 0).length;
-  int get totalCuadreExacto => items.where((it) => it.esCuadreExacto && it.conteoFisico > 0).length;
+  int get totalItemsAuditados =>
+      items.where((it) => it.conteoFisico > 0).length;
+  int get totalCuadreExacto =>
+      items.where((it) => it.esCuadreExacto && it.conteoFisico > 0).length;
   int get totalFaltantes => items.where((it) => it.esFaltante).length;
   int get totalSobrantes => items.where((it) => it.esSobrante).length;
 
   double get valorPerdidaFaltantes {
-    return items.where((it) => it.esFaltante).fold(0.0, (acc, it) => acc + it.valorDiscrepancia.abs());
+    return items
+        .where((it) => it.esFaltante)
+        .fold(0.0, (acc, it) => acc + it.valorDiscrepancia.abs());
   }
 
   double get valorExcedenteSobrantes {
-    return items.where((it) => it.esSobrante).fold(0.0, (acc, it) => acc + it.valorDiscrepancia);
+    return items
+        .where((it) => it.esSobrante)
+        .fold(0.0, (acc, it) => acc + it.valorDiscrepancia);
   }
 
-  double get discrepanciaNeta => valorExcedenteSobrantes - valorPerdidaFaltantes;
+  double get discrepanciaNeta =>
+      valorExcedenteSobrantes - valorPerdidaFaltantes;
 
   Map<String, dynamic> toJson() {
     return {
@@ -142,11 +149,16 @@ class AuditoriaSesion {
     return AuditoriaSesion(
       idAuditoria: json['idAuditoria']?.toString() ?? '',
       titulo: json['titulo'] as String? ?? 'Auditoría Ciega',
-      fechaInicio: json['fechaInicio'] != null ? DateTime.tryParse(json['fechaInicio'].toString()) ?? DateTime.now() : DateTime.now(),
-      fechaCierre: json['fechaCierre'] != null ? DateTime.tryParse(json['fechaCierre'].toString()) : null,
+      fechaInicio: json['fechaInicio'] != null
+          ? DateTime.tryParse(json['fechaInicio'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      fechaCierre: json['fechaCierre'] != null
+          ? DateTime.tryParse(json['fechaCierre'].toString())
+          : null,
       estado: json['estado'] as String? ?? 'CONTEO_ACTIVO',
       usuarioResponsable: json['usuarioResponsable'] as String? ?? 'ADMIN',
-      items: (json['items'] as List<dynamic>?)
+      items:
+          (json['items'] as List<dynamic>?)
               ?.map((j) => AuditoriaItem.fromJson(j as Map<String, dynamic>))
               .toList() ??
           [],

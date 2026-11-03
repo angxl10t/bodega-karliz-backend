@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import '../features/productos/producto_model.dart';
 import '../features/ventas/venta_model.dart';
 import '../features/clientes/cliente_model.dart';
 import '../features/dashboard/dashboard_bi_model.dart';
 
 import 'csv_downloader_stub.dart'
-    if (dart.library.html) 'csv_downloader_web.dart' as downloader;
+    if (dart.library.html) 'csv_downloader_web.dart'
+    as downloader;
 
 class CsvExporter {
   /// Protege contra CSV / Formula Injection y escapa comas y comillas
@@ -22,7 +24,10 @@ class CsvExporter {
         clean.startsWith('\r')) {
       clean = "'$clean";
     }
-    if (clean.contains(',') || clean.contains('"') || clean.contains('\n') || clean.contains('\r')) {
+    if (clean.contains(',') ||
+        clean.contains('"') ||
+        clean.contains('\n') ||
+        clean.contains('\r')) {
       clean = '"${clean.replaceAll('"', '""')}"';
     }
     return clean;
@@ -31,7 +36,9 @@ class CsvExporter {
   /// Genera contenido CSV formateado para catálogo de productos
   static String generarCsvProductos(List<Producto> productos) {
     final buffer = StringBuffer();
-    buffer.writeln('Codigo,CodigoBarras,Nombre,Categoria,Marca,PrecioVenta,StockActual,StockMinimo,Estado');
+    buffer.writeln(
+      'Codigo,CodigoBarras,Nombre,Categoria,Marca,PrecioVenta,StockActual,StockMinimo,Estado',
+    );
 
     for (final p in productos) {
       buffer.write('${escapar(p.codigo)},');
@@ -51,7 +58,9 @@ class CsvExporter {
   /// Genera contenido CSV formateado para historial de ventas
   static String generarCsvVentas(List<VentaRegistro> ventas) {
     final buffer = StringBuffer();
-    buffer.writeln('IDVenta,FechaHora,TipoComprobante,SerieNumero,Cliente,Documento,MetodoPago,Total,EstadoComprobante,EstadoVenta');
+    buffer.writeln(
+      'IDVenta,FechaHora,TipoComprobante,SerieNumero,Cliente,Documento,MetodoPago,Total,EstadoComprobante,EstadoVenta',
+    );
 
     for (final v in ventas) {
       buffer.write('${v.idVenta},');
@@ -72,7 +81,9 @@ class CsvExporter {
   /// Genera contenido CSV formateado para libreta de clientes y cuentas fiadas
   static String generarCsvClientes(List<Cliente> clientes) {
     final buffer = StringBuffer();
-    buffer.writeln('NombreCompleto,Documento,Telefono,Direccion,LimiteCredito,SaldoDeudor,CreditoDisponible,EstadoDeuda,Notas');
+    buffer.writeln(
+      'NombreCompleto,Documento,Telefono,Direccion,LimiteCredito,SaldoDeudor,CreditoDisponible,EstadoDeuda,Notas',
+    );
 
     for (final c in clientes) {
       buffer.write('${escapar(c.nombreCompleto)},');
@@ -94,22 +105,42 @@ class CsvExporter {
     final buffer = StringBuffer();
     buffer.writeln('=== REPORTE EJECUTIVO BI Y RENTABILIDAD CAJAYA ===');
     buffer.writeln('Periodo Analizado (Dias),${data.diasAnalizados}');
-    buffer.writeln('Total Ventas Brutas (PEN),${data.totalVentas.toStringAsFixed(2)}');
-    buffer.writeln('Costo Total de Ventas (PEN),${data.totalCostos.toStringAsFixed(2)}');
-    buffer.writeln('Margen Bruto de Ganancia (PEN),${data.margenBrutoSoles.toStringAsFixed(2)}');
-    buffer.writeln('Margen Bruto Porcentual (%),${data.porcentajeMargenBruto.toStringAsFixed(1)}%');
-    buffer.writeln('Ticket Promedio Hoy (PEN),${data.ticketPromedioHoy.toStringAsFixed(2)}');
-    buffer.writeln('Ticket Promedio Semanal (PEN),${data.ticketPromedioSemanal.toStringAsFixed(2)}');
-    buffer.writeln('Ticket Promedio Periodo (PEN),${data.ticketPromedioPeriodo.toStringAsFixed(2)}');
-    buffer.writeln('Cantidad de Ventas en Periodo,${data.cantidadVentasPeriodo}');
-    buffer.writeln('Total Capital Inmovilizado en Huesos (PEN),${data.totalCapitalInmovilizado.toStringAsFixed(2)}');
+    buffer.writeln(
+      'Total Ventas Brutas (PEN),${data.totalVentas.toStringAsFixed(2)}',
+    );
+    buffer.writeln(
+      'Costo Total de Ventas (PEN),${data.totalCostos.toStringAsFixed(2)}',
+    );
+    buffer.writeln(
+      'Margen Bruto de Ganancia (PEN),${data.margenBrutoSoles.toStringAsFixed(2)}',
+    );
+    buffer.writeln(
+      'Margen Bruto Porcentual (%),${data.porcentajeMargenBruto.toStringAsFixed(1)}%',
+    );
+    buffer.writeln(
+      'Ticket Promedio Hoy (PEN),${data.ticketPromedioHoy.toStringAsFixed(2)}',
+    );
+    buffer.writeln(
+      'Ticket Promedio Semanal (PEN),${data.ticketPromedioSemanal.toStringAsFixed(2)}',
+    );
+    buffer.writeln(
+      'Ticket Promedio Periodo (PEN),${data.ticketPromedioPeriodo.toStringAsFixed(2)}',
+    );
+    buffer.writeln(
+      'Cantidad de Ventas en Periodo,${data.cantidadVentasPeriodo}',
+    );
+    buffer.writeln(
+      'Total Capital Inmovilizado en Huesos (PEN),${data.totalCapitalInmovilizado.toStringAsFixed(2)}',
+    );
     buffer.writeln('Hora Pico Maxima,${escapar(data.horaPicoMaxima)}');
     buffer.writeln('Hora Valle Minima,${escapar(data.horaValleMinima)}');
     buffer.writeln('Recomendacion Turnos,${escapar(data.recomendacionTurnos)}');
     buffer.writeln();
 
     buffer.writeln('--- PRODUCTOS ESTRELLA (TOP RENTABILIDAD Y ROTACION) ---');
-    buffer.writeln('Ranking,Codigo,Nombre,Categoria,UnidadesVendidas,TotalVentasPEN,CostoTotalPEN,MargenSolesPEN,MargenPorcentaje');
+    buffer.writeln(
+      'Ranking,Codigo,Nombre,Categoria,UnidadesVendidas,TotalVentasPEN,CostoTotalPEN,MargenSolesPEN,MargenPorcentaje',
+    );
     for (int i = 0; i < data.productosEstrella.length; i++) {
       final p = data.productosEstrella[i];
       buffer.write('${i + 1},');
@@ -124,8 +155,12 @@ class CsvExporter {
     }
     buffer.writeln();
 
-    buffer.writeln('--- PRODUCTOS HUESO (SIN VENTAS / CAPITAL INMOVILIZADO) ---');
-    buffer.writeln('Ranking,Codigo,Nombre,Categoria,StockActual,PrecioCostoPEN,CapitalInmovilizadoPEN,DiasSinVentas,AccionRecomendada');
+    buffer.writeln(
+      '--- PRODUCTOS HUESO (SIN VENTAS / CAPITAL INMOVILIZADO) ---',
+    );
+    buffer.writeln(
+      'Ranking,Codigo,Nombre,Categoria,StockActual,PrecioCostoPEN,CapitalInmovilizadoPEN,DiasSinVentas,AccionRecomendada',
+    );
     for (int i = 0; i < data.productosHueso.length; i++) {
       final h = data.productosHueso[i];
       buffer.write('${i + 1},');
@@ -141,7 +176,9 @@ class CsvExporter {
     buffer.writeln();
 
     buffer.writeln('--- DISTRIBUCION HORARIA Y AFLUENCIA (24 HORAS) ---');
-    buffer.writeln('Hora,RangoHorario,CantidadTickets,TotalVentasPEN,EsHoraPico');
+    buffer.writeln(
+      'Hora,RangoHorario,CantidadTickets,TotalVentasPEN,EsHoraPico',
+    );
     for (final hp in data.distribucionHoraria) {
       buffer.write('${hp.hora},');
       buffer.write('${escapar(hp.etiquetaHora)},');

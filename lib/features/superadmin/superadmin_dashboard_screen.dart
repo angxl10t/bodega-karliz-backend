@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -21,7 +22,8 @@ class SuperAdminDashboardScreen extends StatefulWidget {
   const SuperAdminDashboardScreen({super.key});
 
   @override
-  State<SuperAdminDashboardScreen> createState() => _SuperAdminDashboardScreenState();
+  State<SuperAdminDashboardScreen> createState() =>
+      _SuperAdminDashboardScreenState();
 }
 
 class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
@@ -62,7 +64,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     _tabController = TabController(length: 4, vsync: this);
     _cargarTodo();
     // Refresco periódico ligero cada 60s
-    _refreshTimer = Timer.periodic(const Duration(seconds: 60), (_) => _cargarMetricasYHealth());
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) => _cargarMetricasYHealth(),
+    );
   }
 
   @override
@@ -144,7 +149,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   // ACCIONES DE GESTIÓN DE BODEGAS & PLATAFORMA
   // ===========================================================================
 
-  Future<void> _abrirModalProvisionarBodega(BuildContext context, bool isDark) async {
+  Future<void> _abrirModalProvisionarBodega(
+    BuildContext context,
+    bool isDark,
+  ) async {
     final nombreCtrl = TextEditingController();
     final rucCtrl = TextEditingController();
     final telCtrl = TextEditingController();
@@ -165,7 +173,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         builder: (_, setModalState) {
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             title: Row(
               children: [
                 Container(
@@ -174,7 +184,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(LucideIcons.store, color: Color(0xFF7C3AED), size: 20),
+                  child: const Icon(
+                    LucideIcons.store,
+                    color: Color(0xFF7C3AED),
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -183,11 +197,20 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     children: [
                       Text(
                         'Provisionar Nueva Bodega',
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                        ),
                       ),
                       Text(
                         'Alta inmediata de tienda y usuario administrador',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
                       ),
                     ],
                   ),
@@ -217,15 +240,36 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         ),
                         child: Row(
                           children: [
-                            const Icon(LucideIcons.alertCircle, color: AppTheme.alertRed, size: 16),
+                            const Icon(
+                              LucideIcons.alertCircle,
+                              color: AppTheme.alertRed,
+                              size: 16,
+                            ),
                             const SizedBox(width: 8),
-                            Expanded(child: Text(error, style: const TextStyle(color: AppTheme.alertRed, fontSize: 12))),
+                            Expanded(
+                              child: Text(
+                                error,
+                                style: const TextStyle(
+                                  color: AppTheme.alertRed,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 12),
                     ],
-                    Text('INFORMACIÓN DE LA TIENDA', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                    Text(
+                      'INFORMACIÓN DE LA TIENDA',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     TextField(
                       controller: nombreCtrl,
@@ -233,12 +277,20 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         labelText: 'Nombre Comercial *',
                         hintText: 'Ej. Minimarket San Jorge',
                         prefixIcon: const Icon(LucideIcons.store, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       onChanged: (val) {
-                        if (userCtrl.text.isEmpty || userCtrl.text.startsWith('admin_')) {
-                          final clean = val.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-                          final truncated = clean.length > 12 ? clean.substring(0, 12) : clean;
+                        if (userCtrl.text.isEmpty ||
+                            userCtrl.text.startsWith('admin_')) {
+                          final clean = val.toLowerCase().replaceAll(
+                            RegExp(r'[^a-z0-9]'),
+                            '',
+                          );
+                          final truncated = clean.length > 12
+                              ? clean.substring(0, 12)
+                              : clean;
                           userCtrl.text = 'admin_$truncated';
                         }
                       },
@@ -253,8 +305,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             decoration: InputDecoration(
                               labelText: 'RUC o DNI',
                               hintText: '10458920112',
-                              prefixIcon: const Icon(LucideIcons.fileText, size: 18),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              prefixIcon: const Icon(
+                                LucideIcons.fileText,
+                                size: 18,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
                           ),
                         ),
@@ -266,8 +323,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             decoration: InputDecoration(
                               labelText: 'Teléfono / WhatsApp',
                               hintText: '987654321',
-                              prefixIcon: const Icon(LucideIcons.phone, size: 18),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              prefixIcon: const Icon(
+                                LucideIcons.phone,
+                                size: 18,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
                           ),
                         ),
@@ -280,11 +342,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         labelText: 'Dirección Comercial',
                         hintText: 'Av. Los Próceres 123, Lima',
                         prefixIcon: const Icon(LucideIcons.mapPin, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Text('SUSCRIPCIÓN & VIGENCIA', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                    Text(
+                      'SUSCRIPCIÓN & VIGENCIA',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -321,7 +394,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       }).toList(),
                     ),
                     const SizedBox(height: 14),
-                    Text('CREDENCIALES DE ACCESO DEL DUEÑO', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                    Text(
+                      'CREDENCIALES DE ACCESO DEL DUEÑO',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -331,8 +413,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             decoration: InputDecoration(
                               labelText: 'Usuario Admin *',
                               hintText: 'admin_tienda',
-                              prefixIcon: const Icon(LucideIcons.user, size: 18),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              prefixIcon: const Icon(
+                                LucideIcons.user,
+                                size: 18,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
                           ),
                         ),
@@ -343,8 +430,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             decoration: InputDecoration(
                               labelText: 'Contraseña *',
                               hintText: '123456',
-                              prefixIcon: const Icon(LucideIcons.lock, size: 18),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                              prefixIcon: const Icon(
+                                LucideIcons.lock,
+                                size: 18,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
                           ),
                         ),
@@ -363,8 +455,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                 ),
                 onPressed: isSaving
                     ? null
@@ -373,11 +470,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         final u = userCtrl.text.trim();
                         final p = passCtrl.text.trim();
                         if (n.isEmpty) {
-                          setModalState(() => error = 'Ingresa el nombre comercial.');
+                          setModalState(
+                            () => error = 'Ingresa el nombre comercial.',
+                          );
                           return;
                         }
                         if (u.isEmpty || p.isEmpty) {
-                          setModalState(() => error = 'Usuario y clave son obligatorios.');
+                          setModalState(
+                            () => error = 'Usuario y clave son obligatorios.',
+                          );
                           return;
                         }
                         setModalState(() => isSaving = true);
@@ -400,7 +501,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             });
                             messenger.showSnackBar(
                               SnackBar(
-                                content: Text('¡Bodega "${nueva.nombreComercial}" provisionada exitosamente!'),
+                                content: Text(
+                                  '¡Bodega "${nueva.nombreComercial}" provisionada exitosamente!',
+                                ),
                                 backgroundColor: AppTheme.accentGreen,
                               ),
                             );
@@ -414,7 +517,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         }
                       },
                 child: isSaving
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text('Crear Bodega & Admin'),
               ),
             ],
@@ -424,11 +534,17 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     );
   }
 
-  Future<void> _enviarRecordatorioWhatsApp(BodegaInfo b, int? diasRestantes, bool vencido) async {
+  Future<void> _enviarRecordatorioWhatsApp(
+    BodegaInfo b,
+    int? diasRestantes,
+    bool vencido,
+  ) async {
     final tel = b.telefono?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
     if (tel.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Esta bodega no tiene teléfono registrado')),
+        const SnackBar(
+          content: Text('Esta bodega no tiene teléfono registrado'),
+        ),
       );
       return;
     }
@@ -447,9 +563,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     }
   }
 
-  Future<void> _cambiarEstadoPago(PagoSuscripcionItem p, String nuevoEstado) async {
+  Future<void> _cambiarEstadoPago(
+    PagoSuscripcionItem p,
+    String nuevoEstado,
+  ) async {
     try {
-      final actualizado = await _bodegaService.cambiarEstadoPago(p.idPago, nuevoEstado);
+      final actualizado = await _bodegaService.cambiarEstadoPago(
+        p.idPago,
+        nuevoEstado,
+      );
       setState(() {
         final idx = _pagos.indexWhere((x) => x.idPago == p.idPago);
         if (idx != -1) _pagos[idx] = actualizado;
@@ -457,22 +579,31 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Pago #${p.codigoOperacion} marcado como $nuevoEstado'),
-            backgroundColor: nuevoEstado == 'CONFIRMADO' ? AppTheme.accentGreen : AppTheme.alertRed,
+            content: Text(
+              'Pago #${p.codigoOperacion} marcado como $nuevoEstado',
+            ),
+            backgroundColor: nuevoEstado == 'CONFIRMADO'
+                ? AppTheme.accentGreen
+                : AppTheme.alertRed,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.alertRed),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppTheme.alertRed,
+          ),
         );
       }
     }
   }
 
   Future<void> _abrirModalPublicarAnuncio() async {
-    final msgCtrl = TextEditingController(text: _anuncioGlobal['mensaje']?.toString() ?? '');
+    final msgCtrl = TextEditingController(
+      text: _anuncioGlobal['mensaje']?.toString() ?? '',
+    );
     String tipo = _anuncioGlobal['tipo']?.toString() ?? 'INFO';
     final messenger = ScaffoldMessenger.of(context);
     bool isSaving = false;
@@ -484,15 +615,24 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         builder: (_, setModalState) {
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             title: Row(
               children: [
-                const Icon(LucideIcons.megaphone, color: Color(0xFF7C3AED), size: 20),
+                const Icon(
+                  LucideIcons.megaphone,
+                  color: Color(0xFF7C3AED),
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'Comunicado Global',
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 17,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -508,10 +648,25 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               children: [
                 Text(
                   'Este aviso aparecerá en la parte superior de las pantallas de todas las bodegas y cajas activas.',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
+                  ),
                 ),
                 const SizedBox(height: 12),
-                Text('TIPO DE AVISO:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                Text(
+                  'TIPO DE AVISO:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
+                  ),
+                ),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,
@@ -525,7 +680,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       },
                     ),
                     ChoiceChip(
-                      avatar: const Icon(LucideIcons.triangleAlert, size: 14, color: AppTheme.warningAmber),
+                      avatar: const Icon(
+                        LucideIcons.triangleAlert,
+                        size: 14,
+                        color: AppTheme.warningAmber,
+                      ),
                       label: const Text('Advertencia'),
                       selected: tipo == 'WARNING',
                       onSelected: (val) {
@@ -533,7 +692,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       },
                     ),
                     ChoiceChip(
-                      avatar: const Icon(LucideIcons.alertOctagon, size: 14, color: AppTheme.alertRed),
+                      avatar: const Icon(
+                        LucideIcons.alertOctagon,
+                        size: 14,
+                        color: AppTheme.alertRed,
+                      ),
                       label: const Text('Urgente'),
                       selected: tipo == 'URGENTE',
                       onSelected: (val) {
@@ -549,7 +712,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   decoration: InputDecoration(
                     labelText: 'Mensaje del comunicado *',
                     hintText: 'Ej: Recordatorio: el domingo a las 2:00 AM se realizará una actualización del sistema.',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                 ),
               ],
@@ -563,7 +728,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 onPressed: isSaving
                     ? null
@@ -572,13 +739,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         if (msg.isEmpty) return;
                         setModalState(() => isSaving = true);
                         try {
-                          final res = await _bodegaService.publicarAnuncioGlobal(msg, tipo: tipo);
+                          final res = await _bodegaService
+                              .publicarAnuncioGlobal(msg, tipo: tipo);
                           if (dlgCtx.mounted) Navigator.pop(dlgCtx);
                           if (mounted) {
                             setState(() => _anuncioGlobal = res);
                             messenger.showSnackBar(
                               const SnackBar(
-                                content: Text('Comunicado global publicado a todos los terminales'),
+                                content: Text(
+                                  'Comunicado global publicado a todos los terminales',
+                                ),
                                 backgroundColor: AppTheme.accentGreen,
                               ),
                             );
@@ -608,7 +778,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.alertRed),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppTheme.alertRed,
+          ),
         );
       }
     }
@@ -635,7 +808,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             Expanded(
               child: Text(
                 '$accion Tienda',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18),
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
               ),
             ),
           ],
@@ -653,9 +829,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: nuevoEstado ? AppTheme.accentGreen : AppTheme.alertRed,
+              backgroundColor: nuevoEstado
+                  ? AppTheme.accentGreen
+                  : AppTheme.alertRed,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(accion),
@@ -666,7 +846,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
     if (confirmar == true) {
       try {
-        final actualizada = await _bodegaService.cambiarEstadoBodega(b.idBodega, nuevoEstado);
+        final actualizada = await _bodegaService.cambiarEstadoBodega(
+          b.idBodega,
+          nuevoEstado,
+        );
         if (mounted) {
           setState(() {
             final idx = _bodegas.indexWhere((x) => x.idBodega == b.idBodega);
@@ -674,8 +857,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Tienda "${b.nombreComercial}" ${nuevoEstado ? "activada" : "suspendida"} exitosamente.'),
-              backgroundColor: nuevoEstado ? AppTheme.accentGreen : AppTheme.alertRed,
+              content: Text(
+                'Tienda "${b.nombreComercial}" ${nuevoEstado ? "activada" : "suspendida"} exitosamente.',
+              ),
+              backgroundColor: nuevoEstado
+                  ? AppTheme.accentGreen
+                  : AppTheme.alertRed,
             ),
           );
           _cargarMetricasYHealth();
@@ -684,7 +871,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString().replaceAll("Exception: ", "")}'),
+              content: Text(
+                'Error: ${e.toString().replaceAll("Exception: ", "")}',
+              ),
               backgroundColor: AppTheme.alertRed,
             ),
           );
@@ -706,7 +895,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         builder: (_, setModalState) {
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             title: Row(
               children: [
                 Container(
@@ -715,7 +906,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(LucideIcons.sparkles, color: Color(0xFF7C3AED), size: 20),
+                  child: const Icon(
+                    LucideIcons.sparkles,
+                    color: Color(0xFF7C3AED),
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -724,13 +919,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     children: [
                       Text(
                         'Gestionar Suscripción',
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 17,
+                        ),
                       ),
                       Text(
                         b.nombreComercial,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
                       ),
                     ],
                   ),
@@ -746,7 +950,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('SELECCIONA EL PLAN:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                Text(
+                  'SELECCIONA EL PLAN:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -772,7 +985,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('DÍAS DE VIGENCIA ADICIONAL:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                Text(
+                  'DÍAS DE VIGENCIA ADICIONAL:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
@@ -796,27 +1018,34 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 onPressed: isSaving
                     ? null
                     : () async {
                         setModalState(() => isSaving = true);
                         try {
-                          final actualizada = await _bodegaService.cambiarPlanBodega(
-                            b.idBodega,
-                            planElegido,
-                            dias: dias,
-                          );
+                          final actualizada = await _bodegaService
+                              .cambiarPlanBodega(
+                                b.idBodega,
+                                planElegido,
+                                dias: dias,
+                              );
                           if (dlgCtx.mounted) Navigator.pop(dlgCtx);
                           if (mounted) {
                             setState(() {
-                              final idx = _bodegas.indexWhere((x) => x.idBodega == b.idBodega);
+                              final idx = _bodegas.indexWhere(
+                                (x) => x.idBodega == b.idBodega,
+                              );
                               if (idx != -1) _bodegas[idx] = actualizada;
                             });
                             messenger.showSnackBar(
                               SnackBar(
-                                content: Text('Plan de "${b.nombreComercial}" actualizado a $planElegido ($dias días).'),
+                                content: Text(
+                                  'Plan de "${b.nombreComercial}" actualizado a $planElegido ($dias días).',
+                                ),
                                 backgroundColor: AppTheme.accentGreen,
                               ),
                             );
@@ -826,13 +1055,23 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           setModalState(() => isSaving = false);
                           if (mounted) {
                             messenger.showSnackBar(
-                              SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.alertRed),
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: AppTheme.alertRed,
+                              ),
                             );
                           }
                         }
                       },
                 child: isSaving
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text('Guardar'),
               ),
             ],
@@ -872,13 +1111,25 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         builder: (_, setDlgState) {
           return AlertDialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             title: Row(
               children: [
-                const Icon(LucideIcons.keyRound, color: Color(0xFF7C3AED), size: 20),
+                const Icon(
+                  LucideIcons.keyRound,
+                  color: Color(0xFF7C3AED),
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text('Restablecer Clave', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17)),
+                  child: Text(
+                    'Restablecer Clave',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 17,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -886,8 +1137,20 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Usuario: ${u.username}', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13)),
-                Text('Rol: ${u.rol} • Tienda: ${u.nombreBodega ?? "Sin bodega"}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.textMuted)),
+                Text(
+                  'Usuario: ${u.username}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  'Rol: ${u.rol} • Tienda: ${u.nombreBodega ?? "Sin bodega"}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
                 const SizedBox(height: 14),
                 TextField(
                   controller: passCtrl,
@@ -895,12 +1158,20 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     labelText: 'Nueva contraseña o PIN (mín. 4 caracteres)',
                     hintText: 'Ej. 123456',
                     prefixIcon: const Icon(LucideIcons.lock, size: 18),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                 ),
                 if (error.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text(error, style: const TextStyle(color: AppTheme.alertRed, fontSize: 12)),
+                  Text(
+                    error,
+                    style: const TextStyle(
+                      color: AppTheme.alertRed,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -913,7 +1184,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 onPressed: isSaving
                     ? null
@@ -930,7 +1203,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           if (mounted) {
                             messenger.showSnackBar(
                               SnackBar(
-                                content: Text('Clave de "${u.username}" restablecida exitosamente.'),
+                                content: Text(
+                                  'Clave de "${u.username}" restablecida exitosamente.',
+                                ),
                                 backgroundColor: AppTheme.accentGreen,
                               ),
                             );
@@ -943,7 +1218,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         }
                       },
                 child: isSaving
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text('Actualizar Clave'),
               ),
             ],
@@ -975,7 +1257,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Usuario "${u.username}" ${nuevo ? "activado" : "deshabilitado"}.'),
+            content: Text(
+              'Usuario "${u.username}" ${nuevo ? "activado" : "deshabilitado"}.',
+            ),
             backgroundColor: nuevo ? AppTheme.accentGreen : AppTheme.alertRed,
           ),
         );
@@ -983,7 +1267,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.alertRed),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppTheme.alertRed,
+          ),
         );
       }
     }
@@ -1005,7 +1292,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             const Icon(LucideIcons.logOut, color: AppTheme.alertRed, size: 22),
             const SizedBox(width: 10),
             Expanded(
-              child: Text('Cerrar Sesión Superadmin', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17)),
+              child: Text(
+                'Cerrar Sesión Superadmin',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                ),
+              ),
             ),
           ],
         ),
@@ -1014,12 +1307,17 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.alertRed,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Salir'),
@@ -1084,7 +1382,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(LucideIcons.shieldCheck, color: Colors.white, size: 18),
+                  child: const Icon(
+                    LucideIcons.shieldCheck,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -1100,17 +1402,26 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                           const SizedBox(width: 6),
                           Flexible(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1.5,
+                              ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                                color: const Color(0xFF7C3AED)
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.4)),
+                                border: Border.all(
+                                  color: const Color(0xFF7C3AED)
+                                      .withValues(alpha: 0.4),
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -1148,7 +1459,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1161,16 +1474,31 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 // Latencia en vivo (Oculta en pantallas menores a 390px para proteger el encabezado)
                 if (MediaQuery.of(context).size.width >= 390) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
+                      color: isDark
+                          ? AppTheme.cardDarkHighlight
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.activity, size: 12, color: _latencyMs < 300 ? AppTheme.accentGreen : Colors.amber),
+                        Icon(
+                          LucideIcons.activity,
+                          size: 12,
+                          color: _latencyMs < 300
+                              ? AppTheme.accentGreen
+                              : Colors.amber,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '${_latencyMs}ms',
@@ -1198,7 +1526,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   tooltip: 'Cambiar Modo Oscuro/Claro',
-                  icon: Icon(themeProvider.isDarkMode ? LucideIcons.sun : LucideIcons.moon, size: 17),
+                  icon: Icon(
+                    themeProvider.isDarkMode
+                        ? LucideIcons.sun
+                        : LucideIcons.moon,
+                    size: 17,
+                  ),
                   onPressed: () => themeProvider.toggleTheme(),
                 ),
 
@@ -1206,7 +1539,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   tooltip: 'Cerrar Sesión Superadmin',
-                  icon: const Icon(LucideIcons.logOut, color: AppTheme.alertRed, size: 17),
+                  icon: const Icon(
+                    LucideIcons.logOut,
+                    color: AppTheme.alertRed,
+                    size: 17,
+                  ),
                   onPressed: _cerrarSesionSuperAdmin,
                 ),
               ],
@@ -1221,70 +1558,101 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 children: [
                   CircularProgressIndicator(color: Color(0xFF7C3AED)),
                   SizedBox(height: 16),
-                  Text('Conectando con la Consola Global del Sistema...', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text(
+                    'Conectando con la Consola Global del Sistema...',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ],
               ),
             )
           : _errorMessage.isNotEmpty && _bodegas.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(LucideIcons.alertTriangle, size: 48, color: AppTheme.alertRed),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error cargando datos del sistema',
-                          style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _errorMessage,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontSize: 13),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton.icon(
-                          onPressed: _cargarTodo,
-                          icon: const Icon(LucideIcons.refreshCw, size: 16),
-                          label: const Text('Reintentar Conexión'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7C3AED),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      LucideIcons.alertTriangle,
+                      size: 48,
+                      color: AppTheme.alertRed,
                     ),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _cargarTodo,
-                  color: const Color(0xFF7C3AED),
-                  child: Column(
-                    children: [
-                      if (_errorMessage.isNotEmpty)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          color: AppTheme.alertRed.withValues(alpha: 0.15),
-                          child: Row(
-                            children: [
-                              const Icon(LucideIcons.alertCircle, size: 16, color: AppTheme.alertRed),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Aviso de telemetría: $_errorMessage',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppTheme.alertRed, fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error cargando datos del sistema',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _errorMessage,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: _cargarTodo,
+                      icon: const Icon(LucideIcons.refreshCw, size: 16),
+                      label: const Text('Reintentar Conexión'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C3AED),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
                         ),
-                      // KPI Overview Bar
-                      _buildExecutiveKpiBar(isDark),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _cargarTodo,
+              color: const Color(0xFF7C3AED),
+              child: Column(
+                children: [
+                  if (_errorMessage.isNotEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      color: AppTheme.alertRed.withValues(alpha: 0.15),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.alertCircle,
+                            size: 16,
+                            color: AppTheme.alertRed,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Aviso de telemetría: $_errorMessage',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppTheme.alertRed,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // KPI Overview Bar
+                  _buildExecutiveKpiBar(isDark),
 
                   // Barra de Navegación por Módulos
                   Container(
@@ -1296,8 +1664,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       indicatorColor: const Color(0xFF7C3AED),
                       indicatorWeight: 3,
                       labelColor: const Color(0xFF7C3AED),
-                      unselectedLabelColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
-                      labelStyle: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                      unselectedLabelColor: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF475569),
+                      labelStyle: GoogleFonts.outfit(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
                       tabs: [
                         Tab(
                           icon: const Icon(LucideIcons.store, size: 18),
@@ -1343,9 +1716,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
   Widget _buildExecutiveKpiBar(bool isDark) {
     final totalBodegas = _metricasSistema['totalBodegas'] ?? _bodegas.length;
-    final bodegasActivas = _metricasSistema['bodegasActivas'] ?? _bodegas.where((b) => b.estado).length;
-    final bodegasInactivas = _metricasSistema['bodegasInactivas'] ?? (totalBodegas - bodegasActivas);
-    final bodegasPro = _metricasSistema['bodegasPro'] ?? _bodegas.where((b) => b.plan.toUpperCase() == 'PRO').length;
+    final bodegasActivas =
+        _metricasSistema['bodegasActivas'] ??
+        _bodegas.where((b) => b.estado).length;
+    final bodegasInactivas =
+        _metricasSistema['bodegasInactivas'] ?? (totalBodegas - bodegasActivas);
+    final bodegasPro =
+        _metricasSistema['bodegasPro'] ??
+        _bodegas.where((b) => b.plan.toUpperCase() == 'PRO').length;
     final totalUsuarios = _metricasSistema['totalUsuarios'] ?? _usuarios.length;
     final totalVentas = _metricasSistema['totalVentas'] ?? 0;
     final totalRecaudado = _metricasSistema['totalRecaudado'] != null
@@ -1357,7 +1735,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
         border: Border(
-          bottom: BorderSide(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+          bottom: BorderSide(
+            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+          ),
         ),
       ),
       child: SingleChildScrollView(
@@ -1367,7 +1747,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             _buildKpiCard(
               title: 'TOTAL BODEGAS',
               value: '$totalBodegas',
-              subtitle: '$bodegasActivas Activas • $bodegasInactivas Suspendidas',
+              subtitle:
+                  '$bodegasActivas Activas • $bodegasInactivas Suspendidas',
               icon: LucideIcons.store,
               color: const Color(0xFF7C3AED),
               isDark: isDark,
@@ -1376,7 +1757,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             _buildKpiCard(
               title: 'PENETRACIÓN PLAN PRO',
               value: '$bodegasPro PRO',
-              subtitle: totalBodegas > 0 ? '${((bodegasPro / totalBodegas) * 100).toStringAsFixed(0)}% del total' : '0%',
+              subtitle: totalBodegas > 0
+                  ? '${((bodegasPro / totalBodegas) * 100).toStringAsFixed(0)}% del total'
+                  : '0%',
               icon: LucideIcons.sparkles,
               color: const Color(0xFF2563EB),
               isDark: isDark,
@@ -1394,7 +1777,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             _buildKpiCard(
               title: 'USUARIOS ACTIVOS',
               value: '$totalUsuarios',
-              subtitle: '${_usuarios.where((u) => u.rol == "ADMIN").length} Admins • ${_usuarios.where((u) => u.rol == "CAJERO").length} Cajeros',
+              subtitle:
+                  '${_usuarios.where((u) => u.rol == "ADMIN").length} Admins • ${_usuarios.where((u) => u.rol == "CAJERO").length} Cajeros',
               icon: LucideIcons.users,
               color: const Color(0xFFF59E0B),
               isDark: isDark,
@@ -1428,7 +1812,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
@@ -1459,7 +1845,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
                     letterSpacing: 0.5,
                   ),
                   maxLines: 1,
@@ -1506,14 +1894,19 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         final ruc = (b.rucDni ?? '').toLowerCase();
         final tel = (b.telefono ?? '').toLowerCase();
         final dir = (b.direccion ?? '').toLowerCase();
-        if (!nom.contains(query) && !ruc.contains(query) && !tel.contains(query) && !dir.contains(query)) {
+        if (!nom.contains(query) &&
+            !ruc.contains(query) &&
+            !tel.contains(query) &&
+            !dir.contains(query)) {
           return false;
         }
       }
 
       if (_filtroPlanBodega != 'TODOS') {
-        if (_filtroPlanBodega == 'PRO' && b.plan.toUpperCase() != 'PRO') return false;
-        if (_filtroPlanBodega == 'BASICO' && b.plan.toUpperCase() == 'PRO') return false;
+        if (_filtroPlanBodega == 'PRO' && b.plan.toUpperCase() != 'PRO')
+          return false;
+        if (_filtroPlanBodega == 'BASICO' && b.plan.toUpperCase() == 'PRO')
+          return false;
       }
 
       if (_filtroEstadoBodega != 'TODOS') {
@@ -1555,17 +1948,32 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                    ),
                   ),
                   child: TextField(
                     controller: _searchBodegaCtrl,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Buscar bodega por nombre, RUC, dirección...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
+                      ),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -1576,14 +1984,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
                 icon: const Icon(LucideIcons.store, size: 16),
                 label: Text(
                   '+ Nueva Bodega',
-                  style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 onPressed: () => _abrirModalProvisionarBodega(context, isDark),
               ),
@@ -1598,21 +2014,61 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildFilterChip('Planes:', 'TODOS', _filtroPlanBodega, (v) => setState(() => _filtroPlanBodega = v)),
+                _buildFilterChip(
+                  'Planes:',
+                  'TODOS',
+                  _filtroPlanBodega,
+                  (v) => setState(() => _filtroPlanBodega = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'PRO', _filtroPlanBodega, (v) => setState(() => _filtroPlanBodega = v)),
+                _buildFilterChip(
+                  '',
+                  'PRO',
+                  _filtroPlanBodega,
+                  (v) => setState(() => _filtroPlanBodega = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'BASICO', _filtroPlanBodega, (v) => setState(() => _filtroPlanBodega = v)),
+                _buildFilterChip(
+                  '',
+                  'BASICO',
+                  _filtroPlanBodega,
+                  (v) => setState(() => _filtroPlanBodega = v),
+                ),
                 const SizedBox(width: 16),
-                _buildFilterChip('Estado:', 'TODOS', _filtroEstadoBodega, (v) => setState(() => _filtroEstadoBodega = v)),
+                _buildFilterChip(
+                  'Estado:',
+                  'TODOS',
+                  _filtroEstadoBodega,
+                  (v) => setState(() => _filtroEstadoBodega = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'ACTIVAS', _filtroEstadoBodega, (v) => setState(() => _filtroEstadoBodega = v)),
+                _buildFilterChip(
+                  '',
+                  'ACTIVAS',
+                  _filtroEstadoBodega,
+                  (v) => setState(() => _filtroEstadoBodega = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'INACTIVAS', _filtroEstadoBodega, (v) => setState(() => _filtroEstadoBodega = v)),
+                _buildFilterChip(
+                  '',
+                  'INACTIVAS',
+                  _filtroEstadoBodega,
+                  (v) => setState(() => _filtroEstadoBodega = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'POR VENCER', _filtroEstadoBodega, (v) => setState(() => _filtroEstadoBodega = v)),
+                _buildFilterChip(
+                  '',
+                  'POR VENCER',
+                  _filtroEstadoBodega,
+                  (v) => setState(() => _filtroEstadoBodega = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'VENCIDAS', _filtroEstadoBodega, (v) => setState(() => _filtroEstadoBodega = v)),
+                _buildFilterChip(
+                  '',
+                  'VENCIDAS',
+                  _filtroEstadoBodega,
+                  (v) => setState(() => _filtroEstadoBodega = v),
+                ),
               ],
             ),
           ),
@@ -1626,9 +2082,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.store, size: 48, color: AppTheme.textMuted),
+                      Icon(
+                        LucideIcons.store,
+                        size: 48,
+                        color: AppTheme.textMuted,
+                      ),
                       const SizedBox(height: 12),
-                      Text('No se encontraron bodegas', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+                      Text(
+                        'No se encontraron bodegas',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 )
@@ -1672,7 +2137,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         color: cardBg,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: b.estado ? borderColor : AppTheme.alertRed.withValues(alpha: 0.4),
+          color: b.estado
+              ? borderColor
+              : AppTheme.alertRed.withValues(alpha: 0.4),
           width: b.estado ? 1 : 1.5,
         ),
         boxShadow: [
@@ -1701,7 +2168,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 ),
                 child: Icon(
                   LucideIcons.store,
-                  color: esPro ? const Color(0xFF7C3AED) : const Color(0xFF2563EB),
+                  color: esPro
+                      ? const Color(0xFF7C3AED)
+                      : const Color(0xFF2563EB),
                   size: 20,
                 ),
               ),
@@ -1727,7 +2196,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
                       ),
                     ),
                   ],
@@ -1750,7 +2221,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w800,
-                      color: b.estado ? AppTheme.accentGreen : AppTheme.alertRed,
+                      color: b.estado
+                          ? AppTheme.accentGreen
+                          : AppTheme.alertRed,
                     ),
                   ),
                 ],
@@ -1768,7 +2241,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                  color: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: borderColor),
                 ),
@@ -1777,7 +2252,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
                   ),
                 ),
               ),
@@ -1786,7 +2263,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: esPro ? const Color(0xFF7C3AED) : const Color(0xFF2563EB),
+                  color: esPro
+                      ? const Color(0xFF7C3AED)
+                      : const Color(0xFF2563EB),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -1803,16 +2282,23 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               // Badge de Vencimiento
               if (b.fechaVencimientoPlan != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: vencido
                         ? AppTheme.alertRed.withValues(alpha: 0.15)
-                        : (porVencer ? Colors.amber.withValues(alpha: 0.15) : AppTheme.accentGreen.withValues(alpha: 0.15)),
+                        : (porVencer
+                              ? Colors.amber.withValues(alpha: 0.15)
+                              : AppTheme.accentGreen.withValues(alpha: 0.15)),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
                       color: vencido
                           ? AppTheme.alertRed.withValues(alpha: 0.4)
-                          : (porVencer ? Colors.amber.withValues(alpha: 0.5) : AppTheme.accentGreen.withValues(alpha: 0.4)),
+                          : (porVencer
+                                ? Colors.amber.withValues(alpha: 0.5)
+                                : AppTheme.accentGreen.withValues(alpha: 0.4)),
                       width: 1,
                     ),
                   ),
@@ -1822,23 +2308,31 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       Icon(
                         vencido
                             ? LucideIcons.alertTriangle
-                            : (porVencer ? LucideIcons.clock : LucideIcons.checkCircle2),
+                            : (porVencer
+                                  ? LucideIcons.clock
+                                  : LucideIcons.checkCircle2),
                         size: 11,
                         color: vencido
                             ? AppTheme.alertRed
-                            : (porVencer ? Colors.amber.shade800 : AppTheme.accentGreen),
+                            : (porVencer
+                                  ? Colors.amber.shade800
+                                  : AppTheme.accentGreen),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         vencido
                             ? 'Vencido (${diasRestantes?.abs()}d)'
-                            : (porVencer ? 'Vence en ${diasRestantes}d' : 'Vigente (${diasRestantes}d)'),
+                            : (porVencer
+                                  ? 'Vence en ${diasRestantes}d'
+                                  : 'Vigente (${diasRestantes}d)'),
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           color: vencido
                               ? AppTheme.alertRed
-                              : (porVencer ? Colors.amber.shade800 : AppTheme.accentGreen),
+                              : (porVencer
+                                    ? Colors.amber.shade800
+                                    : AppTheme.accentGreen),
                         ),
                       ),
                     ],
@@ -1864,22 +2358,36 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(LucideIcons.fileText, size: 13, color: AppTheme.textMuted),
+                    const Icon(
+                      LucideIcons.fileText,
+                      size: 13,
+                      color: AppTheme.textMuted,
+                    ),
                     const SizedBox(width: 5),
                     Text(
                       'RUC/DNI: ${b.rucDni ?? "Sin registrar"}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(LucideIcons.phone, size: 13, color: AppTheme.textMuted),
+                    const Icon(
+                      LucideIcons.phone,
+                      size: 13,
+                      color: AppTheme.textMuted,
+                    ),
                     const SizedBox(width: 5),
                     Text(
                       'Tel: ${b.telefono ?? "Sin teléfono"}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -1887,11 +2395,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(LucideIcons.calendar, size: 13, color: AppTheme.textMuted),
+                      const Icon(
+                        LucideIcons.calendar,
+                        size: 13,
+                        color: AppTheme.textMuted,
+                      ),
                       const SizedBox(width: 5),
                       Text(
                         'Vence: ${_formatearFechaIso(b.fechaVencimientoPlan!)}',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -1914,18 +2429,29 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF10B981),
                       side: const BorderSide(color: Color(0xFF10B981)),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       visualDensity: VisualDensity.compact,
                     ),
                     icon: const Icon(LucideIcons.messageCircle, size: 14),
                     label: const Text('WhatsApp'),
-                    onPressed: () => _enviarRecordatorioWhatsApp(b, diasRestantes, vencido),
+                    onPressed: () =>
+                        _enviarRecordatorioWhatsApp(b, diasRestantes, vencido),
                   ),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     visualDensity: VisualDensity.compact,
                   ),
                   icon: const Icon(LucideIcons.sparkles, size: 14),
@@ -1936,8 +2462,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     elevation: 0,
                     visualDensity: VisualDensity.compact,
                   ),
@@ -1985,17 +2516,33 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                    ),
                   ),
                   child: TextField(
                     controller: _searchUsuarioCtrl,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                     decoration: InputDecoration(
-                      hintText: 'Buscar usuario por username o nombre de bodega...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      hintText:
+                          'Buscar usuario por username o nombre de bodega...',
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
+                      ),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -2012,13 +2559,33 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildFilterChip('Rol:', 'TODOS', _filtroRolUsuario, (v) => setState(() => _filtroRolUsuario = v)),
+                _buildFilterChip(
+                  'Rol:',
+                  'TODOS',
+                  _filtroRolUsuario,
+                  (v) => setState(() => _filtroRolUsuario = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'SUPERADMIN', _filtroRolUsuario, (v) => setState(() => _filtroRolUsuario = v)),
+                _buildFilterChip(
+                  '',
+                  'SUPERADMIN',
+                  _filtroRolUsuario,
+                  (v) => setState(() => _filtroRolUsuario = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'ADMIN', _filtroRolUsuario, (v) => setState(() => _filtroRolUsuario = v)),
+                _buildFilterChip(
+                  '',
+                  'ADMIN',
+                  _filtroRolUsuario,
+                  (v) => setState(() => _filtroRolUsuario = v),
+                ),
                 const SizedBox(width: 4),
-                _buildFilterChip('', 'CAJERO', _filtroRolUsuario, (v) => setState(() => _filtroRolUsuario = v)),
+                _buildFilterChip(
+                  '',
+                  'CAJERO',
+                  _filtroRolUsuario,
+                  (v) => setState(() => _filtroRolUsuario = v),
+                ),
               ],
             ),
           ),
@@ -2031,9 +2598,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.users, size: 48, color: AppTheme.textMuted),
+                      Icon(
+                        LucideIcons.users,
+                        size: 48,
+                        color: AppTheme.textMuted,
+                      ),
                       const SizedBox(height: 12),
-                      Text('No se encontraron usuarios', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+                      Text(
+                        'No se encontraron usuarios',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 )
@@ -2064,7 +2640,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Row(
         children: [
@@ -2075,7 +2653,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               shape: BoxShape.circle,
             ),
             child: Icon(
-              esSuper ? LucideIcons.shieldCheck : (esAdmin ? LucideIcons.userCheck : LucideIcons.user),
+              esSuper
+                  ? LucideIcons.shieldCheck
+                  : (esAdmin ? LucideIcons.userCheck : LucideIcons.user),
               color: badgeColor,
               size: 18,
             ),
@@ -2091,14 +2671,20 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     Flexible(
                       child: Text(
                         u.username,
-                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1.5,
+                      ),
                       decoration: BoxDecoration(
                         color: badgeColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
@@ -2119,7 +2705,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   esSuper
                       ? 'Superadministrador Global'
                       : 'Tienda: ${u.nombreBodega ?? "Sin bodega vinculada"}',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -2181,17 +2773,32 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                    ),
                   ),
                   child: TextField(
                     controller: _searchPagoCtrl,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Buscar por código de operación o nombre de bodega...',
-                      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
+                      ),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -2206,11 +2813,26 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              _buildFilterChip('Billetera:', 'TODOS', _filtroBilleteraPago, (v) => setState(() => _filtroBilleteraPago = v)),
+              _buildFilterChip(
+                'Billetera:',
+                'TODOS',
+                _filtroBilleteraPago,
+                (v) => setState(() => _filtroBilleteraPago = v),
+              ),
               const SizedBox(width: 4),
-              _buildFilterChip('', 'YAPE', _filtroBilleteraPago, (v) => setState(() => _filtroBilleteraPago = v)),
+              _buildFilterChip(
+                '',
+                'YAPE',
+                _filtroBilleteraPago,
+                (v) => setState(() => _filtroBilleteraPago = v),
+              ),
               const SizedBox(width: 4),
-              _buildFilterChip('', 'PLIN', _filtroBilleteraPago, (v) => setState(() => _filtroBilleteraPago = v)),
+              _buildFilterChip(
+                '',
+                'PLIN',
+                _filtroBilleteraPago,
+                (v) => setState(() => _filtroBilleteraPago = v),
+              ),
             ],
           ),
         ),
@@ -2222,9 +2844,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.receiptText, size: 48, color: AppTheme.textMuted),
+                      Icon(
+                        LucideIcons.receiptText,
+                        size: 48,
+                        color: AppTheme.textMuted,
+                      ),
                       const SizedBox(height: 12),
-                      Text('No se registraron transacciones', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+                      Text(
+                        'No se registraron transacciones',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 )
@@ -2235,19 +2866,28 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   itemBuilder: (context, idx) {
                     final p = filtrados[idx];
                     final isYape = p.billetera.toUpperCase().contains('YAPE');
-                    final walletColor = isYape ? const Color(0xFF732283) : const Color(0xFF0084FF);
+                    final walletColor = isYape
+                        ? const Color(0xFF732283)
+                        : const Color(0xFF0084FF);
 
                     return Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: isDark ? AppTheme.cardDark : Colors.white,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: walletColor.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
@@ -2282,19 +2922,39 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                     const SizedBox(width: 6),
                                     InkWell(
                                       onTap: () {
-                                        Clipboard.setData(ClipboardData(text: p.codigoOperacion));
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Código ${p.codigoOperacion} copiado')),
+                                        Clipboard.setData(
+                                          ClipboardData(
+                                            text: p.codigoOperacion,
+                                          ),
+                                        );
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Código ${p.codigoOperacion} copiado',
+                                            ),
+                                          ),
                                         );
                                       },
-                                      child: const Icon(LucideIcons.copy, size: 13, color: AppTheme.textMuted),
+                                      child: const Icon(
+                                        LucideIcons.copy,
+                                        size: 13,
+                                        color: AppTheme.textMuted,
+                                      ),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 1),
                                 Text(
                                   'Tienda: ${p.nombreBodega ?? "Bodega #${p.idBodega ?? ''}"} • Plan ${p.plan}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -2302,7 +2962,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                   const SizedBox(height: 1),
                                   Text(
                                     _formatearFechaIso(p.fechaPago!),
-                                    style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -2323,13 +2989,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               ),
                               const SizedBox(height: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: p.estado == 'CONFIRMADO'
-                                      ? AppTheme.accentGreen.withValues(alpha: 0.15)
+                                      ? AppTheme.accentGreen.withValues(
+                                          alpha: 0.15,
+                                        )
                                       : (p.estado == 'RECHAZADO'
-                                          ? AppTheme.alertRed.withValues(alpha: 0.15)
-                                          : Colors.amber.withValues(alpha: 0.15)),
+                                            ? AppTheme.alertRed.withValues(
+                                                alpha: 0.15,
+                                              )
+                                            : Colors.amber.withValues(
+                                                alpha: 0.15,
+                                              )),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -2339,7 +3014,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                     fontWeight: FontWeight.w800,
                                     color: p.estado == 'CONFIRMADO'
                                         ? AppTheme.accentGreen
-                                        : (p.estado == 'RECHAZADO' ? AppTheme.alertRed : Colors.amber.shade800),
+                                        : (p.estado == 'RECHAZADO'
+                                              ? AppTheme.alertRed
+                                              : Colors.amber.shade800),
                                   ),
                                 ),
                               ),
@@ -2348,14 +3025,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           const SizedBox(width: 6),
                           PopupMenuButton<String>(
                             tooltip: 'Gestionar Estado del Pago',
-                            icon: const Icon(LucideIcons.ellipsisVertical, size: 16, color: AppTheme.textMuted),
+                            icon: const Icon(
+                              LucideIcons.ellipsisVertical,
+                              size: 16,
+                              color: AppTheme.textMuted,
+                            ),
                             onSelected: (val) => _cambiarEstadoPago(p, val),
                             itemBuilder: (context) => const [
                               PopupMenuItem(
                                 value: 'CONFIRMADO',
                                 child: Row(
                                   children: [
-                                    Icon(LucideIcons.checkCheck, size: 16, color: AppTheme.accentGreen),
+                                    Icon(
+                                      LucideIcons.checkCheck,
+                                      size: 16,
+                                      color: AppTheme.accentGreen,
+                                    ),
                                     SizedBox(width: 8),
                                     Text('Aprobar / Confirmar'),
                                   ],
@@ -2365,7 +3050,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                 value: 'RECHAZADO',
                                 child: Row(
                                   children: [
-                                    Icon(LucideIcons.circleX, size: 16, color: AppTheme.alertRed),
+                                    Icon(
+                                      LucideIcons.circleX,
+                                      size: 16,
+                                      color: AppTheme.alertRed,
+                                    ),
                                     SizedBox(width: 8),
                                     Text('Rechazar Pago'),
                                   ],
@@ -2375,7 +3064,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                 value: 'PENDIENTE',
                                 child: Row(
                                   children: [
-                                    Icon(LucideIcons.clock, size: 16, color: Colors.amber),
+                                    Icon(
+                                      LucideIcons.clock,
+                                      size: 16,
+                                      color: Colors.amber,
+                                    ),
                                     SizedBox(width: 8),
                                     Text('Marcar Pendiente'),
                                   ],
@@ -2414,7 +3107,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         children: [
           Text(
             'ESTADO DEL SERVIDOR & CLOUD RUNTIME',
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), letterSpacing: 0.5),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
+              letterSpacing: 0.5,
+            ),
           ),
           const SizedBox(height: 10),
 
@@ -2452,18 +3152,29 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             decoration: BoxDecoration(
               color: isDark ? AppTheme.cardDark : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.cpu, size: 20, color: Color(0xFF7C3AED)),
+                    const Icon(
+                      LucideIcons.cpu,
+                      size: 20,
+                      color: Color(0xFF7C3AED),
+                    ),
                     const SizedBox(width: 10),
                     Text(
                       'Telemetría JVM & Recursos',
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ],
                 ),
@@ -2471,12 +3182,24 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Memoria Usada / Total:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                    Text(
+                      'Memoria Usada / Total:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         '$usedMem MB / $totalMem MB (Límite: $maxMem MB)',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2485,8 +3208,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 ),
                 const SizedBox(height: 6),
                 LinearProgressIndicator(
-                  value: totalMem > 0 ? (usedMem / totalMem).clamp(0.0, 1.0) : 0.0,
-                  backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+                  value: totalMem > 0
+                      ? (usedMem / totalMem).clamp(0.0, 1.0)
+                      : 0.0,
+                  backgroundColor: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFE2E8F0),
                   color: const Color(0xFF7C3AED),
                   minHeight: 8,
                   borderRadius: BorderRadius.circular(4),
@@ -2497,12 +3224,28 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Tiempo de Actividad (Uptime):', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                    Text(
+                      'Tiempo de Actividad (Uptime):',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        _formatearUptime(uptimeSecs is int ? uptimeSecs : int.tryParse(uptimeSecs.toString()) ?? 0),
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                        _formatearUptime(
+                          uptimeSecs is int
+                              ? uptimeSecs
+                              : int.tryParse(uptimeSecs.toString()) ?? 0,
+                        ),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2513,12 +3256,24 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Hilos de Ejecución Activos:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                    Text(
+                      'Hilos de Ejecución Activos:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         '$activeThreads threads',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2529,12 +3284,25 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Aislamiento Multi-Tenant:', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
+                    Text(
+                      'Aislamiento Multi-Tenant:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         'multitenant_v4 (RLS Active)',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.accentGreen),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.accentGreen,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2560,18 +3328,29 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             decoration: BoxDecoration(
               color: isDark ? AppTheme.cardDark : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.globe, size: 20, color: Color(0xFF2563EB)),
+                    const Icon(
+                      LucideIcons.globe,
+                      size: 20,
+                      color: Color(0xFF2563EB),
+                    ),
                     const SizedBox(width: 10),
                     Text(
                       'Ruta del Servidor Backend',
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ],
                 ),
@@ -2589,7 +3368,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF7C3AED),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   icon: const Icon(LucideIcons.refreshCw, size: 16),
                   label: const Text('Probar Ping y Latencia HTTP'),
@@ -2598,7 +3379,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Ping completado: Latencia ${_latencyMs}ms con el backend.'),
+                          content: Text(
+                            'Ping completado: Latencia ${_latencyMs}ms con el backend.',
+                          ),
                           backgroundColor: AppTheme.accentGreen,
                         ),
                       );
@@ -2630,7 +3413,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2641,12 +3426,19 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.database, size: 20, color: Color(0xFF0284C7)),
+                    const Icon(
+                      LucideIcons.database,
+                      size: 20,
+                      color: Color(0xFF0284C7),
+                    ),
                     const SizedBox(width: 10),
                     Flexible(
                       child: Text(
                         'Volumen Global de Datos & Tablas',
-                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2657,16 +3449,30 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   visualDensity: VisualDensity.compact,
                 ),
                 icon: const Icon(LucideIcons.copy, size: 14),
                 label: const Text('Copiar JSON'),
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: const JsonEncoder.withIndent('  ').convert(_metricasSistema)));
+                  Clipboard.setData(
+                    ClipboardData(
+                      text: const JsonEncoder.withIndent('  ')
+                          .convert(_metricasSistema),
+                    ),
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Métricas del sistema copiadas en formato JSON')),
+                    const SnackBar(
+                      content: Text(
+                        'Métricas del sistema copiadas en formato JSON',
+                      ),
+                    ),
                   );
                 },
               ),
@@ -2679,11 +3485,20 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             children: items.entries.map((e) {
               return Container(
                 width: 135,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2693,7 +3508,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -2716,7 +3533,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   }
 
   Widget _buildCardComunicadoGlobal(bool isDark) {
-    final tieneAnuncio = _anuncioGlobal.isNotEmpty && _anuncioGlobal['activo'] == true;
+    final tieneAnuncio =
+        _anuncioGlobal.isNotEmpty && _anuncioGlobal['activo'] == true;
     final tipo = _anuncioGlobal['tipo']?.toString() ?? 'INFO';
     final mensaje = _anuncioGlobal['mensaje']?.toString() ?? '';
 
@@ -2729,7 +3547,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2740,12 +3560,19 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.megaphone, size: 18, color: Color(0xFF7C3AED)),
+                    const Icon(
+                      LucideIcons.megaphone,
+                      size: 18,
+                      color: Color(0xFF7C3AED),
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         'Comunicado Global (Broadcast)',
-                        style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -2758,8 +3585,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7C3AED),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   elevation: 0,
                   visualDensity: VisualDensity.compact,
                 ),
@@ -2781,26 +3613,40 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: badgeColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       tipo,
-                      style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white),
+                      style: GoogleFonts.outfit(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       mensaje,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   IconButton(
                     tooltip: 'Retirar comunicado',
-                    icon: const Icon(LucideIcons.trash2, color: AppTheme.alertRed, size: 18),
+                    icon: const Icon(
+                      LucideIcons.trash2,
+                      color: AppTheme.alertRed,
+                      size: 18,
+                    ),
                     onPressed: _eliminarAnuncio,
                   ),
                 ],
@@ -2809,7 +3655,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           ] else ...[
             Text(
               'No hay avisos globales activos actualmente. Las tiendas y cajas están operando con normalidad sin alertas perimetrales.',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+              ),
             ),
           ],
         ],
@@ -2851,10 +3703,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Container(
                 width: 7,
                 height: 7,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
               const SizedBox(width: 5),
               Flexible(
@@ -2874,13 +3723,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           const SizedBox(height: 8),
           Text(
             title,
-            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             detail,
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -2893,7 +3751,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   // HELPERS VISUALES
   // ===========================================================================
 
-  Widget _buildFilterChip(String prefix, String label, String currentVal, Function(String) onSelect) {
+  Widget _buildFilterChip(
+    String prefix,
+    String label,
+    String currentVal,
+    Function(String) onSelect,
+  ) {
     final isSelected = currentVal == label;
     return ChoiceChip(
       label: Text(prefix.isNotEmpty ? '$prefix $label' : label),

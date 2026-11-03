@@ -1,12 +1,15 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/api_client.dart';
 import '../../core/csv_exporter.dart';
 import 'dashboard_bi_model.dart';
 
 class DashboardBiService {
   static final DashboardBiService instance = DashboardBiService._();
-  DashboardBiService._({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  DashboardBiService._({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient();
   factory DashboardBiService({ApiClient? apiClient}) {
     if (apiClient != null) {
       return DashboardBiService._(apiClient: apiClient);
@@ -21,9 +24,13 @@ class DashboardBiService {
   Future<DashboardBiData> obtenerDashboardBi({int dias = 30}) async {
     final cacheKey = 'cajaya_cache_dashboard_bi_$dias';
     try {
-      final response = await _apiClient.get('/analytics/dashboard-bi?dias=$dias');
+      final response = await _apiClient.get(
+        '/analytics/dashboard-bi?dias=$dias',
+      );
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final Map<String, dynamic> data = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         // Guardar en cache local para resiliencia offline
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(cacheKey, jsonEncode(data));
@@ -63,7 +70,8 @@ class DashboardBiService {
         24,
         (h) => HorarioPico(
           hora: h,
-          etiquetaHora: '${h.toString().padLeft(2, '0')}:00 - ${((h + 1) % 24).toString().padLeft(2, '0')}:00',
+          etiquetaHora:
+              '${h.toString().padLeft(2, '0')}:00 - ${((h + 1) % 24).toString().padLeft(2, '0')}:00',
           cantidadTickets: 0,
           totalVentas: 0.0,
           esPico: false,
@@ -78,7 +86,8 @@ class DashboardBiService {
   /// Exporta el informe analítico a formato CSV descargable o copiable al portapapeles
   Future<bool> exportarInformeCsv(DashboardBiData data) async {
     final csvString = CsvExporter.generarCsvDashboardBi(data);
-    final fileName = 'reporte_bi_cajaya_${data.diasAnalizados}d_${DateTime.now().millisecondsSinceEpoch}.csv';
+    final fileName =
+        'reporte_bi_cajaya_${data.diasAnalizados}d_${DateTime.now().millisecondsSinceEpoch}.csv';
     return await CsvExporter.descargarOCompartirCsv(
       nombreArchivo: fileName,
       contenidoCsv: csvString,

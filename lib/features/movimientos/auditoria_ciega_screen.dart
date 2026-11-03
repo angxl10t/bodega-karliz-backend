@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
@@ -30,7 +31,8 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
   bool _modoConciliacionRevelado = false;
   bool _isAplicandoAjuste = false;
   String _filtroTexto = '';
-  String _filtroDiscrepancia = 'TODOS'; // 'TODOS', 'FALTANTES', 'SOBRANTES', 'EXACTOS'
+  String _filtroDiscrepancia =
+      'TODOS'; // 'TODOS', 'FALTANTES', 'SOBRANTES', 'EXACTOS'
 
   bool _isPro = true;
   bool _verificandoPlan = true;
@@ -45,7 +47,8 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
     final auth = AuthService();
     final plan = await auth.getPlanBodega();
     final rol = await auth.getUserRole();
-    final pro = plan.toUpperCase() == 'PRO' || rol.toUpperCase() == 'SUPERADMIN';
+    final pro =
+        plan.toUpperCase() == 'PRO' || rol.toUpperCase() == 'SUPERADMIN';
     if (!pro) {
       if (mounted) {
         setState(() {
@@ -133,7 +136,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('+1 en "${match.nombreProducto}" (Total: ${match.conteoFisico.toStringAsFixed(0)})'),
+              content: Text(
+                '+1 en "${match.nombreProducto}" (Total: ${match.conteoFisico.toStringAsFixed(0)})',
+              ),
               duration: const Duration(milliseconds: 1400),
               backgroundColor: AppTheme.brandPrimary,
             ),
@@ -144,7 +149,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Código "$codigo" no coincide con ningún producto en catálogo.'),
+              content: Text(
+                'Código "$codigo" no coincide con ningún producto en catálogo.',
+              ),
               backgroundColor: const Color(0xFFEF4444),
             ),
           );
@@ -159,7 +166,11 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
     final totalContados = _sesion!.totalItemsAuditados;
     if (totalContados == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aún no has registrado ningún conteo de unidades físicas.')),
+        const SnackBar(
+          content: Text(
+            'Aún no has registrado ningún conteo de unidades físicas.',
+          ),
+        ),
       );
       return;
     }
@@ -168,18 +179,26 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('¿Cerrar Toma de Inventario?', style: GoogleFonts.outfit(fontWeight: FontWeight.w800)),
+        title: Text(
+          '¿Cerrar Toma de Inventario?',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+        ),
         content: Text(
           'Se compararán las $totalContados unidades contadas físicamente contra el stock teórico del sistema y se revelará el balance de sobrantes y faltantes.',
           style: GoogleFonts.plusJakartaSans(fontSize: 13),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Continuar Contando')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Continuar Contando'),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandPrimary,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             onPressed: () {
               Navigator.pop(ctx);
@@ -200,10 +219,16 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
   Future<void> _aplicarRegularizacionAlSistema() async {
     if (_sesion == null) return;
 
-    final discrepantes = _sesion!.items.where((it) => !it.esCuadreExacto && it.conteoFisico > 0).toList();
+    final discrepantes = _sesion!.items
+        .where((it) => !it.esCuadreExacto && it.conteoFisico > 0)
+        .toList();
     if (discrepantes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay discrepancias que regularizar. El inventario está exactamente cuadrado.')),
+        const SnackBar(
+          content: Text(
+            'No hay discrepancias que regularizar. El inventario está exactamente cuadrado.',
+          ),
+        ),
       );
       return;
     }
@@ -212,18 +237,26 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('¿Regularizar Stock del Sistema?', style: GoogleFonts.outfit(fontWeight: FontWeight.w800)),
+        title: Text(
+          '¿Regularizar Stock del Sistema?',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+        ),
         content: Text(
           'Se ajustará el stock del sistema en ${discrepantes.length} productos para que coincida exactamente con el conteo físico, registrando los movimientos en el Kardex.',
           style: GoogleFonts.plusJakartaSans(fontSize: 13),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accentGreen,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Aplicar Ajustes'),
@@ -244,7 +277,8 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
         idProducto: it.idProducto,
         cantidad: diff.abs(),
         tipoAjuste: tipo,
-        motivo: '[AUDITORÍA CIEGA] Ajuste a conteo físico: ${it.stockSistema.toStringAsFixed(0)} -> ${it.conteoFisico.toStringAsFixed(0)}',
+        motivo:
+            '[AUDITORÍA CIEGA] Ajuste a conteo físico: ${it.stockSistema.toStringAsFixed(0)} -> ${it.conteoFisico.toStringAsFixed(0)}',
       );
       if (ok) exitosos++;
     }
@@ -256,7 +290,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('¡Stock del sistema regularizado con éxito ($exitosos/${discrepantes.length} productos actualizados)!'),
+          content: Text(
+            '¡Stock del sistema regularizado con éxito ($exitosos/${discrepantes.length} productos actualizados)!',
+          ),
           backgroundColor: AppTheme.accentGreen,
           duration: const Duration(seconds: 4),
         ),
@@ -267,16 +303,22 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
   Future<void> _exportarCsv() async {
     if (_sesion == null) return;
     final buffer = StringBuffer();
-    buffer.writeln('Producto,Codigo,Categoria,StockSistema,ConteoFisico,Diferencia,Estado,PrecioVenta,DiscrepanciaValorizadaSoles');
+    buffer.writeln(
+      'Producto,Codigo,Categoria,StockSistema,ConteoFisico,Diferencia,Estado,PrecioVenta,DiscrepanciaValorizadaSoles',
+    );
 
     for (final it in _sesion!.items.where((it) => it.conteoFisico > 0)) {
-      final estado = it.esCuadreExacto ? 'CUADRE_EXACTO' : (it.esFaltante ? 'FALTANTE' : 'SOBRANTE');
+      final estado = it.esCuadreExacto
+          ? 'CUADRE_EXACTO'
+          : (it.esFaltante ? 'FALTANTE' : 'SOBRANTE');
       buffer.writeln(
-          '"${it.nombreProducto.replaceAll('"', '""')}",${it.codigo},"${it.categoria ?? ''}",${it.stockSistema},${it.conteoFisico},${it.diferencia},$estado,${it.precioVenta.toStringAsFixed(2)},${it.valorDiscrepancia.toStringAsFixed(2)}');
+        '"${it.nombreProducto.replaceAll('"', '""')}",${it.codigo},"${it.categoria ?? ''}",${it.stockSistema},${it.conteoFisico},${it.diferencia},$estado,${it.precioVenta.toStringAsFixed(2)},${it.valorDiscrepancia.toStringAsFixed(2)}',
+      );
     }
 
     await CsvExporter.descargarOCompartirCsv(
-      nombreArchivo: 'auditoria_ciega_${DateTime.now().millisecondsSinceEpoch}.csv',
+      nombreArchivo:
+          'auditoria_ciega_${DateTime.now().millisecondsSinceEpoch}.csv',
       contenidoCsv: buffer.toString(),
     );
     if (!mounted) return;
@@ -311,7 +353,10 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
               : null,
           title: Text(
             'Auditoría Rápida por Pasillo',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w800,
+              fontSize: 17,
+            ),
           ),
         ),
         body: Center(
@@ -344,11 +389,18 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                       color: const Color(0xFFD97706).withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(LucideIcons.lock, size: 40, color: Color(0xFFD97706)),
+                    child: const Icon(
+                      LucideIcons.lock,
+                      size: 40,
+                      color: Color(0xFFD97706),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFD97706).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
@@ -380,7 +432,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       height: 1.5,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -391,12 +445,17 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                         backgroundColor: const Color(0xFF0D9488),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       icon: const Icon(LucideIcons.sparkles, size: 18),
                       label: Text(
                         'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
-                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.outfit(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       onPressed: () {
                         PlanUpgradeModal.show(
@@ -418,10 +477,15 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                       icon: const Icon(LucideIcons.arrowLeft, size: 16),
                       label: Text(
                         'Volver al Inventario',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
                       style: TextButton.styleFrom(
-                        foregroundColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                        foregroundColor: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
                       ),
                     ),
                 ],
@@ -448,15 +512,23 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
           titleSpacing: canPop ? 0 : 16,
           title: Text(
             'Toma de Inventario Físico',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w800,
+              fontSize: 17,
+            ),
           ),
         ),
-        body: const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary)),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+        ),
       );
     }
 
     final filtrados = _sesion!.items.where((it) {
-      final matchesText = it.nombreProducto.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
+      final matchesText =
+          it.nombreProducto.toLowerCase().contains(
+            _filtroTexto.toLowerCase(),
+          ) ||
           it.codigo.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
           (it.codigoBarras ?? '').contains(_filtroTexto);
 
@@ -489,12 +561,25 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _modoConciliacionRevelado ? 'Conciliación de Inventario' : 'Toma de Inventario Físico',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+              _modoConciliacionRevelado
+                  ? 'Conciliación de Inventario'
+                  : 'Toma de Inventario Físico',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w800,
+                fontSize: 17,
+              ),
             ),
             Text(
-              _modoConciliacionRevelado ? 'Reporte de Faltantes y Sobrantes' : 'Modo Ciego • Stock del sistema oculto',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+              _modoConciliacionRevelado
+                  ? 'Reporte de Faltantes y Sobrantes'
+                  : 'Modo Ciego • Stock del sistema oculto',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+              ),
             ),
           ],
         ),
@@ -508,13 +593,20 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
         actions: [
           IconButton(
             tooltip: 'Escanear Código de Barras (+1)',
-            icon: const Icon(LucideIcons.scanBarcode, color: AppTheme.brandPrimary),
+            icon: const Icon(
+              LucideIcons.scanBarcode,
+              color: AppTheme.brandPrimary,
+            ),
             onPressed: _escanearCodigo,
           ),
           if (_modoConciliacionRevelado) ...[
             IconButton(
               tooltip: 'Exportar a CSV',
-              icon: const Icon(LucideIcons.download, color: AppTheme.accentGreen, size: 20),
+              icon: const Icon(
+                LucideIcons.download,
+                color: AppTheme.accentGreen,
+                size: 20,
+              ),
               onPressed: _exportarCsv,
             ),
           ],
@@ -534,11 +626,17 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppTheme.brandPrimary,
-                          side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          side: const BorderSide(
+                            color: AppTheme.brandPrimary,
+                            width: 1.2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        onPressed: () => setState(() => _modoConciliacionRevelado = false),
+                        onPressed: () =>
+                            setState(() => _modoConciliacionRevelado = false),
                         child: const Text('Volver al Conteo'),
                       ),
                     ),
@@ -548,17 +646,33 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.accentGreen,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         icon: _isAplicandoAjuste
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
                             : const Icon(LucideIcons.checkCheck, size: 18),
                         label: Text(
-                          _isAplicandoAjuste ? 'Ajustando...' : 'Regularizar Stock',
-                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                          _isAplicandoAjuste
+                              ? 'Ajustando...'
+                              : 'Regularizar Stock',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                          ),
                         ),
-                        onPressed: _isAplicandoAjuste ? null : _aplicarRegularizacionAlSistema,
+                        onPressed: _isAplicandoAjuste
+                            ? null
+                            : _aplicarRegularizacionAlSistema,
                       ),
                     ),
                   ],
@@ -570,14 +684,19 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandPrimary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     icon: const Icon(LucideIcons.eye, size: 18),
                     label: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         'FINALIZAR Y VER DISCREPANCIAS (${_sesion!.totalItemsAuditados} CONTADOS)',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     onPressed: _finalizarConteoYRevelar,
@@ -591,15 +710,24 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
           if (!_modoConciliacionRevelado)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.15 : 0.08),
+              color: const Color(0xFF3B82F6)
+                  .withValues(alpha: isDark ? 0.15 : 0.08),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.eyeOff, color: Color(0xFF3B82F6), size: 18),
+                  const Icon(
+                    LucideIcons.eyeOff,
+                    color: Color(0xFF3B82F6),
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Modo Ciego Activo: Cuenta las unidades reales en góndola. El stock teórico se revelará al finalizar.',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: const Color(0xFF3B82F6)),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF3B82F6),
+                      ),
                     ),
                   ),
                 ],
@@ -625,7 +753,10 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                           isSelected: _filtroDiscrepancia == 'EXACTOS',
                           onTap: () {
                             setState(() {
-                              _filtroDiscrepancia = _filtroDiscrepancia == 'EXACTOS' ? 'TODOS' : 'EXACTOS';
+                              _filtroDiscrepancia =
+                                  _filtroDiscrepancia == 'EXACTOS'
+                                  ? 'TODOS'
+                                  : 'EXACTOS';
                             });
                           },
                         ),
@@ -642,7 +773,10 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                           isSelected: _filtroDiscrepancia == 'FALTANTES',
                           onTap: () {
                             setState(() {
-                              _filtroDiscrepancia = _filtroDiscrepancia == 'FALTANTES' ? 'TODOS' : 'FALTANTES';
+                              _filtroDiscrepancia =
+                                  _filtroDiscrepancia == 'FALTANTES'
+                                  ? 'TODOS'
+                                  : 'FALTANTES';
                             });
                           },
                         ),
@@ -659,7 +793,10 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                           isSelected: _filtroDiscrepancia == 'SOBRANTES',
                           onTap: () {
                             setState(() {
-                              _filtroDiscrepancia = _filtroDiscrepancia == 'SOBRANTES' ? 'TODOS' : 'SOBRANTES';
+                              _filtroDiscrepancia =
+                                  _filtroDiscrepancia == 'SOBRANTES'
+                                  ? 'TODOS'
+                                  : 'SOBRANTES';
                             });
                           },
                         ),
@@ -681,17 +818,31 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                   child: Container(
                     height: 42,
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                      color: isDark
+                          ? AppTheme.cardDarkSunken
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: borderColor),
                     ),
                     child: TextField(
                       controller: _searchCtrl,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13, color: isDark ? Colors.white : AppTheme.textDark),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Buscar en catálogo para contar...',
-                        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                        prefixIcon: const Icon(LucideIcons.search, size: 16, color: AppTheme.brandPrimary),
+                        hintStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                        prefixIcon: const Icon(
+                          LucideIcons.search,
+                          size: 16,
+                          color: AppTheme.brandPrimary,
+                        ),
                         suffixIcon: _filtroTexto.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(LucideIcons.x, size: 14),
@@ -702,7 +853,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                               )
                             : null,
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                        ),
                       ),
                       onChanged: (val) => setState(() => _filtroTexto = val),
                     ),
@@ -719,7 +872,10 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
             child: filtrados.isEmpty
                 ? Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 28,
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -728,19 +884,29 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                             height: 68,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: (_modoConciliacionRevelado ? const Color(0xFF0284C7) : AppTheme.brandPrimary)
-                                  .withValues(alpha: isDark ? 0.2 : 0.1),
+                              color:
+                                  (_modoConciliacionRevelado
+                                          ? const Color(0xFF0284C7)
+                                          : AppTheme.brandPrimary)
+                                      .withValues(alpha: isDark ? 0.2 : 0.1),
                               border: Border.all(
-                                color: (_modoConciliacionRevelado ? const Color(0xFF0284C7) : AppTheme.brandPrimary)
-                                    .withValues(alpha: isDark ? 0.4 : 0.25),
+                                color:
+                                    (_modoConciliacionRevelado
+                                            ? const Color(0xFF0284C7)
+                                            : AppTheme.brandPrimary)
+                                        .withValues(alpha: isDark ? 0.4 : 0.25),
                                 width: 2,
                               ),
                             ),
                             child: Center(
                               child: Icon(
-                                _modoConciliacionRevelado ? LucideIcons.fileCheck2 : LucideIcons.scanLine,
+                                _modoConciliacionRevelado
+                                    ? LucideIcons.fileCheck2
+                                    : LucideIcons.scanLine,
                                 size: 28,
-                                color: _modoConciliacionRevelado ? const Color(0xFF0284C7) : AppTheme.brandPrimary,
+                                color: _modoConciliacionRevelado
+                                    ? const Color(0xFF0284C7)
+                                    : AppTheme.brandPrimary,
                               ),
                             ),
                           ),
@@ -748,13 +914,13 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                           Text(
                             _modoConciliacionRevelado
                                 ? (_filtroDiscrepancia == 'FALTANTES'
-                                    ? '¡Excelente! Sin productos faltantes'
-                                    : (_filtroDiscrepancia == 'SOBRANTES'
-                                        ? 'Sin productos sobrantes'
-                                        : 'Sin discrepancias en este filtro'))
+                                      ? '¡Excelente! Sin productos faltantes'
+                                      : (_filtroDiscrepancia == 'SOBRANTES'
+                                            ? 'Sin productos sobrantes'
+                                            : 'Sin discrepancias en este filtro'))
                                 : (_filtroTexto.isNotEmpty
-                                    ? 'Sin coincidencias para "$_filtroTexto"'
-                                    : 'Inicia el Conteo Físico en Góndola'),
+                                      ? 'Sin coincidencias para "$_filtroTexto"'
+                                      : 'Inicia el Conteo Físico en Góndola'),
                             textAlign: TextAlign.center,
                             style: GoogleFonts.outfit(
                               fontSize: 17,
@@ -771,21 +937,29 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               height: 1.45,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
                             ),
                           ),
                           const SizedBox(height: 18),
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                              color: isDark
+                                  ? const Color(0xFF101622)
+                                  : const Color(0xFFF8FAFC),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(color: borderColor),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(LucideIcons.shieldCheck, size: 16, color: AppTheme.brandPrimary),
+                                const Icon(
+                                  LucideIcons.shieldCheck,
+                                  size: 16,
+                                  color: AppTheme.brandPrimary,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -793,25 +967,36 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
                                       height: 1.4,
-                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF475569),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          if (_filtroDiscrepancia != 'TODOS' || _filtroTexto.isNotEmpty) ...[
+                          if (_filtroDiscrepancia != 'TODOS' ||
+                              _filtroTexto.isNotEmpty) ...[
                             const SizedBox(height: 16),
                             OutlinedButton.icon(
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 side: BorderSide(color: borderColor),
                               ),
                               icon: const Icon(LucideIcons.rotateCcw, size: 14),
                               label: Text(
                                 'Ver Todos los Ítems',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                               onPressed: () {
                                 setState(() {
@@ -826,14 +1011,19 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                     ),
                   )
                 : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: filtrados.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final it = filtrados[index];
-                return _buildAuditoriaItemCard(it, isDark, cardBg, borderColor);
-              },
-            ),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filtrados.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final it = filtrados[index];
+                      return _buildAuditoriaItemCard(
+                        it,
+                        isDark,
+                        cardBg,
+                        borderColor,
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -859,7 +1049,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: isSelected ? 0.25 : (isDark ? 0.15 : 0.08)),
+            color: color.withValues(
+              alpha: isSelected ? 0.25 : (isDark ? 0.15 : 0.08),
+            ),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: color.withValues(alpha: isSelected ? 0.9 : 0.3),
@@ -875,13 +1067,31 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                   const Spacer(),
                   Text(
                     count,
-                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900, color: color),
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: color,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 4),
-              Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppTheme.textDark)),
-              Text(sub, style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: color)),
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              Text(
+                sub,
+                style: GoogleFonts.outfit(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
             ],
           ),
         ),
@@ -889,7 +1099,12 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
     );
   }
 
-  Widget _buildAuditoriaItemCard(AuditoriaItem it, bool isDark, Color cardBg, Color borderColor) {
+  Widget _buildAuditoriaItemCard(
+    AuditoriaItem it,
+    bool isDark,
+    Color cardBg,
+    Color borderColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -898,8 +1113,10 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
         border: Border.all(
           color: _modoConciliacionRevelado
               ? (it.esCuadreExacto
-                  ? AppTheme.accentGreen.withValues(alpha: 0.4)
-                  : (it.esFaltante ? const Color(0xFFEF4444).withValues(alpha: 0.4) : const Color(0xFF3B82F6).withValues(alpha: 0.4)))
+                    ? AppTheme.accentGreen.withValues(alpha: 0.4)
+                    : (it.esFaltante
+                          ? const Color(0xFFEF4444).withValues(alpha: 0.4)
+                          : const Color(0xFF3B82F6).withValues(alpha: 0.4)))
               : borderColor,
         ),
       ),
@@ -921,14 +1138,24 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                   children: [
                     Text(
                       it.nombreProducto,
-                      style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800, color: isDark ? Colors.white : AppTheme.textDark),
+                      style: GoogleFonts.outfit(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'SKU: ${it.codigo}  •  S/ ${it.precioVenta.toStringAsFixed(2)}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
                     ),
                   ],
                 ),
@@ -942,7 +1169,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                color: isDark
+                    ? AppTheme.cardDarkSunken
+                    : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -950,16 +1179,46 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Sistema:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
-                      Text('${it.stockSistema.toStringAsFixed(0)} un.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text(
+                        'Sistema:',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                      Text(
+                        '${it.stockSistema.toStringAsFixed(0)} un.',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Físico Contado:', style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155))),
-                      Text('${it.conteoFisico.toStringAsFixed(0)} un.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      Text(
+                        'Físico Contado:',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                      Text(
+                        '${it.conteoFisico.toStringAsFixed(0)} un.',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(width: 8),
@@ -970,13 +1229,19 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            it.esCuadreExacto ? 'CUADRADO' : (it.esFaltante ? 'FALTANTE (-${it.diferencia.abs().toStringAsFixed(0)})' : 'SOBRANTE (+${it.diferencia.toStringAsFixed(0)})'),
+                            it.esCuadreExacto
+                                ? 'CUADRADO'
+                                : (it.esFaltante
+                                      ? 'FALTANTE (-${it.diferencia.abs().toStringAsFixed(0)})'
+                                      : 'SOBRANTE (+${it.diferencia.toStringAsFixed(0)})'),
                             style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                               color: it.esCuadreExacto
                                   ? AppTheme.accentGreen
-                                  : (it.esFaltante ? const Color(0xFFEF4444) : const Color(0xFF3B82F6)),
+                                  : (it.esFaltante
+                                        ? const Color(0xFFEF4444)
+                                        : const Color(0xFF3B82F6)),
                             ),
                           ),
                         ),
@@ -989,7 +1254,9 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                               fontWeight: FontWeight.w900,
                               color: it.esCuadreExacto
                                   ? AppTheme.accentGreen
-                                  : (it.esFaltante ? const Color(0xFFEF4444) : const Color(0xFF3B82F6)),
+                                  : (it.esFaltante
+                                        ? const Color(0xFFEF4444)
+                                        : const Color(0xFF3B82F6)),
                             ),
                           ),
                         ),
@@ -1005,21 +1272,34 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
               children: [
                 Text(
                   'Conteo Físico:',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppTheme.textDark),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
                 ),
                 const Spacer(),
                 IconButton.outlined(
                   visualDensity: VisualDensity.compact,
                   icon: const Icon(LucideIcons.minus, size: 14),
-                  onPressed: it.conteoFisico > 0 ? () => _incrementarConteo(it, -1.0) : null,
+                  onPressed: it.conteoFisico > 0
+                      ? () => _incrementarConteo(it, -1.0)
+                      : null,
                 ),
                 Container(
                   constraints: const BoxConstraints(minWidth: 42),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Center(
                     child: Text(
                       it.conteoFisico.toStringAsFixed(0),
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.brandPrimary),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.brandPrimary,
+                      ),
                     ),
                   ),
                 ),
@@ -1031,13 +1311,19 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                 const SizedBox(width: 6),
                 ActionChip(
                   visualDensity: VisualDensity.compact,
-                  label: const Text('+5', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  label: const Text(
+                    '+5',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
                   onPressed: () => _incrementarConteo(it, 5.0),
                 ),
                 const SizedBox(width: 4),
                 ActionChip(
                   visualDensity: VisualDensity.compact,
-                  label: const Text('+10', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  label: const Text(
+                    '+10',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
                   onPressed: () => _incrementarConteo(it, 10.0),
                 ),
               ],

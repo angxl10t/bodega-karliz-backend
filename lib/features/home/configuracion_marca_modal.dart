@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+
 import 'bodega_service.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
@@ -29,13 +30,13 @@ class ConfiguracionMarcaModal extends StatefulWidget {
   final bool isPro;
   final VoidCallback? onSaved;
 
-  const ConfiguracionMarcaModal({
-    super.key,
-    required this.isPro,
-    this.onSaved,
-  });
+  const ConfiguracionMarcaModal({super.key, required this.isPro, this.onSaved});
 
-  static Future<void> show(BuildContext context, {required bool isPro, VoidCallback? onSaved}) {
+  static Future<void> show(
+    BuildContext context, {
+    required bool isPro,
+    VoidCallback? onSaved,
+  }) {
     return showDialog(
       context: context,
       builder: (ctx) => ConfiguracionMarcaModal(isPro: isPro, onSaved: onSaved),
@@ -43,7 +44,8 @@ class ConfiguracionMarcaModal extends StatefulWidget {
   }
 
   @override
-  State<ConfiguracionMarcaModal> createState() => _ConfiguracionMarcaModalState();
+  State<ConfiguracionMarcaModal> createState() =>
+      _ConfiguracionMarcaModalState();
 }
 
 class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
@@ -107,11 +109,19 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
       final info = await _bodegaService.actualizarConfiguracion(
         nombreComercial: _nombreCtrl.text.trim(),
         rucDni: _rucCtrl.text.trim().isEmpty ? null : _rucCtrl.text.trim(),
-        direccion: _direccionCtrl.text.trim().isEmpty ? null : _direccionCtrl.text.trim(),
-        telefono: _telefonoCtrl.text.trim().isEmpty ? null : _telefonoCtrl.text.trim(),
-        lemaComercial: _lemaCtrl.text.trim().isEmpty ? null : _lemaCtrl.text.trim(),
+        direccion: _direccionCtrl.text.trim().isEmpty
+            ? null
+            : _direccionCtrl.text.trim(),
+        telefono: _telefonoCtrl.text.trim().isEmpty
+            ? null
+            : _telefonoCtrl.text.trim(),
+        lemaComercial: _lemaCtrl.text.trim().isEmpty
+            ? null
+            : _lemaCtrl.text.trim(),
         colorPrimario: _selectedHex,
-        logoUrl: _logoUrlCtrl.text.trim().isEmpty ? null : _logoUrlCtrl.text.trim(),
+        logoUrl: _logoUrlCtrl.text.trim().isEmpty
+            ? null
+            : _logoUrlCtrl.text.trim(),
       );
 
       if (mounted) {
@@ -123,7 +133,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('¡Identidad y marca de "${info.nombreComercial}" guardada con éxito!'),
+            content: Text(
+              '¡Identidad y marca de "${info.nombreComercial}" guardada con éxito!',
+            ),
             backgroundColor: AppTheme.accentGreen,
           ),
         );
@@ -146,7 +158,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
       backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: isDark ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1.2) : BorderSide.none,
+        side: isDark
+            ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)
+            : BorderSide.none,
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
@@ -176,7 +190,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : AppTheme.brandInk,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.brandInk,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -186,7 +202,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
-                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -199,7 +217,13 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                    icon: Icon(
+                      LucideIcons.x,
+                      size: 20,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -208,9 +232,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
 
               if (_isLoading)
                 const Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: Center(child: CircularProgressIndicator()),
                 )
               else
                 Expanded(
@@ -227,11 +249,19 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                               decoration: BoxDecoration(
                                 color: AppTheme.alertRed.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
+                                border: Border.all(
+                                  color: AppTheme.alertRed.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(LucideIcons.alertCircle, color: AppTheme.alertRed, size: 16),
+                                  const Icon(
+                                    LucideIcons.alertCircle,
+                                    color: AppTheme.alertRed,
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -255,10 +285,16 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                               Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                                  color: AppTheme.brandPrimary.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: const Icon(LucideIcons.printer, size: 14, color: AppTheme.brandPrimary),
+                                child: const Icon(
+                                  LucideIcons.printer,
+                                  size: 14,
+                                  color: AppTheme.brandPrimary,
+                                ),
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -266,7 +302,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
                                 ),
                               ),
                             ],
@@ -276,7 +314,10 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                           // Nombre Comercial
                           Text(
                             'Nombre Comercial *',
-                            style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700),
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           TextFormField(
@@ -286,8 +327,10 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                               prefixIcon: Icon(LucideIcons.store, size: 16),
                             ),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'El nombre es obligatorio';
-                              if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                              if (v == null || v.trim().isEmpty)
+                                return 'El nombre es obligatorio';
+                              if (v.trim().length < 3)
+                                return 'Mínimo 3 caracteres';
                               return null;
                             },
                           ),
@@ -296,13 +339,17 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                           // Lema Comercial / Tagline (Impreso en tickets)
                           Text(
                             'Lema o Eslogan Comercial (Pie/Cabecera de Ticket)',
-                            style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700),
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           TextFormField(
                             controller: _lemaCtrl,
                             decoration: const InputDecoration(
-                              hintText: 'Ej. ¡Los mejores precios de tu barrio!',
+                              hintText:
+                                  'Ej. ¡Los mejores precios de tu barrio!',
                               prefixIcon: Icon(LucideIcons.sparkles, size: 16),
                             ),
                           ),
@@ -315,7 +362,13 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('RUC / DNI', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700)),
+                                    Text(
+                                      'RUC / DNI',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
                                     TextFormField(
                                       controller: _rucCtrl,
@@ -326,12 +379,17 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                       ],
                                       decoration: const InputDecoration(
                                         hintText: '11 u 8 dígitos',
-                                        prefixIcon: Icon(LucideIcons.fileText, size: 16),
+                                        prefixIcon: Icon(
+                                          LucideIcons.fileText,
+                                          size: 16,
+                                        ),
                                       ),
                                       validator: (v) {
-                                        if (v == null || v.trim().isEmpty) return null;
+                                        if (v == null || v.trim().isEmpty)
+                                          return null;
                                         final clean = v.trim();
-                                        if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$').hasMatch(clean)) {
+                                        if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$')
+                                            .hasMatch(clean)) {
                                           return 'DNI (8 d.) o RUC (11 d.)';
                                         }
                                         return null;
@@ -345,7 +403,13 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Teléfono de Contacto', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700)),
+                                    Text(
+                                      'Teléfono de Contacto',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
                                     TextFormField(
                                       controller: _telefonoCtrl,
@@ -356,10 +420,14 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                       ],
                                       decoration: const InputDecoration(
                                         hintText: 'Ej. 987654321',
-                                        prefixIcon: Icon(LucideIcons.phone, size: 16),
+                                        prefixIcon: Icon(
+                                          LucideIcons.phone,
+                                          size: 16,
+                                        ),
                                       ),
                                       validator: (v) {
-                                        if (v == null || v.trim().isEmpty) return null;
+                                        if (v == null || v.trim().isEmpty)
+                                          return null;
                                         if (v.trim().length != 9) {
                                           return 'Debe tener 9 dígitos';
                                         }
@@ -376,7 +444,10 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                           // Dirección
                           Text(
                             'Dirección del Establecimiento',
-                            style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700),
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           TextFormField(
@@ -400,10 +471,15 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                   Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                                      color: const Color(0xFFF59E0B)
+                                          .withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Icon(LucideIcons.palette, size: 14, color: Color(0xFFD97706)),
+                                    child: const Icon(
+                                      LucideIcons.palette,
+                                      size: 14,
+                                      color: Color(0xFFD97706),
+                                    ),
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
@@ -411,22 +487,33 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
                                     ),
                                   ),
                                 ],
                               ),
                               if (!widget.isPro)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                                    color: AppTheme.brandPrimary.withValues(
+                                      alpha: 0.15,
+                                    ),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(LucideIcons.lock, size: 10, color: AppTheme.brandPrimary),
+                                      const Icon(
+                                        LucideIcons.lock,
+                                        size: 10,
+                                        color: AppTheme.brandPrimary,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         'PLAN PRO',
@@ -458,8 +545,11 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                             spacing: 10,
                             runSpacing: 10,
                             children: kColorPresets.map((preset) {
-                              final isSelected = _selectedHex.toUpperCase() == preset.hex.toUpperCase();
-                              final isDefault = preset.hex.toUpperCase() == '#2563EB';
+                              final isSelected =
+                                  _selectedHex.toUpperCase() ==
+                                  preset.hex.toUpperCase();
+                              final isDefault =
+                                  preset.hex.toUpperCase() == '#2563EB';
                               final isLocked = !widget.isPro && !isDefault;
 
                               return InkWell(
@@ -467,7 +557,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                   if (isLocked) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('La personalización de paleta de colores exclusiva requiere el Plan Minimarket Pro.'),
+                                        content: Text(
+                                          'La personalización de paleta de colores exclusiva requiere el Plan Minimarket Pro.',
+                                        ),
                                         backgroundColor: AppTheme.brandPrimary,
                                         duration: Duration(seconds: 3),
                                       ),
@@ -478,14 +570,23 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? preset.color.withValues(alpha: isDark ? 0.25 : 0.1)
-                                        : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9)),
+                                        ? preset.color.withValues(
+                                            alpha: isDark ? 0.25 : 0.1,
+                                          )
+                                        : (isDark
+                                              ? AppTheme.cardDarkHighlight
+                                              : const Color(0xFFF1F5F9)),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: isSelected ? preset.color : Colors.transparent,
+                                      color: isSelected
+                                          ? preset.color
+                                          : Colors.transparent,
                                       width: isSelected ? 2 : 1,
                                     ),
                                   ),
@@ -500,7 +601,13 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                           shape: BoxShape.circle,
                                         ),
                                         child: isSelected
-                                            ? const Center(child: Icon(Icons.check, size: 11, color: Colors.white))
+                                            ? const Center(
+                                                child: Icon(
+                                                  Icons.check,
+                                                  size: 11,
+                                                  color: Colors.white,
+                                                ),
+                                              )
                                             : null,
                                       ),
                                       const SizedBox(width: 8),
@@ -508,13 +615,23 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                         preset.name,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11.5,
-                                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
                                         ),
                                       ),
                                       if (isLocked) ...[
                                         const SizedBox(width: 6),
-                                        Icon(LucideIcons.lock, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                                        Icon(
+                                          LucideIcons.lock,
+                                          size: 12,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B),
+                                        ),
                                       ],
                                     ],
                                   ),
@@ -552,7 +669,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                             height: 18,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : const FittedBox(

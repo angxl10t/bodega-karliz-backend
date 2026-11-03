@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -29,7 +30,10 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
-    FlutterSecureStorage.setMockInitialValues({'jwt_token': 'test_token', 'plan_bodega': 'PRO'});
+    FlutterSecureStorage.setMockInitialValues({
+      'jwt_token': 'test_token',
+      'plan_bodega': 'PRO',
+    });
     SharedPreferences.setMockInitialValues({});
   });
 
@@ -58,7 +62,7 @@ void main() {
             'costoTotal': 807.50,
             'margenBrutoSoles': 340.00,
             'porcentajeMargen': 29.6,
-          }
+          },
         ],
         'productosHueso': [
           {
@@ -72,7 +76,7 @@ void main() {
             'capitalInmovilizado': 102.00,
             'diasSinVentas': 30,
             'accionRecomendada': 'Combo con Salchichas o 2x1',
-          }
+          },
         ],
         'totalCapitalInmovilizado': 102.00,
         'totalProductosHueso': 1,
@@ -90,7 +94,7 @@ void main() {
             'cantidadTickets': 5,
             'totalVentas': 95.00,
             'esPico': false,
-          }
+          },
         ],
         'horaPicoMaxima': '19:00 a 20:00',
         'horaValleMinima': '14:00 a 15:00',
@@ -105,7 +109,10 @@ void main() {
       expect(data.porcentajeMargenBruto, equals(30.0));
       expect(data.ticketPromedioHoy, equals(22.50));
       expect(data.productosEstrella.length, equals(1));
-      expect(data.productosEstrella.first.nombre, equals('Inca Kola 3L descartable'));
+      expect(
+        data.productosEstrella.first.nombre,
+        equals('Inca Kola 3L descartable'),
+      );
       expect(data.productosEstrella.first.margenBrutoSoles, equals(340.00));
 
       expect(data.productosHueso.length, equals(1));
@@ -133,72 +140,86 @@ void main() {
       expect(porcentaje, closeTo(28.0, 0.01));
     });
 
-    test('Generador de CSV Ejecutivo incluye KPIs, Estrellas, Huesos y Horas Pico', () {
-      final mockData = DashboardBiData(
-        diasAnalizados: 30,
-        totalVentas: 5000.00,
-        totalCostos: 3500.00,
-        margenBrutoSoles: 1500.00,
-        porcentajeMargenBruto: 30.0,
-        ticketPromedioHoy: 18.00,
-        ticketPromedioSemanal: 19.50,
-        ticketPromedioPeriodo: 20.00,
-        cantidadVentasHoy: 10,
-        cantidadVentasPeriodo: 250,
-        productosEstrella: [
-          ProductoEstrella(
-            idProducto: 1,
-            nombre: 'Arroz Costeño 1kg',
-            codigo: 'ARR-01',
-            categoria: 'Abarrotes',
-            unidadesVendidas: 100,
-            totalVentas: 480.0,
-            costoTotal: 360.0,
-            margenBrutoSoles: 120.0,
-            porcentajeMargen: 25.0,
-          ),
-        ],
-        productosHueso: [
-          ProductoHueso(
-            idProducto: 2,
-            nombre: 'Aceite de Oliva 500ml',
-            codigo: 'ACE-99',
-            categoria: 'Abarrotes',
-            stockActual: 5,
-            precioCosto: 25.0,
-            capitalInmovilizado: 125.0,
-            diasSinVentas: 45,
-            accionRecomendada: 'Armar combo o descuento',
-          ),
-        ],
-        totalCapitalInmovilizado: 125.00,
-        totalProductosHueso: 1,
-        distribucionHoraria: [
-          HorarioPico(
-            hora: 20,
-            etiquetaHora: '20:00 - 21:00',
-            cantidadTickets: 30,
-            totalVentas: 600.0,
-            esPico: true,
-          ),
-        ],
-        horaPicoMaxima: '20:00 a 21:00',
-        horaValleMinima: '15:00 a 16:00',
-        recomendacionTurnos: 'Turno reforzado a las 20:00.',
-      );
+    test(
+      'Generador de CSV Ejecutivo incluye KPIs, Estrellas, Huesos y Horas Pico',
+      () {
+        final mockData = DashboardBiData(
+          diasAnalizados: 30,
+          totalVentas: 5000.00,
+          totalCostos: 3500.00,
+          margenBrutoSoles: 1500.00,
+          porcentajeMargenBruto: 30.0,
+          ticketPromedioHoy: 18.00,
+          ticketPromedioSemanal: 19.50,
+          ticketPromedioPeriodo: 20.00,
+          cantidadVentasHoy: 10,
+          cantidadVentasPeriodo: 250,
+          productosEstrella: [
+            ProductoEstrella(
+              idProducto: 1,
+              nombre: 'Arroz Costeño 1kg',
+              codigo: 'ARR-01',
+              categoria: 'Abarrotes',
+              unidadesVendidas: 100,
+              totalVentas: 480.0,
+              costoTotal: 360.0,
+              margenBrutoSoles: 120.0,
+              porcentajeMargen: 25.0,
+            ),
+          ],
+          productosHueso: [
+            ProductoHueso(
+              idProducto: 2,
+              nombre: 'Aceite de Oliva 500ml',
+              codigo: 'ACE-99',
+              categoria: 'Abarrotes',
+              stockActual: 5,
+              precioCosto: 25.0,
+              capitalInmovilizado: 125.0,
+              diasSinVentas: 45,
+              accionRecomendada: 'Armar combo o descuento',
+            ),
+          ],
+          totalCapitalInmovilizado: 125.00,
+          totalProductosHueso: 1,
+          distribucionHoraria: [
+            HorarioPico(
+              hora: 20,
+              etiquetaHora: '20:00 - 21:00',
+              cantidadTickets: 30,
+              totalVentas: 600.0,
+              esPico: true,
+            ),
+          ],
+          horaPicoMaxima: '20:00 a 21:00',
+          horaValleMinima: '15:00 a 16:00',
+          recomendacionTurnos: 'Turno reforzado a las 20:00.',
+        );
 
-      final csv = CsvExporter.generarCsvDashboardBi(mockData);
+        final csv = CsvExporter.generarCsvDashboardBi(mockData);
 
-      expect(csv, contains('REPORTE EJECUTIVO BI Y RENTABILIDAD CAJAYA'));
-      expect(csv, contains('Margen Bruto de Ganancia (PEN),1500.00'));
-      expect(csv, contains('Margen Bruto Porcentual (%),30.0%'));
-      expect(csv, contains('--- PRODUCTOS ESTRELLA (TOP RENTABILIDAD Y ROTACION) ---'));
-      expect(csv, contains('Arroz Costeño 1kg'));
-      expect(csv, contains('--- PRODUCTOS HUESO (SIN VENTAS / CAPITAL INMOVILIZADO) ---'));
-      expect(csv, contains('Aceite de Oliva 500ml'));
-      expect(csv, contains('--- DISTRIBUCION HORARIA Y AFLUENCIA (24 HORAS) ---'));
-      expect(csv, contains('20:00 - 21:00'));
-    });
+        expect(csv, contains('REPORTE EJECUTIVO BI Y RENTABILIDAD CAJAYA'));
+        expect(csv, contains('Margen Bruto de Ganancia (PEN),1500.00'));
+        expect(csv, contains('Margen Bruto Porcentual (%),30.0%'));
+        expect(
+          csv,
+          contains('--- PRODUCTOS ESTRELLA (TOP RENTABILIDAD Y ROTACION) ---'),
+        );
+        expect(csv, contains('Arroz Costeño 1kg'));
+        expect(
+          csv,
+          contains(
+            '--- PRODUCTOS HUESO (SIN VENTAS / CAPITAL INMOVILIZADO) ---',
+          ),
+        );
+        expect(csv, contains('Aceite de Oliva 500ml'));
+        expect(
+          csv,
+          contains('--- DISTRIBUCION HORARIA Y AFLUENCIA (24 HORAS) ---'),
+        );
+        expect(csv, contains('20:00 - 21:00'));
+      },
+    );
 
     test('DashboardBiService retorna 24 horas y estructura limpia por defecto cuando no hay red ni cache', () async {
       SharedPreferences.setMockInitialValues({});
@@ -213,76 +234,91 @@ void main() {
       expect(res.distribucionHoraria[23].etiquetaHora, equals('23:00 - 00:00'));
     });
 
-    testWidgets('DashboardBiScreen renderiza cabecera, selector de días y acciones correctamente', (tester) async {
-      SharedPreferences.setMockInitialValues({});
+    testWidgets(
+      'DashboardBiScreen renderiza cabecera, selector de días y acciones correctamente',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
 
-      final fakeClient = FakeHttpClient((request) async {
-        return http.Response(
-          jsonEncode({
-            'diasAnalizados': 30,
-            'totalVentas': 5000.0,
-            'totalCostos': 3500.0,
-            'margenBrutoSoles': 1500.0,
-            'porcentajeMargenBruto': 30.0,
-            'ticketPromedioHoy': 18.0,
-            'ticketPromedioSemanal': 19.5,
-            'ticketPromedioPeriodo': 20.0,
-            'cantidadVentasHoy': 10,
-            'cantidadVentasPeriodo': 250,
-            'productosEstrella': [],
-            'productosHueso': [],
-            'totalCapitalInmovilizado': 0.0,
-            'totalProductosHueso': 0,
-            'distribucionHoraria': [],
-            'horaPicoMaxima': '19:00 a 20:00',
-            'horaValleMinima': '14:00 a 15:00',
-            'recomendacionTurnos': 'Horario normal.',
-          }),
-          200,
-          headers: {'content-type': 'application/json; charset=utf-8'},
+        final fakeClient = FakeHttpClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'diasAnalizados': 30,
+              'totalVentas': 5000.0,
+              'totalCostos': 3500.0,
+              'margenBrutoSoles': 1500.0,
+              'porcentajeMargenBruto': 30.0,
+              'ticketPromedioHoy': 18.0,
+              'ticketPromedioSemanal': 19.5,
+              'ticketPromedioPeriodo': 20.0,
+              'cantidadVentasHoy': 10,
+              'cantidadVentasPeriodo': 250,
+              'productosEstrella': [],
+              'productosHueso': [],
+              'totalCapitalInmovilizado': 0.0,
+              'totalProductosHueso': 0,
+              'distribucionHoraria': [],
+              'horaPicoMaxima': '19:00 a 20:00',
+              'horaValleMinima': '14:00 a 15:00',
+              'recomendacionTurnos': 'Horario normal.',
+            }),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        });
+
+        final testService = DashboardBiService(
+          apiClient: ApiClient(client: fakeClient),
         );
-      });
 
-      final testService = DashboardBiService(apiClient: ApiClient(client: fakeClient));
+        await tester.pumpWidget(
+          MaterialApp(home: DashboardBiScreen(service: testService)),
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: DashboardBiScreen(service: testService),
-        ),
-      );
+        // Procesar carga asíncrona
+        await tester.pump();
+        await tester.pumpAndSettle();
 
-      // Procesar carga asíncrona
-      await tester.pump();
-      await tester.pumpAndSettle();
+        expect(find.text('Analítica de Negocio & BI'), findsOneWidget);
+        expect(find.text('Hoy'), findsAtLeastNWidgets(1));
+        expect(find.text('7 Días'), findsOneWidget);
+        expect(find.text('30 Días'), findsOneWidget);
+        expect(find.text('90 Días'), findsOneWidget);
 
-      expect(find.text('Analítica de Negocio & BI'), findsOneWidget);
-      expect(find.text('Hoy'), findsAtLeastNWidgets(1));
-      expect(find.text('7 Días'), findsOneWidget);
-      expect(find.text('30 Días'), findsOneWidget);
-      expect(find.text('90 Días'), findsOneWidget);
+        // Verificar secciones principales
+        expect(find.text('Métricas de Rentabilidad Real'), findsOneWidget);
+        expect(find.text('Mapa de Calor de Horarios Pico'), findsOneWidget);
+        expect(find.text('Reporte de Rotación Táctico'), findsOneWidget);
+      },
+    );
 
-      // Verificar secciones principales
-      expect(find.text('Métricas de Rentabilidad Real'), findsOneWidget);
-      expect(find.text('Mapa de Calor de Horarios Pico'), findsOneWidget);
-      expect(find.text('Reporte de Rotación Táctico'), findsOneWidget);
-    });
+    testWidgets(
+      'DashboardBiScreen renderiza pantalla de bloqueo PRO cuando el plan es BASICO',
+      (tester) async {
+        FlutterSecureStorage.setMockInitialValues({
+          'jwt_token': 'test_token',
+          'plan_bodega': 'BASICO',
+          'user_rol': 'ADMIN',
+        });
+        SharedPreferences.setMockInitialValues({
+          'plan_bodega': 'BASICO',
+          'user_rol': 'ADMIN',
+        });
 
-    testWidgets('DashboardBiScreen renderiza pantalla de bloqueo PRO cuando el plan es BASICO', (tester) async {
-      FlutterSecureStorage.setMockInitialValues({'jwt_token': 'test_token', 'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
-      SharedPreferences.setMockInitialValues({'plan_bodega': 'BASICO', 'user_rol': 'ADMIN'});
+        await tester.pumpWidget(const MaterialApp(home: DashboardBiScreen()));
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: DashboardBiScreen(),
-        ),
-      );
+        await tester.pump();
+        await tester.pumpAndSettle();
 
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(find.text('EXCLUSIVO PLAN MINIMARKET PRO'), findsOneWidget);
-      expect(find.text('Módulo de Analítica & Business Intelligence'), findsOneWidget);
-      expect(find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'), findsOneWidget);
-    });
+        expect(find.text('EXCLUSIVO PLAN MINIMARKET PRO'), findsOneWidget);
+        expect(
+          find.text('Módulo de Analítica & Business Intelligence'),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

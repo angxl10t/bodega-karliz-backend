@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import 'movimiento_model.dart';
 import 'movimiento_service.dart';
 import '../productos/producto_service.dart';
@@ -74,38 +75,58 @@ class _KardexScreenState extends State<KardexScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final filtrados = _movimientos.where((m) {
-      final matchesText = m.nombreProducto.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
+      final matchesText =
+          m.nombreProducto.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
           m.motivo.toLowerCase().contains(_filtroTexto.toLowerCase());
 
       bool matchesTipo = true;
       if (_filtroTipo == 'ENTRADA') {
-        matchesTipo = (m.tipoMovimiento.contains('ENTRADA') || m.tipoMovimiento.contains('COMPRA')) &&
+        matchesTipo =
+            (m.tipoMovimiento.contains('ENTRADA') ||
+                m.tipoMovimiento.contains('COMPRA')) &&
             !m.motivo.toUpperCase().contains('ANULACI') &&
             !_esAjuste(m);
       } else if (_filtroTipo == 'SALIDA') {
-        matchesTipo = (m.tipoMovimiento.contains('SALIDA') || m.tipoMovimiento.contains('VENTA')) &&
+        matchesTipo =
+            (m.tipoMovimiento.contains('SALIDA') ||
+                m.tipoMovimiento.contains('VENTA')) &&
             !_esAjuste(m);
       } else if (_filtroTipo == 'AJUSTE') {
         matchesTipo = _esAjuste(m);
       } else if (_filtroTipo == 'DEVOLUCION') {
-        matchesTipo = m.tipoMovimiento.contains('DEVOLUCION') ||
+        matchesTipo =
+            m.tipoMovimiento.contains('DEVOLUCION') ||
             m.tipoMovimiento.contains('ANULACION') ||
             m.motivo.toUpperCase().contains('ANULACI');
       }
       return matchesText && matchesTipo;
     }).toList();
 
-    final int totalDevoluciones = _movimientos.where((m) =>
-        m.tipoMovimiento.contains('DEVOLUCION') ||
-        m.tipoMovimiento.contains('ANULACION') ||
-        m.motivo.toUpperCase().contains('ANULACI')).length;
-    final int totalEntradas = _movimientos.where((m) =>
-        (m.tipoMovimiento.contains('ENTRADA') || m.tipoMovimiento.contains('COMPRA')) &&
-        !m.motivo.toUpperCase().contains('ANULACI') &&
-        !_esAjuste(m)).length;
-    final int totalSalidas = _movimientos.where((m) =>
-        (m.tipoMovimiento.contains('SALIDA') || m.tipoMovimiento.contains('VENTA')) &&
-        !_esAjuste(m)).length;
+    final int totalDevoluciones = _movimientos
+        .where(
+          (m) =>
+              m.tipoMovimiento.contains('DEVOLUCION') ||
+              m.tipoMovimiento.contains('ANULACION') ||
+              m.motivo.toUpperCase().contains('ANULACI'),
+        )
+        .length;
+    final int totalEntradas = _movimientos
+        .where(
+          (m) =>
+              (m.tipoMovimiento.contains('ENTRADA') ||
+                  m.tipoMovimiento.contains('COMPRA')) &&
+              !m.motivo.toUpperCase().contains('ANULACI') &&
+              !_esAjuste(m),
+        )
+        .length;
+    final int totalSalidas = _movimientos
+        .where(
+          (m) =>
+              (m.tipoMovimiento.contains('SALIDA') ||
+                  m.tipoMovimiento.contains('VENTA')) &&
+              !_esAjuste(m),
+        )
+        .length;
     final int totalAjustes = _movimientos.where((m) => _esAjuste(m)).length;
 
     final canPop = ModalRoute.of(context)?.canPop ?? false;
@@ -137,7 +158,13 @@ class _KardexScreenState extends State<KardexScreen> {
             ),
             Text(
               'Auditoría y trazabilidad de entradas, salidas y mermas',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -153,7 +180,9 @@ class _KardexScreenState extends State<KardexScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+            )
           : RefreshIndicator(
               onRefresh: _cargarMovimientos,
               color: AppTheme.brandPrimary,
@@ -171,17 +200,40 @@ class _KardexScreenState extends State<KardexScreen> {
 
                   // Métricas Rápidas
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     color: Colors.transparent,
                     child: Row(
                       children: [
-                        _buildKpiChip('Entradas', '$totalEntradas', AppTheme.accentGreen, isDark),
+                        _buildKpiChip(
+                          'Entradas',
+                          '$totalEntradas',
+                          AppTheme.accentGreen,
+                          isDark,
+                        ),
                         const SizedBox(width: 6),
-                        _buildKpiChip('Salidas', '$totalSalidas', AppTheme.brandPrimary, isDark),
+                        _buildKpiChip(
+                          'Salidas',
+                          '$totalSalidas',
+                          AppTheme.brandPrimary,
+                          isDark,
+                        ),
                         const SizedBox(width: 6),
-                        _buildKpiChip('Mermas', '$totalAjustes', AppTheme.alertRed, isDark),
+                        _buildKpiChip(
+                          'Mermas',
+                          '$totalAjustes',
+                          AppTheme.alertRed,
+                          isDark,
+                        ),
                         const SizedBox(width: 6),
-                        _buildKpiChip('Devolución', '$totalDevoluciones', AppTheme.infoIndigo, isDark),
+                        _buildKpiChip(
+                          'Devolución',
+                          '$totalDevoluciones',
+                          AppTheme.infoIndigo,
+                          isDark,
+                        ),
                       ],
                     ),
                   ),
@@ -193,10 +245,14 @@ class _KardexScreenState extends State<KardexScreen> {
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDarkSunken : Colors.white,
+                            color: isDark
+                                ? AppTheme.cardDarkSunken
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : AppTheme.borderLight,
                             ),
                           ),
                           child: TextField(
@@ -207,9 +263,18 @@ class _KardexScreenState extends State<KardexScreen> {
                               color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Filtrar por producto, motivo o usuario...',
-                              hintStyle: GoogleFonts.plusJakartaSans(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 13),
-                              prefixIcon: const Icon(LucideIcons.search, size: 18),
+                              hintText:
+                                  'Filtrar por producto, motivo o usuario...',
+                              hintStyle: GoogleFonts.plusJakartaSans(
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                                fontSize: 13,
+                              ),
+                              prefixIcon: const Icon(
+                                LucideIcons.search,
+                                size: 18,
+                              ),
                               suffixIcon: _filtroTexto.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(LucideIcons.x, size: 16),
@@ -220,9 +285,13 @@ class _KardexScreenState extends State<KardexScreen> {
                                     )
                                   : null,
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
-                            onChanged: (val) => setState(() => _filtroTexto = val),
+                            onChanged: (val) =>
+                                setState(() => _filtroTexto = val),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -233,13 +302,29 @@ class _KardexScreenState extends State<KardexScreen> {
                             children: [
                               _buildFilterChip('TODOS', 'Todos', isDark),
                               const SizedBox(width: 6),
-                              _buildFilterChip('ENTRADA', 'Entradas (Compras)', isDark),
+                              _buildFilterChip(
+                                'ENTRADA',
+                                'Entradas (Compras)',
+                                isDark,
+                              ),
                               const SizedBox(width: 6),
-                              _buildFilterChip('SALIDA', 'Salidas (Ventas)', isDark),
+                              _buildFilterChip(
+                                'SALIDA',
+                                'Salidas (Ventas)',
+                                isDark,
+                              ),
                               const SizedBox(width: 6),
-                              _buildFilterChip('AJUSTE', 'Mermas y Ajustes', isDark),
+                              _buildFilterChip(
+                                'AJUSTE',
+                                'Mermas y Ajustes',
+                                isDark,
+                              ),
                               const SizedBox(width: 6),
-                              _buildFilterChip('DEVOLUCION', 'Devoluciones / Anulaciones', isDark),
+                              _buildFilterChip(
+                                'DEVOLUCION',
+                                'Devoluciones / Anulaciones',
+                                isDark,
+                              ),
                             ],
                           ),
                         ),
@@ -252,9 +337,13 @@ class _KardexScreenState extends State<KardexScreen> {
                     child: filtrados.isEmpty
                         ? _buildEmptyState(isDark)
                         : ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             itemCount: filtrados.length,
-                            separatorBuilder: (_, index) => const SizedBox(height: 10),
+                            separatorBuilder: (_, index) =>
+                                const SizedBox(height: 10),
                             itemBuilder: (context, idx) {
                               final m = filtrados[idx];
                               return _buildMovimientoTile(m, isDark);
@@ -269,8 +358,12 @@ class _KardexScreenState extends State<KardexScreen> {
 
   Widget _buildEmptyState(bool isDark) {
     final bool esFiltro = _filtroTexto.isNotEmpty || _filtroTipo != 'TODOS';
-    final Color badgeColor = esFiltro ? AppTheme.brandPrimary : const Color(0xFF0D9488); // Teal
-    final IconData icon = esFiltro ? LucideIcons.fileSearch : LucideIcons.fileSpreadsheet;
+    final Color badgeColor = esFiltro
+        ? AppTheme.brandPrimary
+        : const Color(0xFF0D9488); // Teal
+    final IconData icon = esFiltro
+        ? LucideIcons.fileSearch
+        : LucideIcons.fileSpreadsheet;
 
     final String title = esFiltro
         ? 'Sin movimientos para este filtro'
@@ -329,7 +422,9 @@ class _KardexScreenState extends State<KardexScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   height: 1.45,
-                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF334155),
                 ),
               ),
               const SizedBox(height: 20),
@@ -338,7 +433,9 @@ class _KardexScreenState extends State<KardexScreen> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF101622)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
@@ -347,7 +444,11 @@ class _KardexScreenState extends State<KardexScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(LucideIcons.barChart3, size: 16, color: AppTheme.brandPrimary),
+                    const Icon(
+                      LucideIcons.barChart3,
+                      size: 16,
+                      color: AppTheme.brandPrimary,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -356,7 +457,9 @@ class _KardexScreenState extends State<KardexScreen> {
                           fontSize: 11.5,
                           height: 1.4,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                       ),
                     ),
@@ -368,14 +471,26 @@ class _KardexScreenState extends State<KardexScreen> {
               if (esFiltro)
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   icon: const Icon(LucideIcons.rotateCcw, size: 16),
                   label: Text(
                     'Restablecer Filtros',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
                   ),
                   onPressed: () {
                     setState(() {
@@ -390,14 +505,22 @@ class _KardexScreenState extends State<KardexScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.brandPrimary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                   ),
                   icon: const Icon(LucideIcons.refreshCw, size: 16),
                   label: Text(
                     'Actualizar Movimientos',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
                   ),
                   onPressed: () => _cargarMovimientos(),
                 ),
@@ -431,7 +554,13 @@ class _KardexScreenState extends State<KardexScreen> {
             ),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontWeight: FontWeight.w700),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+                fontWeight: FontWeight.w700,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -449,12 +578,18 @@ class _KardexScreenState extends State<KardexScreen> {
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 12,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+        color: isSelected
+            ? AppTheme.brandPrimary
+            : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
       ),
-      selectedColor: isDark ? AppTheme.brandPrimary.withValues(alpha: 0.2) : AppTheme.surfaceTint,
+      selectedColor: isDark
+          ? AppTheme.brandPrimary.withValues(alpha: 0.2)
+          : AppTheme.surfaceTint,
       backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
       side: BorderSide(
-        color: isSelected ? AppTheme.brandPrimary : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+        color: isSelected
+            ? AppTheme.brandPrimary
+            : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       onSelected: (_) => setState(() => _filtroTipo = key),
@@ -463,18 +598,24 @@ class _KardexScreenState extends State<KardexScreen> {
 
   Widget _buildMovimientoTile(MovimientoInventario m, bool isDark) {
     final tipo = m.tipoMovimiento.toUpperCase();
-    final bool isDevolucion = tipo.contains('DEVOLUCION') ||
+    final bool isDevolucion =
+        tipo.contains('DEVOLUCION') ||
         tipo.contains('ANULACION') ||
         m.motivo.toUpperCase().contains('ANULACI');
     final bool isAjuste = _esAjuste(m);
-    final bool isEntrada = !isDevolucion && !isAjuste && (tipo.contains('ENTRADA') || tipo.contains('COMPRA'));
+    final bool isEntrada =
+        !isDevolucion &&
+        !isAjuste &&
+        (tipo.contains('ENTRADA') || tipo.contains('COMPRA'));
 
     Color badgeColor;
     IconData icon;
     String sign;
 
     if (isAjuste) {
-      final esSobrante = m.motivo.toUpperCase().contains('[SOBRANTE]') || tipo.contains('ENTRADA');
+      final esSobrante =
+          m.motivo.toUpperCase().contains('[SOBRANTE]') ||
+          tipo.contains('ENTRADA');
       badgeColor = esSobrante ? AppTheme.accentGreen : AppTheme.alertRed;
       icon = esSobrante ? LucideIcons.packagePlus : LucideIcons.packageMinus;
       sign = esSobrante ? '+' : '-';
@@ -536,7 +677,9 @@ class _KardexScreenState extends State<KardexScreen> {
                   m.motivo.isNotEmpty ? m.motivo : 'Movimiento de inventario',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
-                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -546,21 +689,35 @@ class _KardexScreenState extends State<KardexScreen> {
                       fechaStr,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10.5,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
                       ),
                     ),
-                    if (m.usuarioResponsable != null && m.usuarioResponsable!.isNotEmpty) ...[
+                    if (m.usuarioResponsable != null &&
+                        m.usuarioResponsable!.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(LucideIcons.userCheck, size: 10, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                            Icon(
+                              LucideIcons.userCheck,
+                              size: 10,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF64748B),
+                            ),
                             const SizedBox(width: 4),
                             ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 110),
@@ -569,7 +726,9 @@ class _KardexScreenState extends State<KardexScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppTheme.textDarkMuted : const Color(0xFF334155),
+                                  color: isDark
+                                      ? AppTheme.textDarkMuted
+                                      : const Color(0xFF334155),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import '../../core/api_client.dart';
 import '../productos/producto_service.dart';
 import 'movimiento_model.dart';
@@ -10,8 +11,12 @@ class MovimientoService {
     try {
       final response = await _apiClient.get('/movimientos');
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
-        return jsonList.map((json) => MovimientoInventario.fromJson(json)).toList();
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
+        return jsonList
+            .map((json) => MovimientoInventario.fromJson(json))
+            .toList();
       }
       return [];
     } catch (e) {
@@ -19,12 +24,20 @@ class MovimientoService {
     }
   }
 
-  Future<List<MovimientoInventario>> getMovimientosPorProducto(int idProducto) async {
+  Future<List<MovimientoInventario>> getMovimientosPorProducto(
+    int idProducto,
+  ) async {
     try {
-      final response = await _apiClient.get('/movimientos/producto/$idProducto');
+      final response = await _apiClient.get(
+        '/movimientos/producto/$idProducto',
+      );
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
-        return jsonList.map((json) => MovimientoInventario.fromJson(json)).toList();
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
+        return jsonList
+            .map((json) => MovimientoInventario.fromJson(json))
+            .toList();
       }
       return [];
     } catch (e) {
@@ -39,15 +52,12 @@ class MovimientoService {
     required String motivo,
   }) async {
     try {
-      final response = await _apiClient.post(
-        '/movimientos/ajuste',
-        {
-          'idProducto': idProducto,
-          'cantidad': cantidad,
-          'tipoAjuste': tipoAjuste,
-          'motivo': motivo,
-        },
-      );
+      final response = await _apiClient.post('/movimientos/ajuste', {
+        'idProducto': idProducto,
+        'cantidad': cantidad,
+        'tipoAjuste': tipoAjuste,
+        'motivo': motivo,
+      });
       if (response.statusCode == 200 || response.statusCode == 201) {
         ProductoService.invalidateCache();
         return true;

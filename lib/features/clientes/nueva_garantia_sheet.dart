@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import 'cliente_model.dart';
 import 'garantia_botella_service.dart';
@@ -78,20 +79,23 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
     if (widget.clienteInicial != null) {
       _clienteSeleccionado = widget.clienteInicial;
       _nombreCtrl.text = widget.clienteInicial!.nombreCompleto;
-      if (widget.clienteInicial!.telefono != null && widget.clienteInicial!.telefono!.isNotEmpty) {
+      if (widget.clienteInicial!.telefono != null &&
+          widget.clienteInicial!.telefono!.isNotEmpty) {
         _telefonoCtrl.text = widget.clienteInicial!.telefono!;
       }
     }
     if (widget.cantidadInicial != null && widget.cantidadInicial! > 0) {
       _cantidadBotellas = widget.cantidadInicial!;
     }
-    if (widget.tipoBotellaInicial != null && widget.tipoBotellaInicial!.isNotEmpty) {
+    if (widget.tipoBotellaInicial != null &&
+        widget.tipoBotellaInicial!.isNotEmpty) {
       _tipoBotella = widget.tipoBotellaInicial!;
       if (_tipoBotella.contains('Bidón') || _tipoBotella.contains('Galonera')) {
         _montoUnitarioSugerido = 10.00;
       } else if (_tipoBotella.contains('Personal')) {
         _montoUnitarioSugerido = 1.00;
-      } else if (_tipoBotella.contains('1L') && !_tipoBotella.contains('Gaseosa')) {
+      } else if (_tipoBotella.contains('1L') &&
+          !_tipoBotella.contains('Gaseosa')) {
         _montoUnitarioSugerido = 2.50;
       } else {
         _montoUnitarioSugerido = 2.00;
@@ -132,7 +136,9 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
     final monto = double.tryParse(_montoCtrl.text.replaceAll(',', '.')) ?? 0.0;
     if (monto <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ingrese un monto de garantía válido en dinero')),
+        const SnackBar(
+          content: Text('Ingrese un monto de garantía válido en dinero'),
+        ),
       );
       return;
     }
@@ -143,7 +149,9 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
     try {
       await _service.crearGarantia({
         'nombrePersona': _nombreCtrl.text.trim(),
-        'telefono': _telefonoCtrl.text.trim().isEmpty ? null : _telefonoCtrl.text.trim(),
+        'telefono': _telefonoCtrl.text.trim().isEmpty
+            ? null
+            : _telefonoCtrl.text.trim(),
         'idCliente': _clienteSeleccionado?.idCliente,
         'cantidadBotellas': _cantidadBotellas,
         'montoGarantia': monto,
@@ -156,7 +164,9 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
         widget.onGuardado();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('¡Garantía de $_cantidadBotellas botellas registrada para ${_nombreCtrl.text.trim()}!'),
+            content: Text(
+              '¡Garantía de $_cantidadBotellas botellas registrada para ${_nombreCtrl.text.trim()}!',
+            ),
             backgroundColor: AppTheme.accentGreen,
           ),
         );
@@ -213,7 +223,11 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                       color: const Color(0xFF2563EB).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(LucideIcons.wine, color: Color(0xFF2563EB), size: 22),
+                    child: const Icon(
+                      LucideIcons.wine,
+                      color: Color(0xFF2563EB),
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -232,17 +246,26 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                           'Garantía en custodia que se devuelve al entregar el envase',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : AppTheme.textMuted,
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? Colors.white70 : const Color(0xFF475569)),
+                    icon: Icon(
+                      LucideIcons.x,
+                      size: 20,
+                      color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    ),
                     tooltip: 'Cerrar',
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -263,9 +286,15 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                    ),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<Cliente?>(
@@ -273,15 +302,23 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                       value: _clienteSeleccionado,
                       hint: Text(
                         'Seleccionar vecino de la lista (o escribir abajo)',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          color: isDark ? Colors.white54 : AppTheme.textMuted,
+                        ),
                       ),
-                      dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      dropdownColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : Colors.white,
                       items: [
                         DropdownMenuItem<Cliente?>(
                           value: null,
                           child: Text(
                             '-- Persona no registrada (escribir nombre manual) --',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontStyle: FontStyle.italic),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
                         ),
                         ...widget.clientesDisponibles.map(
@@ -289,7 +326,10 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                             value: c,
                             child: Text(
                               '${c.nombreCompleto} ${c.telefono != null ? "(${c.telefono})" : ""}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -318,8 +358,13 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                   hintText: 'Ej. Don Carlos, Vecino del 2do piso',
                   prefixIcon: const Icon(LucideIcons.user, size: 18),
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  fillColor: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
@@ -347,8 +392,13 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                   hintText: 'Ej. 987654321',
                   prefixIcon: const Icon(LucideIcons.phone, size: 18),
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  fillColor: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -362,18 +412,26 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                       children: [
                         Text(
                           'Cantidad de Botellas',
-                          style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         Text(
                           'Botellas de vidrio que se lleva',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: isDark ? Colors.white54 : AppTheme.textMuted,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   Container(
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                      color: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
@@ -391,10 +449,16 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                               : null,
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
                           child: Text(
                             '$_cantidadBotellas',
-                            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900),
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
                         IconButton(
@@ -426,7 +490,9 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                     labelStyle: GoogleFonts.outfit(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
-                      color: isSel ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
+                      color: isSel
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : AppTheme.textDark),
                     ),
                     onSelected: (sel) {
                       if (sel) {
@@ -444,7 +510,10 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
               // Tipo de Botella / Envase
               Text(
                 'Tipo de Envase / Botella',
-                style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
+                style: GoogleFonts.outfit(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -455,12 +524,15 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                   return FilterChip(
                     label: Text(tipo),
                     selected: isSel,
-                    selectedColor: const Color(0xFF2563EB).withValues(alpha: 0.2),
+                    selectedColor: const Color(0xFF2563EB)
+                        .withValues(alpha: 0.2),
                     checkmarkColor: const Color(0xFF2563EB),
                     labelStyle: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
-                      color: isSel ? const Color(0xFF2563EB) : (isDark ? Colors.white70 : AppTheme.textDark),
+                      color: isSel
+                          ? const Color(0xFF2563EB)
+                          : (isDark ? Colors.white70 : AppTheme.textDark),
                     ),
                     onSelected: (sel) {
                       if (sel) {
@@ -491,11 +563,17 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                       children: [
                         Text(
                           'Monto en Dinero Dejado (S/) *',
-                          style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.outfit(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         Text(
                           'Total retenido que se devolverá al cliente',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: isDark ? Colors.white54 : AppTheme.textMuted,
+                          ),
                         ),
                       ],
                     ),
@@ -505,19 +583,38 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _montoCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF16A34A)),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF16A34A),
+                ),
                 decoration: InputDecoration(
                   prefixIcon: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    child: Text('S/', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+                    child: Text(
+                      'S/',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF16A34A),
+                      ),
+                    ),
                   ),
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  fillColor: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Ingrese el monto de dinero';
+                  if (val == null || val.trim().isEmpty)
+                    return 'Ingrese el monto de dinero';
                   return null;
                 },
               ),
@@ -526,51 +623,64 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
               // Chips de sugerencia de precio unitario con contexto comercial
               Text(
                 'Tarifa sugerida por envase',
-                style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white60 : AppTheme.textMuted),
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white60 : AppTheme.textMuted,
+                ),
               ),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: [
-                  {'tarifa': 1.00, 'label': 'S/ 1.00 (Personal)'},
-                  {'tarifa': 2.00, 'label': 'S/ 2.00 (Cerveza / 1L)'},
-                  {'tarifa': 2.50, 'label': 'S/ 2.50'},
-                  {'tarifa': 3.00, 'label': 'S/ 3.00 (Familiar)'},
-                  {'tarifa': 5.00, 'label': 'S/ 5.00 (Caja)'},
-                  {'tarifa': 10.00, 'label': 'S/ 10.00 (Bidón)'},
-                ].map((item) {
-                  final tarifa = item['tarifa'] as double;
-                  final label = item['label'] as String;
-                  final isSel = (_montoUnitarioSugerido - tarifa).abs() < 0.01;
-                  return ChoiceChip(
-                    label: Text(label),
-                    selected: isSel,
-                    selectedColor: const Color(0xFF2563EB),
-                    backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                    labelStyle: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isSel ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
-                    ),
-                    onSelected: (sel) {
-                      if (sel) {
-                        HapticFeedback.selectionClick();
-                        setState(() {
-                          _montoUnitarioSugerido = tarifa;
-                          _recalcularMonto();
-                        });
-                      }
-                    },
-                  );
-                }).toList(),
+                children:
+                    [
+                      {'tarifa': 1.00, 'label': 'S/ 1.00 (Personal)'},
+                      {'tarifa': 2.00, 'label': 'S/ 2.00 (Cerveza / 1L)'},
+                      {'tarifa': 2.50, 'label': 'S/ 2.50'},
+                      {'tarifa': 3.00, 'label': 'S/ 3.00 (Familiar)'},
+                      {'tarifa': 5.00, 'label': 'S/ 5.00 (Caja)'},
+                      {'tarifa': 10.00, 'label': 'S/ 10.00 (Bidón)'},
+                    ].map((item) {
+                      final tarifa = item['tarifa'] as double;
+                      final label = item['label'] as String;
+                      final isSel =
+                          (_montoUnitarioSugerido - tarifa).abs() < 0.01;
+                      return ChoiceChip(
+                        label: Text(label),
+                        selected: isSel,
+                        selectedColor: const Color(0xFF2563EB),
+                        backgroundColor: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF1F5F9),
+                        labelStyle: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isSel
+                              ? Colors.white
+                              : (isDark ? Colors.white70 : AppTheme.textDark),
+                        ),
+                        onSelected: (sel) {
+                          if (sel) {
+                            HapticFeedback.selectionClick();
+                            setState(() {
+                              _montoUnitarioSugerido = tarifa;
+                              _recalcularMonto();
+                            });
+                          }
+                        },
+                      );
+                    }).toList(),
               ),
               const SizedBox(height: 16),
 
               // Notas / Observaciones
               Text(
                 'Notas u Observaciones (Opcional)',
-                style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w700),
+                style: GoogleFonts.outfit(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 6),
               TextFormField(
@@ -579,8 +689,13 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                 decoration: InputDecoration(
                   hintText: 'Ej. Dejó billete de S/ 10, botellas de Cristal retornables',
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  fillColor: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -594,14 +709,25 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                       height: 48,
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-                          side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          foregroundColor: isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF475569),
+                          side: BorderSide(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFCBD5E1),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                         onPressed: () => Navigator.pop(context),
                         child: Text(
                           'Cancelar',
-                          style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.outfit(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -615,15 +741,29 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                           elevation: 2,
                         ),
                         icon: _guardando
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Icon(LucideIcons.check, size: 18),
                         label: Text(
-                          _guardando ? 'Guardando...' : 'Registrar Garantía de Botellas',
-                          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800),
+                          _guardando
+                              ? 'Guardando...'
+                              : 'Registrar Garantía de Botellas',
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         onPressed: _guardando ? null : _guardar,
                       ),

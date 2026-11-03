@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../../core/api_client.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/offline/offline_catalog_service.dart';
@@ -45,7 +47,9 @@ class ProductoService {
     try {
       final response = await _apiClient.get('/productos');
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         final prods = jsonList.map((json) => Producto.fromJson(json)).toList();
         _cachedProductos = prods;
         _cacheTimestamp = DateTime.now();
@@ -64,7 +68,9 @@ class ProductoService {
         OfflineSyncManager.instance.isOfflineNotifier.value = true;
         return List<Producto>.from(localProds);
       }
-      return _cachedProductos != null ? List<Producto>.from(_cachedProductos!) : [];
+      return _cachedProductos != null
+          ? List<Producto>.from(_cachedProductos!)
+          : [];
     } catch (e) {
       // Fallback resiliente ante cortes de red o caídas de servidor
       final localProds = await OfflineCatalogService().getCachedCatalog();
@@ -73,11 +79,14 @@ class ProductoService {
         OfflineSyncManager.instance.isOfflineNotifier.value = true;
         return List<Producto>.from(localProds);
       }
-      return _cachedProductos != null ? List<Producto>.from(_cachedProductos!) : [];
+      return _cachedProductos != null
+          ? List<Producto>.from(_cachedProductos!)
+          : [];
     }
   }
 
-  Future<({bool ok, String? error, Producto? producto})> crearProductoConDetalle(Producto producto) async {
+  Future<({bool ok, String? error, Producto? producto})>
+  crearProductoConDetalle(Producto producto) async {
     try {
       final response = await _apiClient.post('/productos', producto.toJson());
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -91,7 +100,10 @@ class ProductoService {
         } catch (_) {}
         return (ok: true, error: null, producto: creado);
       }
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al registrar el producto');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Error al registrar el producto',
+      );
       return (ok: false, error: errorMsg, producto: null);
     } catch (e) {
       return (ok: false, error: 'Error de conexión', producto: null);
@@ -103,8 +115,11 @@ class ProductoService {
     return res.ok;
   }
 
-  Future<({bool ok, String? error})> actualizarProductoConDetalle(Producto producto) async {
-    if (producto.idProducto == null) return (ok: false, error: 'ID de producto nulo');
+  Future<({bool ok, String? error})> actualizarProductoConDetalle(
+    Producto producto,
+  ) async {
+    if (producto.idProducto == null)
+      return (ok: false, error: 'ID de producto nulo');
     try {
       final response = await _apiClient.put(
         '/productos/${producto.idProducto}',
@@ -114,7 +129,10 @@ class ProductoService {
         invalidateCache();
         return (ok: true, error: null);
       }
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al actualizar el producto');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Error al actualizar el producto',
+      );
       return (ok: false, error: errorMsg);
     } catch (e) {
       return (ok: false, error: 'Error de conexión');
@@ -144,7 +162,9 @@ class ProductoService {
       final response = await _apiClient.get('/productos/marcas');
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
-        return list.map((item) => MarcaInfo.fromJson(item as Map<String, dynamic>)).toList();
+        return list
+            .map((item) => MarcaInfo.fromJson(item as Map<String, dynamic>))
+            .toList();
       }
     } catch (_) {}
 

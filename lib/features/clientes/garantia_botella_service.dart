@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../../core/api_client.dart';
 import 'garantia_botella_model.dart';
 
@@ -23,10 +25,14 @@ class GarantiaBotellaService {
     String? query,
     bool forceRefresh = false,
   }) async {
-    final hasFilter = (query != null && query.trim().isNotEmpty) ||
+    final hasFilter =
+        (query != null && query.trim().isNotEmpty) ||
         (estado != null && estado.trim().isNotEmpty && estado != 'TODAS');
 
-    if (!forceRefresh && !hasFilter && _cachedGarantias != null && _cacheTimestamp != null) {
+    if (!forceRefresh &&
+        !hasFilter &&
+        _cachedGarantias != null &&
+        _cacheTimestamp != null) {
       if (DateTime.now().difference(_cacheTimestamp!) < _cacheDuration) {
         return List<GarantiaBotella>.from(_cachedGarantias!);
       }
@@ -49,7 +55,9 @@ class GarantiaBotellaService {
 
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
-        final items = list.map((j) => GarantiaBotella.fromJson(j as Map<String, dynamic>)).toList();
+        final items = list
+            .map((j) => GarantiaBotella.fromJson(j as Map<String, dynamic>))
+            .toList();
 
         if (!hasFilter) {
           _cachedGarantias = items;
@@ -57,10 +65,14 @@ class GarantiaBotellaService {
         }
         return List<GarantiaBotella>.from(items);
       }
-      return _cachedGarantias != null ? List<GarantiaBotella>.from(_cachedGarantias!) : [];
+      return _cachedGarantias != null
+          ? List<GarantiaBotella>.from(_cachedGarantias!)
+          : [];
     } catch (e) {
       debugPrint('Error en getGarantias: $e');
-      return _cachedGarantias != null ? List<GarantiaBotella>.from(_cachedGarantias!) : [];
+      return _cachedGarantias != null
+          ? List<GarantiaBotella>.from(_cachedGarantias!)
+          : [];
     }
   }
 
@@ -68,7 +80,8 @@ class GarantiaBotellaService {
     try {
       final response = await _apiClient.get('/garantias-botellas/resumen');
       if (response.statusCode == 200) {
-        final map = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final map =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         return ResumenGarantias.fromJson(map);
       }
       return null;
@@ -82,9 +95,14 @@ class GarantiaBotellaService {
     final response = await _apiClient.post('/garantias-botellas', data);
     if (response.statusCode == 200 || response.statusCode == 201) {
       invalidateCache();
-      return GarantiaBotella.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+      return GarantiaBotella.fromJson(
+        jsonDecode(utf8.decode(response.bodyBytes)),
+      );
     }
-    final msg = ApiClient.extractErrorMessage(response, 'No se pudo registrar la garantía de botellas');
+    final msg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo registrar la garantía de botellas',
+    );
     throw Exception(msg);
   }
 
@@ -105,12 +123,20 @@ class GarantiaBotellaService {
       body['notas'] = notas.trim();
     }
 
-    final response = await _apiClient.post('/garantias-botellas/$idGarantia/devolver', body);
+    final response = await _apiClient.post(
+      '/garantias-botellas/$idGarantia/devolver',
+      body,
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
       invalidateCache();
-      return GarantiaBotella.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+      return GarantiaBotella.fromJson(
+        jsonDecode(utf8.decode(response.bodyBytes)),
+      );
     }
-    final msg = ApiClient.extractErrorMessage(response, 'No se pudo registrar la devolución de botellas');
+    final msg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo registrar la devolución de botellas',
+    );
     throw Exception(msg);
   }
 
@@ -120,7 +146,10 @@ class GarantiaBotellaService {
       invalidateCache();
       return;
     }
-    final msg = ApiClient.extractErrorMessage(response, 'No se pudo eliminar la garantía');
+    final msg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo eliminar la garantía',
+    );
     throw Exception(msg);
   }
 }

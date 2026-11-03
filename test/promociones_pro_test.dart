@@ -40,63 +40,69 @@ void main() {
       expect(map['tipoPromocion'], 'PORCENTAJE');
     });
 
-    test('Promocion with scheduled dates serializes and deserializes correctly', () {
-      final json = {
-        'idPromocion': 25,
-        'idBodega': 3,
-        'titulo': 'Semana Coca-Cola 20% OFF',
-        'descripcion': 'Promoción programada de bebidas de marca Coca-Cola',
-        'tipoPromocion': 'PORCENTAJE',
-        'alcance': 'MARCA',
-        'valorDescuento': 20.0,
-        'marcaObjetivo': 'Coca Cola',
-        'badgeTexto': '🔥 -20%',
-        'colorBadge': '#EF4444',
-        'fechaInicio': '2026-11-05',
-        'fechaFin': '2026-11-12',
-        'activo': true,
-      };
+    test(
+      'Promocion with scheduled dates serializes and deserializes correctly',
+      () {
+        final json = {
+          'idPromocion': 25,
+          'idBodega': 3,
+          'titulo': 'Semana Coca-Cola 20% OFF',
+          'descripcion': 'Promoción programada de bebidas de marca Coca-Cola',
+          'tipoPromocion': 'PORCENTAJE',
+          'alcance': 'MARCA',
+          'valorDescuento': 20.0,
+          'marcaObjetivo': 'Coca Cola',
+          'badgeTexto': '🔥 -20%',
+          'colorBadge': '#EF4444',
+          'fechaInicio': '2026-11-05',
+          'fechaFin': '2026-11-12',
+          'activo': true,
+        };
 
-      final promo = Promocion.fromJson(json);
+        final promo = Promocion.fromJson(json);
 
-      expect(promo.fechaInicio, '2026-11-05');
-      expect(promo.fechaFin, '2026-11-12');
-      expect(promo.marcaObjetivo, 'Coca Cola');
+        expect(promo.fechaInicio, '2026-11-05');
+        expect(promo.fechaFin, '2026-11-12');
+        expect(promo.marcaObjetivo, 'Coca Cola');
 
-      final map = promo.toJson();
-      expect(map['fechaInicio'], '2026-11-05');
-      expect(map['fechaFin'], '2026-11-12');
-    });
+        final map = promo.toJson();
+        expect(map['fechaInicio'], '2026-11-05');
+        expect(map['fechaFin'], '2026-11-12');
+      },
+    );
 
-    test('Promocion 3x2 (TRES_POR_DOS) serializes and deserializes correctly', () {
-      final json = {
-        'idPromocion': 33,
-        'idBodega': 3,
-        'titulo': '¡Lleva 3 Paga 2 en Galletas Casino!',
-        'descripcion': 'Por la compra de 3 paquetes pagas solo 2',
-        'tipoPromocion': 'TRES_POR_DOS',
-        'alcance': 'PRODUCTO',
-        'idProductoPrincipal': 105,
-        'nombreProductoPrincipal': 'Galleta Casino Chocolate',
-        'badgeTexto': '🎁 3x2',
-        'colorBadge': '#2563EB',
-        'activo': true,
-      };
+    test(
+      'Promocion 3x2 (TRES_POR_DOS) serializes and deserializes correctly',
+      () {
+        final json = {
+          'idPromocion': 33,
+          'idBodega': 3,
+          'titulo': '¡Lleva 3 Paga 2 en Galletas Casino!',
+          'descripcion': 'Por la compra de 3 paquetes pagas solo 2',
+          'tipoPromocion': 'TRES_POR_DOS',
+          'alcance': 'PRODUCTO',
+          'idProductoPrincipal': 105,
+          'nombreProductoPrincipal': 'Galleta Casino Chocolate',
+          'badgeTexto': '🎁 3x2',
+          'colorBadge': '#2563EB',
+          'activo': true,
+        };
 
-      final promo = Promocion.fromJson(json);
+        final promo = Promocion.fromJson(json);
 
-      expect(promo.idPromocion, 33);
-      expect(promo.tipoPromocion, 'TRES_POR_DOS');
-      expect(promo.idProductoPrincipal, 105);
-      expect(promo.nombreProductoPrincipal, 'Galleta Casino Chocolate');
-      expect(promo.badgeTexto, '🎁 3x2');
-      expect(promo.activo, isTrue);
+        expect(promo.idPromocion, 33);
+        expect(promo.tipoPromocion, 'TRES_POR_DOS');
+        expect(promo.idProductoPrincipal, 105);
+        expect(promo.nombreProductoPrincipal, 'Galleta Casino Chocolate');
+        expect(promo.badgeTexto, '🎁 3x2');
+        expect(promo.activo, isTrue);
 
-      final map = promo.toJson();
-      expect(map['idPromocion'], 33);
-      expect(map['tipoPromocion'], 'TRES_POR_DOS');
-      expect(map['badgeTexto'], '🎁 3x2');
-    });
+        final map = promo.toJson();
+        expect(map['idPromocion'], 33);
+        expect(map['tipoPromocion'], 'TRES_POR_DOS');
+        expect(map['badgeTexto'], '🎁 3x2');
+      },
+    );
 
     test('Promocion 3x2 calculation logic produces exact trios discount', () {
       const double precioUnitario = 4.50;
@@ -130,48 +136,55 @@ void main() {
       expect(calcularDescuento3x2(9), 13.50);
     });
 
-    test('SugerenciaComboHueso deserializes financial & strategic combo metrics', () {
-      final json = {
-        'idProductoHueso': 45,
-        'nombreHueso': 'Galletas Chocochips 6pk',
-        'categoriaHueso': 'Golosinas',
-        'imagenUrlHueso': 'https://cajaya-pos.onrender.com/packshots/chocochips.png',
-        'stockHueso': 18.0,
-        'costoHueso': 2.80,
-        'precioRegularHueso': 4.50,
-        'capitalInmovilizado': 50.40,
-        'idProductoEstrella': 88,
-        'nombreEstrella': 'Inca Kola 500ml',
-        'categoriaEstrella': 'Bebidas',
-        'imagenUrlEstrella': 'https://cajaya-pos.onrender.com/packshots/inca_kola.png',
-        'precioRegularEstrella': 3.50,
-        'tituloSugerido': 'Combo Dúo: Chocochips + Inca Kola',
-        'descripcionSugerida': 'Lleva ambos con 15% de descuento.',
-        'precioRegularTotal': 8.00,
-        'precioComboSugerido': 6.80,
-        'ahorroCliente': 1.20,
-        'porcentajeDescuentoSugerido': 15.0,
-        'razonEstrategica': 'Libera S/ 50.40 inmovilizados combinando este producto con tu gaseosa estrella.',
-        'badgeSugerido': '⭐ COMBO -15%',
-      };
+    test(
+      'SugerenciaComboHueso deserializes financial & strategic combo metrics',
+      () {
+        final json = {
+          'idProductoHueso': 45,
+          'nombreHueso': 'Galletas Chocochips 6pk',
+          'categoriaHueso': 'Golosinas',
+          'imagenUrlHueso':
+              'https://cajaya-pos.onrender.com/packshots/chocochips.png',
+          'stockHueso': 18.0,
+          'costoHueso': 2.80,
+          'precioRegularHueso': 4.50,
+          'capitalInmovilizado': 50.40,
+          'idProductoEstrella': 88,
+          'nombreEstrella': 'Inca Kola 500ml',
+          'categoriaEstrella': 'Bebidas',
+          'imagenUrlEstrella':
+              'https://cajaya-pos.onrender.com/packshots/inca_kola.png',
+          'precioRegularEstrella': 3.50,
+          'tituloSugerido': 'Combo Dúo: Chocochips + Inca Kola',
+          'descripcionSugerida': 'Lleva ambos con 15% de descuento.',
+          'precioRegularTotal': 8.00,
+          'precioComboSugerido': 6.80,
+          'ahorroCliente': 1.20,
+          'porcentajeDescuentoSugerido': 15.0,
+          'razonEstrategica': 'Libera S/ 50.40 inmovilizados combinando este producto con tu gaseosa estrella.',
+          'badgeSugerido': '⭐ COMBO -15%',
+        };
 
-      final sug = SugerenciaComboHueso.fromJson(json);
+        final sug = SugerenciaComboHueso.fromJson(json);
 
-      expect(sug.idProductoHueso, 45);
-      expect(sug.nombreHueso, 'Galletas Chocochips 6pk');
-      expect(sug.capitalInmovilizado, 50.40);
-      expect(sug.idProductoEstrella, 88);
-      expect(sug.precioRegularTotal, 8.00);
-      expect(sug.precioComboSugerido, 6.80);
-      expect(sug.ahorroCliente, 1.20);
-      expect(sug.porcentajeDescuentoSugerido, 15.0);
-      expect(sug.badgeSugerido, '⭐ COMBO -15%');
-      expect(sug.razonEstrategica, contains('Libera S/ 50.40'));
-    });
+        expect(sug.idProductoHueso, 45);
+        expect(sug.nombreHueso, 'Galletas Chocochips 6pk');
+        expect(sug.capitalInmovilizado, 50.40);
+        expect(sug.idProductoEstrella, 88);
+        expect(sug.precioRegularTotal, 8.00);
+        expect(sug.precioComboSugerido, 6.80);
+        expect(sug.ahorroCliente, 1.20);
+        expect(sug.porcentajeDescuentoSugerido, 15.0);
+        expect(sug.badgeSugerido, '⭐ COMBO -15%');
+        expect(sug.razonEstrategica, contains('Libera S/ 50.40'));
+      },
+    );
   });
 
   group('PromocionesScreen UI & Security Tests', () {
-    testWidgets('PromocionesScreen renders lock screen when isPro is false', (tester) async {
+    testWidgets('PromocionesScreen renders lock screen when isPro is false', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(800, 1000));
 
       await tester.pumpWidget(
@@ -187,29 +200,32 @@ void main() {
 
       expect(find.text('Módulo Exclusivo Plan Minimarket PRO'), findsOneWidget);
       expect(find.text('Mejorar a Plan PRO (S/ 100 /mes)'), findsOneWidget);
-      expect(find.textContaining('descuentos estratégicos por marcas'), findsOneWidget);
-    });
-
-    testWidgets('PromocionesScreen renders navigation tabs and action buttons when isPro is true', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1000));
-
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: PromocionesScreen(
-            isPro: true,
-            nombreBodega: 'Bodega KARLIZ',
-          ),
-        ),
+      expect(
+        find.textContaining('descuentos estratégicos por marcas'),
+        findsOneWidget,
       );
-
-      await tester.pump();
-
-      expect(find.text('Promociones y Descuentos'), findsOneWidget);
-      expect(find.text('PRO'), findsOneWidget);
-      expect(find.text('Bodega KARLIZ'), findsOneWidget);
-      expect(find.text('NUEVA'), findsOneWidget);
-      expect(find.textContaining('Promociones ('), findsOneWidget);
-      expect(find.textContaining('Combos Huesos ('), findsOneWidget);
     });
+
+    testWidgets(
+      'PromocionesScreen renders navigation tabs and action buttons when isPro is true',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 1000));
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: PromocionesScreen(isPro: true, nombreBodega: 'Bodega KARLIZ'),
+          ),
+        );
+
+        await tester.pump();
+
+        expect(find.text('Promociones y Descuentos'), findsOneWidget);
+        expect(find.text('PRO'), findsOneWidget);
+        expect(find.text('Bodega KARLIZ'), findsOneWidget);
+        expect(find.text('NUEVA'), findsOneWidget);
+        expect(find.textContaining('Promociones ('), findsOneWidget);
+        expect(find.textContaining('Combos Huesos ('), findsOneWidget);
+      },
+    );
   });
 }

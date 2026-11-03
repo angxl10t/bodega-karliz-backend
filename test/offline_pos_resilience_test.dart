@@ -13,9 +13,19 @@ void main() {
       expect(uuid1, isNot(equals(uuid2)));
 
       // Regex para validar formato UUID v4: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-      final uuidV4Regex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
-      expect(uuidV4Regex.hasMatch(uuid1), isTrue, reason: 'UUID 1 debe cumplir con el estándar RFC 4122 v4');
-      expect(uuidV4Regex.hasMatch(uuid2), isTrue, reason: 'UUID 2 debe cumplir con el estándar RFC 4122 v4');
+      final uuidV4Regex = RegExp(
+        r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+      );
+      expect(
+        uuidV4Regex.hasMatch(uuid1),
+        isTrue,
+        reason: 'UUID 1 debe cumplir con el estándar RFC 4122 v4',
+      );
+      expect(
+        uuidV4Regex.hasMatch(uuid2),
+        isTrue,
+        reason: 'UUID 2 debe cumplir con el estándar RFC 4122 v4',
+      );
     });
 
     test('UuidHelper generates local ticket numbers', () {
@@ -23,52 +33,55 @@ void main() {
       expect(ticket.startsWith('TK-OFF-'), isTrue);
     });
 
-    test('OfflineVenta serializes and deserializes cleanly without data loss', () {
-      final uuid = UuidHelper.generateV4();
-      final venta = OfflineVenta(
-        uuid: uuid,
-        localTicket: 'TK-OFF-12345',
-        idBodega: 3,
-        idCliente: 10,
-        clienteDocumento: '72345678',
-        clienteNombre: 'Juan Perez',
-        metodoPago: 'Efectivo',
-        tipoComprobante: 'BOLETA_ELECTRONICA',
-        montoRecibido: 50.0,
-        vuelto: 15.0,
-        total: 35.0,
-        usuarioRegistro: 'admin_karliz',
-        fechaCreacion: DateTime(2026, 10, 25, 2, 0),
-        detalles: [
-          OfflineVentaDetalle(
-            idProducto: 1,
-            nombreProducto: 'Inca Kola 500ml',
-            cantidad: 2.0,
-            precioUnitario: 3.5,
-            subtotal: 7.0,
-            codigo: 'BEB-001',
-          ),
-          OfflineVentaDetalle(
-            idProducto: 2,
-            nombreProducto: 'Arroz Costeño 1kg',
-            cantidad: 4.0,
-            precioUnitario: 7.0,
-            subtotal: 28.0,
-            codigo: 'ABAR-001',
-          ),
-        ],
-      );
+    test(
+      'OfflineVenta serializes and deserializes cleanly without data loss',
+      () {
+        final uuid = UuidHelper.generateV4();
+        final venta = OfflineVenta(
+          uuid: uuid,
+          localTicket: 'TK-OFF-12345',
+          idBodega: 3,
+          idCliente: 10,
+          clienteDocumento: '72345678',
+          clienteNombre: 'Juan Perez',
+          metodoPago: 'Efectivo',
+          tipoComprobante: 'BOLETA_ELECTRONICA',
+          montoRecibido: 50.0,
+          vuelto: 15.0,
+          total: 35.0,
+          usuarioRegistro: 'admin_karliz',
+          fechaCreacion: DateTime(2026, 10, 25, 2, 0),
+          detalles: [
+            OfflineVentaDetalle(
+              idProducto: 1,
+              nombreProducto: 'Inca Kola 500ml',
+              cantidad: 2.0,
+              precioUnitario: 3.5,
+              subtotal: 7.0,
+              codigo: 'BEB-001',
+            ),
+            OfflineVentaDetalle(
+              idProducto: 2,
+              nombreProducto: 'Arroz Costeño 1kg',
+              cantidad: 4.0,
+              precioUnitario: 7.0,
+              subtotal: 28.0,
+              codigo: 'ABAR-001',
+            ),
+          ],
+        );
 
-      final json = venta.toJson();
-      final decoded = OfflineVenta.fromJson(json);
+        final json = venta.toJson();
+        final decoded = OfflineVenta.fromJson(json);
 
-      expect(decoded.uuid, equals(uuid));
-      expect(decoded.localTicket, equals('TK-OFF-12345'));
-      expect(decoded.total, equals(35.0));
-      expect(decoded.detalles.length, equals(2));
-      expect(decoded.detalles[0].nombreProducto, equals('Inca Kola 500ml'));
-      expect(decoded.detalles[1].subtotal, equals(28.0));
-    });
+        expect(decoded.uuid, equals(uuid));
+        expect(decoded.localTicket, equals('TK-OFF-12345'));
+        expect(decoded.total, equals(35.0));
+        expect(decoded.detalles.length, equals(2));
+        expect(decoded.detalles[0].nombreProducto, equals('Inca Kola 500ml'));
+        expect(decoded.detalles[1].subtotal, equals(28.0));
+      },
+    );
 
     test('OfflineVenta converts to VentaEnvio preserving IdempotencyKey', () {
       final uuid = UuidHelper.generateV4();

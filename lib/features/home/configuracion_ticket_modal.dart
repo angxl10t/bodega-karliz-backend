@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../../core/thermal_ticket_service.dart';
@@ -18,7 +19,8 @@ class ConfiguracionTicketModal extends StatefulWidget {
   }
 
   @override
-  State<ConfiguracionTicketModal> createState() => _ConfiguracionTicketModalState();
+  State<ConfiguracionTicketModal> createState() =>
+      _ConfiguracionTicketModalState();
 }
 
 class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
@@ -98,7 +100,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
       abrirGaveta: _abrirGaveta,
       impresionAutomatica: _impresionAutomatica,
       modoConexion: _modoConexion,
-      servidorLocalUrl: _servidorLocalCtrl.text.trim().isEmpty ? 'http://127.0.0.1:40213/' : _servidorLocalCtrl.text.trim(),
+      servidorLocalUrl: _servidorLocalCtrl.text.trim().isEmpty
+          ? 'http://127.0.0.1:40213/'
+          : _servidorLocalCtrl.text.trim(),
       mensajeAgradecimiento: _agradecimientoCtrl.text.trim(),
       mensajeSecundario: _secundarioCtrl.text.trim(),
       horarioAtencion: _horarioCtrl.text.trim(),
@@ -135,8 +139,18 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
     final cfg = _obtenerConfiguracionActual();
 
     final testItems = [
-      TicketItem(nombre: 'Gaseosa Inka Cola 500ml', cantidad: 2, precioUnitario: 3.50, subtotal: 7.00),
-      TicketItem(nombre: 'Galletas Rellenitas Chocolate', cantidad: 3, precioUnitario: 1.00, subtotal: 3.00),
+      TicketItem(
+        nombre: 'Gaseosa Inka Cola 500ml',
+        cantidad: 2,
+        precioUnitario: 3.50,
+        subtotal: 7.00,
+      ),
+      TicketItem(
+        nombre: 'Galletas Rellenitas Chocolate',
+        cantidad: 3,
+        precioUnitario: 1.00,
+        subtotal: 3.00,
+      ),
     ];
 
     final testEscPosBytes = ThermalTicketService.generateEscPosBytes(
@@ -183,7 +197,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(res.mensaje),
-          backgroundColor: res.exito ? AppTheme.accentGreen : const Color(0xFFEF4444),
+          backgroundColor: res.exito
+              ? AppTheme.accentGreen
+              : const Color(0xFFEF4444),
           duration: const Duration(seconds: 4),
         ),
       );
@@ -200,14 +216,20 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
       backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: isDark ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1.2) : BorderSide.none,
+        side: isDark
+            ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1.2)
+            : BorderSide.none,
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620, maxHeight: 720),
         child: _isLoading
             ? const SizedBox(
                 height: 250,
-                child: Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary)),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: AppTheme.brandPrimary,
+                  ),
+                ),
               )
             : Form(
                 key: _formKey,
@@ -215,7 +237,10 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                   children: [
                     // Encabezado
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
                       decoration: BoxDecoration(
                         border: Border(bottom: BorderSide(color: borderColor)),
                       ),
@@ -224,10 +249,16 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                              color: AppTheme.brandPrimary.withValues(
+                                alpha: 0.12,
+                              ),
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: const Icon(LucideIcons.printer, color: AppTheme.brandPrimary, size: 22),
+                            child: const Icon(
+                              LucideIcons.printer,
+                              color: AppTheme.brandPrimary,
+                              size: 22,
+                            ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -239,7 +270,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
                                 ),
                                 Text(
@@ -247,7 +280,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -271,7 +306,11 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // SECCIÓN 1: HARDWARE Y COMANDOS
-                            _buildSectionHeader('1. Hardware & Impresora', LucideIcons.cpu, isDark),
+                            _buildSectionHeader(
+                              '1. Hardware & Impresora',
+                              LucideIcons.cpu,
+                              isDark,
+                            ),
                             const SizedBox(height: 12),
                             Container(
                               padding: const EdgeInsets.all(16),
@@ -288,31 +327,55 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               'Ancho de Papel Térmico',
-                                              style: GoogleFonts.plusJakartaSans(
-                                                fontSize: 13.5,
-                                                fontWeight: FontWeight.w700,
-                                                color: isDark ? Colors.white : AppTheme.textDark,
-                                              ),
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13.5,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : AppTheme.textDark,
+                                                  ),
                                             ),
                                             Text(
                                               '58mm (32 cols portátil) ó 80mm (48 cols mesón)',
-                                              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isDark
+                                                        ? AppTheme
+                                                              .textDarkSecondary
+                                                        : const Color(
+                                                            0xFF334155,
+                                                          ),
+                                                  ),
                                             ),
                                           ],
                                         ),
                                       ),
                                       SegmentedButton<int>(
                                         segments: const [
-                                          ButtonSegment(value: ThermalTicketService.width58mm, label: Text('58 mm')),
-                                          ButtonSegment(value: ThermalTicketService.width80mm, label: Text('80 mm')),
+                                          ButtonSegment(
+                                            value:
+                                                ThermalTicketService.width58mm,
+                                            label: Text('58 mm'),
+                                          ),
+                                          ButtonSegment(
+                                            value:
+                                                ThermalTicketService.width80mm,
+                                            label: Text('80 mm'),
+                                          ),
                                         ],
                                         selected: {_anchoPapel},
                                         onSelectionChanged: (val) {
-                                          setState(() => _anchoPapel = val.first);
+                                          setState(
+                                            () => _anchoPapel = val.first,
+                                          );
                                         },
                                       ),
                                     ],
@@ -328,15 +391,24 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                     subtitle: Text(
                                       'Envía pulso ESC/POS a la gaveta al cobrar en efectivo',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
                                     ),
                                     value: _abrirGaveta,
-                                    onChanged: (val) => setState(() => _abrirGaveta = val),
+                                    onChanged: (val) =>
+                                        setState(() => _abrirGaveta = val),
                                   ),
                                   const Divider(height: 20),
 
@@ -349,15 +421,25 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                     subtitle: Text(
                                       'Imprime el ticket inmediatamente al completar la venta',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
                                     ),
                                     value: _impresionAutomatica,
-                                    onChanged: (val) => setState(() => _impresionAutomatica = val),
+                                    onChanged: (val) => setState(
+                                      () => _impresionAutomatica = val,
+                                    ),
                                   ),
                                   const Divider(height: 20),
 
@@ -367,32 +449,47 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 13.5,
                                       fontWeight: FontWeight.w700,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   DropdownButtonFormField<String>(
                                     initialValue: _modoConexion,
                                     decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 10,
+                                          ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                     items: const [
                                       DropdownMenuItem(
                                         value: 'rawbt',
-                                        child: Text('RawBT Driver (Bluetooth SPP/BLE y USB)'),
+                                        child: Text(
+                                          'RawBT Driver (Bluetooth SPP/BLE y USB)',
+                                        ),
                                       ),
                                       DropdownMenuItem(
                                         value: 'servidor_local',
-                                        child: Text('Servidor Local HTTP (127.0.0.1:40213)'),
+                                        child: Text(
+                                          'Servidor Local HTTP (127.0.0.1:40213)',
+                                        ),
                                       ),
                                       DropdownMenuItem(
                                         value: 'navegador',
-                                        child: Text('Navegador Web / Vista Previa'),
+                                        child: Text(
+                                          'Navegador Web / Vista Previa',
+                                        ),
                                       ),
                                     ],
                                     onChanged: (val) {
-                                      if (val != null) setState(() => _modoConexion = val);
+                                      if (val != null)
+                                        setState(() => _modoConexion = val);
                                     },
                                   ),
                                   if (_modoConexion == 'servidor_local') ...[
@@ -400,9 +497,14 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     TextFormField(
                                       controller: _servidorLocalCtrl,
                                       decoration: InputDecoration(
-                                        labelText: 'URL del Servidor de Impresión',
+                                        labelText:
+                                            'URL del Servidor de Impresión',
                                         hintText: 'http://127.0.0.1:40213/',
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -413,7 +515,11 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                             const SizedBox(height: 20),
 
                             // SECCIÓN 2: PERSONALIZACIÓN DEL PIE DE TICKET
-                            _buildSectionHeader('2. Pie de Ticket & Agradecimiento', LucideIcons.fileText, isDark),
+                            _buildSectionHeader(
+                              '2. Pie de Ticket & Agradecimiento',
+                              LucideIcons.fileText,
+                              isDark,
+                            ),
                             const SizedBox(height: 12),
                             Container(
                               padding: const EdgeInsets.all(16),
@@ -429,7 +535,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     decoration: InputDecoration(
                                       labelText: 'Mensaje de Agradecimiento',
                                       hintText: '¡Gracias por su compra! Vuelva pronto.',
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 12),
@@ -438,7 +546,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     decoration: InputDecoration(
                                       labelText: 'Leyenda / Garantía',
                                       hintText: 'Conserve su comprobante para cambios',
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 12),
@@ -447,7 +557,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     decoration: InputDecoration(
                                       labelText: 'Horario de Atención',
                                       hintText: 'Atención: Lun-Dom 7:00 am - 11:00 pm',
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 12),
@@ -456,7 +568,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                     decoration: InputDecoration(
                                       labelText: 'Redes Sociales o WhatsApp',
                                       hintText: 'WhatsApp: 987 654 321 | @bodegakarliz',
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -466,7 +580,11 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                             const SizedBox(height: 20),
 
                             // SECCIÓN 3: CÓDIGO QR DE PAGO (YAPE / PLIN)
-                            _buildSectionHeader('3. Código QR de Cobro (Yape / Plin)', LucideIcons.qrCode, isDark),
+                            _buildSectionHeader(
+                              '3. Código QR de Cobro (Yape / Plin)',
+                              LucideIcons.qrCode,
+                              isDark,
+                            ),
                             const SizedBox(height: 12),
                             Container(
                               padding: const EdgeInsets.all(16),
@@ -480,68 +598,133 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                 children: [
                                   SwitchListTile(
                                     contentPadding: EdgeInsets.zero,
-                                    activeTrackColor: const Color(0xFF7C3AED), // Púrpura Yape
+                                    activeTrackColor: const Color(
+                                      0xFF7C3AED,
+                                    ), // Púrpura Yape
                                     title: Text(
                                       'Imprimir Código QR en el Ticket',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w700,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                     subtitle: Text(
                                       'Permite a los clientes pagar escaneando el papel térmico',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
                                     ),
                                     value: _mostrarQr,
-                                    onChanged: (val) => setState(() => _mostrarQr = val),
+                                    onChanged: (val) =>
+                                        setState(() => _mostrarQr = val),
                                   ),
                                   if (_mostrarQr) ...[
                                     const Divider(height: 20),
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: DropdownButtonFormField<String>(
-                                            initialValue: (_tipoQr == 'SUNAT' ? 'YAPE' : _tipoQr),
-                                            decoration: InputDecoration(
-                                              labelText: 'Destino del Código QR',
-                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                            ),
-                                            items: const [
-                                              DropdownMenuItem(value: 'YAPE', child: Text('Yape (Cobro Digital)')),
-                                              DropdownMenuItem(value: 'PLIN', child: Text('Plin (Cobro Digital)')),
-                                              DropdownMenuItem(value: 'CATALOGO', child: Text('Catálogo Digital de la Bodega (PRO)')),
-                                              DropdownMenuItem(value: 'PERSONALIZADO', child: Text('Enlace o Texto Personalizado')),
-                                            ],
-                                            onChanged: (val) {
-                                              if (val != null) setState(() => _tipoQr = val);
-                                            },
-                                          ),
+                                          child:
+                                              DropdownButtonFormField<String>(
+                                                initialValue:
+                                                    (_tipoQr == 'SUNAT'
+                                                    ? 'YAPE'
+                                                    : _tipoQr),
+                                                decoration: InputDecoration(
+                                                  labelText:
+                                                      'Destino del Código QR',
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                ),
+                                                items: const [
+                                                  DropdownMenuItem(
+                                                    value: 'YAPE',
+                                                    child: Text(
+                                                      'Yape (Cobro Digital)',
+                                                    ),
+                                                  ),
+                                                  DropdownMenuItem(
+                                                    value: 'PLIN',
+                                                    child: Text(
+                                                      'Plin (Cobro Digital)',
+                                                    ),
+                                                  ),
+                                                  DropdownMenuItem(
+                                                    value: 'CATALOGO',
+                                                    child: Text(
+                                                      'Catálogo Digital de la Bodega (PRO)',
+                                                    ),
+                                                  ),
+                                                  DropdownMenuItem(
+                                                    value: 'PERSONALIZADO',
+                                                    child: Text(
+                                                      'Enlace o Texto Personalizado',
+                                                    ),
+                                                  ),
+                                                ],
+                                                onChanged: (val) {
+                                                  if (val != null)
+                                                    setState(
+                                                      () => _tipoQr = val,
+                                                    );
+                                                },
+                                              ),
                                         ),
                                       ],
                                     ),
                                     const SizedBox(height: 12),
                                     TextFormField(
                                       controller: _numeroQrCtrl,
-                                      keyboardType: (_tipoQr == 'YAPE' || _tipoQr == 'PLIN') ? TextInputType.phone : TextInputType.url,
+                                      keyboardType:
+                                          (_tipoQr == 'YAPE' ||
+                                              _tipoQr == 'PLIN')
+                                          ? TextInputType.phone
+                                          : TextInputType.url,
                                       decoration: InputDecoration(
-                                        labelText: (_tipoQr == 'YAPE' || _tipoQr == 'PLIN')
+                                        labelText:
+                                            (_tipoQr == 'YAPE' ||
+                                                _tipoQr == 'PLIN')
                                             ? 'Número de Celular para Cobro'
-                                            : (_tipoQr == 'CATALOGO' ? 'Enlace del Catálogo Online' : 'Enlace o Contenido del QR'),
-                                        hintText: (_tipoQr == 'YAPE' || _tipoQr == 'PLIN')
+                                            : (_tipoQr == 'CATALOGO'
+                                                  ? 'Enlace del Catálogo Online'
+                                                  : 'Enlace o Contenido del QR'),
+                                        hintText:
+                                            (_tipoQr == 'YAPE' ||
+                                                _tipoQr == 'PLIN')
                                             ? '987 654 321'
                                             : 'https://cajaya-pos.onrender.com/#/catalogo?tienda=mi-bodega',
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                    if (_tipoQr == 'YAPE' || _tipoQr == 'PLIN') ...[
+                                    if (_tipoQr == 'YAPE' ||
+                                        _tipoQr == 'PLIN') ...[
                                       const SizedBox(height: 12),
                                       TextFormField(
                                         controller: _titularQrCtrl,
                                         decoration: InputDecoration(
-                                          labelText: 'Nombre del Titular de la Cuenta',
-                                          hintText: 'Carlos Ramirez (Bodega Karliz)',
-                                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                          labelText:
+                                              'Nombre del Titular de la Cuenta',
+                                          hintText:
+                                              'Carlos Ramirez (Bodega Karliz)',
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -556,7 +739,10 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
 
                     // Barra Inferior de Acciones
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: cardBg,
                         border: Border(top: BorderSide(color: borderColor)),
@@ -570,19 +756,32 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppTheme.brandPrimary,
-                              side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              side: const BorderSide(
+                                color: AppTheme.brandPrimary,
+                                width: 1.2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
                             ),
                             icon: _isTesting
                                 ? const SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.brandPrimary),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppTheme.brandPrimary,
+                                    ),
                                   )
                                 : const Icon(LucideIcons.printer, size: 18),
                             label: const Text('Probar Impresora'),
-                            onPressed: (_isTesting || _isSaving) ? null : _probarImpresion,
+                            onPressed: (_isTesting || _isSaving)
+                                ? null
+                                : _probarImpresion,
                           ),
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -596,18 +795,28 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppTheme.brandPrimary,
                                   foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
                                 ),
                                 icon: _isSaving
                                     ? const SizedBox(
                                         width: 16,
                                         height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
                                       )
                                     : const Icon(LucideIcons.check, size: 18),
                                 label: const Text('Guardar'),
-                                onPressed: (_isTesting || _isSaving) ? null : _guardar,
+                                onPressed: (_isTesting || _isSaving)
+                                    ? null
+                                    : _guardar,
                               ),
                             ],
                           ),

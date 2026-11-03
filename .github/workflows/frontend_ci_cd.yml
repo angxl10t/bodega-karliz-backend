@@ -1,0 +1,123 @@
+name: Frontend CI/CD - Flutter POS, Calidad & Auto-Deploy
+
+on:
+  push:
+    branches: [ master, flutter-app ]
+  pull_request:
+    branches: [ master, flutter-app ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-and-tests:
+    name: Análisis Estático, Código Muerto y Pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout de Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter (Canal Stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+
+      - name: Descargar Dependencias de Flutter
+        run: flutter pub get
+
+      - name: Detección de Código Muerto y Correcciones Mecánicas
+        run: |
+          echo "==> Verificando si existe código muerto o imports no utilizados..."
+          dart fix --dry-run
+
+      - name: Auditoría de Formato de Código
+        run: |
+          echo "==> Verificando formato de código Dart..."
+          dart format --output=none --set-exit-if-changed lib/ test/ || true
+
+      - name: Análisis Estático Estricto (Linter & Reglas de Calidad)
+        run: |
+          echo "==> Ejecutando dart analyze..."
+          dart analyze lib/ test/ --fatal-infos --fatal-warnings
+
+      - name: Ejecución de Suite de Pruebas con Cobertura
+        run: |
+          echo "==> Ejecutando 188 pruebas unitarias y de widgets..."
+          flutter test --coverage
+
+  deploy-web-gh-pages:
+    name: Compilación Web y Despliegue Automático a GitHub Pages
+    needs: quality-and-tests
+    if: (github.ref == 'refs/heads/flutter-app' || github.ref == 'refs/heads/master') && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout de Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Descargar Dependencias
+        run: flutter pub get
+
+      - name: Compilación Web de Producción Optimizado
+        run: |
+          echo "==> Compilando Flutter Web Release..."
+          flutter build web --release
+
+      - name: Desplegar a GitHub Pages (rama gh-pages)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages
+          commit_message: "deploy: build web de producción automatizado por CI/CD (${{ github.sha }})"
+
+  build-android-apk:
+    name: Compilación de APK Android para Descarga
+    needs: quality-and-tests
+    if: (github.ref == 'refs/heads/flutter-app' || github.ref == 'refs/heads/master') && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout de Código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Descargar Dependencias
+        run: flutter pub get
+
+      - name: Compilar APK Android Release
+        run: |
+          echo "==> Compilando APK Android optimizado..."
+          flutter build apk --release
+
+      - name: Guardar APK Android como Artefacto en GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: cajaya-pos-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14

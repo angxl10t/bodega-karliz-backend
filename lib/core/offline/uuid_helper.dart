@@ -25,7 +25,10 @@ class UuidHelper {
   /// (ej: `TK-OFF-8392-1729`)
   static String generateLocalTicket(int idBodega) {
     final now = DateTime.now();
-    final millis = (now.millisecondsSinceEpoch % 100000).toString().padLeft(5, '0');
+    final millis = (now.millisecondsSinceEpoch % 100000).toString().padLeft(
+      5,
+      '0',
+    );
     final rand = (_secureRandom.nextInt(900) + 100).toString();
     return 'TK-OFF-$millis-$rand';
   }

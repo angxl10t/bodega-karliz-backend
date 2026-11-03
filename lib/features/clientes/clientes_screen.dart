@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/csv_exporter.dart';
 import '../../core/theme.dart';
 import '../home/bodega_service.dart';
@@ -32,7 +33,8 @@ class ClientesScreen extends StatefulWidget {
   State<ClientesScreen> createState() => _ClientesScreenState();
 }
 
-class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProviderStateMixin {
+class _ClientesScreenState extends State<ClientesScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ClienteService _clienteService = ClienteService();
   final GarantiaBotellaService _garantiaService = GarantiaBotellaService();
@@ -50,7 +52,8 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
   String _filtroEstado = 'todos'; // 'todos', 'deudores', 'al_dia'
 
   String _filtroTextoGarantias = '';
-  String _filtroEstadoGarantias = 'PENDIENTE'; // 'PENDIENTE', 'DEVUELTO', 'TODAS'
+  String _filtroEstadoGarantias =
+      'PENDIENTE'; // 'PENDIENTE', 'DEVUELTO', 'TODAS'
 
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _searchCtrlGarantias = TextEditingController();
@@ -182,7 +185,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
 
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El cliente no tiene un teléfono válido registrado')),
+        const SnackBar(
+          content: Text('El cliente no tiene un teléfono válido registrado'),
+        ),
       );
     }
   }
@@ -190,12 +195,17 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
   Future<void> _exportarCsv() async {
     if (_clientes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay clientes registrados en la libreta para exportar.')),
+        const SnackBar(
+          content: Text(
+            'No hay clientes registrados en la libreta para exportar.',
+          ),
+        ),
       );
       return;
     }
     final now = DateTime.now();
-    final fechaStr = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
+    final fechaStr =
+        "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
     final nombreArchivo = 'libreta_fiados_$fechaStr.csv';
     final csv = CsvExporter.generarCsvClientes(_clientes);
     await CsvExporter.descargarOCompartirCsv(
@@ -205,9 +215,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(kIsWeb
-              ? '¡Libreta de fiados descargada como $nombreArchivo!'
-              : '¡Libreta de fiados exportada y copiada al portapapeles!'),
+          content: Text(
+            kIsWeb
+                ? '¡Libreta de fiados descargada como $nombreArchivo!'
+                : '¡Libreta de fiados exportada y copiada al portapapeles!',
+          ),
           backgroundColor: AppTheme.accentGreen,
         ),
       );
@@ -218,7 +230,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     if (c.tieneDeuda) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No puede eliminar a ${c.nombreCompleto} porque mantiene una deuda pendiente de S/ ${c.saldoDeudor.toStringAsFixed(2)}.'),
+          content: Text(
+            'No puede eliminar a ${c.nombreCompleto} porque mantiene una deuda pendiente de S/ ${c.saldoDeudor.toStringAsFixed(2)}.',
+          ),
           backgroundColor: AppTheme.alertRed,
         ),
       );
@@ -229,14 +243,19 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Dar de Baja Cliente'),
-        content: Text('¿Está seguro de dar de baja a "${c.nombreCompleto}" de la libreta?'),
+        content: Text(
+          '¿Está seguro de dar de baja a "${c.nombreCompleto}" de la libreta?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.alertRed, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.alertRed,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
               try {
@@ -245,7 +264,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                    SnackBar(
+                      content: Text(
+                        e.toString().replaceFirst('Exception: ', ''),
+                      ),
+                    ),
                   );
                 }
               }
@@ -298,11 +321,19 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar Registro'),
-        content: Text('¿Está seguro de eliminar el registro de garantía de botellas para "${g.nombrePersona}"?'),
+        content: Text(
+          '¿Está seguro de eliminar el registro de garantía de botellas para "${g.nombrePersona}"?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.alertRed, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.alertRed,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
               try {
@@ -311,7 +342,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                    SnackBar(
+                      content: Text(
+                        e.toString().replaceFirst('Exception: ', ''),
+                      ),
+                    ),
                   );
                 }
               }
@@ -336,10 +371,19 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     final vecinosDeudores = _resumen?.clientesConDeuda ?? 0;
     final cobradoMes = _resumen?.totalAbonosMes ?? 0.0;
     final totalVecinos = _clientes.length;
-    final vecinosAlDia = (totalVecinos - vecinosDeudores).clamp(0, totalVecinos);
-    final creditoTotal = _clientes.fold<double>(0.0, (acc, c) => acc + c.limiteCredito);
-    final botellasPendientes = _resumenGarantias?.botellasPendientes ??
-        _garantias.where((g) => g.estaPendiente).fold<int>(0, (acc, g) => acc + g.botellasRestantes);
+    final vecinosAlDia = (totalVecinos - vecinosDeudores).clamp(
+      0,
+      totalVecinos,
+    );
+    final creditoTotal = _clientes.fold<double>(
+      0.0,
+      (acc, c) => acc + c.limiteCredito,
+    );
+    final botellasPendientes =
+        _resumenGarantias?.botellasPendientes ??
+        _garantias
+            .where((g) => g.estaPendiente)
+            .fold<int>(0, (acc, g) => acc + g.botellasRestantes);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
@@ -365,7 +409,13 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                   ),
                   Text(
                     'Cuentas por cobrar y control de envases retornables',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF334155),
+                    ),
                   ),
                 ],
               ),
@@ -386,10 +436,17 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
       floatingActionButton: isWide
           ? null
           : FloatingActionButton.extended(
-              backgroundColor: _tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB),
+              backgroundColor: _tabController.index == 0
+                  ? AppTheme.brandPrimary
+                  : const Color(0xFF2563EB),
               foregroundColor: Colors.white,
               elevation: 4,
-              icon: Icon(_tabController.index == 0 ? LucideIcons.userPlus : LucideIcons.wine, size: 18),
+              icon: Icon(
+                _tabController.index == 0
+                    ? LucideIcons.userPlus
+                    : LucideIcons.wine,
+                size: 18,
+              ),
               label: Text(
                 _tabController.index == 0 ? 'Nuevo Vecino' : 'Dejar Botellas',
                 style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
@@ -410,7 +467,10 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
             // 1. Cabecera Compacta Integrada (cuando está embebido en HomeScreen)
             if (!canPop)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 color: cardBg,
                 child: Row(
                   children: [
@@ -420,7 +480,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _tabController.index == 0 ? 'Libreta de Fiados' : 'Garantía de Botellas',
+                            _tabController.index == 0
+                                ? 'Libreta de Fiados'
+                                : 'Garantía de Botellas',
                             style: GoogleFonts.outfit(
                               fontSize: 16.5,
                               fontWeight: FontWeight.w800,
@@ -438,7 +500,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : AppTheme.textMuted,
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -446,7 +510,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                                   width: 3,
                                   height: 3,
                                   decoration: BoxDecoration(
-                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : AppTheme.textMuted,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -459,7 +525,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                     color: vecinosDeudores > 0
-                                        ? (isDark ? const Color(0xFFF87171) : AppTheme.alertRed)
+                                        ? (isDark
+                                              ? const Color(0xFFF87171)
+                                              : AppTheme.alertRed)
                                         : AppTheme.accentGreen,
                                   ),
                                 ),
@@ -474,7 +542,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : AppTheme.textMuted,
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -482,7 +552,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                                   width: 3,
                                   height: 3,
                                   decoration: BoxDecoration(
-                                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : AppTheme.textMuted,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -515,19 +587,30 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                           _exportarCsv();
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: isNarrow ? 7 : 9, vertical: 6.5),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isNarrow ? 7 : 9,
+                            vertical: 6.5,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                            color: isDark
+                                ? AppTheme.cardDarkElevated
+                                : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : const Color(0xFFCBD5E1),
                               width: 0.8,
                             ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(LucideIcons.download, size: 13, color: AppTheme.accentGreen),
+                              const Icon(
+                                LucideIcons.download,
+                                size: 13,
+                                color: AppTheme.accentGreen,
+                              ),
                               if (!isNarrow) ...[
                                 const SizedBox(width: 4),
                                 Text(
@@ -535,7 +618,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                                   style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
                                 ),
                               ],
@@ -556,19 +641,28 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                           _cargarDatos(forceRefresh: true);
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 6.5,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+                            color: isDark
+                                ? AppTheme.cardDarkElevated
+                                : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : const Color(0xFFCBD5E1),
                               width: 0.8,
                             ),
                           ),
                           child: Icon(
                             LucideIcons.refreshCw,
                             size: 13,
-                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF475569),
                           ),
                         ),
                       ),
@@ -589,13 +683,22 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                           }
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: isNarrow ? 8 : 11, vertical: 6.5),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isNarrow ? 8 : 11,
+                            vertical: 6.5,
+                          ),
                           decoration: BoxDecoration(
-                            color: _tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB),
+                            color: _tabController.index == 0
+                                ? AppTheme.brandPrimary
+                                : const Color(0xFF2563EB),
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: (_tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB)).withValues(alpha: 0.3),
+                                color:
+                                    (_tabController.index == 0
+                                            ? AppTheme.brandPrimary
+                                            : const Color(0xFF2563EB))
+                                        .withValues(alpha: 0.3),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -604,11 +707,19 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(_tabController.index == 0 ? LucideIcons.userPlus : LucideIcons.wine, size: 14, color: Colors.white),
+                              Icon(
+                                _tabController.index == 0
+                                    ? LucideIcons.userPlus
+                                    : LucideIcons.wine,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                               if (!isNarrow) ...[
                                 const SizedBox(width: 4),
                                 Text(
-                                  _tabController.index == 0 ? 'Nuevo' : 'Dejar Botellas',
+                                  _tabController.index == 0
+                                      ? 'Nuevo'
+                                      : 'Dejar Botellas',
                                   style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w800,
@@ -657,7 +768,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildTabBar(bool isDark, bool isNarrow, int totalVecinos, int botellasPendientes) {
+  Widget _buildTabBar(
+    bool isDark,
+    bool isNarrow,
+    int totalVecinos,
+    int botellasPendientes,
+  ) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
       padding: const EdgeInsets.all(4),
@@ -668,11 +784,17 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
-          color: _tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB),
+          color: _tabController.index == 0
+              ? AppTheme.brandPrimary
+              : const Color(0xFF2563EB),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: (_tabController.index == 0 ? AppTheme.brandPrimary : const Color(0xFF2563EB)).withValues(alpha: 0.3),
+              color:
+                  (_tabController.index == 0
+                          ? AppTheme.brandPrimary
+                          : const Color(0xFF2563EB))
+                      .withValues(alpha: 0.3),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -680,8 +802,14 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
         ),
         labelColor: Colors.white,
         unselectedLabelColor: isDark ? Colors.white60 : const Color(0xFF475569),
-        labelStyle: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w800),
-        unselectedLabelStyle: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w600),
+        labelStyle: GoogleFonts.outfit(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w800,
+        ),
+        unselectedLabelStyle: GoogleFonts.outfit(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+        ),
         tabs: [
           Tab(
             child: Row(
@@ -689,7 +817,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               children: [
                 const Icon(LucideIcons.bookUser, size: 15),
                 const SizedBox(width: 6),
-                Text(isNarrow ? 'Fiados ($totalVecinos)' : 'Libreta de Fiados ($totalVecinos)'),
+                Text(
+                  isNarrow
+                      ? 'Fiados ($totalVecinos)'
+                      : 'Libreta de Fiados ($totalVecinos)',
+                ),
               ],
             ),
           ),
@@ -699,7 +831,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               children: [
                 const Icon(LucideIcons.wine, size: 15),
                 const SizedBox(width: 6),
-                Text(isNarrow ? 'Botellas ($botellasPendientes)' : 'Garantía Botellas ($botellasPendientes)'),
+                Text(
+                  isNarrow
+                      ? 'Botellas ($botellasPendientes)'
+                      : 'Garantía Botellas ($botellasPendientes)',
+                ),
               ],
             ),
           ),
@@ -733,38 +869,39 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _clientesFiltrados.isEmpty
-                  ? _buildEmptyState(isDark)
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth >= 720) {
-                          return GridView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              ? _buildEmptyState(isDark)
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth >= 720) {
+                      return GridView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
                               maxCrossAxisExtent: 480,
                               mainAxisExtent: 232,
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
                             ),
-                            itemCount: _clientesFiltrados.length,
-                            itemBuilder: (context, idx) {
-                              final c = _clientesFiltrados[idx];
-                              return _buildClienteCard(c, isDark);
-                            },
-                          );
-                        } else {
-                          return ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                            itemCount: _clientesFiltrados.length,
-                            itemBuilder: (context, idx) {
-                              final c = _clientesFiltrados[idx];
-                              return _buildClienteCard(c, isDark);
-                            },
-                          );
-                        }
-                      },
-                    ),
+                        itemCount: _clientesFiltrados.length,
+                        itemBuilder: (context, idx) {
+                          final c = _clientesFiltrados[idx];
+                          return _buildClienteCard(c, isDark);
+                        },
+                      );
+                    } else {
+                      return ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                        itemCount: _clientesFiltrados.length,
+                        itemBuilder: (context, idx) {
+                          final c = _clientesFiltrados[idx];
+                          return _buildClienteCard(c, isDark);
+                        },
+                      );
+                    }
+                  },
+                ),
         ),
       ],
     );
@@ -783,38 +920,39 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _garantiasFiltradas.isEmpty
-                  ? _buildEmptyStateGarantias(isDark)
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth >= 720) {
-                          return GridView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              ? _buildEmptyStateGarantias(isDark)
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth >= 720) {
+                      return GridView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
                               maxCrossAxisExtent: 480,
                               mainAxisExtent: 250,
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
                             ),
-                            itemCount: _garantiasFiltradas.length,
-                            itemBuilder: (context, idx) {
-                              final g = _garantiasFiltradas[idx];
-                              return _buildGarantiaCard(g, isDark);
-                            },
-                          );
-                        } else {
-                          return ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                            itemCount: _garantiasFiltradas.length,
-                            itemBuilder: (context, idx) {
-                              final g = _garantiasFiltradas[idx];
-                              return _buildGarantiaCard(g, isDark);
-                            },
-                          );
-                        }
-                      },
-                    ),
+                        itemCount: _garantiasFiltradas.length,
+                        itemBuilder: (context, idx) {
+                          final g = _garantiasFiltradas[idx];
+                          return _buildGarantiaCard(g, isDark);
+                        },
+                      );
+                    } else {
+                      return ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                        itemCount: _garantiasFiltradas.length,
+                        itemBuilder: (context, idx) {
+                          final g = _garantiasFiltradas[idx];
+                          return _buildGarantiaCard(g, isDark);
+                        },
+                      );
+                    }
+                  },
+                ),
         ),
       ],
     );
@@ -843,8 +981,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: 'S/ ${totalCustodia.toStringAsFixed(2)}',
                     subtitle: 'Garantía retenida en caja',
                     accentColor: const Color(0xFF16A34A),
-                    bgColor: isDark ? const Color(0xFF06231A) : const Color(0xFFECFDF5),
-                    borderColor: isDark ? const Color(0xFF047857).withValues(alpha: 0.6) : const Color(0xFFA7F3D0),
+                    bgColor: isDark
+                        ? const Color(0xFF06231A)
+                        : const Color(0xFFECFDF5),
+                    borderColor: isDark
+                        ? const Color(0xFF047857).withValues(alpha: 0.6)
+                        : const Color(0xFFA7F3D0),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -856,8 +998,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: '$botellasPend botellas',
                     subtitle: 'Por devolver a la bodega',
                     accentColor: AppTheme.warningAmber,
-                    bgColor: isDark ? const Color(0xFF261D0C) : const Color(0xFFFFFBEB),
-                    borderColor: isDark ? AppTheme.warningAmber.withValues(alpha: 0.4) : const Color(0xFFFDE68A),
+                    bgColor: isDark
+                        ? const Color(0xFF261D0C)
+                        : const Color(0xFFFFFBEB),
+                    borderColor: isDark
+                        ? AppTheme.warningAmber.withValues(alpha: 0.4)
+                        : const Color(0xFFFDE68A),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -869,8 +1015,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: '$personasPend personas',
                     subtitle: 'Con botellas pendientes',
                     accentColor: const Color(0xFF2563EB),
-                    bgColor: isDark ? const Color(0xFF101C38) : const Color(0xFFEFF6FF),
-                    borderColor: isDark ? const Color(0xFF1D4ED8).withValues(alpha: 0.6) : const Color(0xFFBFDBFE),
+                    bgColor: isDark
+                        ? const Color(0xFF101C38)
+                        : const Color(0xFFEFF6FF),
+                    borderColor: isDark
+                        ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
+                        : const Color(0xFFBFDBFE),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -880,10 +1030,15 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     icon: LucideIcons.packageCheck,
                     title: 'Devuelto Mes',
                     value: 'S/ ${devueltoMes.toStringAsFixed(2)}',
-                    subtitle: '${_resumenGarantias?.botellasDevueltasMes ?? 0} botellas recuperadas',
+                    subtitle:
+                        '${_resumenGarantias?.botellasDevueltasMes ?? 0} botellas recuperadas',
                     accentColor: const Color(0xFF059669),
-                    bgColor: isDark ? const Color(0xFF042118) : const Color(0xFFECFDF5),
-                    borderColor: isDark ? const Color(0xFF059669).withValues(alpha: 0.5) : const Color(0xFFA7F3D0),
+                    bgColor: isDark
+                        ? const Color(0xFF042118)
+                        : const Color(0xFFECFDF5),
+                    borderColor: isDark
+                        ? const Color(0xFF059669).withValues(alpha: 0.5)
+                        : const Color(0xFFA7F3D0),
                   ),
                 ),
               ],
@@ -899,8 +1054,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: 'S/ ${totalCustodia.toStringAsFixed(2)}',
                     subtitle: '$botellasPend botellas fuera',
                     accentColor: const Color(0xFF16A34A),
-                    bgColor: isDark ? const Color(0xFF06231A) : const Color(0xFFECFDF5),
-                    borderColor: isDark ? const Color(0xFF047857).withValues(alpha: 0.6) : const Color(0xFFA7F3D0),
+                    bgColor: isDark
+                        ? const Color(0xFF06231A)
+                        : const Color(0xFFECFDF5),
+                    borderColor: isDark
+                        ? const Color(0xFF047857).withValues(alpha: 0.6)
+                        : const Color(0xFFA7F3D0),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -910,10 +1069,15 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     icon: LucideIcons.packageCheck,
                     title: 'Devuelto Mes',
                     value: 'S/ ${devueltoMes.toStringAsFixed(2)}',
-                    subtitle: '${_resumenGarantias?.botellasDevueltasMes ?? 0} recuperadas',
+                    subtitle:
+                        '${_resumenGarantias?.botellasDevueltasMes ?? 0} recuperadas',
                     accentColor: const Color(0xFF2563EB),
-                    bgColor: isDark ? const Color(0xFF101C38) : const Color(0xFFEFF6FF),
-                    borderColor: isDark ? const Color(0xFF1D4ED8).withValues(alpha: 0.6) : const Color(0xFFBFDBFE),
+                    bgColor: isDark
+                        ? const Color(0xFF101C38)
+                        : const Color(0xFFEFF6FF),
+                    borderColor: isDark
+                        ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
+                        : const Color(0xFFBFDBFE),
                   ),
                 ),
               ],
@@ -936,9 +1100,13 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
             child: Container(
               height: 42,
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
+                color: isDark
+                    ? AppTheme.cardDarkSunken
+                    : const Color(0xFFF5F6F8),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                ),
               ),
               child: TextField(
                 controller: _searchCtrlGarantias,
@@ -950,8 +1118,17 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 ),
                 decoration: InputDecoration(
                   hintText: 'Buscar persona, teléfono o botella...',
-                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppTheme.textMuted),
-                  prefixIcon: Icon(LucideIcons.search, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    color: AppTheme.textMuted,
+                  ),
+                  prefixIcon: Icon(
+                    LucideIcons.search,
+                    size: 16,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
                   suffixIcon: _filtroTextoGarantias.isNotEmpty
                       ? IconButton(
                           icon: const Icon(LucideIcons.x, size: 15),
@@ -962,7 +1139,10 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         )
                       : null,
                   filled: false,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   border: InputBorder.none,
                 ),
               ),
@@ -973,14 +1153,24 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+              color: isDark
+                  ? AppTheme.cardDarkElevated
+                  : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildFiltroGarantiaChip('PENDIENTE', 'Pendientes ($pendientesCount)', isDark),
-                _buildFiltroGarantiaChip('DEVUELTO', 'Devueltas ($devueltasCount)', isDark),
+                _buildFiltroGarantiaChip(
+                  'PENDIENTE',
+                  'Pendientes ($pendientesCount)',
+                  isDark,
+                ),
+                _buildFiltroGarantiaChip(
+                  'DEVUELTO',
+                  'Devueltas ($devueltasCount)',
+                  isDark,
+                ),
                 _buildFiltroGarantiaChip('TODAS', 'Todas', isDark),
               ],
             ),
@@ -992,13 +1182,18 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               backgroundColor: const Color(0xFF2563EB),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 0,
             ),
             icon: const Icon(LucideIcons.wine, size: 15),
             label: Text(
               'Dejar Botellas',
-              style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w800),
+              style: GoogleFonts.outfit(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             onPressed: _abrirNuevaGarantia,
           ),
@@ -1028,7 +1223,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             color: isSelected
                 ? Colors.white
-                : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569)),
+                : (isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF475569)),
           ),
         ),
       ),
@@ -1064,14 +1261,19 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A))
-                      .withValues(alpha: 0.12),
+                  color:
+                      (isPendiente
+                              ? const Color(0xFFF59E0B)
+                              : const Color(0xFF16A34A))
+                          .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   isPendiente ? LucideIcons.wine : LucideIcons.packageCheck,
                   size: 18,
-                  color: isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A),
+                  color: isPendiente
+                      ? const Color(0xFFF59E0B)
+                      : const Color(0xFF16A34A),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1094,17 +1296,25 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         'Tel: ${g.telefono}',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
-                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
                         ),
                       ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3.5,
+                ),
                 decoration: BoxDecoration(
-                  color: (isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A))
-                      .withValues(alpha: 0.12),
+                  color:
+                      (isPendiente
+                              ? const Color(0xFFF59E0B)
+                              : const Color(0xFF16A34A))
+                          .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1115,7 +1325,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                       height: 6,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isPendiente ? const Color(0xFFF59E0B) : const Color(0xFF16A34A),
+                        color: isPendiente
+                            ? const Color(0xFFF59E0B)
+                            : const Color(0xFF16A34A),
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -1124,7 +1336,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                       style: GoogleFonts.outfit(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        color: isPendiente ? const Color(0xFFD97706) : const Color(0xFF16A34A),
+                        color: isPendiente
+                            ? const Color(0xFFD97706)
+                            : const Color(0xFF16A34A),
                       ),
                     ),
                   ],
@@ -1193,7 +1407,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
-                        color: isPendiente ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
+                        color: isPendiente
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFF2563EB),
                       ),
                     ),
                   ],
@@ -1205,7 +1421,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
 
           Row(
             children: [
-              Icon(LucideIcons.calendar, size: 12, color: isDark ? Colors.white38 : AppTheme.textMuted),
+              Icon(
+                LucideIcons.calendar,
+                size: 12,
+                color: isDark ? Colors.white38 : AppTheme.textMuted,
+              ),
               const SizedBox(width: 4),
               Text(
                 g.fechaRegistro != null
@@ -1218,9 +1438,19 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               ),
               if (g.fechaDevolucion != null) ...[
                 const SizedBox(width: 8),
-                Text('•', style: TextStyle(color: isDark ? Colors.white38 : AppTheme.textMuted, fontSize: 10)),
+                Text(
+                  '•',
+                  style: TextStyle(
+                    color: isDark ? Colors.white38 : AppTheme.textMuted,
+                    fontSize: 10,
+                  ),
+                ),
                 const SizedBox(width: 8),
-                const Icon(LucideIcons.check, size: 12, color: Color(0xFF16A34A)),
+                const Icon(
+                  LucideIcons.check,
+                  size: 12,
+                  color: Color(0xFF16A34A),
+                ),
                 const SizedBox(width: 3),
                 Text(
                   'Devuelto: ${g.fechaDevolucion!.day.toString().padLeft(2, "0")}/${g.fechaDevolucion!.month.toString().padLeft(2, "0")}',
@@ -1233,7 +1463,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               ],
               const Spacer(),
               IconButton(
-                icon: const Icon(LucideIcons.trash2, size: 15, color: Color(0xFFEF4444)),
+                icon: const Icon(
+                  LucideIcons.trash2,
+                  size: 15,
+                  color: Color(0xFFEF4444),
+                ),
                 tooltip: 'Eliminar Registro',
                 onPressed: () => _confirmarEliminarGarantia(g),
               ),
@@ -1249,13 +1483,18 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF16A34A),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   elevation: 0,
                 ),
                 icon: const Icon(LucideIcons.packageCheck, size: 15),
                 label: Text(
                   'Devolver Botella(s) y Entregar S/ ${g.montoRestante.toStringAsFixed(2)}',
-                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800),
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 onPressed: () => _abrirDevolverBotella(g),
               ),
@@ -1280,9 +1519,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 height: 76,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.15 : 0.08),
+                  color: const Color(0xFF2563EB)
+                      .withValues(alpha: isDark ? 0.15 : 0.08),
                   border: Border.all(
-                    color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.35 : 0.22),
+                    color: const Color(0xFF2563EB)
+                        .withValues(alpha: isDark ? 0.35 : 0.22),
                     width: 2,
                   ),
                 ),
@@ -1292,9 +1533,14 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     height: 52,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFF2563EB).withValues(alpha: isDark ? 0.25 : 0.14),
+                      color: const Color(0xFF2563EB)
+                          .withValues(alpha: isDark ? 0.25 : 0.14),
                     ),
-                    child: const Icon(LucideIcons.wine, size: 26, color: Color(0xFF2563EB)),
+                    child: const Icon(
+                      LucideIcons.wine,
+                      size: 26,
+                      color: Color(0xFF2563EB),
+                    ),
                   ),
                 ),
               ),
@@ -1314,7 +1560,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12.5,
-                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : AppTheme.textMuted,
                   height: 1.45,
                 ),
               ),
@@ -1323,13 +1571,21 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                 ),
                 icon: const Icon(LucideIcons.plus, size: 16),
                 label: Text(
                   'Registrar Primera Garantía',
-                  style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                  style: GoogleFonts.outfit(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 onPressed: _abrirNuevaGarantia,
               ),
@@ -1353,7 +1609,8 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isDesktop = constraints.maxWidth >= 900;
-          final isTablet = constraints.maxWidth >= 540 && constraints.maxWidth < 900;
+          final isTablet =
+              constraints.maxWidth >= 540 && constraints.maxWidth < 900;
 
           if (isDesktop) {
             return Row(
@@ -1366,8 +1623,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: 'S/ ${totalPorCobrar.toStringAsFixed(2)}',
                     subtitle: '$vecinosDeudores vecinos con saldo',
                     accentColor: AppTheme.alertRed,
-                    bgColor: isDark ? const Color(0xFF2A1215) : const Color(0xFFFEF2F2),
-                    borderColor: isDark ? const Color(0xFF991B1B).withValues(alpha: 0.6) : const Color(0xFFFECACA),
+                    bgColor: isDark
+                        ? const Color(0xFF2A1215)
+                        : const Color(0xFFFEF2F2),
+                    borderColor: isDark
+                        ? const Color(0xFF991B1B).withValues(alpha: 0.6)
+                        : const Color(0xFFFECACA),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1379,8 +1640,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: 'S/ ${cobradoMes.toStringAsFixed(2)}',
                     subtitle: 'Recuperado a la fecha',
                     accentColor: AppTheme.accentGreen,
-                    bgColor: isDark ? const Color(0xFF06231A) : const Color(0xFFECFDF5),
-                    borderColor: isDark ? const Color(0xFF047857).withValues(alpha: 0.6) : const Color(0xFFA7F3D0),
+                    bgColor: isDark
+                        ? const Color(0xFF06231A)
+                        : const Color(0xFFECFDF5),
+                    borderColor: isDark
+                        ? const Color(0xFF047857).withValues(alpha: 0.6)
+                        : const Color(0xFFA7F3D0),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1390,10 +1655,15 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     icon: LucideIcons.shieldCheck,
                     title: 'Vecinos al Día',
                     value: '$vecinosAlDia vecinos',
-                    subtitle: '${_clientes.isNotEmpty ? ((vecinosAlDia / _clientes.length) * 100).toStringAsFixed(0) : 100}% de la cartera',
+                    subtitle:
+                        '${_clientes.isNotEmpty ? ((vecinosAlDia / _clientes.length) * 100).toStringAsFixed(0) : 100}% de la cartera',
                     accentColor: const Color(0xFF2563EB),
-                    bgColor: isDark ? const Color(0xFF101C38) : const Color(0xFFEFF6FF),
-                    borderColor: isDark ? const Color(0xFF1D4ED8).withValues(alpha: 0.6) : const Color(0xFFBFDBFE),
+                    bgColor: isDark
+                        ? const Color(0xFF101C38)
+                        : const Color(0xFFEFF6FF),
+                    borderColor: isDark
+                        ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
+                        : const Color(0xFFBFDBFE),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1405,8 +1675,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: 'S/ ${creditoTotal.toStringAsFixed(0)}',
                     subtitle: 'Crédito vecinal activo',
                     accentColor: const Color(0xFF7C3AED),
-                    bgColor: isDark ? const Color(0xFF1E1338) : const Color(0xFFFAF5FF),
-                    borderColor: isDark ? const Color(0xFF6D28D9).withValues(alpha: 0.6) : const Color(0xFFE9D5FF),
+                    bgColor: isDark
+                        ? const Color(0xFF1E1338)
+                        : const Color(0xFFFAF5FF),
+                    borderColor: isDark
+                        ? const Color(0xFF6D28D9).withValues(alpha: 0.6)
+                        : const Color(0xFFE9D5FF),
                   ),
                 ),
               ],
@@ -1424,8 +1698,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         value: 'S/ ${totalPorCobrar.toStringAsFixed(2)}',
                         subtitle: '$vecinosDeudores vecinos con saldo',
                         accentColor: AppTheme.alertRed,
-                        bgColor: isDark ? const Color(0xFF2A1215) : const Color(0xFFFEF2F2),
-                        borderColor: isDark ? const Color(0xFF991B1B).withValues(alpha: 0.6) : const Color(0xFFFECACA),
+                        bgColor: isDark
+                            ? const Color(0xFF2A1215)
+                            : const Color(0xFFFEF2F2),
+                        borderColor: isDark
+                            ? const Color(0xFF991B1B).withValues(alpha: 0.6)
+                            : const Color(0xFFFECACA),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1437,8 +1715,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         value: 'S/ ${cobradoMes.toStringAsFixed(2)}',
                         subtitle: 'Recuperado a la fecha',
                         accentColor: AppTheme.accentGreen,
-                        bgColor: isDark ? const Color(0xFF06231A) : const Color(0xFFECFDF5),
-                        borderColor: isDark ? const Color(0xFF047857).withValues(alpha: 0.6) : const Color(0xFFA7F3D0),
+                        bgColor: isDark
+                            ? const Color(0xFF06231A)
+                            : const Color(0xFFECFDF5),
+                        borderColor: isDark
+                            ? const Color(0xFF047857).withValues(alpha: 0.6)
+                            : const Color(0xFFA7F3D0),
                       ),
                     ),
                   ],
@@ -1452,10 +1734,15 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         icon: LucideIcons.shieldCheck,
                         title: 'Vecinos al Día',
                         value: '$vecinosAlDia vecinos',
-                        subtitle: '${_clientes.isNotEmpty ? ((vecinosAlDia / _clientes.length) * 100).toStringAsFixed(0) : 100}% de la cartera',
+                        subtitle:
+                            '${_clientes.isNotEmpty ? ((vecinosAlDia / _clientes.length) * 100).toStringAsFixed(0) : 100}% de la cartera',
                         accentColor: const Color(0xFF2563EB),
-                        bgColor: isDark ? const Color(0xFF101C38) : const Color(0xFFEFF6FF),
-                        borderColor: isDark ? const Color(0xFF1D4ED8).withValues(alpha: 0.6) : const Color(0xFFBFDBFE),
+                        bgColor: isDark
+                            ? const Color(0xFF101C38)
+                            : const Color(0xFFEFF6FF),
+                        borderColor: isDark
+                            ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
+                            : const Color(0xFFBFDBFE),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1467,8 +1754,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         value: 'S/ ${creditoTotal.toStringAsFixed(0)}',
                         subtitle: 'Crédito vecinal activo',
                         accentColor: const Color(0xFF7C3AED),
-                        bgColor: isDark ? const Color(0xFF1E1338) : const Color(0xFFFAF5FF),
-                        borderColor: isDark ? const Color(0xFF6D28D9).withValues(alpha: 0.6) : const Color(0xFFE9D5FF),
+                        bgColor: isDark
+                            ? const Color(0xFF1E1338)
+                            : const Color(0xFFFAF5FF),
+                        borderColor: isDark
+                            ? const Color(0xFF6D28D9).withValues(alpha: 0.6)
+                            : const Color(0xFFE9D5FF),
                       ),
                     ),
                   ],
@@ -1487,8 +1778,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: 'S/ ${totalPorCobrar.toStringAsFixed(2)}',
                     subtitle: '$vecinosDeudores con saldo',
                     accentColor: AppTheme.alertRed,
-                    bgColor: isDark ? const Color(0xFF2A1215) : const Color(0xFFFEF2F2),
-                    borderColor: isDark ? const Color(0xFF991B1B).withValues(alpha: 0.6) : const Color(0xFFFECACA),
+                    bgColor: isDark
+                        ? const Color(0xFF2A1215)
+                        : const Color(0xFFFEF2F2),
+                    borderColor: isDark
+                        ? const Color(0xFF991B1B).withValues(alpha: 0.6)
+                        : const Color(0xFFFECACA),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1500,8 +1795,12 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     value: 'S/ ${cobradoMes.toStringAsFixed(2)}',
                     subtitle: 'Recuperado a la fecha',
                     accentColor: AppTheme.accentGreen,
-                    bgColor: isDark ? const Color(0xFF06231A) : const Color(0xFFECFDF5),
-                    borderColor: isDark ? const Color(0xFF047857).withValues(alpha: 0.6) : const Color(0xFFA7F3D0),
+                    bgColor: isDark
+                        ? const Color(0xFF06231A)
+                        : const Color(0xFFECFDF5),
+                    borderColor: isDark
+                        ? const Color(0xFF047857).withValues(alpha: 0.6)
+                        : const Color(0xFFA7F3D0),
                   ),
                 ),
               ],
@@ -1523,15 +1822,18 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     required Color borderColor,
   }) {
     final effectiveAccent = isDark
-        ? (accentColor == AppTheme.alertRed || accentColor == const Color(0xFFEF4444)
-            ? const Color(0xFFF87171)
-            : accentColor == AppTheme.accentGreen || accentColor == const Color(0xFF10B981)
-                ? const Color(0xFF34D399)
-                : accentColor == AppTheme.brandPrimary || accentColor == const Color(0xFF2563EB)
-                    ? const Color(0xFF60A5FA)
-                    : accentColor == const Color(0xFF7C3AED)
-                        ? const Color(0xFFA78BFA)
-                        : accentColor)
+        ? (accentColor == AppTheme.alertRed ||
+                  accentColor == const Color(0xFFEF4444)
+              ? const Color(0xFFF87171)
+              : accentColor == AppTheme.accentGreen ||
+                    accentColor == const Color(0xFF10B981)
+              ? const Color(0xFF34D399)
+              : accentColor == AppTheme.brandPrimary ||
+                    accentColor == const Color(0xFF2563EB)
+              ? const Color(0xFF60A5FA)
+              : accentColor == const Color(0xFF7C3AED)
+              ? const Color(0xFFA78BFA)
+              : accentColor)
         : accentColor;
 
     return Container(
@@ -1554,7 +1856,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                    color: isDark
+                        ? const Color(0xFFF1F5F9)
+                        : const Color(0xFF1E293B),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1582,7 +1886,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11.5,
               fontWeight: FontWeight.w600,
-              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -1592,19 +1898,27 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildToolbar(bool isDark, Color cardBg, bool isWide, int vecinosDeudores, int vecinosAlDia) {
+  Widget _buildToolbar(
+    bool isDark,
+    Color cardBg,
+    bool isWide,
+    int vecinosDeudores,
+    int vecinosAlDia,
+  ) {
     if (isWide) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: Row(
           children: [
-            Expanded(
-              child: _buildSearchTextField(isDark),
-            ),
+            Expanded(child: _buildSearchTextField(isDark)),
             const SizedBox(width: 14),
             _buildFiltroChip('todos', 'Todos (${_clientes.length})', isDark),
             const SizedBox(width: 8),
-            _buildFiltroChip('deudores', 'Con Deuda ($vecinosDeudores)', isDark),
+            _buildFiltroChip(
+              'deudores',
+              'Con Deuda ($vecinosDeudores)',
+              isDark,
+            ),
             const SizedBox(width: 8),
             _buildFiltroChip('al_dia', 'Al Día ($vecinosAlDia)', isDark),
           ],
@@ -1621,9 +1935,17 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFiltroChip('todos', 'Todos (${_clientes.length})', isDark),
+                  _buildFiltroChip(
+                    'todos',
+                    'Todos (${_clientes.length})',
+                    isDark,
+                  ),
                   const SizedBox(width: 8),
-                  _buildFiltroChip('deudores', 'Con Deuda ($vecinosDeudores)', isDark),
+                  _buildFiltroChip(
+                    'deudores',
+                    'Con Deuda ($vecinosDeudores)',
+                    isDark,
+                  ),
                   const SizedBox(width: 8),
                   _buildFiltroChip('al_dia', 'Al Día ($vecinosAlDia)', isDark),
                 ],
@@ -1659,7 +1981,11 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
             fontSize: 12.5,
             color: AppTheme.textMuted,
           ),
-          prefixIcon: Icon(LucideIcons.search, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+          prefixIcon: Icon(
+            LucideIcons.search,
+            size: 16,
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+          ),
           suffixIcon: _filtroTexto.isNotEmpty
               ? IconButton(
                   icon: const Icon(LucideIcons.x, size: 15),
@@ -1670,7 +1996,10 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 )
               : null,
           filled: false,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
           border: InputBorder.none,
         ),
       ),
@@ -1685,14 +2014,18 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 11.5,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
+        color: isSelected
+            ? Colors.white
+            : (isDark ? Colors.white : AppTheme.textDark),
       ),
       selectedColor: AppTheme.brandPrimary,
       backgroundColor: isDark ? AppTheme.cardDarkHighlight : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
         side: BorderSide(
-          color: isSelected ? Colors.transparent : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+          color: isSelected
+              ? Colors.transparent
+              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
         ),
       ),
       onSelected: (_) => setState(() => _filtroEstado = clave),
@@ -1714,14 +2047,14 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
     final String title = esBusqueda
         ? 'Sin resultados para "$_filtroTexto"'
         : (soloConDeuda
-            ? '¡Excelente! Nadie tiene deudas pendientes'
-            : 'Tu Libreta de Fiados Inteligente');
+              ? '¡Excelente! Nadie tiene deudas pendientes'
+              : 'Tu Libreta de Fiados Inteligente');
 
     final String subtitle = esBusqueda
         ? 'Verifica que el nombre, DNI o celular esté bien escrito o limpia la búsqueda.'
         : (soloConDeuda
-            ? 'Todos los fiados y compras al crédito han sido cancelados. La cartera de cobranzas está 100% al día.'
-            : 'Lleva el control de los vecinos de confianza, sus límites de crédito y comprobantes de abono para que nunca pierdas capital.');
+              ? 'Todos los fiados y compras al crédito han sido cancelados. La cartera de cobranzas está 100% al día.'
+              : 'Lleva el control de los vecinos de confianza, sus límites de crédito y comprobantes de abono para que nunca pierdas capital.');
 
     return Center(
       child: SingleChildScrollView(
@@ -1782,7 +2115,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? const Color(0xFF101622)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
@@ -1791,7 +2126,13 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(LucideIcons.lightbulb, size: 16, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
+                    Icon(
+                      LucideIcons.lightbulb,
+                      size: 16,
+                      color: isDark
+                          ? const Color(0xFFFBBF24)
+                          : const Color(0xFFD97706),
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -1802,7 +2143,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                           fontSize: 11.5,
                           height: 1.4,
                           fontWeight: FontWeight.w500,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                       ),
                     ),
@@ -1815,14 +2158,26 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               if (esBusqueda)
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   icon: const Icon(LucideIcons.x, size: 16),
                   label: Text(
                     'Limpiar Búsqueda',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
                   ),
                   onPressed: () {
                     _searchCtrl.clear();
@@ -1834,14 +2189,22 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.brandPrimary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                   ),
                   icon: const Icon(LucideIcons.users, size: 16),
                   label: Text(
                     'Ver Todos los Vecinos',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
                   ),
                   onPressed: () => setState(() => _filtroEstado = 'TODOS'),
                 )
@@ -1850,14 +2213,22 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.brandPrimary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 13,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                   ),
                   icon: const Icon(LucideIcons.userPlus, size: 16),
                   label: Text(
                     'Registrar Primer Vecino',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13.5,
+                    ),
                   ),
                   onPressed: () => _abrirNuevoCliente(),
                 ),
@@ -1880,7 +2251,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
         borderRadius: BorderRadius.circular(18),
         side: BorderSide(
           color: tieneDeuda
-              ? (isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.6) : const Color(0xFFFECACA))
+              ? (isDark
+                    ? const Color(0xFF7F1D1D).withValues(alpha: 0.6)
+                    : const Color(0xFFFECACA))
               : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
           width: tieneDeuda ? 1.3 : 0.9,
         ),
@@ -1900,11 +2273,15 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                       ? const Color(0xFFFEE2E2)
                       : AppTheme.brandPrimary.withValues(alpha: 0.12),
                   child: Text(
-                    c.nombreCompleto.isNotEmpty ? c.nombreCompleto.substring(0, 1).toUpperCase() : 'V',
+                    c.nombreCompleto.isNotEmpty
+                        ? c.nombreCompleto.substring(0, 1).toUpperCase()
+                        : 'V',
                     style: GoogleFonts.outfit(
                       fontSize: 15,
                       fontWeight: FontWeight.w900,
-                      color: tieneDeuda ? AppTheme.alertRed : AppTheme.brandPrimary,
+                      color: tieneDeuda
+                          ? AppTheme.alertRed
+                          : AppTheme.brandPrimary,
                     ),
                   ),
                 ),
@@ -1915,7 +2292,10 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     children: [
                       Text(
                         c.nombreCompleto,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1929,14 +2309,22 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(LucideIcons.idCard, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                                Icon(
+                                  LucideIcons.idCard,
+                                  size: 12,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                ),
                                 const SizedBox(width: 3),
                                 Text(
                                   c.documento!,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
                                   ),
                                 ),
                               ],
@@ -1945,14 +2333,22 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(LucideIcons.phone, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                                Icon(
+                                  LucideIcons.phone,
+                                  size: 12,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                ),
                                 const SizedBox(width: 3),
                                 Text(
                                   c.telefono!,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
                                   ),
                                 ),
                               ],
@@ -1965,12 +2361,17 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 const SizedBox(width: 6),
                 // Badge Deuda con Semáforo de Riesgo
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3.5,
+                  ),
                   decoration: BoxDecoration(
                     color: c.colorRiesgo.withValues(alpha: isDark ? 0.2 : 0.12),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: c.colorRiesgo.withValues(alpha: isDark ? 0.4 : 0.3),
+                      color: c.colorRiesgo.withValues(
+                        alpha: isDark ? 0.4 : 0.3,
+                      ),
                       width: 1,
                     ),
                   ),
@@ -2011,15 +2412,40 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                   itemBuilder: (ctx) => [
                     const PopupMenuItem(
                       value: 'historial',
-                      child: Row(children: [Icon(LucideIcons.fileSpreadsheet, size: 16), SizedBox(width: 8), Text('Estado de Cuenta')]),
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.fileSpreadsheet, size: 16),
+                          SizedBox(width: 8),
+                          Text('Estado de Cuenta'),
+                        ],
+                      ),
                     ),
                     const PopupMenuItem(
                       value: 'editar',
-                      child: Row(children: [Icon(LucideIcons.pencil, size: 16), SizedBox(width: 8), Text('Editar Datos')]),
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.pencil, size: 16),
+                          SizedBox(width: 8),
+                          Text('Editar Datos'),
+                        ],
+                      ),
                     ),
                     const PopupMenuItem(
                       value: 'eliminar',
-                      child: Row(children: [Icon(LucideIcons.trash2, size: 16, color: AppTheme.alertRed), SizedBox(width: 8), Text('Dar de Baja', style: TextStyle(color: AppTheme.alertRed))]),
+                      child: Row(
+                        children: [
+                          Icon(
+                            LucideIcons.trash2,
+                            size: 16,
+                            color: AppTheme.alertRed,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Dar de Baja',
+                            style: TextStyle(color: AppTheme.alertRed),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -2030,12 +2456,25 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               const SizedBox(height: 5),
               Row(
                 children: [
-                  Icon(LucideIcons.messageCircle, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                  Icon(
+                    LucideIcons.messageCircle,
+                    size: 12,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
+                  ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       c.notas!,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontStyle: FontStyle.italic, fontWeight: FontWeight.w500, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -2053,7 +2492,13 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                 Flexible(
                   child: Text(
                     'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)}',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF334155),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -2066,7 +2511,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      color: c.creditoDisponible < 20 ? AppTheme.alertRed : AppTheme.accentGreen,
+                      color: c.creditoDisponible < 20
+                          ? AppTheme.alertRed
+                          : AppTheme.accentGreen,
                     ),
                     maxLines: 1,
                   ),
@@ -2079,11 +2526,15 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
               child: LinearProgressIndicator(
                 value: c.porcentajeCreditoUsado,
                 minHeight: 5,
-                backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                backgroundColor: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   c.porcentajeCreditoUsado > 0.85
                       ? AppTheme.alertRed
-                      : (c.porcentajeCreditoUsado > 0.5 ? Colors.amber : AppTheme.brandPrimary),
+                      : (c.porcentajeCreditoUsado > 0.5
+                            ? Colors.amber
+                            : AppTheme.brandPrimary),
                 ),
               ),
             ),
@@ -2098,10 +2549,14 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                     height: 38,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: tieneDeuda ? AppTheme.accentGreen : AppTheme.brandPrimary,
+                        backgroundColor: tieneDeuda
+                            ? AppTheme.accentGreen
+                            : AppTheme.brandPrimary,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
                       onPressed: () => _abrirRegistrarAbono(c),
@@ -2111,7 +2566,10 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         child: Text(
                           tieneDeuda ? 'Cobrar / Abonar' : 'Abonar Saldo',
                           maxLines: 1,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -2128,7 +2586,9 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         backgroundColor: const Color(0xFF25D366),
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
                       onPressed: () => _enviarWhatsAppRecordatorio(c),
@@ -2138,7 +2598,10 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                         child: Text(
                           'WhatsApp',
                           maxLines: 1,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
@@ -2152,10 +2615,16 @@ class _ClientesScreenState extends State<ClientesScreen> with SingleTickerProvid
                   width: 38,
                   child: IconButton(
                     style: IconButton.styleFrom(
-                      backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      backgroundColor: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFF1F5F9),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                        side: BorderSide(
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : AppTheme.borderLight,
+                        ),
                       ),
                       padding: EdgeInsets.zero,
                     ),

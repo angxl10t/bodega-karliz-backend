@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import 'auth_service.dart';
 import '../../core/theme.dart';
 
@@ -59,8 +60,12 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
     final res = await _authService.registrarBodega(
       nombreComercial: _nombreBodegaCtrl.text.trim(),
       ruc: _rucCtrl.text.trim().isEmpty ? null : _rucCtrl.text.trim(),
-      direccion: _direccionCtrl.text.trim().isEmpty ? null : _direccionCtrl.text.trim(),
-      telefono: _telefonoCtrl.text.trim().isEmpty ? null : _telefonoCtrl.text.trim(),
+      direccion: _direccionCtrl.text.trim().isEmpty
+          ? null
+          : _direccionCtrl.text.trim(),
+      telefono: _telefonoCtrl.text.trim().isEmpty
+          ? null
+          : _telefonoCtrl.text.trim(),
       adminUsername: _adminUserCtrl.text.trim(),
       adminPassword: _adminPassCtrl.text.trim(),
       plan: _selectedPlan,
@@ -72,17 +77,23 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
 
     if (res.success) {
       Navigator.pop(context); // Cierra modal
-      context.go('/home'); // Ingresa al sistema con la nueva bodega aprovisionada
+      context.go(
+        '/home',
+      ); // Ingresa al sistema con la nueva bodega aprovisionada
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('¡Bienvenido a tu nuevo sistema! Bodega creada con 1 mes gratis (30 días) de Plan Minimarket PRO.'),
+          content: Text(
+            '¡Bienvenido a tu nuevo sistema! Bodega creada con 1 mes gratis (30 días) de Plan Minimarket PRO.',
+          ),
           backgroundColor: AppTheme.accentGreen,
           duration: const Duration(seconds: 4),
         ),
       );
     } else {
       setState(() {
-        _errorMessage = res.errorMessage ?? 'No se pudo crear la bodega. Verifica los datos.';
+        _errorMessage =
+            res.errorMessage ??
+            'No se pudo crear la bodega. Verifica los datos.';
       });
     }
   }
@@ -119,7 +130,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
               width: 44,
               height: 4.5,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFCBD5E1),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -139,7 +152,11 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(LucideIcons.store, color: AppTheme.brandPrimary, size: 22),
+                        child: const Icon(
+                          LucideIcons.store,
+                          color: AppTheme.brandPrimary,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -157,7 +174,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                             '1 mes gratis (30 días) • Configuración en 1 minuto',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
                             ),
                           ),
                         ],
@@ -165,7 +184,13 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                     ],
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                    icon: Icon(
+                      LucideIcons.x,
+                      size: 20,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -190,12 +215,18 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.25),
+                            color: AppTheme.brandPrimary.withValues(
+                              alpha: 0.25,
+                            ),
                           ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(LucideIcons.sparkles, color: AppTheme.brandPrimary, size: 20),
+                            const Icon(
+                              LucideIcons.sparkles,
+                              color: AppTheme.brandPrimary,
+                              size: 20,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
@@ -203,7 +234,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
-                                  color: isDark ? AppTheme.brandLight : AppTheme.brandDark,
+                                  color: isDark
+                                      ? AppTheme.brandLight
+                                      : AppTheme.brandDark,
                                 ),
                               ),
                             ),
@@ -218,11 +251,17 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           decoration: BoxDecoration(
                             color: AppTheme.alertRed.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
+                            border: Border.all(
+                              color: AppTheme.alertRed.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(LucideIcons.alertTriangle, color: AppTheme.alertRed, size: 18),
+                              const Icon(
+                                LucideIcons.alertTriangle,
+                                color: AppTheme.alertRed,
+                                size: 18,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -246,7 +285,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -257,7 +298,8 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           prefixIcon: Icon(LucideIcons.store, size: 18),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'El nombre de la bodega es obligatorio';
+                          if (v == null || v.trim().isEmpty)
+                            return 'El nombre de la bodega es obligatorio';
                           if (v.trim().length < 3) return 'Mínimo 3 caracteres';
                           return null;
                         },
@@ -278,7 +320,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -291,12 +335,17 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                 ],
                                 decoration: const InputDecoration(
                                   hintText: '8 u 11 dígitos',
-                                  prefixIcon: Icon(LucideIcons.fileText, size: 18),
+                                  prefixIcon: Icon(
+                                    LucideIcons.fileText,
+                                    size: 18,
+                                  ),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.trim().isEmpty) return null;
+                                  if (v == null || v.trim().isEmpty)
+                                    return null;
                                   final clean = v.trim();
-                                  if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$').hasMatch(clean)) {
+                                  if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$')
+                                      .hasMatch(clean)) {
                                     return 'Debe ser DNI (8 d.) o RUC (11 d.)';
                                   }
                                   return null;
@@ -315,7 +364,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -331,7 +382,8 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                   prefixIcon: Icon(LucideIcons.phone, size: 18),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.trim().isEmpty) return null;
+                                  if (v == null || v.trim().isEmpty)
+                                    return null;
                                   if (v.trim().length != 9) {
                                     return 'Debe tener 9 dígitos';
                                   }
@@ -368,7 +420,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -400,7 +454,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -411,13 +467,15 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           prefixIcon: Icon(LucideIcons.user, size: 18),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'El usuario es obligatorio';
+                          if (v == null || v.trim().isEmpty)
+                            return 'El usuario es obligatorio';
                           if (v.trim().length < 3) return 'Mínimo 3 caracteres';
                           final clean = v.trim().toLowerCase();
                           if (clean == 'admin' || clean == 'superadmin') {
                             return 'El usuario "$clean" está reservado. Usa ej. admin_mitienda';
                           }
-                          if (v.trim().contains(' ')) return 'No debe contener espacios';
+                          if (v.trim().contains(' '))
+                            return 'No debe contener espacios';
                           return null;
                         },
                       ),
@@ -428,7 +486,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -440,16 +500,23 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           prefixIcon: const Icon(LucideIcons.lock, size: 18),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePass ? LucideIcons.eyeOff : LucideIcons.eye,
+                              _obscurePass
+                                  ? LucideIcons.eyeOff
+                                  : LucideIcons.eye,
                               size: 18,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
                             ),
-                            onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                            onPressed: () =>
+                                setState(() => _obscurePass = !_obscurePass),
                           ),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'La contraseña es obligatoria';
-                          if (v.trim().length < 8) return 'Mínimo 8 caracteres por seguridad';
+                          if (v == null || v.trim().isEmpty)
+                            return 'La contraseña es obligatoria';
+                          if (v.trim().length < 8)
+                            return 'Mínimo 8 caracteres por seguridad';
                           return null;
                         },
                       ),
@@ -459,7 +526,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.15 : 0.08),
+                          color: AppTheme.accentGreen.withValues(
+                            alpha: isDark ? 0.15 : 0.08,
+                          ),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: AppTheme.accentGreen.withValues(alpha: 0.35),
@@ -467,7 +536,11 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(LucideIcons.gift, color: AppTheme.accentGreen, size: 22),
+                            const Icon(
+                              LucideIcons.gift,
+                              color: AppTheme.accentGreen,
+                              size: 22,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -478,7 +551,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D),
+                                      color: isDark
+                                          ? const Color(0xFF4ADE80)
+                                          : const Color(0xFF15803D),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -487,7 +562,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
-                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
                                     ),
                                   ),
                                 ],
@@ -511,7 +588,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         'Ambos planes incluyen cajeros y administradores ilimitados con PIN individual.',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF475569),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -590,13 +669,19 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                   height: 22,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(LucideIcons.rocket, size: 20, color: Colors.white),
+                                    const Icon(
+                                      LucideIcons.rocket,
+                                      size: 20,
+                                      color: Colors.white,
+                                    ),
                                     const SizedBox(width: 10),
                                     Text(
                                       'CREAR BODEGA & EMPEZAR (1 MES GRATIS)',
@@ -655,7 +740,10 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
             if (isPopular)
               Container(
                 margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 2.5,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.accentGreen,
                   borderRadius: BorderRadius.circular(6),
@@ -685,7 +773,11 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                 ),
                 if (isSelected) ...[
                   const SizedBox(width: 4),
-                  const Icon(LucideIcons.checkCircle2, color: AppTheme.brandPrimary, size: 18),
+                  const Icon(
+                    LucideIcons.checkCircle2,
+                    color: AppTheme.brandPrimary,
+                    size: 18,
+                  ),
                 ],
               ],
             ),
@@ -704,7 +796,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppTheme.brandPrimary.withValues(alpha: 0.15)
-                    : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    : (isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0)),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -714,33 +808,43 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                   fontWeight: FontWeight.w700,
                   color: isSelected
                       ? AppTheme.brandPrimary
-                      : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569)),
+                      : (isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF475569)),
                 ),
               ),
             ),
             const SizedBox(height: 10),
-            ...bulletPoints.map((bp) => Padding(
-              padding: const EdgeInsets.only(bottom: 5),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2, right: 6),
-                    child: Icon(LucideIcons.check, size: 12, color: AppTheme.accentGreen),
-                  ),
-                  Expanded(
-                    child: Text(
-                      bp,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        height: 1.25,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+            ...bulletPoints.map(
+              (bp) => Padding(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2, right: 6),
+                      child: Icon(
+                        LucideIcons.check,
+                        size: 12,
+                        color: AppTheme.accentGreen,
                       ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: Text(
+                        bp,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          height: 1.25,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),

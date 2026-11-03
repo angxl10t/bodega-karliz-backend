@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../theme.dart';
 import '../../features/ventas/venta_service.dart';
 
@@ -33,12 +34,28 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
   String _errorMsg = '';
 
   static const List<({String key, String label, IconData icon})> _categorias = [
-    (key: 'BOLSAS', label: 'Bolsas / Descartables', icon: LucideIcons.shoppingBag),
-    (key: 'PANADERIA', label: 'Panadería / Huevos', icon: LucideIcons.croissant),
+    (
+      key: 'BOLSAS',
+      label: 'Bolsas / Descartables',
+      icon: LucideIcons.shoppingBag,
+    ),
+    (
+      key: 'PANADERIA',
+      label: 'Panadería / Huevos',
+      icon: LucideIcons.croissant,
+    ),
     (key: 'HIELO', label: 'Hielo / Bebidas', icon: LucideIcons.snowflake),
-    (key: 'LIMPIEZA', label: 'Artículos de Limpieza', icon: LucideIcons.sparkles),
+    (
+      key: 'LIMPIEZA',
+      label: 'Artículos de Limpieza',
+      icon: LucideIcons.sparkles,
+    ),
     (key: 'PROVEEDOR', label: 'Pago Menor Proveedor', icon: LucideIcons.truck),
-    (key: 'VARIOS', label: 'Gastos Varios / Menores', icon: LucideIcons.receipt),
+    (
+      key: 'VARIOS',
+      label: 'Gastos Varios / Menores',
+      icon: LucideIcons.receipt,
+    ),
   ];
 
   static const List<double> _montosRapidos = [2.0, 5.0, 10.0, 20.0, 50.0];
@@ -93,15 +110,24 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
           SnackBar(
             backgroundColor: const Color(0xFF059669),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             content: Row(
               children: [
-                const Icon(LucideIcons.circleCheck, color: Colors.white, size: 20),
+                const Icon(
+                  LucideIcons.circleCheck,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'Egreso de S/ ${monto.toStringAsFixed(2)} registrado en caja.',
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w700),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -133,7 +159,9 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
       backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
-        side: isDark ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1) : BorderSide.none,
+        side: isDark
+            ? const BorderSide(color: AppTheme.borderDarkElevated, width: 1)
+            : BorderSide.none,
       ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: ConstrainedBox(
@@ -153,7 +181,11 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                       color: const Color(0xFFE11D48).withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(LucideIcons.arrowDownRight, color: Color(0xFFE11D48), size: 22),
+                    child: const Icon(
+                      LucideIcons.arrowDownRight,
+                      color: Color(0xFFE11D48),
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -173,7 +205,9 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF334155),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -202,7 +236,9 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
               TextField(
                 controller: _montoCtrl,
                 autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 style: GoogleFonts.outfit(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
@@ -230,20 +266,36 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                     color: const Color(0xFFE11D48).withValues(alpha: 0.3),
                   ),
                   filled: true,
-                  fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+                  fillColor: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: Color(0xFFE11D48), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFE11D48),
+                      width: 2,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
                 onSubmitted: (_) => _guardarEgreso(),
               ),
@@ -261,10 +313,14 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
+                            color: isDark
+                                ? AppTheme.cardDarkHighlight
+                                : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : AppTheme.borderLight,
                             ),
                           ),
                           child: Center(
@@ -273,7 +329,9 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
                               ),
                             ),
                           ),
@@ -308,16 +366,23 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                     borderRadius: BorderRadius.circular(12),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFFE11D48).withValues(alpha: 0.15)
-                            : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC)),
+                            : (isDark
+                                  ? AppTheme.cardDarkHighlight
+                                  : const Color(0xFFF8FAFC)),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFFE11D48)
-                              : (isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight),
+                              : (isDark
+                                    ? AppTheme.borderDarkElevated
+                                    : AppTheme.borderLight),
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -327,17 +392,27 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                           Icon(
                             cat.icon,
                             size: 14,
-                            color: isSelected ? const Color(0xFFE11D48) : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                            color: isSelected
+                                ? const Color(0xFFE11D48)
+                                : (isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B)),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             cat.label,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
                               color: isSelected
-                                  ? (isDark ? Colors.white : const Color(0xFFBE123C))
-                                  : (isDark ? AppTheme.textDarkSecondary : AppTheme.textDark),
+                                  ? (isDark
+                                        ? Colors.white
+                                        : const Color(0xFFBE123C))
+                                  : (isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : AppTheme.textDark),
                             ),
                           ),
                         ],
@@ -360,17 +435,35 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
               const SizedBox(height: 6),
               TextField(
                 controller: _motivoCtrl,
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
                 decoration: InputDecoration(
-                  hintText: 'Ej. 50 bolsas plásticas grandes, delivery pan, etc.',
-                  hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  hintText:
+                      'Ej. 50 bolsas plásticas grandes, delivery pan, etc.',
+                  hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF101622) : const Color(0xFFF8FAFC),
+                  fillColor: isDark
+                      ? const Color(0xFF101622)
+                      : const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                 ),
               ),
 
@@ -381,11 +474,17 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                   decoration: BoxDecoration(
                     color: AppTheme.alertRed.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppTheme.alertRed.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(LucideIcons.alertTriangle, size: 16, color: AppTheme.alertRed),
+                      const Icon(
+                        LucideIcons.alertTriangle,
+                        size: 16,
+                        color: AppTheme.alertRed,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -411,10 +510,18 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        side: BorderSide(
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : AppTheme.borderLight,
+                        ),
                       ),
-                      onPressed: _isSaving ? null : () => Navigator.pop(context, false),
+                      onPressed: _isSaving
+                          ? null
+                          : () => Navigator.pop(context, false),
                       child: Text(
                         'Cancelar',
                         style: GoogleFonts.plusJakartaSans(
@@ -432,7 +539,9 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                         backgroundColor: const Color(0xFFE11D48),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                         elevation: 0,
                       ),
                       onPressed: _isSaving ? null : _guardarEgreso,
@@ -440,7 +549,10 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : const Icon(LucideIcons.arrowDownRight, size: 18),
                       label: FittedBox(

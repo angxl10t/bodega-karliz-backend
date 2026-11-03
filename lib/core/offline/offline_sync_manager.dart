@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../features/productos/producto_service.dart';
 import '../../features/ventas/venta_service.dart';
 import '../api_client.dart';
@@ -45,10 +47,12 @@ class OfflineSyncManager {
   Timer? _autoSyncTimer;
 
   // Notificadores reactivos para la UI
-  final ValueNotifier<List<OfflineVenta>> pendingSalesNotifier = ValueNotifier<List<OfflineVenta>>([]);
+  final ValueNotifier<List<OfflineVenta>> pendingSalesNotifier =
+      ValueNotifier<List<OfflineVenta>>([]);
   final ValueNotifier<bool> isSyncingNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> isOfflineNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<DateTime?> lastSyncSuccessNotifier = ValueNotifier<DateTime?>(null);
+  final ValueNotifier<DateTime?> lastSyncSuccessNotifier =
+      ValueNotifier<DateTime?>(null);
 
   int get pendingCount => _queue.length;
   double get pendingTotal => _queue.fold(0.0, (acc, v) => acc + v.total);
@@ -82,13 +86,17 @@ class OfflineSyncManager {
             try {
               _queue.add(OfflineVenta.fromJson(item as Map<String, dynamic>));
             } catch (err) {
-              debugPrint('[SyncManager] Error deserializando venta offline: $err');
+              debugPrint(
+                '[SyncManager] Error deserializando venta offline: $err',
+              );
             }
           }
         }
       }
       _notifyQueueChanged();
-      debugPrint('[SyncManager] Cola offline inicializada: ${_queue.length} ventas pendientes (Bodega $tenant)');
+      debugPrint(
+        '[SyncManager] Cola offline inicializada: ${_queue.length} ventas pendientes (Bodega $tenant)',
+      );
     } catch (e) {
       debugPrint('[SyncManager] Error cargando cola offline: $e');
     }
@@ -129,7 +137,9 @@ class OfflineSyncManager {
     }
 
     isOfflineNotifier.value = true;
-    debugPrint('[SyncManager] Venta encolada offline: ${venta.localTicket} (UUID: ${venta.uuid}), Total: S/ ${venta.total.toStringAsFixed(2)}');
+    debugPrint(
+      '[SyncManager] Venta encolada offline: ${venta.localTicket} (UUID: ${venta.uuid}), Total: S/ ${venta.total.toStringAsFixed(2)}',
+    );
 
     // Intenta una sincronización inmediata en segundo plano
     syncPendingSales();
@@ -177,7 +187,9 @@ class OfflineSyncManager {
     int fallidas = 0;
     final totalInicial = _queue.length;
 
-    debugPrint('[SyncManager] Iniciando sincronización de $totalInicial ventas offline...');
+    debugPrint(
+      '[SyncManager] Iniciando sincronización de $totalInicial ventas offline...',
+    );
 
     // Procesa en orden FIFO estricto para mantener la cronología de transacciones
     final copias = List<OfflineVenta>.from(_queue);
@@ -188,13 +200,17 @@ class OfflineSyncManager {
       venta.fechaUltimoIntento = DateTime.now();
 
       try {
-        final res = await _ventaService.registrarVentaCompleta(venta.toVentaEnvio());
+        final res = await _ventaService.registrarVentaCompleta(
+          venta.toVentaEnvio(),
+        );
 
         if (res.success) {
           // El servidor procesó o validó la idempotencia exitosamente
           _queue.removeWhere((v) => v.uuid == venta.uuid);
           sincronizadas++;
-          debugPrint('[SyncManager] Sincronización exitosa: ${venta.localTicket} -> ${res.venta?.serieCorrelativo}');
+          debugPrint(
+            '[SyncManager] Sincronización exitosa: ${venta.localTicket} -> ${res.venta?.serieCorrelativo}',
+          );
         } else {
           final err = res.errorMessage ?? 'Error desconocido del servidor';
           venta.ultimoError = err;
@@ -206,13 +222,17 @@ class OfflineSyncManager {
             venta.estadoSync = 'PENDIENTE';
             fallidas++;
             isOfflineNotifier.value = true;
-            debugPrint('[SyncManager] Servidor aún no disponible. Pausando cola.');
+            debugPrint(
+              '[SyncManager] Servidor aún no disponible. Pausando cola.',
+            );
             break; // Detiene el lote hasta el siguiente reintento
           } else {
             // Error de negocio (ej: cliente dado de baja, validación tributaria)
             venta.estadoSync = 'ERROR';
             fallidas++;
-            debugPrint('[SyncManager] Error de negocio al sincronizar ${venta.localTicket}: $err');
+            debugPrint(
+              '[SyncManager] Error de negocio al sincronizar ${venta.localTicket}: $err',
+            );
           }
         }
       } catch (e) {

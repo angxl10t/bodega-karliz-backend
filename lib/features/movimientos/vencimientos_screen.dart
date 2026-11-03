@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
@@ -73,7 +74,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         HapticFeedback.lightImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Vencimiento de "${p.nombre}" actualizado al ${picked.day}/${picked.month}/${picked.year}'),
+            content: Text(
+              'Vencimiento de "${p.nombre}" actualizado al ${picked.day}/${picked.month}/${picked.year}',
+            ),
             backgroundColor: AppTheme.accentGreen,
             duration: const Duration(seconds: 2),
           ),
@@ -100,16 +103,29 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
     // Métricas para KPIs
-    final criticos = _todosProductos.where((p) => p.semaforoVencimiento == SemaforoVencimiento.critico).toList();
-    final enRiesgo = _todosProductos.where((p) => p.semaforoVencimiento == SemaforoVencimiento.atencion).toList();
-    final vigentes = _todosProductos.where((p) => p.semaforoVencimiento == SemaforoVencimiento.vigente).toList();
+    final criticos = _todosProductos
+        .where((p) => p.semaforoVencimiento == SemaforoVencimiento.critico)
+        .toList();
+    final enRiesgo = _todosProductos
+        .where((p) => p.semaforoVencimiento == SemaforoVencimiento.atencion)
+        .toList();
+    final vigentes = _todosProductos
+        .where((p) => p.semaforoVencimiento == SemaforoVencimiento.vigente)
+        .toList();
 
-    double valorCriticoSoles = criticos.fold(0.0, (acc, p) => acc + (p.stockActual * p.precioVenta));
-    double valorRiesgoSoles = enRiesgo.fold(0.0, (acc, p) => acc + (p.stockActual * p.precioVenta));
+    double valorCriticoSoles = criticos.fold(
+      0.0,
+      (acc, p) => acc + (p.stockActual * p.precioVenta),
+    );
+    double valorRiesgoSoles = enRiesgo.fold(
+      0.0,
+      (acc, p) => acc + (p.stockActual * p.precioVenta),
+    );
 
     // Filtrado de lista
     final filtrados = _todosProductos.where((p) {
-      final matchesText = p.nombre.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
+      final matchesText =
+          p.nombre.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
           p.codigo.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
           (p.codigoBarras ?? '').contains(_filtroTexto);
 
@@ -161,7 +177,10 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         actions: [
           IconButton(
             tooltip: 'Escanear Código de Barras',
-            icon: const Icon(LucideIcons.scanBarcode, color: AppTheme.brandPrimary),
+            icon: const Icon(
+              LucideIcons.scanBarcode,
+              color: AppTheme.brandPrimary,
+            ),
             onPressed: _escanearCodigo,
           ),
           IconButton(
@@ -172,12 +191,17 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+            )
           : Column(
               children: [
                 // 1. Panel Superior de Métricas Semáforo
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   color: cardBg,
                   child: Row(
                     children: [
@@ -192,7 +216,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                           isSelected: _filtroSemaforo == 'CRITICO',
                           onTap: () {
                             setState(() {
-                              _filtroSemaforo = _filtroSemaforo == 'CRITICO' ? 'TODOS' : 'CRITICO';
+                              _filtroSemaforo = _filtroSemaforo == 'CRITICO'
+                                  ? 'TODOS'
+                                  : 'CRITICO';
                             });
                           },
                           isDark: isDark,
@@ -211,7 +237,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                           isSelected: _filtroSemaforo == 'ATENCION',
                           onTap: () {
                             setState(() {
-                              _filtroSemaforo = _filtroSemaforo == 'ATENCION' ? 'TODOS' : 'ATENCION';
+                              _filtroSemaforo = _filtroSemaforo == 'ATENCION'
+                                  ? 'TODOS'
+                                  : 'ATENCION';
                             });
                           },
                           isDark: isDark,
@@ -230,7 +258,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                           isSelected: _filtroSemaforo == 'VIGENTE',
                           onTap: () {
                             setState(() {
-                              _filtroSemaforo = _filtroSemaforo == 'VIGENTE' ? 'TODOS' : 'VIGENTE';
+                              _filtroSemaforo = _filtroSemaforo == 'VIGENTE'
+                                  ? 'TODOS'
+                                  : 'VIGENTE';
                             });
                           },
                           isDark: isDark,
@@ -250,7 +280,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                         child: Container(
                           height: 42,
                           decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                            color: isDark
+                                ? AppTheme.cardDarkSunken
+                                : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(color: borderColor),
                           ),
@@ -263,8 +295,17 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             ),
                             decoration: InputDecoration(
                               hintText: 'Filtrar por nombre o código...',
-                              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                              prefixIcon: const Icon(LucideIcons.search, size: 16, color: AppTheme.brandPrimary),
+                              hintStyle: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                              prefixIcon: const Icon(
+                                LucideIcons.search,
+                                size: 16,
+                                color: AppTheme.brandPrimary,
+                              ),
                               suffixIcon: _filtroTexto.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(LucideIcons.x, size: 14),
@@ -275,9 +316,12 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                     )
                                   : null,
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                              ),
                             ),
-                            onChanged: (val) => setState(() => _filtroTexto = val),
+                            onChanged: (val) =>
+                                setState(() => _filtroTexto = val),
                           ),
                         ),
                       ),
@@ -285,8 +329,15 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       if (_filtroSemaforo != 'TODOS')
                         ActionChip(
                           avatar: const Icon(LucideIcons.x, size: 14),
-                          label: Text(_filtroSemaforo, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                          onPressed: () => setState(() => _filtroSemaforo = 'TODOS'),
+                          label: Text(
+                            _filtroSemaforo,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () =>
+                              setState(() => _filtroSemaforo = 'TODOS'),
                         ),
                     ],
                   ),
@@ -299,7 +350,10 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                   child: filtrados.isEmpty
                       ? Center(
                           child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 28,
+                            ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -308,14 +362,22 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                   height: 68,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.2 : 0.1),
+                                    color: AppTheme.accentGreen.withValues(
+                                      alpha: isDark ? 0.2 : 0.1,
+                                    ),
                                     border: Border.all(
-                                      color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.4 : 0.25),
+                                      color: AppTheme.accentGreen.withValues(
+                                        alpha: isDark ? 0.4 : 0.25,
+                                      ),
                                       width: 2,
                                     ),
                                   ),
                                   child: const Center(
-                                    child: Icon(LucideIcons.shieldCheck, size: 30, color: AppTheme.accentGreen),
+                                    child: Icon(
+                                      LucideIcons.shieldCheck,
+                                      size: 30,
+                                      color: AppTheme.accentGreen,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -323,15 +385,17 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                   _filtroSemaforo == 'CRITICO'
                                       ? '¡Excelente! Cero productos críticos'
                                       : (_filtroSemaforo == 'ATENCION'
-                                          ? 'Sin productos por vencer en 15 a 30 días'
-                                          : (_filtroTexto.isNotEmpty
-                                              ? 'Sin coincidencias para "$_filtroTexto"'
-                                              : '¡Sin alertas de caducidad!')),
+                                            ? 'Sin productos por vencer en 15 a 30 días'
+                                            : (_filtroTexto.isNotEmpty
+                                                  ? 'Sin coincidencias para "$_filtroTexto"'
+                                                  : '¡Sin alertas de caducidad!')),
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.outfit(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
@@ -343,21 +407,32 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12.5,
                                     height: 1.45,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
                                   ),
                                 ),
                                 const SizedBox(height: 18),
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+                                    color: isDark
+                                        ? AppTheme.cardDarkSunken
+                                        : const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(color: borderColor),
                                   ),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Icon(LucideIcons.lightbulb, size: 15, color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706)),
+                                      Icon(
+                                        LucideIcons.lightbulb,
+                                        size: 15,
+                                        color: isDark
+                                            ? const Color(0xFFFBBF24)
+                                            : const Color(0xFFD97706),
+                                      ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
@@ -365,25 +440,39 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11.5,
                                             height: 1.4,
-                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : const Color(0xFF475569),
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                if (_filtroSemaforo != 'TODOS' || _filtroTexto.isNotEmpty) ...[
+                                if (_filtroSemaforo != 'TODOS' ||
+                                    _filtroTexto.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                       side: BorderSide(color: borderColor),
                                     ),
-                                    icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                                    icon: const Icon(
+                                      LucideIcons.rotateCcw,
+                                      size: 14,
+                                    ),
                                     label: Text(
                                       'Ver Todo el Semáforo',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -401,10 +490,16 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: filtrados.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 10),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final p = filtrados[index];
-                            return _buildProductoVencimientoCard(p, isDark, cardBg, borderColor);
+                            return _buildProductoVencimientoCard(
+                              p,
+                              isDark,
+                              cardBg,
+                              borderColor,
+                            );
                           },
                         ),
                 ),
@@ -430,7 +525,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: isDark ? 0.25 : 0.15) : color.withValues(alpha: isDark ? 0.10 : 0.06),
+          color: isSelected
+              ? color.withValues(alpha: isDark ? 0.25 : 0.15)
+              : color.withValues(alpha: isDark ? 0.10 : 0.06),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? color : color.withValues(alpha: 0.3),
@@ -486,7 +583,12 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     );
   }
 
-  Widget _buildProductoVencimientoCard(Producto p, bool isDark, Color cardBg, Color borderColor) {
+  Widget _buildProductoVencimientoCard(
+    Producto p,
+    bool isDark,
+    Color cardBg,
+    Color borderColor,
+  ) {
     final dias = p.diasParaVencer ?? 999;
     final semaforo = p.semaforoVencimiento;
 
@@ -497,7 +599,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     if (semaforo == SemaforoVencimiento.critico) {
       badgeColor = const Color(0xFFEF4444);
       badgeIcon = LucideIcons.alertOctagon;
-      badgeTexto = dias < 0 ? 'VENCIDO HACE ${-dias} DÍAS' : (dias == 0 ? '¡VENCE HOY!' : '¡VENCE EN $dias DÍAS!');
+      badgeTexto = dias < 0
+          ? 'VENCIDO HACE ${-dias} DÍAS'
+          : (dias == 0 ? '¡VENCE HOY!' : '¡VENCE EN $dias DÍAS!');
     } else if (semaforo == SemaforoVencimiento.atencion) {
       badgeColor = const Color(0xFFF59E0B);
       badgeIcon = LucideIcons.alertTriangle;
@@ -535,11 +639,17 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3.5,
+                ),
                 decoration: BoxDecoration(
                   color: badgeColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: badgeColor.withValues(alpha: 0.4), width: 0.8),
+                  border: Border.all(
+                    color: badgeColor.withValues(alpha: 0.4),
+                    width: 0.8,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -560,7 +670,13 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
               const Spacer(),
               Row(
                 children: [
-                  Icon(LucideIcons.calendar, size: 12, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                  Icon(
+                    LucideIcons.calendar,
+                    size: 12,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     fechaStr,
@@ -618,7 +734,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                           '•  Valor: S/ ${(p.stockActual * p.precioVenta).toStringAsFixed(2)}',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11.5,
-                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF334155),
                           ),
                         ),
                       ],
@@ -639,13 +757,22 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                   style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     foregroundColor: AppTheme.brandPrimary,
-                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   icon: const Icon(LucideIcons.calendarClock, size: 14),
                   label: const FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text('Actualizar Lote', style: TextStyle(fontSize: 11.5)),
+                    child: Text(
+                      'Actualizar Lote',
+                      style: TextStyle(fontSize: 11.5),
+                    ),
                   ),
                   onPressed: () => _actualizarFechaVencimiento(p),
                 ),
@@ -659,12 +786,20 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                     visualDensity: VisualDensity.compact,
                     backgroundColor: const Color(0xFFEF4444),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   icon: const Icon(LucideIcons.trash2, size: 14),
                   label: const FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text('Dar de Baja', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    child: Text(
+                      'Dar de Baja',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   onPressed: () {
                     AjusteStockSheet.show(context, p, _cargarProductos);

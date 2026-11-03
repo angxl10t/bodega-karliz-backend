@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../../core/api_client.dart';
 import '../productos/producto_service.dart';
 import 'venta_model.dart';
@@ -30,13 +32,24 @@ class VentaService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         ProductoService.invalidateCache();
         notifyVentasChanged();
-        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        return RegistroVentaResult(success: true, venta: VentaRegistro.fromJson(data));
+        final Map<String, dynamic> data = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
+        return RegistroVentaResult(
+          success: true,
+          venta: VentaRegistro.fromJson(data),
+        );
       }
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al procesar la venta en el servidor');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Error al procesar la venta en el servidor',
+      );
       return RegistroVentaResult(success: false, errorMessage: errorMsg);
     } catch (e) {
-      return RegistroVentaResult(success: false, errorMessage: 'Error de conexión con el servidor. Verifica tu conexión a internet.');
+      return RegistroVentaResult(
+        success: false,
+        errorMessage: 'Error de conexión con el servidor. Verifica tu conexión a internet.',
+      );
     }
   }
 
@@ -50,7 +63,9 @@ class VentaService {
     try {
       final response = await _apiClient.get('/ventas');
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         return jsonList.map((json) => VentaRegistro.fromJson(json)).toList();
       }
       return [];
@@ -63,7 +78,9 @@ class VentaService {
     try {
       final response = await _apiClient.get('/ventas/caja-hoy');
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final Map<String, dynamic> data = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         return CierreCaja.fromJson(data);
       }
       return null;
@@ -78,7 +95,9 @@ class VentaService {
           "${fecha.year.toString().padLeft(4, '0')}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}";
       final response = await _apiClient.get('/ventas/caja?fecha=$fechaStr');
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final Map<String, dynamic> data = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         return CierreCaja.fromJson(data);
       }
       return null;
@@ -89,9 +108,13 @@ class VentaService {
 
   Future<List<CierreCaja>> getHistorialCierres({int dias = 30}) async {
     try {
-      final response = await _apiClient.get('/ventas/caja-historial?dias=$dias');
+      final response = await _apiClient.get(
+        '/ventas/caja-historial?dias=$dias',
+      );
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         return jsonList.map((json) => CierreCaja.fromJson(json)).toList();
       }
       return [];
@@ -100,7 +123,10 @@ class VentaService {
     }
   }
 
-  Future<({bool ok, String? error})> anularVentaConDetalle(int idVenta, {String? motivo}) async {
+  Future<({bool ok, String? error})> anularVentaConDetalle(
+    int idVenta, {
+    String? motivo,
+  }) async {
     try {
       final query = motivo != null && motivo.trim().isNotEmpty
           ? '?motivo=${Uri.encodeComponent(motivo.trim())}'
@@ -111,7 +137,10 @@ class VentaService {
         notifyVentasChanged();
         return (ok: true, error: null);
       }
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al anular la venta');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Error al anular la venta',
+      );
       return (ok: false, error: errorMsg);
     } catch (e) {
       return (ok: false, error: 'Error de conexión con el servidor.');
@@ -126,16 +155,30 @@ class VentaService {
   /// Reintenta el envío de un comprobante electrónico pendiente a SUNAT
   Future<RegistroVentaResult> reintentarSunat(int idVenta) async {
     try {
-      final response = await _apiClient.post('/ventas/$idVenta/reintentar-sunat', {});
+      final response = await _apiClient.post(
+        '/ventas/$idVenta/reintentar-sunat',
+        {},
+      );
       if (response.statusCode == 200) {
         notifyVentasChanged();
-        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        return RegistroVentaResult(success: true, venta: VentaRegistro.fromJson(data));
+        final Map<String, dynamic> data = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
+        return RegistroVentaResult(
+          success: true,
+          venta: VentaRegistro.fromJson(data),
+        );
       }
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al reintentar envío a SUNAT');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Error al reintentar envío a SUNAT',
+      );
       return RegistroVentaResult(success: false, errorMessage: errorMsg);
     } catch (e) {
-      return RegistroVentaResult(success: false, errorMessage: 'Error de conexión con el servidor al reintentar envío.');
+      return RegistroVentaResult(
+        success: false,
+        errorMessage: 'Error de conexión con el servidor al reintentar envío.',
+      );
     }
   }
 
@@ -146,7 +189,9 @@ class VentaService {
           "${fecha.year.toString().padLeft(4, '0')}-${fecha.month.toString().padLeft(2, '0')}-${fecha.day.toString().padLeft(2, '0')}";
       final response = await _apiClient.get('/caja/arqueo?fecha=$fechaStr');
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final Map<String, dynamic> data = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         return CierreCaja.fromJson(data);
       }
       return await getCierreCajaPorFecha(fecha);
@@ -201,10 +246,7 @@ class VentaService {
       final targetFecha = fecha ?? DateTime.now();
       final fechaStr =
           "${targetFecha.year.toString().padLeft(4, '0')}-${targetFecha.month.toString().padLeft(2, '0')}-${targetFecha.day.toString().padLeft(2, '0')}";
-      final body = {
-        'montoInicial': monto,
-        'fecha': fechaStr,
-      };
+      final body = {'montoInicial': monto, 'fecha': fechaStr};
       final response = await _apiClient.post('/caja/fondo-inicial', body);
       if (response.statusCode == 200 || response.statusCode == 201) {
         notifyVentasChanged();

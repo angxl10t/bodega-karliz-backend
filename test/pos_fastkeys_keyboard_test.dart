@@ -21,7 +21,38 @@ void main() {
       ]);
     });
 
-    testWidgets('Renders Fast-Keys toolbar with F2, F4, F9, and Esc in Tablet mode', (tester) async {
+    testWidgets(
+      'Renders Fast-Keys toolbar with F2, F4, F9, and Esc in Tablet mode',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.dark,
+            home: const Scaffold(body: VentasScreen()),
+          ),
+        );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
+        await tester.pumpAndSettle();
+
+        // Verificar que los badges de teclas rápidas existan
+        expect(find.text('F2'), findsWidgets);
+        expect(find.text('F4'), findsWidgets);
+        expect(find.text('F9'), findsWidgets);
+        expect(find.text('Esc'), findsWidgets);
+      },
+    );
+
+    testWidgets('Tapping F9 key badge toggles between Boleta and Ticket', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(1280, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -32,37 +63,7 @@ void main() {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: ThemeMode.dark,
-          home: const Scaffold(
-            body: VentasScreen(),
-          ),
-        ),
-      );
-
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 150));
-      await tester.pumpAndSettle();
-
-      // Verificar que los badges de teclas rápidas existan
-      expect(find.text('F2'), findsWidgets);
-      expect(find.text('F4'), findsWidgets);
-      expect(find.text('F9'), findsWidgets);
-      expect(find.text('Esc'), findsWidgets);
-    });
-
-    testWidgets('Tapping F9 key badge toggles between Boleta and Ticket', (tester) async {
-      tester.view.physicalSize = const Size(1280, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.dark,
-          home: const Scaffold(
-            body: VentasScreen(),
-          ),
+          home: const Scaffold(body: VentasScreen()),
         ),
       );
 

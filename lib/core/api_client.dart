@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import 'api_constants.dart';
 import 'secure_storage_service.dart';
 
@@ -16,14 +18,21 @@ class ApiClient {
 
   /// Extrae el mensaje de error legible desde la respuesta HTTP del servidor
   /// con soporte para campos estándar: 'error', 'message', 'mensaje', 'detail' y texto plano.
-  static String extractErrorMessage(http.Response response, [String fallback = 'Error al procesar la solicitud']) {
+  static String extractErrorMessage(
+    http.Response response, [
+    String fallback = 'Error al procesar la solicitud',
+  ]) {
     try {
       final text = response.body.trim();
       if (text.isNotEmpty) {
         try {
           final decoded = jsonDecode(text);
           if (decoded is Map) {
-            final msg = decoded['error'] ?? decoded['message'] ?? decoded['mensaje'] ?? decoded['detail'];
+            final msg =
+                decoded['error'] ??
+                decoded['message'] ??
+                decoded['mensaje'] ??
+                decoded['detail'];
             if (msg != null && msg.toString().trim().isNotEmpty) {
               return msg.toString().trim();
             }
@@ -43,9 +52,7 @@ class ApiClient {
 
   Future<Map<String, String>> _getHeaders() async {
     final token = await SecureStorageService.read('jwt_token') ?? '';
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
-    };
+    final headers = <String, String>{'Content-Type': 'application/json'};
     if (token.trim().isNotEmpty) {
       headers['Authorization'] = 'Bearer ${token.trim()}';
     }
@@ -55,21 +62,25 @@ class ApiClient {
   void _checkAuthStatus(http.Response response, String endpoint) async {
     // HTTP 401 (No autenticado / Token expirado o revocado) o HTTP 403 por bloqueo/desactivación de tenant o usuario
     final bodyLower = response.body.toLowerCase();
-    final isDeactivated = response.statusCode == 403 &&
+    final isDeactivated =
+        response.statusCode == 403 &&
         (bodyLower.contains('desactivad') ||
-         bodyLower.contains('deshabilitad') ||
-         bodyLower.contains('inactiv') ||
-         bodyLower.contains('bloquead'));
+            bodyLower.contains('deshabilitad') ||
+            bodyLower.contains('inactiv') ||
+            bodyLower.contains('bloquead'));
     final isSessionInvalid = response.statusCode == 401 || isDeactivated;
 
-    if (isSessionInvalid && !endpoint.contains('/auth/') && !endpoint.contains('/health')) {
+    if (isSessionInvalid &&
+        !endpoint.contains('/auth/') &&
+        !endpoint.contains('/health')) {
       await SecureStorageService.clearAuth();
       onSessionExpired?.call();
     }
   }
 
   @visibleForTesting
-  void checkAuthStatus(http.Response response, String endpoint) => _checkAuthStatus(response, endpoint);
+  void checkAuthStatus(http.Response response, String endpoint) =>
+      _checkAuthStatus(response, endpoint);
 
   Uri _resolveUri(String endpoint) {
     final clean = endpoint.trim();
@@ -85,53 +96,48 @@ class ApiClient {
 
   Future<http.Response> get(String endpoint) async {
     final uri = _resolveUri(endpoint);
-    final res = await _client.get(
-      uri,
-      headers: await _getHeaders(),
-    ).timeout(const Duration(seconds: 30));
+    final res = await _client
+        .get(uri, headers: await _getHeaders())
+        .timeout(const Duration(seconds: 30));
     _checkAuthStatus(res, endpoint);
     return res;
   }
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final uri = _resolveUri(endpoint);
-    final res = await _client.post(
-      uri,
-      headers: await _getHeaders(),
-      body: jsonEncode(body),
-    ).timeout(const Duration(seconds: 30));
+    final res = await _client
+        .post(uri, headers: await _getHeaders(), body: jsonEncode(body))
+        .timeout(const Duration(seconds: 30));
     _checkAuthStatus(res, endpoint);
     return res;
   }
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
     final uri = _resolveUri(endpoint);
-    final res = await _client.put(
-      uri,
-      headers: await _getHeaders(),
-      body: jsonEncode(body),
-    ).timeout(const Duration(seconds: 30));
+    final res = await _client
+        .put(uri, headers: await _getHeaders(), body: jsonEncode(body))
+        .timeout(const Duration(seconds: 30));
     _checkAuthStatus(res, endpoint);
     return res;
   }
 
-  Future<http.Response> patch(String endpoint, Map<String, dynamic> body) async {
+  Future<http.Response> patch(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
     final uri = _resolveUri(endpoint);
-    final res = await _client.patch(
-      uri,
-      headers: await _getHeaders(),
-      body: jsonEncode(body),
-    ).timeout(const Duration(seconds: 30));
+    final res = await _client
+        .patch(uri, headers: await _getHeaders(), body: jsonEncode(body))
+        .timeout(const Duration(seconds: 30));
     _checkAuthStatus(res, endpoint);
     return res;
   }
 
   Future<http.Response> delete(String endpoint) async {
     final uri = _resolveUri(endpoint);
-    final res = await _client.delete(
-      uri,
-      headers: await _getHeaders(),
-    ).timeout(const Duration(seconds: 30));
+    final res = await _client
+        .delete(uri, headers: await _getHeaders())
+        .timeout(const Duration(seconds: 30));
     _checkAuthStatus(res, endpoint);
     return res;
   }

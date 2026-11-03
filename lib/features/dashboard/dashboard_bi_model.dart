@@ -120,9 +120,11 @@ class ProductoHueso {
       imagenUrl: json['imagenUrl']?.toString(),
       stockActual: (json['stockActual'] as num?)?.toDouble() ?? 0.0,
       precioCosto: (json['precioCosto'] as num?)?.toDouble() ?? 0.0,
-      capitalInmovilizado: (json['capitalInmovilizado'] as num?)?.toDouble() ?? 0.0,
+      capitalInmovilizado:
+          (json['capitalInmovilizado'] as num?)?.toDouble() ?? 0.0,
       diasSinVentas: (json['diasSinVentas'] as num?)?.toInt() ?? 30,
-      accionRecomendada: json['accionRecomendada']?.toString() ?? 'Promoción o Liquidación',
+      accionRecomendada:
+          json['accionRecomendada']?.toString() ?? 'Promoción o Liquidación',
     );
   }
 
@@ -187,29 +189,45 @@ class DashboardBiData {
       totalVentas: (json['totalVentas'] as num?)?.toDouble() ?? 0.0,
       totalCostos: (json['totalCostos'] as num?)?.toDouble() ?? 0.0,
       margenBrutoSoles: (json['margenBrutoSoles'] as num?)?.toDouble() ?? 0.0,
-      porcentajeMargenBruto: (json['porcentajeMargenBruto'] as num?)?.toDouble() ?? 0.0,
+      porcentajeMargenBruto:
+          (json['porcentajeMargenBruto'] as num?)?.toDouble() ?? 0.0,
       ticketPromedioHoy: (json['ticketPromedioHoy'] as num?)?.toDouble() ?? 0.0,
-      ticketPromedioSemanal: (json['ticketPromedioSemanal'] as num?)?.toDouble() ?? 0.0,
-      ticketPromedioPeriodo: (json['ticketPromedioPeriodo'] as num?)?.toDouble() ?? 0.0,
+      ticketPromedioSemanal:
+          (json['ticketPromedioSemanal'] as num?)?.toDouble() ?? 0.0,
+      ticketPromedioPeriodo:
+          (json['ticketPromedioPeriodo'] as num?)?.toDouble() ?? 0.0,
       cantidadVentasHoy: (json['cantidadVentasHoy'] as num?)?.toInt() ?? 0,
-      cantidadVentasPeriodo: (json['cantidadVentasPeriodo'] as num?)?.toInt() ?? 0,
-      productosEstrella: (json['productosEstrella'] as List<dynamic>?)
-              ?.map((item) => ProductoEstrella.fromJson(item as Map<String, dynamic>))
+      cantidadVentasPeriodo:
+          (json['cantidadVentasPeriodo'] as num?)?.toInt() ?? 0,
+      productosEstrella:
+          (json['productosEstrella'] as List<dynamic>?)
+              ?.map(
+                (item) =>
+                    ProductoEstrella.fromJson(item as Map<String, dynamic>),
+              )
               .toList() ??
           [],
-      productosHueso: (json['productosHueso'] as List<dynamic>?)
-              ?.map((item) => ProductoHueso.fromJson(item as Map<String, dynamic>))
+      productosHueso:
+          (json['productosHueso'] as List<dynamic>?)
+              ?.map(
+                (item) => ProductoHueso.fromJson(item as Map<String, dynamic>),
+              )
               .toList() ??
           [],
-      totalCapitalInmovilizado: (json['totalCapitalInmovilizado'] as num?)?.toDouble() ?? 0.0,
+      totalCapitalInmovilizado:
+          (json['totalCapitalInmovilizado'] as num?)?.toDouble() ?? 0.0,
       totalProductosHueso: (json['totalProductosHueso'] as num?)?.toInt() ?? 0,
-      distribucionHoraria: (json['distribucionHoraria'] as List<dynamic>?)
-              ?.map((item) => HorarioPico.fromJson(item as Map<String, dynamic>))
+      distribucionHoraria:
+          (json['distribucionHoraria'] as List<dynamic>?)
+              ?.map(
+                (item) => HorarioPico.fromJson(item as Map<String, dynamic>),
+              )
               .toList() ??
           [],
       horaPicoMaxima: json['horaPicoMaxima']?.toString() ?? '19:00 a 20:00',
       horaValleMinima: json['horaValleMinima']?.toString() ?? '14:00 a 15:00',
-      recomendacionTurnos: json['recomendacionTurnos']?.toString() ??
+      recomendacionTurnos:
+          json['recomendacionTurnos']?.toString() ??
           'Optimiza el personal en horas de mayor afluencia comercial.',
     );
   }

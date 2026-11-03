@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../../core/api_client.dart';
 import 'proveedor_model.dart';
 
@@ -21,7 +23,9 @@ class ProveedorService {
   }
 
   Future<List<Proveedor>> getProveedores({bool forceRefresh = false}) async {
-    if (!forceRefresh && _cachedProveedores != null && _cacheTimestamp != null) {
+    if (!forceRefresh &&
+        _cachedProveedores != null &&
+        _cacheTimestamp != null) {
       if (DateTime.now().difference(_cacheTimestamp!) < _cacheDuration) {
         return List<Proveedor>.from(_cachedProveedores!);
       }
@@ -30,21 +34,31 @@ class ProveedorService {
     try {
       final response = await _apiClient.get('/proveedores');
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         final provs = jsonList.map((json) => Proveedor.fromJson(json)).toList();
         _cachedProveedores = provs;
         _cacheTimestamp = DateTime.now();
         return List<Proveedor>.from(provs);
       }
-      return _cachedProveedores != null ? List<Proveedor>.from(_cachedProveedores!) : [];
+      return _cachedProveedores != null
+          ? List<Proveedor>.from(_cachedProveedores!)
+          : [];
     } catch (e) {
-      return _cachedProveedores != null ? List<Proveedor>.from(_cachedProveedores!) : [];
+      return _cachedProveedores != null
+          ? List<Proveedor>.from(_cachedProveedores!)
+          : [];
     }
   }
 
-  Future<({bool ok, String? error, Proveedor? proveedor})> crearProveedorConDetalle(Proveedor proveedor) async {
+  Future<({bool ok, String? error, Proveedor? proveedor})>
+  crearProveedorConDetalle(Proveedor proveedor) async {
     try {
-      final response = await _apiClient.post('/proveedores', proveedor.toJson());
+      final response = await _apiClient.post(
+        '/proveedores',
+        proveedor.toJson(),
+      );
       if (response.statusCode == 201 || response.statusCode == 200) {
         invalidateCache();
         Proveedor? creado;
@@ -56,10 +70,17 @@ class ProveedorService {
         } catch (_) {}
         return (ok: true, error: null, proveedor: creado);
       }
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Error al registrar el proveedor');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Error al registrar el proveedor',
+      );
       return (ok: false, error: errorMsg, proveedor: null);
     } catch (e) {
-      return (ok: false, error: 'Error de conexión al registrar proveedor.', proveedor: null);
+      return (
+        ok: false,
+        error: 'Error de conexión al registrar proveedor.',
+        proveedor: null,
+      );
     }
   }
 

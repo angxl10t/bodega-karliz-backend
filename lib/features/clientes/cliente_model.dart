@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum NivelRiesgoCliente {
-  bajo,
-  medio,
-  alto,
-}
+enum NivelRiesgoCliente { bajo, medio, alto }
 
 class Cliente {
   final int? idCliente;
@@ -39,13 +35,15 @@ class Cliente {
 
   bool get tieneDeuda => saldoDeudor > 0.009;
   bool get esCaserito => (notas ?? '').toUpperCase().contains('CASERITO');
-  double get porcentajeCreditoUsado => limiteCredito > 0 ? (saldoDeudor / limiteCredito).clamp(0.0, 1.0) : 0.0;
+  double get porcentajeCreditoUsado =>
+      limiteCredito > 0 ? (saldoDeudor / limiteCredito).clamp(0.0, 1.0) : 0.0;
 
   NivelRiesgoCliente get nivelRiesgo {
     if (!tieneDeuda) return NivelRiesgoCliente.bajo;
     if (limiteCredito <= 0) return NivelRiesgoCliente.alto;
     final ratio = saldoDeudor / limiteCredito;
-    if (ratio >= 0.85 || saldoDeudor >= limiteCredito) return NivelRiesgoCliente.alto;
+    if (ratio >= 0.85 || saldoDeudor >= limiteCredito)
+      return NivelRiesgoCliente.alto;
     if (ratio >= 0.50) return NivelRiesgoCliente.medio;
     return NivelRiesgoCliente.bajo;
   }
@@ -87,11 +85,16 @@ class Cliente {
       direccion: json['direccion'] as String?,
       limiteCredito: (json['limiteCredito'] as num?)?.toDouble() ?? 200.0,
       saldoDeudor: (json['saldoDeudor'] as num?)?.toDouble() ?? 0.0,
-      creditoDisponible: (json['creditoDisponible'] as num?)?.toDouble() ?? 200.0,
+      creditoDisponible:
+          (json['creditoDisponible'] as num?)?.toDouble() ?? 200.0,
       notas: json['notas'] as String?,
       estado: json['estado'] as bool? ?? true,
-      fechaRegistro: json['fechaRegistro'] != null ? DateTime.tryParse(json['fechaRegistro']) : null,
-      fechaUltimoPago: json['fechaUltimoPago'] != null ? DateTime.tryParse(json['fechaUltimoPago']) : null,
+      fechaRegistro: json['fechaRegistro'] != null
+          ? DateTime.tryParse(json['fechaRegistro'])
+          : null,
+      fechaUltimoPago: json['fechaUltimoPago'] != null
+          ? DateTime.tryParse(json['fechaUltimoPago'])
+          : null,
     );
   }
 
@@ -173,10 +176,14 @@ class EstadoCuentaCliente {
   factory EstadoCuentaCliente.fromJson(Map<String, dynamic> json) {
     return EstadoCuentaCliente(
       cliente: Cliente.fromJson(json['cliente'] as Map<String, dynamic>),
-      totalVentasCredito: (json['totalVentasCredito'] as num?)?.toDouble() ?? 0.0,
-      totalAbonosRealizados: (json['totalAbonosRealizados'] as num?)?.toDouble() ?? 0.0,
-      comprasCreditoRecientes: (json['comprasCreditoRecientes'] as List<dynamic>?) ?? [],
-      abonosRecientes: (json['abonosRecientes'] as List<dynamic>?)
+      totalVentasCredito:
+          (json['totalVentasCredito'] as num?)?.toDouble() ?? 0.0,
+      totalAbonosRealizados:
+          (json['totalAbonosRealizados'] as num?)?.toDouble() ?? 0.0,
+      comprasCreditoRecientes:
+          (json['comprasCreditoRecientes'] as List<dynamic>?) ?? [],
+      abonosRecientes:
+          (json['abonosRecientes'] as List<dynamic>?)
               ?.map((e) => AbonoCredito.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

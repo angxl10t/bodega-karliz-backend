@@ -47,7 +47,16 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/coca_cola_3l.png',
       codigosBarras: ['7751234567890', '7750106002024', '7750182001250'],
-      keywords: ['3l', '3lt', '3litros', 'coca', 'cola', 'gaseosa', 'original', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        'coca',
+        'cola',
+        'gaseosa',
+        'original',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'inka_kola_500ml',
@@ -65,7 +74,17 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/inka_kola_3l.png',
       codigosBarras: ['7750106000013', '7750182001243'],
-      keywords: ['3l', '3lt', '3litros', 'dorada', 'gaseosa', 'inca', 'kola', 'original', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        'dorada',
+        'gaseosa',
+        'inca',
+        'kola',
+        'original',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'fanta_500ml',
@@ -83,7 +102,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/fanta_3l.png',
       codigosBarras: ['7750182495301', '7750106004028'],
-      keywords: ['3l', '3lt', '3litros', 'fanta', 'gaseosa', 'naranja', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        'fanta',
+        'gaseosa',
+        'naranja',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'sprite_500ml',
@@ -101,7 +128,16 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/sprite_3l.png',
       codigosBarras: ['7750182000222', '7750106005025'],
-      keywords: ['3l', '3lt', '3litros', 'gaseosa', 'lima', 'limon', 'sprite', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        'gaseosa',
+        'lima',
+        'limon',
+        'sprite',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'guarana',
@@ -128,7 +164,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/cifrut.png',
       codigosBarras: ['7750670010412'],
-      keywords: ['3l', '3litros', 'citrus', 'punch', 'cifrut', 'frutas', 'bebida'],
+      keywords: [
+        '3l',
+        '3litros',
+        'citrus',
+        'punch',
+        'cifrut',
+        'frutas',
+        'bebida',
+      ],
     ),
     ProductoStudioFoto(
       id: 'agua_san_mateo',
@@ -136,8 +180,23 @@ class CatalogoImagenesService {
       marca: 'San Mateo',
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/agua_san_mateo_600ml.png',
-      codigosBarras: ['77530967', '775117011953', '775386598917', '775544203715', '775620527268'],
-      keywords: ['600ml', 'agua', 'gas', 'manantial', 'mateo', 'mineral', 'san', 'sin'],
+      codigosBarras: [
+        '77530967',
+        '775117011953',
+        '775386598917',
+        '775544203715',
+        '775620527268',
+      ],
+      keywords: [
+        '600ml',
+        'agua',
+        'gas',
+        'manantial',
+        'mateo',
+        'mineral',
+        'san',
+        'sin',
+      ],
     ),
     ProductoStudioFoto(
       id: 'agua_san_luis',
@@ -146,7 +205,18 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/agua_san_luis.png',
       codigosBarras: ['7750106003014', '7750106003021'],
-      keywords: ['7l', '7litros', 'agua', 'bidon', 'cano', 'gas', 'luis', 'mesa', 'san', 'sin'],
+      keywords: [
+        '7l',
+        '7litros',
+        'agua',
+        'bidon',
+        'cano',
+        'gas',
+        'luis',
+        'mesa',
+        'san',
+        'sin',
+      ],
     ),
     ProductoStudioFoto(
       id: 'red_bull',
@@ -254,7 +324,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/pepsi_3l.png',
       codigosBarras: ['7750182000420'],
-      keywords: ['3l', '3lt', '3litros', 'pepsi', 'gaseosa', 'original', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        'pepsi',
+        'gaseosa',
+        'original',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'seven_up_500ml',
@@ -272,7 +350,17 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/seven_up.png',
       codigosBarras: ['7750182000444'],
-      keywords: ['3l', '3lt', '3litros', '7up', 'seven', 'up', 'lima', 'limon', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        '7up',
+        'seven',
+        'up',
+        'lima',
+        'limon',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'concordia_pina_500ml',
@@ -290,7 +378,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/concordia_pina.png',
       codigosBarras: ['7750182000468'],
-      keywords: ['3l', '3lt', '3litros', 'concordia', 'pina', 'amarilla', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        'concordia',
+        'pina',
+        'amarilla',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'kr_cola_3l',
@@ -299,7 +395,16 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/kr_cola.png',
       codigosBarras: ['7750670010115'],
-      keywords: ['3l', '3lt', 'kr', 'kola', 'real', 'negra', 'cola', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        'kr',
+        'kola',
+        'real',
+        'negra',
+        'cola',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'kr_pina_3l',
@@ -308,7 +413,16 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/kr_pina.png',
       codigosBarras: ['7750670010122'],
-      keywords: ['3l', '3lt', 'kr', 'kola', 'real', 'pina', 'amarilla', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        'kr',
+        'kola',
+        'real',
+        'pina',
+        'amarilla',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'guarana_lata_355ml',
@@ -353,7 +467,16 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/monster_energy_ultra.png',
       codigosBarras: ['70847022909'],
-      keywords: ['473ml', 'monster', 'ultra', 'white', 'blanca', 'zero', 'lata', 'energizante'],
+      keywords: [
+        '473ml',
+        'monster',
+        'ultra',
+        'white',
+        'blanca',
+        'zero',
+        'lata',
+        'energizante',
+      ],
     ),
     ProductoStudioFoto(
       id: 'volt_blue_300ml',
@@ -389,7 +512,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/frugos_durazno.png',
       codigosBarras: ['7750106008019'],
-      keywords: ['1l', '1litro', 'frugos', 'valle', 'durazno', 'jugo', 'nectar'],
+      keywords: [
+        '1l',
+        '1litro',
+        'frugos',
+        'valle',
+        'durazno',
+        'jugo',
+        'nectar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'frugos_mango_1l',
@@ -407,7 +538,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/frugos_naranja.png',
       codigosBarras: ['7750106008040'],
-      keywords: ['1l', '1litro', 'frugos', 'valle', 'naranja', 'jugo', 'citrico'],
+      keywords: [
+        '1l',
+        '1litro',
+        'frugos',
+        'valle',
+        'naranja',
+        'jugo',
+        'citrico',
+      ],
     ),
     ProductoStudioFoto(
       id: 'pulp_durazno_300ml',
@@ -434,7 +573,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/tampico.png',
       codigosBarras: ['7750800001012'],
-      keywords: ['1l', '1litro', 'tampico', 'citrus', 'punch', 'frutas', 'jugo'],
+      keywords: [
+        '1l',
+        '1litro',
+        'tampico',
+        'citrus',
+        'punch',
+        'frutas',
+        'jugo',
+      ],
     ),
     ProductoStudioFoto(
       id: 'tampico_3l',
@@ -443,7 +590,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/tampico_3l.png',
       codigosBarras: ['7750800001029'],
-      keywords: ['3l', '3lt', '3litros', 'tampico', 'galonera', 'citrus', 'familiar'],
+      keywords: [
+        '3l',
+        '3lt',
+        '3litros',
+        'tampico',
+        'galonera',
+        'citrus',
+        'familiar',
+      ],
     ),
     ProductoStudioFoto(
       id: 'agua_cielo_625ml',
@@ -461,7 +616,16 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/agua_cielo_7l.png',
       codigosBarras: ['7750670010030'],
-      keywords: ['7l', '7litros', 'bidon', 'cielo', 'agua', 'pura', 'sin', 'gas'],
+      keywords: [
+        '7l',
+        '7litros',
+        'bidon',
+        'cielo',
+        'agua',
+        'pura',
+        'sin',
+        'gas',
+      ],
     ),
     ProductoStudioFoto(
       id: 'gatorade_cool_blue_500ml',
@@ -470,7 +634,15 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/gatorade_cool_blue.png',
       codigosBarras: ['7750182000604'],
-      keywords: ['500ml', 'gatorade', 'cool', 'blue', 'azul', 'rehidratante', 'isotónica'],
+      keywords: [
+        '500ml',
+        'gatorade',
+        'cool',
+        'blue',
+        'azul',
+        'rehidratante',
+        'isotónica',
+      ],
     ),
     ProductoStudioFoto(
       id: 'gatorade_tropical_500ml',
@@ -479,7 +651,14 @@ class CatalogoImagenesService {
       categoria: 'Gaseosas y Bebidas',
       imagenUrl: '$_basePath/gatorade_tropical.png',
       codigosBarras: ['7750182000611'],
-      keywords: ['500ml', 'gatorade', 'tropical', 'rojo', 'rehidratante', 'isotónica'],
+      keywords: [
+        '500ml',
+        'gatorade',
+        'tropical',
+        'rojo',
+        'rehidratante',
+        'isotónica',
+      ],
     ),
 
     // --- BEBIDAS ALCOHÓLICAS Y LICORES ---
@@ -508,7 +687,15 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/cerveza_pilsen.png',
       codigosBarras: ['7753749005968', '7750111006014'],
-      keywords: ['305ml', 'botellas', 'callao', 'cerveza', 'pilsen', 'sixpack', 'pack'],
+      keywords: [
+        '305ml',
+        'botellas',
+        'callao',
+        'cerveza',
+        'pilsen',
+        'sixpack',
+        'pack',
+      ],
     ),
     ProductoStudioFoto(
       id: 'cerveza_cusquena',
@@ -544,7 +731,15 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/ron_cartavio.png',
       codigosBarras: ['7750111006052', '7750148000012'],
-      keywords: ['1l', '1litro', '750ml', 'black', 'botella', 'cartavio', 'ron'],
+      keywords: [
+        '1l',
+        '1litro',
+        '750ml',
+        'black',
+        'botella',
+        'cartavio',
+        'ron',
+      ],
     ),
     ProductoStudioFoto(
       id: 'cerveza_pilsen_630ml',
@@ -553,7 +748,14 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/cerveza_pilsen.png',
       codigosBarras: ['7750111006014'],
-      keywords: ['630ml', 'pilsen', 'callao', 'retornable', 'cerveza', 'botella'],
+      keywords: [
+        '630ml',
+        'pilsen',
+        'callao',
+        'retornable',
+        'cerveza',
+        'botella',
+      ],
     ),
     ProductoStudioFoto(
       id: 'cerveza_pilsen_lata_355ml',
@@ -616,7 +818,16 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/four_loko_gold.png',
       codigosBarras: ['849607000100'],
-      keywords: ['473ml', 'four', 'loko', 'gold', 'dorado', '12%', 'lata', 'alcopop'],
+      keywords: [
+        '473ml',
+        'four',
+        'loko',
+        'gold',
+        'dorado',
+        '12%',
+        'lata',
+        'alcopop',
+      ],
     ),
     ProductoStudioFoto(
       id: 'four_loko_sandia',
@@ -625,7 +836,16 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/four_loko_sandia.png',
       codigosBarras: ['849607000117'],
-      keywords: ['473ml', 'four', 'loko', 'sandia', 'rojo', 'watermelon', '12%', 'lata'],
+      keywords: [
+        '473ml',
+        'four',
+        'loko',
+        'sandia',
+        'rojo',
+        'watermelon',
+        '12%',
+        'lata',
+      ],
     ),
     ProductoStudioFoto(
       id: 'four_loko_blue',
@@ -652,7 +872,16 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/mikes_hard_lemonade.png',
       codigosBarras: ['7750111006502'],
-      keywords: ['350ml', 'mikes', 'mike', 'hard', 'lemonade', 'limonada', 'lata', '5%'],
+      keywords: [
+        '350ml',
+        'mikes',
+        'mike',
+        'hard',
+        'lemonade',
+        'limonada',
+        'lata',
+        '5%',
+      ],
     ),
     ProductoStudioFoto(
       id: 'mikes_fresa',
@@ -661,7 +890,16 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/mikes_fresa.png',
       codigosBarras: ['7750111006519'],
-      keywords: ['350ml', 'mikes', 'mike', 'hard', 'fresa', 'strawberry', 'lata', 'rosada'],
+      keywords: [
+        '350ml',
+        'mikes',
+        'mike',
+        'hard',
+        'fresa',
+        'strawberry',
+        'lata',
+        'rosada',
+      ],
     ),
     ProductoStudioFoto(
       id: 'mikes_maracuya',
@@ -670,7 +908,15 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/mikes_maracuya.png',
       codigosBarras: ['7750111006526'],
-      keywords: ['350ml', 'mikes', 'mike', 'hard', 'maracuya', 'passion', 'lata'],
+      keywords: [
+        '350ml',
+        'mikes',
+        'mike',
+        'hard',
+        'maracuya',
+        'passion',
+        'lata',
+      ],
     ),
     ProductoStudioFoto(
       id: 'smirnoff_ice',
@@ -679,7 +925,15 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/smirnoff_ice.png',
       codigosBarras: ['5000291020010', '5000291020027'],
-      keywords: ['275ml', '355ml', 'smirnoff', 'ice', 'vodka', 'limon', 'botella'],
+      keywords: [
+        '275ml',
+        '355ml',
+        'smirnoff',
+        'ice',
+        'vodka',
+        'limon',
+        'botella',
+      ],
     ),
     ProductoStudioFoto(
       id: 'chilcano_tabernero',
@@ -688,7 +942,14 @@ class CatalogoImagenesService {
       categoria: 'Bebidas Alcohólicas',
       imagenUrl: '$_basePath/chilcano_tabernero.png',
       codigosBarras: ['7750170000203'],
-      keywords: ['310ml', 'chilcano', 'tabernero', 'pisco', 'lata', 'preparado'],
+      keywords: [
+        '310ml',
+        'chilcano',
+        'tabernero',
+        'pisco',
+        'lata',
+        'preparado',
+      ],
     ),
     ProductoStudioFoto(
       id: 'pisco_sour_tabernero',
@@ -744,7 +1005,15 @@ class CatalogoImagenesService {
       categoria: 'Snacks y Piqueos',
       imagenUrl: '$_basePath/doritos_queso_45g.png',
       codigosBarras: ['7758574004445', '7750106009951'],
-      keywords: ['45g', 'atrevido', 'chips', 'doritos', 'mega', 'queso', 'tortilla'],
+      keywords: [
+        '45g',
+        'atrevido',
+        'chips',
+        'doritos',
+        'mega',
+        'queso',
+        'tortilla',
+      ],
     ),
     ProductoStudioFoto(
       id: 'cuates_picantes',
@@ -791,7 +1060,15 @@ class CatalogoImagenesService {
       categoria: 'Lácteos y Derivados',
       imagenUrl: '$_basePath/leche_gloria_azul.png',
       codigosBarras: ['7750108003013', '7750243000012', '7750108003112'],
-      keywords: ['395g', '400g', 'azul', 'entera', 'evaporada', 'gloria', 'leche'],
+      keywords: [
+        '395g',
+        '400g',
+        'azul',
+        'entera',
+        'evaporada',
+        'gloria',
+        'leche',
+      ],
     ),
     ProductoStudioFoto(
       id: 'leche_gloria_roja',
@@ -827,7 +1104,16 @@ class CatalogoImagenesService {
       categoria: 'Lácteos y Derivados',
       imagenUrl: '$_basePath/leche_chocolatada_gloria.png',
       codigosBarras: ['7750108003051', '7750108003150'],
-      keywords: ['1l', '946ml', 'caja', 'chocolate', 'chocolatada', 'gloria', 'leche', 'uht'],
+      keywords: [
+        '1l',
+        '946ml',
+        'caja',
+        'chocolate',
+        'chocolatada',
+        'gloria',
+        'leche',
+        'uht',
+      ],
     ),
     ProductoStudioFoto(
       id: 'leche_condensada_nestle',
@@ -938,7 +1224,13 @@ class CatalogoImagenesService {
       marca: 'Costeño',
       categoria: 'Abarrotes y Despensa',
       imagenUrl: '$_basePath/arroz_costeno.png',
-      codigosBarras: ['7750109004041', '7755139246890', '7755139161759', '7750109004141', '7750109004240'],
+      codigosBarras: [
+        '7750109004041',
+        '7755139246890',
+        '7755139161759',
+        '7750109004141',
+        '7750109004240',
+      ],
       keywords: ['1kg', '3kg', '5kg', '750g', 'arroz', 'costeno', 'extra'],
     ),
     ProductoStudioFoto(
@@ -966,7 +1258,14 @@ class CatalogoImagenesService {
       categoria: 'Abarrotes y Despensa',
       imagenUrl: '$_basePath/fideos_spaghetti_molitalia.png',
       codigosBarras: ['7750114002088', '7750114002095'],
-      keywords: ['500g', 'fideos', 'molitalia', 'pasta', 'spaghetti', 'tallarin'],
+      keywords: [
+        '500g',
+        'fideos',
+        'molitalia',
+        'pasta',
+        'spaghetti',
+        'tallarin',
+      ],
     ),
     ProductoStudioFoto(
       id: 'salsa_uchucuta_alacena',
@@ -975,7 +1274,16 @@ class CatalogoImagenesService {
       categoria: 'Abarrotes y Despensa',
       imagenUrl: '$_basePath/salsa_uchucuta_alacena.png',
       codigosBarras: ['7750114006079', '7750114006086'],
-      keywords: ['400g', '85g', 'alacena', 'crema', 'doypack', 'rocoto', 'salsa', 'uchucuta'],
+      keywords: [
+        '400g',
+        '85g',
+        'alacena',
+        'crema',
+        'doypack',
+        'rocoto',
+        'salsa',
+        'uchucuta',
+      ],
     ),
     ProductoStudioFoto(
       id: 'fideos_spaghetti_don_vittorio',
@@ -993,7 +1301,16 @@ class CatalogoImagenesService {
       categoria: 'Abarrotes y Despensa',
       imagenUrl: '$_basePath/fideos_codito_don_vittorio.png',
       codigosBarras: ['7750109004027', '7750109004225'],
-      keywords: ['250g', '450g', 'codo', 'codito', 'don', 'fideos', 'rayado', 'vittorio'],
+      keywords: [
+        '250g',
+        '450g',
+        'codo',
+        'codito',
+        'don',
+        'fideos',
+        'rayado',
+        'vittorio',
+      ],
     ),
     ProductoStudioFoto(
       id: 'fideos_canuto_lavaggi',
@@ -1029,7 +1346,15 @@ class CatalogoImagenesService {
       categoria: 'Abarrotes y Despensa',
       imagenUrl: '$_basePath/mayonesa_alacena.png',
       codigosBarras: ['7750243072366', '7750109004164', '7750109004190'],
-      keywords: ['850g', '950g', '95g', 'alacena', 'doypack', 'mayonesa', 'regular'],
+      keywords: [
+        '850g',
+        '950g',
+        '95g',
+        'alacena',
+        'doypack',
+        'mayonesa',
+        'regular',
+      ],
     ),
     ProductoStudioFoto(
       id: 'crema_tari',
@@ -1049,7 +1374,16 @@ class CatalogoImagenesService {
       categoria: 'Panadería y Desayuno',
       imagenUrl: '$_basePath/pan_bimbo_blanco.png',
       codigosBarras: ['7750727014189', '7750116011018', '7750116011117'],
-      keywords: ['400g', '590g', '650g', 'bimbo', 'blanco', 'familiar', 'molde', 'pan'],
+      keywords: [
+        '400g',
+        '590g',
+        '650g',
+        'bimbo',
+        'blanco',
+        'familiar',
+        'molde',
+        'pan',
+      ],
     ),
     ProductoStudioFoto(
       id: 'pan_bimbo_artesano',
@@ -1058,7 +1392,16 @@ class CatalogoImagenesService {
       categoria: 'Panadería y Desayuno',
       imagenUrl: '$_basePath/pan_bimbo_artesano.png',
       codigosBarras: ['7501000133404'],
-      keywords: ['500g', 'artesano', 'barra', 'bimbo', 'gruesa', 'molde', 'pan', 'rebanada'],
+      keywords: [
+        '500g',
+        'artesano',
+        'barra',
+        'bimbo',
+        'gruesa',
+        'molde',
+        'pan',
+        'rebanada',
+      ],
     ),
     ProductoStudioFoto(
       id: 'pan_bimbo_integral',
@@ -1076,7 +1419,15 @@ class CatalogoImagenesService {
       categoria: 'Panadería y Desayuno',
       imagenUrl: '$_basePath/avena_tres_ositos.png',
       codigosBarras: ['7750116011056'],
-      keywords: ['135g', '250g', '500g', 'avena', 'ositos', 'precocida', 'tres'],
+      keywords: [
+        '135g',
+        '250g',
+        '500g',
+        'avena',
+        'ositos',
+        'precocida',
+        'tres',
+      ],
     ),
     ProductoStudioFoto(
       id: 'cafe_nescafe',
@@ -1085,7 +1436,15 @@ class CatalogoImagenesService {
       categoria: 'Panadería y Desayuno',
       imagenUrl: '$_basePath/cafe_nescafe.png',
       codigosBarras: ['7750116011049', '7750116011148'],
-      keywords: ['100g', '50g', 'cafe', 'frasco', 'nescafe', 'soluble', 'tradicion'],
+      keywords: [
+        '100g',
+        '50g',
+        'cafe',
+        'frasco',
+        'nescafe',
+        'soluble',
+        'tradicion',
+      ],
     ),
     ProductoStudioFoto(
       id: 'mermelada_gloria',
@@ -1105,7 +1464,16 @@ class CatalogoImagenesService {
       categoria: 'Golosinas y Chocolates',
       imagenUrl: '$_basePath/chocolate_sublime.png',
       codigosBarras: ['7613036615303', '7750115010011', '7750115010110'],
-      keywords: ['100g', '30g', 'chocolate', 'clasico', 'leche', 'nestle', 'sublime', 'tableta'],
+      keywords: [
+        '100g',
+        '30g',
+        'chocolate',
+        'clasico',
+        'leche',
+        'nestle',
+        'sublime',
+        'tableta',
+      ],
     ),
     ProductoStudioFoto(
       id: 'chocolate_triangulo',
@@ -1123,7 +1491,17 @@ class CatalogoImagenesService {
       categoria: 'Golosinas y Chocolates',
       imagenUrl: '$_basePath/galleta_oreo.png',
       codigosBarras: ['7622202217494', '7622201685683', '7750115010080'],
-      keywords: ['108g', '135g', '36g', 'galleta', 'galletas', 'oreo', 'original', 'taco', 'tubo'],
+      keywords: [
+        '108g',
+        '135g',
+        '36g',
+        'galleta',
+        'galletas',
+        'oreo',
+        'original',
+        'taco',
+        'tubo',
+      ],
     ),
     ProductoStudioFoto(
       id: 'galleta_casino',
@@ -1132,7 +1510,15 @@ class CatalogoImagenesService {
       categoria: 'Golosinas y Chocolates',
       imagenUrl: '$_basePath/galleta_casino.png',
       codigosBarras: ['7750115010059', '7750115010158', '7750115010257'],
-      keywords: ['129g', '68g', 'casino', 'fresa', 'galleta', 'galletas', 'victoria'],
+      keywords: [
+        '129g',
+        '68g',
+        'casino',
+        'fresa',
+        'galleta',
+        'galletas',
+        'victoria',
+      ],
     ),
     ProductoStudioFoto(
       id: 'galleta_margarita',
@@ -1141,7 +1527,15 @@ class CatalogoImagenesService {
       categoria: 'Golosinas y Chocolates',
       imagenUrl: '$_basePath/galleta_margarita.png',
       codigosBarras: ['7750115010066'],
-      keywords: ['246g', '80g', 'clasica', 'galleta', 'galletas', 'margarita', 'victoria'],
+      keywords: [
+        '246g',
+        '80g',
+        'clasica',
+        'galleta',
+        'galletas',
+        'margarita',
+        'victoria',
+      ],
     ),
     ProductoStudioFoto(
       id: 'galleta_tentacion',
@@ -1150,7 +1544,15 @@ class CatalogoImagenesService {
       categoria: 'Golosinas y Chocolates',
       imagenUrl: '$_basePath/galleta_tentacion.png',
       codigosBarras: ['7750115010073'],
-      keywords: ['258g', '70g', 'chocolate', 'galleta', 'galletas', 'tentacion', 'victoria'],
+      keywords: [
+        '258g',
+        '70g',
+        'chocolate',
+        'galleta',
+        'galletas',
+        'tentacion',
+        'victoria',
+      ],
     ),
     ProductoStudioFoto(
       id: 'galleta_dona_pepa',
@@ -1159,7 +1561,15 @@ class CatalogoImagenesService {
       categoria: 'Golosinas y Chocolates',
       imagenUrl: '$_basePath/galleta_dona_pepa.png',
       codigosBarras: ['7750115010042'],
-      keywords: ['23g', 'chocolate', 'dona', 'field', 'galleta', 'grageas', 'pepa'],
+      keywords: [
+        '23g',
+        'chocolate',
+        'dona',
+        'field',
+        'galleta',
+        'grageas',
+        'pepa',
+      ],
     ),
     ProductoStudioFoto(
       id: 'galleta_cua_cua',
@@ -1186,7 +1596,16 @@ class CatalogoImagenesService {
       categoria: 'Golosinas y Chocolates',
       imagenUrl: '$_basePath/caramelos_chicho.png',
       codigosBarras: ['7750115010103'],
-      keywords: ['100g', '390g', 'ambrosoli', 'caramelos', 'chicho', 'fruta', 'gajos', 'surtidos'],
+      keywords: [
+        '100g',
+        '390g',
+        'ambrosoli',
+        'caramelos',
+        'chicho',
+        'fruta',
+        'gajos',
+        'surtidos',
+      ],
     ),
 
     // --- HELADOS Y CONGELADOS ---
@@ -1197,7 +1616,14 @@ class CatalogoImagenesService {
       categoria: 'Helados y Congelados',
       imagenUrl: '$_basePath/helado_sandwich_donofrio.png',
       codigosBarras: ['7750110005178'],
-      keywords: ['chocolate', 'donofrio', 'galleta', 'helado', 'sandwich', 'vainilla'],
+      keywords: [
+        'chocolate',
+        'donofrio',
+        'galleta',
+        'helado',
+        'sandwich',
+        'vainilla',
+      ],
     ),
     ProductoStudioFoto(
       id: 'helado_bombones',
@@ -1242,7 +1668,15 @@ class CatalogoImagenesService {
       categoria: 'Helados y Congelados',
       imagenUrl: '$_basePath/helado_frio_rico.png',
       codigosBarras: ['7613287065261', '7750110005031'],
-      keywords: ['cono', 'donofrio', 'frio', 'helado', 'multipack', 'rico', 'vainilla'],
+      keywords: [
+        'cono',
+        'donofrio',
+        'frio',
+        'helado',
+        'multipack',
+        'rico',
+        'vainilla',
+      ],
     ),
     ProductoStudioFoto(
       id: 'helado_peziduri_tricolor',
@@ -1251,7 +1685,16 @@ class CatalogoImagenesService {
       categoria: 'Helados y Congelados',
       imagenUrl: '$_basePath/helado_peziduri_tricolor.png',
       codigosBarras: ['7613287023568', '7750110005048'],
-      keywords: ['1l', '2.2l', '900ml', 'donofrio', 'helado', 'peziduri', 'pote', 'tricolor'],
+      keywords: [
+        '1l',
+        '2.2l',
+        '900ml',
+        'donofrio',
+        'helado',
+        'peziduri',
+        'pote',
+        'tricolor',
+      ],
     ),
     ProductoStudioFoto(
       id: 'helado_peziduri_vainilla',
@@ -1260,7 +1703,15 @@ class CatalogoImagenesService {
       categoria: 'Helados y Congelados',
       imagenUrl: '$_basePath/helado_peziduri_vainilla.png',
       codigosBarras: ['7750110005055'],
-      keywords: ['1l', '900ml', 'donofrio', 'helado', 'peziduri', 'pote', 'vainilla'],
+      keywords: [
+        '1l',
+        '900ml',
+        'donofrio',
+        'helado',
+        'peziduri',
+        'pote',
+        'vainilla',
+      ],
     ),
     ProductoStudioFoto(
       id: 'helado_sin_parar',
@@ -1269,7 +1720,16 @@ class CatalogoImagenesService {
       categoria: 'Helados y Congelados',
       imagenUrl: '$_basePath/helado_sin_parar.png',
       codigosBarras: ['7750110005024'],
-      keywords: ['900ml', 'chips', 'cuisine', 'donofrio', 'helado', 'lucuma', 'parar', 'sin'],
+      keywords: [
+        '900ml',
+        'chips',
+        'cuisine',
+        'donofrio',
+        'helado',
+        'lucuma',
+        'parar',
+        'sin',
+      ],
     ),
 
     // --- LIMPIEZA Y CUIDADO DEL HOGAR ---
@@ -1280,7 +1740,17 @@ class CatalogoImagenesService {
       categoria: 'Limpieza y Cuidado del Hogar',
       imagenUrl: '$_basePath/detergente_bolivar.png',
       codigosBarras: ['7750114009015', '7750114009114'],
-      keywords: ['2.6kg', '850g', '9kg', 'activo', 'blanco', 'bolivar', 'cuidado', 'detergente', 'total'],
+      keywords: [
+        '2.6kg',
+        '850g',
+        '9kg',
+        'activo',
+        'blanco',
+        'bolivar',
+        'cuidado',
+        'detergente',
+        'total',
+      ],
     ),
     ProductoStudioFoto(
       id: 'detergente_ace',
@@ -1307,7 +1777,14 @@ class CatalogoImagenesService {
       categoria: 'Limpieza y Cuidado del Hogar',
       imagenUrl: '$_basePath/suavizante_suavitel.png',
       codigosBarras: ['7750114009046'],
-      keywords: ['2.3l', '850ml', 'fresca', 'primavera', 'suavizante', 'suavitel'],
+      keywords: [
+        '2.3l',
+        '850ml',
+        'fresca',
+        'primavera',
+        'suavizante',
+        'suavitel',
+      ],
     ),
     ProductoStudioFoto(
       id: 'limpiador_poett',
@@ -1316,7 +1793,15 @@ class CatalogoImagenesService {
       categoria: 'Limpieza y Cuidado del Hogar',
       imagenUrl: '$_basePath/limpiador_poett.png',
       codigosBarras: ['7750114009053'],
-      keywords: ['4.5l', '900ml', 'lavanda', 'limpiador', 'liquido', 'maxigalon', 'poett'],
+      keywords: [
+        '4.5l',
+        '900ml',
+        'lavanda',
+        'limpiador',
+        'liquido',
+        'maxigalon',
+        'poett',
+      ],
     ),
     ProductoStudioFoto(
       id: 'lejia_clorox',
@@ -1334,7 +1819,16 @@ class CatalogoImagenesService {
       categoria: 'Limpieza y Cuidado del Hogar',
       imagenUrl: '$_basePath/lavavajilla_ayudin.png',
       codigosBarras: ['7759918006163', '7750114009077', '7750114009213'],
-      keywords: ['350g', '900ml', 'ayudin', 'lavavajilla', 'lima', 'limon', 'liquido', 'pasta'],
+      keywords: [
+        '350g',
+        '900ml',
+        'ayudin',
+        'lavavajilla',
+        'lima',
+        'limon',
+        'liquido',
+        'pasta',
+      ],
     ),
     ProductoStudioFoto(
       id: 'lavavajilla_sapolio',
@@ -1363,7 +1857,15 @@ class CatalogoImagenesService {
       categoria: 'Cuidado Personal y Dental',
       imagenUrl: '$_basePath/colgate_triple_accion.png',
       codigosBarras: ['7750113008032'],
-      keywords: ['150ml', '75ml', 'accion', 'colgate', 'crema', 'dental', 'triple'],
+      keywords: [
+        '150ml',
+        '75ml',
+        'accion',
+        'colgate',
+        'crema',
+        'dental',
+        'triple',
+      ],
     ),
     ProductoStudioFoto(
       id: 'cepillo_colgate',
@@ -1417,7 +1919,14 @@ class CatalogoImagenesService {
       categoria: 'Cuidado Personal y Dental',
       imagenUrl: '$_basePath/desodorante_rexona.png',
       codigosBarras: ['7750113008094'],
-      keywords: ['150ml', 'aerosol', 'antibacterial', 'desodorante', 'men', 'rexona'],
+      keywords: [
+        '150ml',
+        'aerosol',
+        'antibacterial',
+        'desodorante',
+        'men',
+        'rexona',
+      ],
     ),
     ProductoStudioFoto(
       id: 'desodorante_axe',
@@ -1435,7 +1944,16 @@ class CatalogoImagenesService {
       categoria: 'Cuidado Personal y Dental',
       imagenUrl: '$_basePath/papel_higienico_paracas.png',
       codigosBarras: ['7750113008162', '7750113008179'],
-      keywords: ['black', 'clasico', 'higienico', 'papel', 'paracas', 'premium', 'rollos', 'x4'],
+      keywords: [
+        'black',
+        'clasico',
+        'higienico',
+        'papel',
+        'paracas',
+        'premium',
+        'rollos',
+        'x4',
+      ],
     ),
     ProductoStudioFoto(
       id: 'papel_higienico_suave',
@@ -1464,7 +1982,16 @@ class CatalogoImagenesService {
       categoria: 'Cigarrillos y Tabaco',
       imagenUrl: '$_basePath/cigarros_marlboro_20.png',
       codigosBarras: ['7751201001169', '7750112007011'],
-      keywords: ['20', 'cajetilla', 'cigarros', 'cigarrillos', 'hamilton', 'marlboro', 'mix', 'summer'],
+      keywords: [
+        '20',
+        'cajetilla',
+        'cigarros',
+        'cigarrillos',
+        'hamilton',
+        'marlboro',
+        'mix',
+        'summer',
+      ],
     ),
     ProductoStudioFoto(
       id: 'cigarros_lucky_strike',
@@ -1488,35 +2015,65 @@ class CatalogoImagenesService {
 
   static String _normalizar(String input) {
     var out = input.toLowerCase().trim();
-    out = out.replaceAll('á', 'a')
-             .replaceAll('é', 'e')
-             .replaceAll('í', 'i')
-             .replaceAll('ó', 'o')
-             .replaceAll('ú', 'u')
-             .replaceAll('ñ', 'n');
+    out = out
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n');
     return out;
   }
 
   /// Stopwords puramente gramaticales. Los tamaños, unidades y formatos
   /// (500ml, 3L, 140g) NUNCA deben ser stopwords porque son discriminadores clave.
   static const Set<String> _stopwords = {
-    'de', 'en', 'la', 'el', 'los', 'las', 'del', 'con', 'sin', 'por', 'para',
-    'y', 'un', 'una', 'al', 'o'
+    'de',
+    'en',
+    'la',
+    'el',
+    'los',
+    'las',
+    'del',
+    'con',
+    'sin',
+    'por',
+    'para',
+    'y',
+    'un',
+    'una',
+    'al',
+    'o',
   };
 
   /// Extrae unidades de volumen o peso normalizadas (ej: "500ml", "3l", "140g")
   static Set<String> _extraerTamanos(String texto) {
     var norm = _normalizar(texto);
-    norm = norm.replaceAllMapped(RegExp(r'(\d+(?:\.\d+)?)\s*(?:l|lt|litro|litros)\b'), (m) => '${m[1]}l');
-    norm = norm.replaceAllMapped(RegExp(r'(\d+(?:\.\d+)?)\s*(?:ml|mililitros)\b'), (m) => '${m[1]}ml');
-    norm = norm.replaceAllMapped(RegExp(r'(\d+(?:\.\d+)?)\s*(?:g|gr|gramos)\b'), (m) => '${m[1]}g');
-    norm = norm.replaceAllMapped(RegExp(r'(\d+(?:\.\d+)?)\s*(?:kg|kilos)\b'), (m) => '${m[1]}kg');
+    norm = norm.replaceAllMapped(
+      RegExp(r'(\d+(?:\.\d+)?)\s*(?:l|lt|litro|litros)\b'),
+      (m) => '${m[1]}l',
+    );
+    norm = norm.replaceAllMapped(
+      RegExp(r'(\d+(?:\.\d+)?)\s*(?:ml|mililitros)\b'),
+      (m) => '${m[1]}ml',
+    );
+    norm = norm.replaceAllMapped(
+      RegExp(r'(\d+(?:\.\d+)?)\s*(?:g|gr|gramos)\b'),
+      (m) => '${m[1]}g',
+    );
+    norm = norm.replaceAllMapped(
+      RegExp(r'(\d+(?:\.\d+)?)\s*(?:kg|kilos)\b'),
+      (m) => '${m[1]}kg',
+    );
 
     final matches = RegExp(r'\b\d+(?:\.\d+)?[a-z]+\b').allMatches(norm);
     final results = <String>{};
     for (final m in matches) {
       final val = m.group(0)!;
-      if (val.endsWith('ml') || val.endsWith('l') || val.endsWith('g') || val.endsWith('kg')) {
+      if (val.endsWith('ml') ||
+          val.endsWith('l') ||
+          val.endsWith('g') ||
+          val.endsWith('kg')) {
         results.add(val);
       }
     }
@@ -1524,7 +2081,10 @@ class CatalogoImagenesService {
   }
 
   /// Busca una foto oficial de estudio por código de barras o por nombre del producto
-  static ProductoStudioFoto? buscarSugerencia({String? codigoBarras, String? nombre}) {
+  static ProductoStudioFoto? buscarSugerencia({
+    String? codigoBarras,
+    String? nombre,
+  }) {
     // 1. Prioridad: Coincidencia exacta por Código de Barras (EAN-13)
     if (codigoBarras != null && codigoBarras.trim().isNotEmpty) {
       final code = codigoBarras.trim();
@@ -1556,12 +2116,15 @@ class CatalogoImagenesService {
           final itemSizes = _extraerTamanos(normItemNombre);
 
           // Ponderación por Marca
-          if (normMarca.length >= 3 && !_stopwords.contains(normMarca) && normNombre.contains(normMarca)) {
+          if (normMarca.length >= 3 &&
+              !_stopwords.contains(normMarca) &&
+              normNombre.contains(normMarca)) {
             score += 4;
           }
 
           // Ponderación por coincidencia directa de Nombre
-          if (normNombre.contains(normItemNombre) || (normNombre.length >= 6 && normItemNombre.contains(normNombre))) {
+          if (normNombre.contains(normItemNombre) ||
+              (normNombre.length >= 6 && normItemNombre.contains(normNombre))) {
             score += 5;
           }
 

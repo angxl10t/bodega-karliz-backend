@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'secure_storage_service.dart';
 
 /// Modelo de datos para la configuración del hardware de impresión térmica ESC/POS
@@ -84,7 +85,8 @@ class ConfiguracionTicket {
       impresionAutomatica: impresionAutomatica ?? this.impresionAutomatica,
       modoConexion: modoConexion ?? this.modoConexion,
       servidorLocalUrl: servidorLocalUrl ?? this.servidorLocalUrl,
-      mensajeAgradecimiento: mensajeAgradecimiento ?? this.mensajeAgradecimiento,
+      mensajeAgradecimiento:
+          mensajeAgradecimiento ?? this.mensajeAgradecimiento,
       mensajeSecundario: mensajeSecundario ?? this.mensajeSecundario,
       horarioAtencion: horarioAtencion ?? this.horarioAtencion,
       redesSociales: redesSociales ?? this.redesSociales,
@@ -121,10 +123,16 @@ class ConfiguracionTicket {
       abrirGaveta: json['abrirGaveta'] as bool? ?? true,
       impresionAutomatica: json['impresionAutomatica'] as bool? ?? false,
       modoConexion: json['modoConexion'] as String? ?? 'rawbt',
-      servidorLocalUrl: json['servidorLocalUrl'] as String? ?? 'http://127.0.0.1:40213/',
-      mensajeAgradecimiento: json['mensajeAgradecimiento'] as String? ?? '¡Gracias por su compra! Vuelva pronto.',
-      mensajeSecundario: json['mensajeSecundario'] as String? ?? 'Conserve su comprobante',
-      horarioAtencion: json['horarioAtencion'] as String? ?? 'Atención: Lun-Dom 7:00 am - 11:00 pm',
+      servidorLocalUrl:
+          json['servidorLocalUrl'] as String? ?? 'http://127.0.0.1:40213/',
+      mensajeAgradecimiento:
+          json['mensajeAgradecimiento'] as String? ??
+          '¡Gracias por su compra! Vuelva pronto.',
+      mensajeSecundario:
+          json['mensajeSecundario'] as String? ?? 'Conserve su comprobante',
+      horarioAtencion:
+          json['horarioAtencion'] as String? ??
+          'Atención: Lun-Dom 7:00 am - 11:00 pm',
       redesSociales: json['redesSociales'] as String? ?? '',
       mostrarQr: json['mostrarQr'] as bool? ?? true,
       tipoQr: json['tipoQr'] as String? ?? 'YAPE',

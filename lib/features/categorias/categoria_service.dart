@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
 import '../../core/api_client.dart';
 import 'categoria_model.dart';
 
@@ -37,19 +39,28 @@ class CategoriaService {
     try {
       final response = await _apiClient.get('/categorias');
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
+        final List<dynamic> jsonList = jsonDecode(
+          utf8.decode(response.bodyBytes),
+        );
         final cats = jsonList.map((json) => Categoria.fromJson(json)).toList();
         _cachedCategorias = cats;
         _cacheTimestamp = DateTime.now();
         return List<Categoria>.from(cats);
       }
-      return _cachedCategorias != null ? List<Categoria>.from(_cachedCategorias!) : [];
+      return _cachedCategorias != null
+          ? List<Categoria>.from(_cachedCategorias!)
+          : [];
     } catch (e) {
-      return _cachedCategorias != null ? List<Categoria>.from(_cachedCategorias!) : [];
+      return _cachedCategorias != null
+          ? List<Categoria>.from(_cachedCategorias!)
+          : [];
     }
   }
 
-  Future<Categoria?> crearCategoria(String nombre, [String? descripcion]) async {
+  Future<Categoria?> crearCategoria(
+    String nombre, [
+    String? descripcion,
+  ]) async {
     try {
       final response = await _apiClient.post('/categorias', {
         'nombre': nombre,

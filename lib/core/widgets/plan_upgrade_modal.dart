@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../theme.dart';
 import 'pago_yape_modal.dart';
 
@@ -74,7 +75,10 @@ class PlanUpgradeModal extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFD97706).withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(8),
@@ -86,7 +90,11 @@ class PlanUpgradeModal extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(LucideIcons.lock, size: 12, color: Color(0xFFD97706)),
+                        const Icon(
+                          LucideIcons.lock,
+                          size: 12,
+                          color: Color(0xFFD97706),
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           'EXCLUSIVO PLAN MINIMARKET PRO',
@@ -124,7 +132,8 @@ class PlanUpgradeModal extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.3 : 0.5),
+                    color: const Color(0xFFF59E0B)
+                        .withValues(alpha: isDark ? 0.3 : 0.5),
                     width: 1.2,
                   ),
                 ),
@@ -137,7 +146,11 @@ class PlanUpgradeModal extends StatelessWidget {
                         color: const Color(0xFFF59E0B).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(icon, color: const Color(0xFFD97706), size: 26),
+                      child: Icon(
+                        icon,
+                        color: const Color(0xFFD97706),
+                        size: 26,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -149,7 +162,9 @@ class PlanUpgradeModal extends StatelessWidget {
                             style: GoogleFonts.outfit(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
-                              color: isDark ? Colors.white : const Color(0xFF78350F),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF78350F),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -158,7 +173,9 @@ class PlanUpgradeModal extends StatelessWidget {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF92400E),
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF92400E),
                               height: 1.35,
                             ),
                           ),
@@ -176,7 +193,9 @@ class PlanUpgradeModal extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF475569),
                   letterSpacing: 0.5,
                 ),
               ),
@@ -185,10 +204,14 @@ class PlanUpgradeModal extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+                  color: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: Column(
@@ -238,7 +261,8 @@ class PlanUpgradeModal extends StatelessWidget {
                     _buildBeneficioRow(
                       icon: LucideIcons.boxes,
                       titulo: 'Catálogo de Productos Ilimitado',
-                      descripcion: 'Sin el límite de 150 productos del Plan Básico.',
+                      descripcion:
+                          'Sin el límite de 150 productos del Plan Básico.',
                       isDark: isDark,
                     ),
                   ],
@@ -252,7 +276,9 @@ class PlanUpgradeModal extends StatelessWidget {
                   backgroundColor: AppTheme.brandPrimary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 2,
                 ),
                 onPressed: () {
@@ -281,7 +307,9 @@ class PlanUpgradeModal extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ),
@@ -328,7 +356,9 @@ class PlanUpgradeModal extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
                   height: 1.25,
                 ),
               ),

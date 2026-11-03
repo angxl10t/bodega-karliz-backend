@@ -9,20 +9,14 @@ class KarlizGridIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const KarlizGridIcon({
-    super.key,
-    this.size = 20,
-    required this.color,
-  });
+  const KarlizGridIcon({super.key, this.size = 20, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _KarlizGridPainter(color: color),
-      ),
+      child: CustomPaint(painter: _KarlizGridPainter(color: color)),
     );
   }
 }
@@ -48,23 +42,33 @@ class _KarlizGridPainter extends CustomPainter {
     );
     // Superior derecho
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(boxSize + gap, 0, boxSize, boxSize), radius),
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(boxSize + gap, 0, boxSize, boxSize),
+        radius,
+      ),
       paint,
     );
     // Inferior izquierdo
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(0, boxSize + gap, boxSize, boxSize), radius),
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, boxSize + gap, boxSize, boxSize),
+        radius,
+      ),
       paint,
     );
     // Inferior derecho
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(boxSize + gap, boxSize + gap, boxSize, boxSize), radius),
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(boxSize + gap, boxSize + gap, boxSize, boxSize),
+        radius,
+      ),
       paint,
     );
   }
 
   @override
-  bool shouldRepaint(covariant _KarlizGridPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KarlizGridPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// 2. Icono de Bodega / Tienda Market con toldo y puerta
@@ -72,20 +76,14 @@ class KarlizStoreIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const KarlizStoreIcon({
-    super.key,
-    this.size = 20,
-    required this.color,
-  });
+  const KarlizStoreIcon({super.key, this.size = 20, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _KarlizStorePainter(color: color),
-      ),
+      child: CustomPaint(painter: _KarlizStorePainter(color: color)),
     );
   }
 }
@@ -135,7 +133,8 @@ class _KarlizStorePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _KarlizStorePainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KarlizStorePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// 3. Escudo de Administrador con Checkmark (Shield Check)
@@ -143,20 +142,14 @@ class KarlizShieldIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const KarlizShieldIcon({
-    super.key,
-    this.size = 18,
-    required this.color,
-  });
+  const KarlizShieldIcon({super.key, this.size = 18, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _KarlizShieldPainter(color: color),
-      ),
+      child: CustomPaint(painter: _KarlizShieldPainter(color: color)),
     );
   }
 }
@@ -195,7 +188,8 @@ class _KarlizShieldPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _KarlizShieldPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KarlizShieldPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// 4. Bolsa de compras para POS
@@ -203,20 +197,14 @@ class KarlizShoppingBagIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const KarlizShoppingBagIcon({
-    super.key,
-    this.size = 20,
-    required this.color,
-  });
+  const KarlizShoppingBagIcon({super.key, this.size = 20, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _KarlizShoppingBagPainter(color: color),
-      ),
+      child: CustomPaint(painter: _KarlizShoppingBagPainter(color: color)),
     );
   }
 }
@@ -256,7 +244,8 @@ class _KarlizShoppingBagPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _KarlizShoppingBagPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KarlizShoppingBagPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// 5. Billete / Efectivo para Caja
@@ -264,20 +253,14 @@ class KarlizCashIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const KarlizCashIcon({
-    super.key,
-    this.size = 20,
-    required this.color,
-  });
+  const KarlizCashIcon({super.key, this.size = 20, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _KarlizCashPainter(color: color),
-      ),
+      child: CustomPaint(painter: _KarlizCashPainter(color: color)),
     );
   }
 }
@@ -310,7 +293,8 @@ class _KarlizCashPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _KarlizCashPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KarlizCashPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// 6. Caja de cartón para Almacén / Stock
@@ -318,20 +302,14 @@ class KarlizBoxIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const KarlizBoxIcon({
-    super.key,
-    this.size = 20,
-    required this.color,
-  });
+  const KarlizBoxIcon({super.key, this.size = 20, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _KarlizBoxPainter(color: color),
-      ),
+      child: CustomPaint(painter: _KarlizBoxPainter(color: color)),
     );
   }
 }
@@ -364,13 +342,26 @@ class _KarlizBoxPainter extends CustomPainter {
     canvas.drawPath(box, strokePaint);
 
     // Líneas internas
-    canvas.drawLine(Offset(w * 0.50, h * 0.15), Offset(w * 0.50, h * 0.90), strokePaint);
-    canvas.drawLine(Offset(w * 0.14, h * 0.33), Offset(w * 0.50, h * 0.51), strokePaint);
-    canvas.drawLine(Offset(w * 0.86, h * 0.33), Offset(w * 0.50, h * 0.51), strokePaint);
+    canvas.drawLine(
+      Offset(w * 0.50, h * 0.15),
+      Offset(w * 0.50, h * 0.90),
+      strokePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.14, h * 0.33),
+      Offset(w * 0.50, h * 0.51),
+      strokePaint,
+    );
+    canvas.drawLine(
+      Offset(w * 0.86, h * 0.33),
+      Offset(w * 0.50, h * 0.51),
+      strokePaint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _KarlizBoxPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KarlizBoxPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 /// 7. Camión de reparto para Compras / Proveedores
@@ -378,20 +369,14 @@ class KarlizTruckIcon extends StatelessWidget {
   final double size;
   final Color color;
 
-  const KarlizTruckIcon({
-    super.key,
-    this.size = 20,
-    required this.color,
-  });
+  const KarlizTruckIcon({super.key, this.size = 20, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _KarlizTruckPainter(color: color),
-      ),
+      child: CustomPaint(painter: _KarlizTruckPainter(color: color)),
     );
   }
 }
@@ -437,5 +422,6 @@ class _KarlizTruckPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _KarlizTruckPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KarlizTruckPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

@@ -16,15 +16,21 @@ class UpdateService {
     try {
       final updater = _updater;
       if (updater == null || !updater.isAvailable) {
-        debugPrint('Shorebird no está disponible en este entorno (ej. Web o Debug).');
+        debugPrint(
+          'Shorebird no está disponible en este entorno (ej. Web o Debug).',
+        );
         return;
       }
 
       final status = await updater.checkForUpdate();
       if (status == UpdateStatus.outdated) {
-        debugPrint('Nuevo parche Shorebird disponible. Descargando en segundo plano...');
+        debugPrint(
+          'Nuevo parche Shorebird disponible. Descargando en segundo plano...',
+        );
         await updater.update();
-        debugPrint('Parche de Shorebird descargado con éxito. Se aplicará en el próximo inicio.');
+        debugPrint(
+          'Parche de Shorebird descargado con éxito. Se aplicará en el próximo inicio.',
+        );
       }
     } catch (e) {
       debugPrint('Error al verificar actualización Shorebird: $e');

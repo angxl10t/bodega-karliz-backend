@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../core/catalogo_imagenes_service.dart';
 import '../../core/categoria_suggester_service.dart';
@@ -23,12 +24,17 @@ class EditarProductoSheet extends StatefulWidget {
     required this.onActualizado,
   });
 
-  static Future<void> show(BuildContext context, Producto producto, VoidCallback onActualizado) {
+  static Future<void> show(
+    BuildContext context,
+    Producto producto,
+    VoidCallback onActualizado,
+  ) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => EditarProductoSheet(producto: producto, onActualizado: onActualizado),
+      builder: (ctx) =>
+          EditarProductoSheet(producto: producto, onActualizado: onActualizado),
     );
   }
 
@@ -61,10 +67,16 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
   void initState() {
     super.initState();
     _nombreCtrl = TextEditingController(text: widget.producto.nombre);
-    _precioCtrl = TextEditingController(text: widget.producto.precioVenta.toStringAsFixed(2));
+    _precioCtrl = TextEditingController(
+      text: widget.producto.precioVenta.toStringAsFixed(2),
+    );
     _marcaCtrl = TextEditingController(text: widget.producto.marca ?? '');
-    _codigoBarrasCtrl = TextEditingController(text: widget.producto.codigoBarras ?? '');
-    _stockMinCtrl = TextEditingController(text: widget.producto.stockMinimo.toStringAsFixed(0));
+    _codigoBarrasCtrl = TextEditingController(
+      text: widget.producto.codigoBarras ?? '',
+    );
+    _stockMinCtrl = TextEditingController(
+      text: widget.producto.stockMinimo.toStringAsFixed(0),
+    );
     _controlaVencimiento = widget.producto.controlaVencimiento;
     _fechaVencimiento = widget.producto.fechaVencimiento;
     _precioCostoCtrl = TextEditingController(
@@ -105,7 +117,8 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
 
     // Detección automática de Marca si el campo está vacío
     if (_marcaCtrl.text.trim().isEmpty) {
-      final marcaAuto = sugerencia?.marca ??
+      final marcaAuto =
+          sugerencia?.marca ??
           MarcaDetectorService.detectarMarca(
             nombre: nombre.isNotEmpty ? nombre : null,
             codigoBarras: barcode.isNotEmpty ? barcode : null,
@@ -141,7 +154,10 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
   String? get _categoriaSeleccionadaNombre {
     if (_idCategoriaSeleccionada == null || _categorias.isEmpty) return null;
     return _categorias
-        .firstWhere((c) => c.idCategoria == _idCategoriaSeleccionada, orElse: () => _categorias.first)
+        .firstWhere(
+          (c) => c.idCategoria == _idCategoriaSeleccionada,
+          orElse: () => _categorias.first,
+        )
         .nombre;
   }
 
@@ -177,8 +193,10 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     if (_isGuardando) return;
     if (!_formKey.currentState!.validate()) return;
 
-    final precio = double.tryParse(_precioCtrl.text.replaceAll(',', '.')) ?? 0.0;
-    final stockMin = double.tryParse(_stockMinCtrl.text.replaceAll(',', '.')) ?? 5.0;
+    final precio =
+        double.tryParse(_precioCtrl.text.replaceAll(',', '.')) ?? 0.0;
+    final stockMin =
+        double.tryParse(_stockMinCtrl.text.replaceAll(',', '.')) ?? 5.0;
 
     if (precio <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -202,8 +220,13 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
 
     setState(() => _isGuardando = true);
 
-    final barcodeClean = _codigoBarrasCtrl.text.trim().replaceAll(RegExp(r'[\r\n\t]'), '');
-    final costo = double.tryParse(_precioCostoCtrl.text.trim().replaceAll(',', '.'));
+    final barcodeClean = _codigoBarrasCtrl.text.trim().replaceAll(
+      RegExp(r'[\r\n\t]'),
+      '',
+    );
+    final costo = double.tryParse(
+      _precioCostoCtrl.text.trim().replaceAll(',', '.'),
+    );
     final actualizado = Producto(
       idProducto: widget.producto.idProducto,
       idCategoria: _idCategoriaSeleccionada ?? 1,
@@ -220,7 +243,9 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
       imagenUrl: _imagenUrl,
     );
 
-    final res = await _productoService.actualizarProductoConDetalle(actualizado);
+    final res = await _productoService.actualizarProductoConDetalle(
+      actualizado,
+    );
 
     if (!mounted) return;
     setState(() => _isGuardando = false);
@@ -232,28 +257,40 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(LucideIcons.checkCircle, color: Colors.white, size: 20),
+              const Icon(
+                LucideIcons.checkCircle,
+                color: Colors.white,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   '¡Producto "${actualizado.nombre}" actualizado!',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           backgroundColor: AppTheme.accentGreen,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(res.error ?? 'Error al actualizar el producto en el servidor'),
+          content: Text(
+            res.error ?? 'Error al actualizar el producto en el servidor',
+          ),
           backgroundColor: AppTheme.alertRed,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       );
     }
@@ -265,47 +302,74 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return AlertDialog(
-        backgroundColor: Theme.of(ctx).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(
-          '¿Dar de baja producto?',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 17),
-        ),
-        content: Text(
-          'El artículo "${widget.producto.nombre}" ya no aparecerá en el catálogo ni en ventas.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancelar', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+          backgroundColor: Theme.of(ctx).cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.alertRed,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            '¿Dar de baja producto?',
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.w800,
+              fontSize: 17,
             ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Dar de baja', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
           ),
-        ],
-      );
-    },
-  );
+          content: Text(
+            'El artículo "${widget.producto.nombre}" ya no aparecerá en el catálogo ni en ventas.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.alertRed,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                'Dar de baja',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        );
+      },
+    );
 
     if (confirmar == true && widget.producto.idProducto != null) {
-      final exito = await _productoService.desactivarProducto(widget.producto.idProducto!);
+      final exito = await _productoService.desactivarProducto(
+        widget.producto.idProducto!,
+      );
       if (mounted) {
         if (exito) {
           Navigator.pop(context);
           widget.onActualizado();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Producto dado de baja con éxito'), backgroundColor: AppTheme.warningAmber),
+            const SnackBar(
+              content: Text('Producto dado de baja con éxito'),
+              backgroundColor: AppTheme.warningAmber,
+            ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error al dar de baja el producto'), backgroundColor: AppTheme.alertRed),
+            const SnackBar(
+              content: Text('Error al dar de baja el producto'),
+              backgroundColor: AppTheme.alertRed,
+            ),
           );
         }
       }
@@ -330,593 +394,834 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 30,
-            offset: const Offset(0, -6),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 30,
+                offset: const Offset(0, -6),
+              ),
+            ],
           ),
-        ],
-      ),
-      padding: EdgeInsets.only(
-        left: 22,
-        right: 22,
-        top: 14,
-        bottom: 22 + bottomInset,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-
-              // Cabecera
-              Row(
+          padding: EdgeInsets.only(
+            left: 22,
+            right: 22,
+            top: 14,
+            bottom: 22 + bottomInset,
+          ),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(LucideIcons.pencil, color: AppTheme.brandPrimary, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Editar Producto',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
-                          ),
-                        ),
-                        Text(
-                          'SKU: ${widget.producto.codigo}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                        ),
-                      ],
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.borderDarkElevated
+                            : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(LucideIcons.x, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B), size: 20),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
+                  const SizedBox(height: 18),
 
-              // Tarjeta de Fotografía de Estudio (Vista Frontal)
-              _buildFotoProductoCard(isDark, borderColor),
-              const SizedBox(height: 16),
-
-              // Nombre
-              Text(
-                'Nombre del Producto *',
-                style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _nombreCtrl,
-                textCapitalization: TextCapitalization.words,
-                style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: inputBg,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
-                ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 14),
-
-              // Fila Precio y Marca
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Precio Venta (S/) *',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
+                  // Cabecera
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.surfaceTintDark
+                              : AppTheme.surfaceTint,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: _precioCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.brandPrimary),
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(LucideIcons.circleDollarSign, size: 18, color: AppTheme.brandPrimary),
-                            filled: true,
-                            fillColor: inputBg,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
-                          ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Requerido';
-                            final p = double.tryParse(v.replaceAll(',', '.').trim());
-                            if (p == null) return 'Número inválido';
-                            if (p <= 0) return 'Mayor a 0';
-                            if (p > 9999999.99) return 'Máx: 9,999,999.99';
-                            return null;
-                          },
+                        child: const Icon(
+                          LucideIcons.pencil,
+                          color: AppTheme.brandPrimary,
+                          size: 20,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Marca',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: _marcaCtrl,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
-                          decoration: InputDecoration(
-                            hintText: 'Ej. Gloria',
-                            filled: true,
-                            fillColor: inputBg,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Categoría
-              Text(
-                'Categoría',
-                style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              if (_isLoadingCategorias)
-                const LinearProgressIndicator(color: AppTheme.brandPrimary)
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: inputBg,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _idCategoriaSeleccionada,
-                      isExpanded: true,
-                      dropdownColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-                      items: _categorias.map((cat) {
-                        return DropdownMenuItem<int>(
-                          value: cat.idCategoria,
-                          child: Text(
-                            cat.nombre,
-                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13.5),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => _idCategoriaSeleccionada = val);
-                      },
-                    ),
-                  ),
-                ),
-              if (_categoriaSugerida != null) ...[
-                const SizedBox(height: 8),
-                InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    setState(() {
-                      _idCategoriaSeleccionada = _categoriaSugerida!.idCategoria;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(LucideIcons.sparkles, color: Color(0xFF10B981), size: 15),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Sugerencia: ${_categoriaSugerida!.nombre} (Toca para aplicar)',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF10B981),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Editar Producto',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
+                              ),
                             ),
-                          ),
+                            Text(
+                              'SKU: ${widget.producto.codigo}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          LucideIcons.x,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                          size: 20,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Tarjeta de Fotografía de Estudio (Vista Frontal)
+                  _buildFotoProductoCard(isDark, borderColor),
+                  const SizedBox(height: 16),
+
+                  // Nombre
+                  Text(
+                    'Nombre del Producto *',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-              ],
-              const SizedBox(height: 14),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _nombreCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: inputBg,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18),
+                        borderSide: BorderSide(color: borderColor),
+                      ),
+                    ),
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 14),
 
-              // Código de Barras y Stock Mínimo
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Código de Barras', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: _codigoBarrasCtrl,
-                          keyboardType: TextInputType.text,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
-                          decoration: InputDecoration(
-                            hintText: 'EAN-13',
-                            prefixIcon: const Icon(LucideIcons.scanBarcode, size: 17),
-                            suffixIcon: IconButton(
-                              tooltip: 'Escanear con cámara',
-                              icon: const Icon(LucideIcons.camera, color: AppTheme.brandPrimary, size: 18),
-                              onPressed: () async {
-                                final code = await KarlizBarcodeScannerModal.scan(
-                                  context,
-                                  title: 'Escanear Código de Barras',
-                                  subtitle: 'Enfoque el código del producto para asignarlo',
+                  // Fila Precio y Marca
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Precio Venta (S/) *',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _precioCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.brandPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(
+                                  LucideIcons.circleDollarSign,
+                                  size: 18,
+                                  color: AppTheme.brandPrimary,
+                                ),
+                                filled: true,
+                                fillColor: inputBg,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                  borderSide: BorderSide(color: borderColor),
+                                ),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty)
+                                  return 'Requerido';
+                                final p = double.tryParse(
+                                  v.replaceAll(',', '.').trim(),
                                 );
-                                if (code != null && code.isNotEmpty) {
-                                  setState(() => _codigoBarrasCtrl.text = code);
-                                }
+                                if (p == null) return 'Número inválido';
+                                if (p <= 0) return 'Mayor a 0';
+                                if (p > 9999999.99) return 'Máx: 9,999,999.99';
+                                return null;
                               },
                             ),
-                            filled: true,
-                            fillColor: inputBg,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
-                          ),
+                          ],
                         ),
-                        if (_fotoSugerida != null &&
-                            _fotoSugerida!.codigosBarras.isNotEmpty &&
-                            _codigoBarrasCtrl.text.trim().isEmpty) ...[
-                          const SizedBox(height: 6),
-                          InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () {
-                              setState(() {
-                                _codigoBarrasCtrl.text = _fotoSugerida!.codigosBarras.first;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(LucideIcons.barcode, size: 14, color: Color(0xFF10B981)),
-                                  const SizedBox(width: 6),
-                                  Flexible(
-                                    child: Text(
-                                      'EAN oficial: ${_fotoSugerida!.codigosBarras.first} (Autocompletar)',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF10B981),
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Marca',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Stock Mínimo Alerta', style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          controller: _stockMinCtrl,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(LucideIcons.alertTriangle, size: 17),
-                            filled: true,
-                            fillColor: inputBg,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide(color: borderColor)),
-                          ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) return null;
-                            final sm = double.tryParse(v.replaceAll(',', '.').trim());
-                            if (sm == null) return 'Número inválido';
-                            if (sm < 0) return 'No puede ser negativo';
-                            if (sm > 9999999.99) return 'Máx: 9,999,999.99';
-                            return null;
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Control de Vencimiento / Perecible
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: inputBg,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: borderColor),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: _controlaVencimiento ? AppTheme.brandPrimary.withValues(alpha: 0.15) : (isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        LucideIcons.calendarClock,
-                        size: 18,
-                        color: _controlaVencimiento ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Control de Vencimiento',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                          ),
-                          Text(
-                            'Alerta si el producto es perecible o tiene caducidad',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch.adaptive(
-                      value: _controlaVencimiento,
-                      activeTrackColor: AppTheme.brandPrimary,
-                      onChanged: (val) => setState(() => _controlaVencimiento = val),
-                    ),
-                  ],
-                ),
-              ),
-
-              if (_controlaVencimiento) ...[
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.6) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFCBD5E1),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(LucideIcons.calendar, size: 16, color: AppTheme.brandPrimary),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Fecha de Caducidad de Lote',
-                            style: GoogleFonts.outfit(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      InkWell(
-                        onTap: () async {
-                          final now = DateTime.now();
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: _fechaVencimiento ?? now.add(const Duration(days: 30)),
-                            firstDate: now.subtract(const Duration(days: 365)),
-                            lastDate: now.add(const Duration(days: 365 * 5)),
-                          );
-                          if (picked != null) {
-                            setState(() => _fechaVencimiento = picked);
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppTheme.cardDark : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _fechaVencimiento != null ? AppTheme.brandPrimary : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                LucideIcons.calendarCheck,
-                                size: 16,
-                                color: _fechaVencimiento != null ? AppTheme.brandPrimary : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _marcaCtrl,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  _fechaVencimiento != null
-                                      ? '${_fechaVencimiento!.day.toString().padLeft(2, '0')}/${_fechaVencimiento!.month.toString().padLeft(2, '0')}/${_fechaVencimiento!.year}'
-                                      : 'Seleccionar fecha (opcional)',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: _fechaVencimiento != null ? FontWeight.w700 : FontWeight.w500,
-                                    color: _fechaVencimiento != null ? (isDark ? Colors.white : AppTheme.textDark) : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                                  ),
+                              decoration: InputDecoration(
+                                hintText: 'Ej. Gloria',
+                                filled: true,
+                                fillColor: inputBg,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                  borderSide: BorderSide(color: borderColor),
                                 ),
                               ),
-                              if (_fechaVencimiento != null)
-                                IconButton(
-                                  icon: const Icon(LucideIcons.x, size: 16),
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () => setState(() => _fechaVencimiento = null),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Icon(LucideIcons.tag, size: 16, color: AppTheme.accentGreen),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Costo de Compra / Proveedor (S/.)',
-                            style: GoogleFonts.outfit(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _precioCostoCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                          hintText: 'Ej. 2.50 (Opcional, para margen y mermas)',
-                          prefixIcon: const Icon(LucideIcons.coins, size: 16),
-                          filled: true,
-                          fillColor: isDark ? AppTheme.cardDark : Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-              const SizedBox(height: 22),
+                  const SizedBox(height: 14),
 
-              // Botón Guardar y Cancelar
-              Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: SizedBox(
-                      height: 52,
-                      child: OutlinedButton(
-                        onPressed: _isGuardando ? null : () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                        ),
-                        child: Text(
-                          'Cancelar',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ),
+                  // Categoría
+                  Text(
+                    'Categoría',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: SizedBox(
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: _isGuardando ? null : _guardarCambios,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.brandPrimary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                          elevation: 3,
-                        ),
-                        icon: _isGuardando
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : const Icon(LucideIcons.checkCheck, size: 18),
-                        label: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            _isGuardando ? 'GUARDANDO...' : 'GUARDAR CAMBIOS',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800),
-                          ),
+                  const SizedBox(height: 6),
+                  if (_isLoadingCategorias)
+                    const LinearProgressIndicator(color: AppTheme.brandPrimary)
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: inputBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          value: _idCategoriaSeleccionada,
+                          isExpanded: true,
+                          dropdownColor: isDark
+                              ? AppTheme.cardDarkElevated
+                              : Colors.white,
+                          items: _categorias.map((cat) {
+                            return DropdownMenuItem<int>(
+                              value: cat.idCategoria,
+                              child: Text(
+                                cat.nombre,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null)
+                              setState(() => _idCategoriaSeleccionada = val);
+                          },
                         ),
                       ),
                     ),
+                  if (_categoriaSugerida != null) ...[
+                    const SizedBox(height: 8),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        setState(() {
+                          _idCategoriaSeleccionada =
+                              _categoriaSugerida!.idCategoria;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981)
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.sparkles,
+                              color: Color(0xFF10B981),
+                              size: 15,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Sugerencia: ${_categoriaSugerida!.nombre} (Toca para aplicar)',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF10B981),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+
+                  // Código de Barras y Stock Mínimo
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Código de Barras',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _codigoBarrasCtrl,
+                              keyboardType: TextInputType.text,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'EAN-13',
+                                prefixIcon: const Icon(
+                                  LucideIcons.scanBarcode,
+                                  size: 17,
+                                ),
+                                suffixIcon: IconButton(
+                                  tooltip: 'Escanear con cámara',
+                                  icon: const Icon(
+                                    LucideIcons.camera,
+                                    color: AppTheme.brandPrimary,
+                                    size: 18,
+                                  ),
+                                  onPressed: () async {
+                                    final code =
+                                        await KarlizBarcodeScannerModal.scan(
+                                          context,
+                                          title: 'Escanear Código de Barras',
+                                          subtitle: 'Enfoque el código del producto para asignarlo',
+                                        );
+                                    if (code != null && code.isNotEmpty) {
+                                      setState(
+                                        () => _codigoBarrasCtrl.text = code,
+                                      );
+                                    }
+                                  },
+                                ),
+                                filled: true,
+                                fillColor: inputBg,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                  borderSide: BorderSide(color: borderColor),
+                                ),
+                              ),
+                            ),
+                            if (_fotoSugerida != null &&
+                                _fotoSugerida!.codigosBarras.isNotEmpty &&
+                                _codigoBarrasCtrl.text.trim().isEmpty) ...[
+                              const SizedBox(height: 6),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(10),
+                                onTap: () {
+                                  setState(() {
+                                    _codigoBarrasCtrl.text =
+                                        _fotoSugerida!.codigosBarras.first;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981)
+                                        .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: const Color(0xFF10B981)
+                                          .withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.barcode,
+                                        size: 14,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Flexible(
+                                        child: Text(
+                                          'EAN oficial: ${_fotoSugerida!.codigosBarras.first} (Autocompletar)',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF10B981),
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Stock Mínimo Alerta',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _stockMinCtrl,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(
+                                  LucideIcons.alertTriangle,
+                                  size: 17,
+                                ),
+                                filled: true,
+                                fillColor: inputBg,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                  borderSide: BorderSide(color: borderColor),
+                                ),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return null;
+                                final sm = double.tryParse(
+                                  v.replaceAll(',', '.').trim(),
+                                );
+                                if (sm == null) return 'Número inválido';
+                                if (sm < 0) return 'No puede ser negativo';
+                                if (sm > 9999999.99) return 'Máx: 9,999,999.99';
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Control de Vencimiento / Perecible
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: inputBg,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: _controlaVencimiento
+                                ? AppTheme.brandPrimary.withValues(alpha: 0.15)
+                                : (isDark
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFFE2E8F0)),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            LucideIcons.calendarClock,
+                            size: 18,
+                            color: _controlaVencimiento
+                                ? AppTheme.brandPrimary
+                                : (isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Control de Vencimiento',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                'Alerta si el producto es perecible o tiene caducidad',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch.adaptive(
+                          value: _controlaVencimiento,
+                          activeTrackColor: AppTheme.brandPrimary,
+                          onChanged: (val) =>
+                              setState(() => _controlaVencimiento = val),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  if (_controlaVencimiento) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF1E293B).withValues(alpha: 0.6)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? AppTheme.borderDarkElevated
+                              : const Color(0xFFCBD5E1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                LucideIcons.calendar,
+                                size: 16,
+                                color: AppTheme.brandPrimary,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Fecha de Caducidad de Lote',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: () async {
+                              final now = DateTime.now();
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate:
+                                    _fechaVencimiento ??
+                                    now.add(const Duration(days: 30)),
+                                firstDate: now.subtract(
+                                  const Duration(days: 365),
+                                ),
+                                lastDate: now.add(
+                                  const Duration(days: 365 * 5),
+                                ),
+                              );
+                              if (picked != null) {
+                                setState(() => _fechaVencimiento = picked);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 11,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppTheme.cardDark
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _fechaVencimiento != null
+                                      ? AppTheme.brandPrimary
+                                      : (isDark
+                                            ? AppTheme.borderDark
+                                            : AppTheme.borderLight),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    LucideIcons.calendarCheck,
+                                    size: 16,
+                                    color: _fechaVencimiento != null
+                                        ? AppTheme.brandPrimary
+                                        : (isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B)),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      _fechaVencimiento != null
+                                          ? '${_fechaVencimiento!.day.toString().padLeft(2, '0')}/${_fechaVencimiento!.month.toString().padLeft(2, '0')}/${_fechaVencimiento!.year}'
+                                          : 'Seleccionar fecha (opcional)',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        fontWeight: _fechaVencimiento != null
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                        color: _fechaVencimiento != null
+                                            ? (isDark
+                                                  ? Colors.white
+                                                  : AppTheme.textDark)
+                                            : (isDark
+                                                  ? AppTheme.textDarkSecondary
+                                                  : const Color(0xFF334155)),
+                                      ),
+                                    ),
+                                  ),
+                                  if (_fechaVencimiento != null)
+                                    IconButton(
+                                      icon: const Icon(LucideIcons.x, size: 16),
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () => setState(
+                                        () => _fechaVencimiento = null,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(
+                                LucideIcons.tag,
+                                size: 16,
+                                color: AppTheme.accentGreen,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Costo de Compra / Proveedor (S/.)',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _precioCostoCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Ej. 2.50 (Opcional, para margen y mermas)',
+                              prefixIcon: const Icon(
+                                LucideIcons.coins,
+                                size: 16,
+                              ),
+                              filled: true,
+                              fillColor: isDark
+                                  ? AppTheme.cardDark
+                                  : Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 22),
+
+                  // Botón Guardar y Cancelar
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          height: 52,
+                          child: OutlinedButton(
+                            onPressed: _isGuardando
+                                ? null
+                                : () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: isDark
+                                    ? AppTheme.borderDark
+                                    : const Color(0xFFCBD5E1),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(26),
+                              ),
+                            ),
+                            child: Text(
+                              'Cancelar',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: _isGuardando ? null : _guardarCambios,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.brandPrimary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(26),
+                              ),
+                              elevation: 3,
+                            ),
+                            icon: _isGuardando
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(LucideIcons.checkCheck, size: 18),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                _isGuardando
+                                    ? 'GUARDANDO...'
+                                    : 'GUARDAR CAMBIOS',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Botón Dar de Baja
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.alertRed,
+                    ),
+                    icon: const Icon(LucideIcons.trash2, size: 16),
+                    label: Text(
+                      'Dar de baja este producto',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    onPressed: _confirmarDesactivar,
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-
-              // Botón Dar de Baja
-              TextButton.icon(
-                style: TextButton.styleFrom(foregroundColor: AppTheme.alertRed),
-                icon: const Icon(LucideIcons.trash2, size: 16),
-                label: Text(
-                  'Dar de baja este producto',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
-                ),
-                onPressed: _confirmarDesactivar,
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 
   Widget _buildFotoProductoCard(bool isDark, Color borderColor) {
     final hasImg = _imagenUrl != null && _imagenUrl!.trim().isNotEmpty;
     final catNombre = _categoriaSeleccionadaNombre;
-    final esOficialSugerida = _fotoSugerida != null && _imagenUrl == _fotoSugerida!.imagenUrl;
+    final esOficialSugerida =
+        _fotoSugerida != null && _imagenUrl == _fotoSugerida!.imagenUrl;
 
     return Container(
       decoration: BoxDecoration(
@@ -958,11 +1263,17 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                           color: AppTheme.brandPrimary,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark ? const Color(0xFF131B2A) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF131B2A)
+                                : Colors.white,
                             width: 2,
                           ),
                         ),
-                        child: const Icon(LucideIcons.camera, size: 11, color: Colors.white),
+                        child: const Icon(
+                          LucideIcons.camera,
+                          size: 11,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -979,7 +1290,9 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                       children: [
                         Expanded(
                           child: Text(
-                            hasImg ? 'Foto Frontal Asignada' : 'Foto de Estudio Frontal',
+                            hasImg
+                                ? 'Foto Frontal Asignada'
+                                : 'Foto de Estudio Frontal',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
@@ -992,15 +1305,24 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                         if (esOficialSugerida) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1.5,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                              color: AppTheme.brandPrimary.withValues(
+                                alpha: 0.15,
+                              ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(LucideIcons.sparkles, size: 10, color: AppTheme.brandPrimary),
+                                const Icon(
+                                  LucideIcons.sparkles,
+                                  size: 10,
+                                  color: AppTheme.brandPrimary,
+                                ),
                                 const SizedBox(width: 2),
                                 Text(
                                   'Oficial',
@@ -1020,12 +1342,14 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                     Text(
                       hasImg
                           ? (esOficialSugerida
-                              ? 'Packshot oficial: ${_fotoSugerida!.nombre}'
-                              : 'Formato cuadrado 1:1 para POS y Catálogo')
+                                ? 'Packshot oficial: ${_fotoSugerida!.nombre}'
+                                : 'Formato cuadrado 1:1 para POS y Catálogo')
                           : 'Sugerida automáticamente al escribir o escanear',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
                         height: 1.2,
                       ),
                       maxLines: 2,
@@ -1042,18 +1366,29 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                           onTap: _abrirSelectorFoto,
                           borderRadius: BorderRadius.circular(8),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                              color: AppTheme.brandPrimary.withValues(
+                                alpha: 0.12,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(LucideIcons.image, size: 13, color: AppTheme.brandPrimary),
+                                const Icon(
+                                  LucideIcons.image,
+                                  size: 13,
+                                  color: AppTheme.brandPrimary,
+                                ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  hasImg ? 'Cambiar foto' : 'Elegir del catálogo',
+                                  hasImg
+                                      ? 'Cambiar foto'
+                                      : 'Elegir del catálogo',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
@@ -1073,11 +1408,18 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                             },
                             borderRadius: BorderRadius.circular(8),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 5,
+                              ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(LucideIcons.x, size: 13, color: AppTheme.alertRed),
+                                  Icon(
+                                    LucideIcons.x,
+                                    size: 13,
+                                    color: AppTheme.alertRed,
+                                  ),
                                   const SizedBox(width: 3),
                                   Text(
                                     'Quitar',
@@ -1100,7 +1442,8 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
           ),
 
           // Banner de foto sugerida disponible si no está aplicada
-          if (_fotoSugerida != null && _imagenUrl != _fotoSugerida!.imagenUrl) ...[
+          if (_fotoSugerida != null &&
+              _imagenUrl != _fotoSugerida!.imagenUrl) ...[
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -1114,7 +1457,11 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.sparkles, size: 15, color: AppTheme.brandPrimary),
+                  const Icon(
+                    LucideIcons.sparkles,
+                    size: 15,
+                    color: AppTheme.brandPrimary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1132,10 +1479,15 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.brandPrimary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: () {
                       setState(() {
@@ -1163,13 +1515,16 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     CatalogoFotoPickerModal.show(
       context: context,
       initialUrl: _imagenUrl,
-      productName: _nombreCtrl.text.trim().isNotEmpty ? _nombreCtrl.text.trim() : null,
+      productName: _nombreCtrl.text.trim().isNotEmpty
+          ? _nombreCtrl.text.trim()
+          : null,
       categoryName: _categoriaSeleccionadaNombre,
       onItemSeleccionado: (item) {
         if (item != null) {
           setState(() {
             _fotoSugerida = item;
-            if (_codigoBarrasCtrl.text.trim().isEmpty && item.codigosBarras.isNotEmpty) {
+            if (_codigoBarrasCtrl.text.trim().isEmpty &&
+                item.codigosBarras.isNotEmpty) {
               _codigoBarrasCtrl.text = item.codigosBarras.first;
             }
           });

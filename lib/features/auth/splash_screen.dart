@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'auth_service.dart';
 import '../../core/theme.dart';
 
@@ -126,7 +127,9 @@ class _SplashScreenState extends State<SplashScreen>
                   animation: _pulseAnim,
                   builder: (context, child) {
                     return Transform.scale(
-                      scale: _animController.value >= 0.7 ? _pulseAnim.value : 1.0,
+                      scale: _animController.value >= 0.7
+                          ? _pulseAnim.value
+                          : 1.0,
                       child: child,
                     );
                   },
@@ -173,7 +176,10 @@ class _SplashScreenState extends State<SplashScreen>
 
                       // Insignia "POS" Elegante
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: isDark
@@ -185,8 +191,11 @@ class _SplashScreenState extends State<SplashScreen>
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: (isDark ? const Color(0xFF38BDF8) : AppTheme.brandPrimary)
-                                  .withValues(alpha: 0.35),
+                              color:
+                                  (isDark
+                                          ? const Color(0xFF38BDF8)
+                                          : AppTheme.brandPrimary)
+                                      .withValues(alpha: 0.35),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),

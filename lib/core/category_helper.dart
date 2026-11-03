@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import 'theme.dart';
 
 /// Utilidad compartida para estandarizar iconos y colores temáticos por categoría
@@ -12,12 +13,15 @@ class CategoryHelper {
     if (raw == null || raw.trim().isEmpty) return 'General';
     final clean = raw.trim();
     final lower = clean.toLowerCase();
-    if (lower.contains('bebidas refrescantes') || lower == 'bebidas y gaseosas' || lower == 'bebidas') {
+    if (lower.contains('bebidas refrescantes') ||
+        lower == 'bebidas y gaseosas' ||
+        lower == 'bebidas') {
       return 'Gaseosas y Bebidas';
     }
     if (lower == 'licores y cervezas') return 'Bebidas Alcohólicas';
     if (lower == 'snacks y golosinas') return 'Snacks y Piqueos';
-    if (lower == 'lácteos y huevos' || lower == 'lacteos y huevos') return 'Lácteos y Derivados';
+    if (lower == 'lácteos y huevos' || lower == 'lacteos y huevos')
+      return 'Lácteos y Derivados';
     if (lower == 'abarrotes y fideos') return 'Abarrotes y Despensa';
     if (lower == 'helados y postres') return 'Helados y Congelados';
     if (lower == 'cuidado personal') return 'Cuidado Personal y Dental';
@@ -29,7 +33,9 @@ class CategoryHelper {
   static IconData getIcon(String? categoryName) {
     if (categoryName == null) return LucideIcons.package2;
     final cat = categoryName.toLowerCase().trim();
-    if (cat.contains('frecuente') || cat.contains('estrella') || cat.contains('favorito')) {
+    if (cat.contains('frecuente') ||
+        cat.contains('estrella') ||
+        cat.contains('favorito')) {
       return LucideIcons.flame;
     }
     if (cat.contains('todo')) {
@@ -87,10 +93,14 @@ class CategoryHelper {
         cat.contains('bombom')) {
       return LucideIcons.candy;
     }
-    if (cat.contains('panader') || cat.contains('pan') || cat.contains('torta')) {
+    if (cat.contains('panader') ||
+        cat.contains('pan') ||
+        cat.contains('torta')) {
       return LucideIcons.croissant;
     }
-    if (cat.contains('fruta') || cat.contains('verdur') || cat.contains('vegetal')) {
+    if (cat.contains('fruta') ||
+        cat.contains('verdur') ||
+        cat.contains('vegetal')) {
       return LucideIcons.apple;
     }
     return LucideIcons.package2;
@@ -104,13 +114,20 @@ class CategoryHelper {
     if (cat.contains('frecuente') || cat.contains('estrella')) {
       return const Color(0xFFF97316); // Naranja cálido
     }
-    if (cat.contains('bebid') || cat.contains('gaseos') || cat.contains('cervez') || cat.contains('licor')) {
+    if (cat.contains('bebid') ||
+        cat.contains('gaseos') ||
+        cat.contains('cervez') ||
+        cat.contains('licor')) {
       return const Color(0xFF0284C7); // Celeste / Azul
     }
-    if (cat.contains('snack') || cat.contains('gallet') || cat.contains('piqueo')) {
+    if (cat.contains('snack') ||
+        cat.contains('gallet') ||
+        cat.contains('piqueo')) {
       return const Color(0xFFF59E0B); // Ámbar dorado
     }
-    if (cat.contains('abarrot') || cat.contains('arroz') || cat.contains('aceite')) {
+    if (cat.contains('abarrot') ||
+        cat.contains('arroz') ||
+        cat.contains('aceite')) {
       return const Color(0xFF10B981); // Esmeralda Botanical
     }
     if (cat.contains('limpiez') || cat.contains('aseo')) {

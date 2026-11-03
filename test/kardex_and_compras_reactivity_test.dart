@@ -8,11 +8,14 @@ import 'package:bodega_mobile/features/proveedores/proveedor_service.dart';
 
 void main() {
   group('Kardex & Compras Reactivity and Models Tests', () {
-    test('CompraService.comprasRevision increments on notifyComprasChanged', () {
-      final initialVal = CompraService.comprasRevision.value;
-      CompraService.notifyComprasChanged();
-      expect(CompraService.comprasRevision.value, initialVal + 1);
-    });
+    test(
+      'CompraService.comprasRevision increments on notifyComprasChanged',
+      () {
+        final initialVal = CompraService.comprasRevision.value;
+        CompraService.notifyComprasChanged();
+        expect(CompraService.comprasRevision.value, initialVal + 1);
+      },
+    );
 
     test('VentaService.ventasRevision increments on notifyVentasChanged', () {
       final initialVal = VentaService.ventasRevision.value;
@@ -26,17 +29,23 @@ void main() {
       expect(ProductoService.productosRevision.value, initialVal + 1);
     });
 
-    test('CategoriaService.categoriasRevision increments on invalidateCache', () {
-      final initialVal = CategoriaService.categoriasRevision.value;
-      CategoriaService.invalidateCache();
-      expect(CategoriaService.categoriasRevision.value, initialVal + 1);
-    });
+    test(
+      'CategoriaService.categoriasRevision increments on invalidateCache',
+      () {
+        final initialVal = CategoriaService.categoriasRevision.value;
+        CategoriaService.invalidateCache();
+        expect(CategoriaService.categoriasRevision.value, initialVal + 1);
+      },
+    );
 
-    test('ProveedorService.proveedoresRevision increments on invalidateCache', () {
-      final initialVal = ProveedorService.proveedoresRevision.value;
-      ProveedorService.invalidateCache();
-      expect(ProveedorService.proveedoresRevision.value, initialVal + 1);
-    });
+    test(
+      'ProveedorService.proveedoresRevision increments on invalidateCache',
+      () {
+        final initialVal = ProveedorService.proveedoresRevision.value;
+        ProveedorService.invalidateCache();
+        expect(ProveedorService.proveedoresRevision.value, initialVal + 1);
+      },
+    );
 
     test('MovimientoInventario parses JSON correctly with full attributes', () {
       final json = {

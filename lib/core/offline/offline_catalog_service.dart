@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../features/productos/producto_model.dart';
 import '../../features/productos/producto_service.dart';
 import '../secure_storage_service.dart';
@@ -8,7 +10,8 @@ import '../secure_storage_service.dart';
 /// Servicio de almacenamiento local resiliente (Local-First) para el catálogo de productos.
 /// Permite que el POS funcione al 100% incluso ante cortes totales de red o fallas en el backend.
 class OfflineCatalogService {
-  static final OfflineCatalogService _instance = OfflineCatalogService._internal();
+  static final OfflineCatalogService _instance =
+      OfflineCatalogService._internal();
   factory OfflineCatalogService() => _instance;
   OfflineCatalogService._internal();
 
@@ -41,9 +44,13 @@ class OfflineCatalogService {
 
       _inMemoryCatalog = List<Producto>.from(productos);
       _lastSyncDate = now;
-      debugPrint('[OfflineCatalog] Catálogo guardado en caché local: ${productos.length} productos (Bodega $tenant)');
+      debugPrint(
+        '[OfflineCatalog] Catálogo guardado en caché local: ${productos.length} productos (Bodega $tenant)',
+      );
     } catch (e) {
-      debugPrint('[OfflineCatalog] Error guardando catálogo en caché local: $e');
+      debugPrint(
+        '[OfflineCatalog] Error guardando catálogo en caché local: $e',
+      );
     }
   }
 
@@ -59,7 +66,9 @@ class OfflineCatalogService {
       final key = '$_keyPrefixCatalog$tenant';
 
       if (!prefs.containsKey(key)) {
-        debugPrint('[OfflineCatalog] No hay catálogo local para la bodega $tenant');
+        debugPrint(
+          '[OfflineCatalog] No hay catálogo local para la bodega $tenant',
+        );
         return [];
       }
 
@@ -67,7 +76,9 @@ class OfflineCatalogService {
       if (jsonString == null || jsonString.isEmpty) return [];
 
       final List<dynamic> decoded = jsonDecode(jsonString);
-      final productos = decoded.map((j) => Producto.fromJson(j as Map<String, dynamic>)).toList();
+      final productos = decoded
+          .map((j) => Producto.fromJson(j as Map<String, dynamic>))
+          .toList();
 
       _inMemoryCatalog = productos;
 
@@ -76,7 +87,9 @@ class OfflineCatalogService {
         _lastSyncDate = DateTime.tryParse(tsString);
       }
 
-      debugPrint('[OfflineCatalog] Recuperados ${productos.length} productos desde almacenamiento local');
+      debugPrint(
+        '[OfflineCatalog] Recuperados ${productos.length} productos desde almacenamiento local',
+      );
       return List<Producto>.from(productos);
     } catch (e) {
       debugPrint('[OfflineCatalog] Error leyendo catálogo local: $e');
@@ -86,7 +99,11 @@ class OfflineCatalogService {
 
   /// Descuenta de inmediato el stock en el catálogo local al completarse una venta offline.
   /// Esto previene sobreventas accidentales mientras el cajero sigue atendiendo sin conexión.
-  Future<void> deductStockLocally(int idProducto, double cantidadVendida, {String? idBodega}) async {
+  Future<void> deductStockLocally(
+    int idProducto,
+    double cantidadVendida, {
+    String? idBodega,
+  }) async {
     final catalog = await getCachedCatalog(idBodega: idBodega);
     if (catalog.isEmpty) return;
 
@@ -94,7 +111,10 @@ class OfflineCatalogService {
     final updatedList = catalog.map((p) {
       if (p.idProducto == idProducto) {
         modificado = true;
-        final nuevoStock = (p.stockActual - cantidadVendida).clamp(0.0, 999999.0);
+        final nuevoStock = (p.stockActual - cantidadVendida).clamp(
+          0.0,
+          999999.0,
+        );
         return p.copyWith(stockActual: nuevoStock);
       }
       return p;

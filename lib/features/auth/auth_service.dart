@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../../core/api_client.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
@@ -15,11 +17,13 @@ class AuthResult {
 class AuthService {
   Future<AuthResult> login(String username, String password) async {
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
-      ).timeout(const Duration(seconds: 60));
+      final response = await http
+          .post(
+            Uri.parse('${ApiConstants.baseUrl}/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'username': username, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -31,10 +35,16 @@ class AuthService {
         await SecureStorageService.write('user_rol', rol);
         await SecureStorageService.write('username', username);
         if (data['idBodega'] != null) {
-          await SecureStorageService.write('id_bodega', data['idBodega'].toString());
+          await SecureStorageService.write(
+            'id_bodega',
+            data['idBodega'].toString(),
+          );
         }
         if (data['nombreBodega'] != null) {
-          await SecureStorageService.write('nombre_bodega', data['nombreBodega']);
+          await SecureStorageService.write(
+            'nombre_bodega',
+            data['nombreBodega'],
+          );
         }
         if (data['plan'] != null) {
           await SecureStorageService.write('plan_bodega', data['plan']);
@@ -43,25 +53,40 @@ class AuthService {
           await SecureStorageService.write('ruc_bodega', data['ruc']);
         }
         if (data['direccion'] != null) {
-          await SecureStorageService.write('direccion_bodega', data['direccion']);
+          await SecureStorageService.write(
+            'direccion_bodega',
+            data['direccion'],
+          );
         }
         if (data['telefono'] != null) {
           await SecureStorageService.write('telefono_bodega', data['telefono']);
         }
         if (data['colorPrimario'] != null) {
-          await SecureStorageService.write('color_primario', data['colorPrimario']);
+          await SecureStorageService.write(
+            'color_primario',
+            data['colorPrimario'],
+          );
         }
         if (data['lemaComercial'] != null) {
-          await SecureStorageService.write('lema_comercial', data['lemaComercial']);
+          await SecureStorageService.write(
+            'lema_comercial',
+            data['lemaComercial'],
+          );
         }
         if (data['logoUrl'] != null) {
           await SecureStorageService.write('logo_url', data['logoUrl']);
         }
         if (data['regimenTributario'] != null) {
-          await SecureStorageService.write('regimen_tributario', data['regimenTributario']);
+          await SecureStorageService.write(
+            'regimen_tributario',
+            data['regimenTributario'],
+          );
         }
         if (data['facturacionSunatActiva'] != null) {
-          await SecureStorageService.write('facturacion_sunat_activa', data['facturacionSunatActiva'].toString());
+          await SecureStorageService.write(
+            'facturacion_sunat_activa',
+            data['facturacionSunatActiva'].toString(),
+          );
         }
         return AuthResult(success: true); // Login exitoso
       }
@@ -74,7 +99,10 @@ class AuthService {
         return AuthResult(success: false, errorMessage: rateMsg);
       }
 
-      final errorMsg = ApiClient.extractErrorMessage(response, 'Usuario o contraseña incorrectos');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Usuario o contraseña incorrectos',
+      );
       return AuthResult(success: false, errorMessage: errorMsg);
     } on TimeoutException {
       return AuthResult(
@@ -93,7 +121,9 @@ class AuthService {
   /// si se encontraba suspendido por inactividad.
   Future<void> precalentarServidor() async {
     try {
-      await http.get(Uri.parse('${ApiConstants.baseUrl}/health')).timeout(const Duration(seconds: 15));
+      await http
+          .get(Uri.parse('${ApiConstants.baseUrl}/health'))
+          .timeout(const Duration(seconds: 15));
     } catch (_) {
       // Silencioso: el único propósito es activar el contenedor en Render si estaba en suspensión
     }
@@ -199,21 +229,23 @@ class AuthService {
     String plan = 'PRO',
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/auth/registrar-bodega'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'nombreComercial': nombreComercial,
-          'rucDni': ruc,
-          'direccion': direccion,
-          'telefono': telefono,
-          'username': adminUsername,
-          'password': adminPassword,
-          'colorPrimario': colorPrimario ?? '#2563EB',
-          'lemaComercial': lemaComercial,
-          'plan': plan,
-        }),
-      ).timeout(const Duration(seconds: 25));
+      final response = await http
+          .post(
+            Uri.parse('${ApiConstants.baseUrl}/auth/registrar-bodega'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'nombreComercial': nombreComercial,
+              'rucDni': ruc,
+              'direccion': direccion,
+              'telefono': telefono,
+              'username': adminUsername,
+              'password': adminPassword,
+              'colorPrimario': colorPrimario ?? '#2563EB',
+              'lemaComercial': lemaComercial,
+              'plan': plan,
+            }),
+          )
+          .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -224,10 +256,16 @@ class AuthService {
         await SecureStorageService.write('user_rol', rol);
         await SecureStorageService.write('username', adminUsername);
         if (data['idBodega'] != null) {
-          await SecureStorageService.write('id_bodega', data['idBodega'].toString());
+          await SecureStorageService.write(
+            'id_bodega',
+            data['idBodega'].toString(),
+          );
         }
         if (data['nombreBodega'] != null) {
-          await SecureStorageService.write('nombre_bodega', data['nombreBodega']);
+          await SecureStorageService.write(
+            'nombre_bodega',
+            data['nombreBodega'],
+          );
         }
         if (data['plan'] != null) {
           await SecureStorageService.write('plan_bodega', data['plan']);
@@ -236,35 +274,54 @@ class AuthService {
           await SecureStorageService.write('ruc_bodega', data['ruc']);
         }
         if (data['direccion'] != null) {
-          await SecureStorageService.write('direccion_bodega', data['direccion']);
+          await SecureStorageService.write(
+            'direccion_bodega',
+            data['direccion'],
+          );
         }
         if (data['telefono'] != null) {
           await SecureStorageService.write('telefono_bodega', data['telefono']);
         }
         if (data['colorPrimario'] != null) {
-          await SecureStorageService.write('color_primario', data['colorPrimario']);
+          await SecureStorageService.write(
+            'color_primario',
+            data['colorPrimario'],
+          );
         }
         if (data['lemaComercial'] != null) {
-          await SecureStorageService.write('lema_comercial', data['lemaComercial']);
+          await SecureStorageService.write(
+            'lema_comercial',
+            data['lemaComercial'],
+          );
         }
         if (data['logoUrl'] != null) {
           await SecureStorageService.write('logo_url', data['logoUrl']);
         }
         if (data['regimenTributario'] != null) {
-          await SecureStorageService.write('regimen_tributario', data['regimenTributario']);
+          await SecureStorageService.write(
+            'regimen_tributario',
+            data['regimenTributario'],
+          );
         }
         if (data['facturacionSunatActiva'] != null) {
-          await SecureStorageService.write('facturacion_sunat_activa', data['facturacionSunatActiva'].toString());
+          await SecureStorageService.write(
+            'facturacion_sunat_activa',
+            data['facturacionSunatActiva'].toString(),
+          );
         }
         return AuthResult(success: true);
       }
 
-      final errorMsg = ApiClient.extractErrorMessage(response, 'No se pudo completar el registro de la bodega');
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo completar el registro de la bodega',
+      );
       return AuthResult(success: false, errorMessage: errorMsg);
     } catch (_) {
       return AuthResult(
         success: false,
-        errorMessage: 'Error de conexión con el servidor. Verifica tu internet.',
+        errorMessage:
+            'Error de conexión con el servidor. Verifica tu internet.',
       );
     }
   }

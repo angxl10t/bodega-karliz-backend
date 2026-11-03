@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
@@ -73,18 +74,23 @@ class _MermasScreenState extends State<MermasScreen> {
   Future<void> _exportarCsv() async {
     if (_mermas.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay registros de merma para exportar.')),
+        const SnackBar(
+          content: Text('No hay registros de merma para exportar.'),
+        ),
       );
       return;
     }
     await CsvExporter.descargarOCompartirCsv(
-      nombreArchivo: 'cajaya_mermas_${DateTime.now().millisecondsSinceEpoch}.csv',
+      nombreArchivo:
+          'cajaya_mermas_${DateTime.now().millisecondsSinceEpoch}.csv',
       contenidoCsv: _generarCsvMermas(_mermas),
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('¡Reporte de mermas y pérdidas exportado a CSV con éxito!'),
+        content: Text(
+          '¡Reporte de mermas y pérdidas exportado a CSV con éxito!',
+        ),
         backgroundColor: AppTheme.accentGreen,
       ),
     );
@@ -92,11 +98,15 @@ class _MermasScreenState extends State<MermasScreen> {
 
   String _generarCsvMermas(List<MermaRegistro> lista) {
     final buffer = StringBuffer();
-    buffer.writeln('IDMerma,Fecha,Producto,Motivo,Cantidad,CostoUnitario,PerdidaTotalSoles,Usuario,Observaciones');
+    buffer.writeln(
+      'IDMerma,Fecha,Producto,Motivo,Cantidad,CostoUnitario,PerdidaTotalSoles,Usuario,Observaciones',
+    );
     for (final m in lista) {
-      final f = '${m.fecha.day}/${m.fecha.month}/${m.fecha.year} ${m.fecha.hour}:${m.fecha.minute}';
+      final f =
+          '${m.fecha.day}/${m.fecha.month}/${m.fecha.year} ${m.fecha.hour}:${m.fecha.minute}';
       buffer.writeln(
-          '${m.idMerma},"$f","${m.nombreProducto.replaceAll('"', '""')}","${m.motivoLegible}",${m.cantidad},${m.costoUnitario.toStringAsFixed(2)},${m.costoTotal.toStringAsFixed(2)},"${m.usuarioResponsable}","${m.observaciones.replaceAll('"', '""')}"');
+        '${m.idMerma},"$f","${m.nombreProducto.replaceAll('"', '""')}","${m.motivoLegible}",${m.cantidad},${m.costoUnitario.toStringAsFixed(2)},${m.costoTotal.toStringAsFixed(2)},"${m.usuarioResponsable}","${m.observaciones.replaceAll('"', '""')}"',
+      );
     }
     return buffer.toString();
   }
@@ -107,13 +117,20 @@ class _MermasScreenState extends State<MermasScreen> {
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
-    final double totalPerdida = (_kpis['totalPerdidaSoles'] as num?)?.toDouble() ?? 0.0;
-    final double totalUnidades = (_kpis['totalUnidades'] as num?)?.toDouble() ?? 0.0;
-    final String causaPrincipal = _kpis['causaPrincipal']?.toString() ?? 'Ninguna';
+    final double totalPerdida =
+        (_kpis['totalPerdidaSoles'] as num?)?.toDouble() ?? 0.0;
+    final double totalUnidades =
+        (_kpis['totalUnidades'] as num?)?.toDouble() ?? 0.0;
+    final String causaPrincipal =
+        _kpis['causaPrincipal']?.toString() ?? 'Ninguna';
 
     final filtradas = _filtroMotivo == 'TODOS'
         ? _mermas
-        : _mermas.where((m) => m.motivo.toUpperCase() == _filtroMotivo.toUpperCase()).toList();
+        : _mermas
+              .where(
+                (m) => m.motivo.toUpperCase() == _filtroMotivo.toUpperCase(),
+              )
+              .toList();
 
     final canPop = ModalRoute.of(context)?.canPop ?? false;
 
@@ -142,7 +159,11 @@ class _MermasScreenState extends State<MermasScreen> {
         actions: [
           IconButton(
             tooltip: 'Exportar a CSV',
-            icon: const Icon(LucideIcons.download, color: AppTheme.accentGreen, size: 20),
+            icon: const Icon(
+              LucideIcons.download,
+              color: AppTheme.accentGreen,
+              size: 20,
+            ),
             onPressed: _exportarCsv,
           ),
           IconButton(
@@ -158,17 +179,25 @@ class _MermasScreenState extends State<MermasScreen> {
         icon: const Icon(LucideIcons.trash2, size: 18),
         label: Text(
           'Registrar Merma',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
+          ),
         ),
         onPressed: _mostrarRegistrarMermaModal,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+            )
           : Column(
               children: [
                 // 1. Panel de Métricas de Pérdida Contable
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   color: cardBg,
                   child: Row(
                     children: [
@@ -177,7 +206,8 @@ class _MermasScreenState extends State<MermasScreen> {
                         child: _buildKpiBox(
                           titulo: 'Pérdida del Mes',
                           valor: '-S/ ${totalPerdida.toStringAsFixed(2)}',
-                          subtitulo: '${totalUnidades.toStringAsFixed(0)} unidades dadas de baja',
+                          subtitulo:
+                              '${totalUnidades.toStringAsFixed(0)} unidades dadas de baja',
                           color: const Color(0xFFEF4444),
                           icon: LucideIcons.trendingDown,
                           isDark: isDark,
@@ -203,7 +233,10 @@ class _MermasScreenState extends State<MermasScreen> {
                 // 2. Filtros por Motivo de Baja
                 Container(
                   height: 48,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
                   color: cardBg,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
@@ -216,7 +249,11 @@ class _MermasScreenState extends State<MermasScreen> {
                       const SizedBox(width: 6),
                       _buildFilterChip('MERMA', 'Deterioro / Merma', isDark),
                       const SizedBox(width: 6),
-                      _buildFilterChip('CONSUMO_INTERNO', 'Consumo Interno', isDark),
+                      _buildFilterChip(
+                        'CONSUMO_INTERNO',
+                        'Consumo Interno',
+                        isDark,
+                      ),
                       const SizedBox(width: 6),
                       _buildFilterChip('ROBO_DESMEDRO', 'Desmedros', isDark),
                     ],
@@ -230,7 +267,10 @@ class _MermasScreenState extends State<MermasScreen> {
                   child: filtradas.isEmpty
                       ? Center(
                           child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 28,
+                            ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -239,14 +279,21 @@ class _MermasScreenState extends State<MermasScreen> {
                                   height: 68,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.2 : 0.1),
+                                    color: const Color(0xFFF59E0B)
+                                        .withValues(alpha: isDark ? 0.2 : 0.1),
                                     border: Border.all(
-                                      color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.4 : 0.25),
+                                      color: const Color(
+                                        0xFFF59E0B,
+                                      ).withValues(alpha: isDark ? 0.4 : 0.25),
                                       width: 2,
                                     ),
                                   ),
                                   child: const Center(
-                                    child: Icon(LucideIcons.packageCheck, size: 28, color: Color(0xFFF59E0B)),
+                                    child: Icon(
+                                      LucideIcons.packageCheck,
+                                      size: 28,
+                                      color: Color(0xFFF59E0B),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -258,7 +305,9 @@ class _MermasScreenState extends State<MermasScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : AppTheme.textDark,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
@@ -268,21 +317,30 @@ class _MermasScreenState extends State<MermasScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12.5,
                                     height: 1.45,
-                                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
                                   ),
                                 ),
                                 const SizedBox(height: 18),
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+                                    color: isDark
+                                        ? AppTheme.cardDarkSunken
+                                        : const Color(0xFFF8FAFC),
                                     borderRadius: BorderRadius.circular(14),
                                     border: Border.all(color: borderColor),
                                   ),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(LucideIcons.clipboardList, size: 16, color: AppTheme.brandPrimary),
+                                      const Icon(
+                                        LucideIcons.clipboardList,
+                                        size: 16,
+                                        color: AppTheme.brandPrimary,
+                                      ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
@@ -290,7 +348,9 @@ class _MermasScreenState extends State<MermasScreen> {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11.5,
                                             height: 1.4,
-                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : const Color(0xFF475569),
                                           ),
                                         ),
                                       ),
@@ -301,14 +361,25 @@ class _MermasScreenState extends State<MermasScreen> {
                                 if (_filtroMotivo != 'TODOS')
                                   OutlinedButton.icon(
                                     style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                       side: BorderSide(color: borderColor),
                                     ),
-                                    icon: const Icon(LucideIcons.rotateCcw, size: 14),
+                                    icon: const Icon(
+                                      LucideIcons.rotateCcw,
+                                      size: 14,
+                                    ),
                                     label: Text(
                                       'Ver Todas las Bajas',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -321,14 +392,25 @@ class _MermasScreenState extends State<MermasScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppTheme.brandPrimary,
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                       elevation: 0,
                                     ),
-                                    icon: const Icon(LucideIcons.plus, size: 16),
+                                    icon: const Icon(
+                                      LucideIcons.plus,
+                                      size: 16,
+                                    ),
                                     label: Text(
                                       'Registrar Merma o Baja',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w800),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                     ),
                                     onPressed: _mostrarRegistrarMermaModal,
                                   ),
@@ -339,10 +421,16 @@ class _MermasScreenState extends State<MermasScreen> {
                       : ListView.separated(
                           padding: const EdgeInsets.fromLTRB(16, 14, 16, 80),
                           itemCount: filtradas.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 10),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final m = filtradas[index];
-                            return _buildMermaCard(m, isDark, cardBg, borderColor);
+                            return _buildMermaCard(
+                              m,
+                              isDark,
+                              cardBg,
+                              borderColor,
+                            );
                           },
                         ),
                 ),
@@ -405,7 +493,13 @@ class _MermasScreenState extends State<MermasScreen> {
           const SizedBox(height: 2),
           Text(
             subtitulo,
-            style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -426,15 +520,24 @@ class _MermasScreenState extends State<MermasScreen> {
       labelStyle: GoogleFonts.plusJakartaSans(
         fontSize: 11.5,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected ? AppTheme.brandPrimary : (isDark ? Colors.white : AppTheme.textDark),
+        color: isSelected
+            ? AppTheme.brandPrimary
+            : (isDark ? Colors.white : AppTheme.textDark),
       ),
       side: BorderSide(
-        color: isSelected ? AppTheme.brandPrimary : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+        color: isSelected
+            ? AppTheme.brandPrimary
+            : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
       ),
     );
   }
 
-  Widget _buildMermaCard(MermaRegistro m, bool isDark, Color cardBg, Color borderColor) {
+  Widget _buildMermaCard(
+    MermaRegistro m,
+    bool isDark,
+    Color cardBg,
+    Color borderColor,
+  ) {
     Color chipColor;
     IconData chipIcon;
 
@@ -462,7 +565,8 @@ class _MermasScreenState extends State<MermasScreen> {
         break;
     }
 
-    final fechaStr = '${m.fecha.day.toString().padLeft(2, '0')}/${m.fecha.month.toString().padLeft(2, '0')}/${m.fecha.year} ${m.fecha.hour.toString().padLeft(2, '0')}:${m.fecha.minute.toString().padLeft(2, '0')}';
+    final fechaStr =
+        '${m.fecha.day.toString().padLeft(2, '0')}/${m.fecha.month.toString().padLeft(2, '0')}/${m.fecha.year} ${m.fecha.hour.toString().padLeft(2, '0')}:${m.fecha.minute.toString().padLeft(2, '0')}';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -481,7 +585,10 @@ class _MermasScreenState extends State<MermasScreen> {
                 decoration: BoxDecoration(
                   color: chipColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: chipColor.withValues(alpha: 0.4), width: 0.8),
+                  border: Border.all(
+                    color: chipColor.withValues(alpha: 0.4),
+                    width: 0.8,
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -537,23 +644,43 @@ class _MermasScreenState extends State<MermasScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
                 fontStyle: FontStyle.italic,
-                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
               ),
             ),
           ],
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(LucideIcons.user, size: 11, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+              Icon(
+                LucideIcons.user,
+                size: 11,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF64748B),
+              ),
               const SizedBox(width: 4),
               Text(
                 m.usuarioResponsable,
-                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF334155),
+                ),
               ),
               const Spacer(),
               Text(
                 fechaStr,
-                style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF334155),
+                ),
               ),
             ],
           ),
@@ -593,11 +720,36 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
   bool _isSaving = false;
 
   final List<Map<String, dynamic>> _motivos = [
-    {'id': 'ROTURA', 'label': 'Rotura / Envase Roto', 'icon': LucideIcons.packageX, 'color': Color(0xFFDC2626)},
-    {'id': 'VENCIMIENTO', 'label': 'Vencido / Caducado', 'icon': LucideIcons.calendarClock, 'color': Color(0xFFD97706)},
-    {'id': 'MERMA', 'label': 'Merma / Deterioro', 'icon': LucideIcons.trash2, 'color': AppTheme.alertRed},
-    {'id': 'CONSUMO_INTERNO', 'label': 'Consumo Interno', 'icon': LucideIcons.cupSoda, 'color': Color(0xFF7C3AED)},
-    {'id': 'ROBO_DESMEDRO', 'label': 'Desmedro / Pérdida', 'icon': LucideIcons.alertTriangle, 'color': Color(0xFF6B7280)},
+    {
+      'id': 'ROTURA',
+      'label': 'Rotura / Envase Roto',
+      'icon': LucideIcons.packageX,
+      'color': Color(0xFFDC2626),
+    },
+    {
+      'id': 'VENCIMIENTO',
+      'label': 'Vencido / Caducado',
+      'icon': LucideIcons.calendarClock,
+      'color': Color(0xFFD97706),
+    },
+    {
+      'id': 'MERMA',
+      'label': 'Merma / Deterioro',
+      'icon': LucideIcons.trash2,
+      'color': AppTheme.alertRed,
+    },
+    {
+      'id': 'CONSUMO_INTERNO',
+      'label': 'Consumo Interno',
+      'icon': LucideIcons.cupSoda,
+      'color': Color(0xFF7C3AED),
+    },
+    {
+      'id': 'ROBO_DESMEDRO',
+      'label': 'Desmedro / Pérdida',
+      'icon': LucideIcons.alertTriangle,
+      'color': Color(0xFF6B7280),
+    },
   ];
 
   @override
@@ -637,14 +789,17 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
     if (codigo != null && codigo.isNotEmpty) {
       final match = _catalogo.firstWhere(
         (p) => p.codigo == codigo || p.codigoBarras == codigo,
-        orElse: () => Producto(codigo: '', nombre: '', precioVenta: 0, stockActual: 0),
+        orElse: () =>
+            Producto(codigo: '', nombre: '', precioVenta: 0, stockActual: 0),
       );
       if (match.codigo.isNotEmpty) {
         _seleccionarProducto(match);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('No se encontró producto con código $codigo')),
+            SnackBar(
+              content: Text('No se encontró producto con código $codigo'),
+            ),
           );
         }
       }
@@ -654,13 +809,17 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
   Future<void> _guardarMerma() async {
     if (!_formKey.currentState!.validate() || _productoSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona un producto válido.')),
+        const SnackBar(
+          content: Text('Por favor selecciona un producto válido.'),
+        ),
       );
       return;
     }
 
     final cant = double.tryParse(_cantidadCtrl.text.trim()) ?? 0.0;
-    final costo = double.tryParse(_costoCtrl.text.trim()) ?? _productoSeleccionado!.costoUnitarioEstimado;
+    final costo =
+        double.tryParse(_costoCtrl.text.trim()) ??
+        _productoSeleccionado!.costoUnitarioEstimado;
 
     if (cant <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -671,7 +830,11 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
 
     if (cant > _productoSeleccionado!.stockActual) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Stock insuficiente. Stock actual: ${_productoSeleccionado!.stockActual.toStringAsFixed(0)} un.')),
+        SnackBar(
+          content: Text(
+            'Stock insuficiente. Stock actual: ${_productoSeleccionado!.stockActual.toStringAsFixed(0)} un.',
+          ),
+        ),
       );
       return;
     }
@@ -694,7 +857,9 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Baja por merma registrada exitosamente para "${_productoSeleccionado!.nombre}".'),
+            content: Text(
+              'Baja por merma registrada exitosamente para "${_productoSeleccionado!.nombre}".',
+            ),
             backgroundColor: AppTheme.accentGreen,
           ),
         );
@@ -725,343 +890,519 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
-      child: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
-          : Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  // Barra de agarre
-                  Container(
-                    margin: const EdgeInsets.only(top: 10, bottom: 6),
-                    width: 44,
-                    height: 4.5,
-                    decoration: BoxDecoration(
-                      color: AppTheme.textMuted.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
+          child: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: AppTheme.brandPrimary,
                   ),
-
-                  // Cabecera
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(LucideIcons.trash2, color: AppTheme.brandPrimary, size: 20),
+                )
+              : Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      // Barra de agarre
+                      Container(
+                        margin: const EdgeInsets.only(top: 10, bottom: 6),
+                        width: 44,
+                        height: 4.5,
+                        decoration: BoxDecoration(
+                          color: AppTheme.textMuted.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(3),
                         ),
-                        const SizedBox(width: 10),
-                        Expanded(
+                      ),
+
+                      // Cabecera
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brandPrimary.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                LucideIcons.trash2,
+                                color: AppTheme.brandPrimary,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Registrar Baja de Mercadería',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'Descuenta del inventario y registra la pérdida contable',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(LucideIcons.x, size: 20),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+
+                      // Cuerpo scrolleable
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // 1. Selección de Producto
                               Text(
-                                'Registrar Baja de Mercadería',
-                                style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w800),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                '1. Producto a dar de baja:',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13.5,
+                                ),
                               ),
-                              Text(
-                                'Descuenta del inventario y registra la pérdida contable',
-                                style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(LucideIcons.x, size: 20),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1),
-
-                  // Cuerpo scrolleable
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 1. Selección de Producto
-                          Text('1. Producto a dar de baja:', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                          const SizedBox(height: 8),
-                          if (_productoSeleccionado == null) ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _searchCtrl,
-                                    decoration: InputDecoration(
-                                      hintText: 'Buscar por nombre o código...',
-                                      prefixIcon: const Icon(LucideIcons.search, size: 16),
-                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                              const SizedBox(height: 8),
+                              if (_productoSeleccionado == null) ...[
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _searchCtrl,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Buscar por nombre o código...',
+                                          prefixIcon: const Icon(
+                                            LucideIcons.search,
+                                            size: 16,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 10,
+                                                horizontal: 12,
+                                              ),
+                                        ),
+                                        onChanged: (val) => setState(() {}),
+                                      ),
                                     ),
-                                    onChanged: (val) => setState(() {}),
+                                    const SizedBox(width: 8),
+                                    IconButton.filled(
+                                      style: IconButton.styleFrom(
+                                        backgroundColor: AppTheme.brandPrimary,
+                                      ),
+                                      tooltip: 'Escanear Código de Barras',
+                                      icon: const Icon(
+                                        LucideIcons.scanBarcode,
+                                        size: 18,
+                                      ),
+                                      onPressed: _escanearCodigo,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                // Lista de coincidencias
+                                SizedBox(
+                                  height: 140,
+                                  child: ListView(
+                                    children: _catalogo
+                                        .where(
+                                          (p) =>
+                                              p.nombre.toLowerCase().contains(
+                                                _searchCtrl.text.toLowerCase(),
+                                              ) ||
+                                              p.codigo.toLowerCase().contains(
+                                                _searchCtrl.text.toLowerCase(),
+                                              ),
+                                        )
+                                        .take(5)
+                                        .map(
+                                          (p) => ListTile(
+                                            dense: true,
+                                            leading: ProductImageWidget(
+                                              imagenUrl: p.imagenUrl,
+                                              categoria: p.nombreCategoria,
+                                              size: 36,
+                                            ),
+                                            title: Text(
+                                              p.nombre,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            subtitle: Text(
+                                              'Stock: ${p.stockActual.toStringAsFixed(0)} un. • S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                            ),
+                                            onTap: () =>
+                                                _seleccionarProducto(p),
+                                          ),
+                                        )
+                                        .toList(),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                IconButton.filled(
-                                  style: IconButton.styleFrom(backgroundColor: AppTheme.brandPrimary),
-                                  tooltip: 'Escanear Código de Barras',
-                                  icon: const Icon(LucideIcons.scanBarcode, size: 18),
-                                  onPressed: _escanearCodigo,
+                              ] else ...[
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: cardBg,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: AppTheme.brandPrimary,
+                                      width: 1.4,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      ProductImageWidget(
+                                        imagenUrl:
+                                            _productoSeleccionado!.imagenUrl,
+                                        categoria: _productoSeleccionado!
+                                            .nombreCategoria,
+                                        size: 44,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _productoSeleccionado!.nombre,
+                                              style: GoogleFonts.outfit(
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 13.5,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              'Stock actual: ${_productoSeleccionado!.stockActual.toStringAsFixed(0)} un.  •  Venta: S/ ${_productoSeleccionado!.precioVenta.toStringAsFixed(2)}',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isDark
+                                                        ? AppTheme
+                                                              .textDarkSecondary
+                                                        : const Color(
+                                                            0xFF334155,
+                                                          ),
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => setState(
+                                          () => _productoSeleccionado = null,
+                                        ),
+                                        child: const Text('Cambiar'),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
-                            ),
-                            const SizedBox(height: 8),
-                            // Lista de coincidencias
-                            SizedBox(
-                              height: 140,
-                              child: ListView(
-                                children: _catalogo
-                                    .where((p) =>
-                                        p.nombre.toLowerCase().contains(_searchCtrl.text.toLowerCase()) ||
-                                        p.codigo.toLowerCase().contains(_searchCtrl.text.toLowerCase()))
-                                    .take(5)
-                                    .map(
-                                      (p) => ListTile(
-                                        dense: true,
-                                        leading: ProductImageWidget(
-                                          imagenUrl: p.imagenUrl,
-                                          categoria: p.nombreCategoria,
-                                          size: 36,
-                                        ),
-                                        title: Text(p.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                        subtitle: Text('Stock: ${p.stockActual.toStringAsFixed(0)} un. • S/ ${p.precioVenta.toStringAsFixed(2)}'),
-                                        onTap: () => _seleccionarProducto(p),
-                                      ),
-                                    )
-                                    .toList(),
+
+                              const SizedBox(height: 18),
+
+                              // 2. Motivo de Baja
+                              Text(
+                                '2. Motivo de la baja:',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13.5,
+                                ),
                               ),
-                            ),
-                          ] else ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: cardBg,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: AppTheme.brandPrimary, width: 1.4),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _motivos.map((m) {
+                                  final isSel = _motivo == m['id'];
+                                  final color = m['color'] as Color;
+                                  return ChoiceChip(
+                                    avatar: Icon(
+                                      m['icon'] as IconData,
+                                      size: 14,
+                                      color: isSel ? Colors.white : color,
+                                    ),
+                                    label: Text(m['label'] as String),
+                                    selected: isSel,
+                                    selectedColor: color,
+                                    labelStyle: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isSel
+                                          ? Colors.white
+                                          : (isDark
+                                                ? Colors.white70
+                                                : AppTheme.textDark),
+                                    ),
+                                    onSelected: (val) {
+                                      if (val)
+                                        setState(
+                                          () => _motivo = m['id'] as String,
+                                        );
+                                    },
+                                  );
+                                }).toList(),
                               ),
-                              child: Row(
+
+                              const SizedBox(height: 18),
+
+                              // 3. Cantidad y Costo
+                              Text(
+                                '3. Cantidad y Valorización Contable:',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
                                 children: [
-                                  ProductImageWidget(
-                                    imagenUrl: _productoSeleccionado!.imagenUrl,
-                                    categoria: _productoSeleccionado!.nombreCategoria,
-                                    size: 44,
-                                  ),
-                                  const SizedBox(width: 12),
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _productoSeleccionado!.nombre,
-                                          style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13.5),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                    child: TextFormField(
+                                      controller: _cantidadCtrl,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                      decoration: InputDecoration(
+                                        labelText: 'Cantidad a descontar',
+                                        hintText: '1',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
-                                        Text(
-                                          'Stock actual: ${_productoSeleccionado!.stockActual.toStringAsFixed(0)} un.  •  Venta: S/ ${_productoSeleccionado!.precioVenta.toStringAsFixed(2)}',
-                                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                                      ),
+                                      onChanged: (_) => setState(() {}),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _costoCtrl,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
+                                      decoration: InputDecoration(
+                                        labelText: 'Costo unitario (S/)',
+                                        hintText: '3.50',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                      onChanged: (_) => setState(() {}),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              // Cálculo de pérdida total
+                              Builder(
+                                builder: (_) {
+                                  final cant =
+                                      double.tryParse(
+                                        _cantidadCtrl.text.trim(),
+                                      ) ??
+                                      0.0;
+                                  final cost =
+                                      double.tryParse(_costoCtrl.text.trim()) ??
+                                      0.0;
+                                  final total = cant * cost;
+                                  return Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEF4444)
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: const Color(0xFFEF4444)
+                                            .withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          LucideIcons.calculator,
+                                          color: Color(0xFFEF4444),
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Pérdida Total Contable:',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12.5,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            '-S/ ${total.toStringAsFixed(2)}',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w900,
+                                              color: const Color(0xFFEF4444),
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => setState(() => _productoSeleccionado = null),
-                                    child: const Text('Cambiar'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-
-                          const SizedBox(height: 18),
-
-                          // 2. Motivo de Baja
-                          Text('2. Motivo de la baja:', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _motivos.map((m) {
-                              final isSel = _motivo == m['id'];
-                              final color = m['color'] as Color;
-                              return ChoiceChip(
-                                avatar: Icon(m['icon'] as IconData, size: 14, color: isSel ? Colors.white : color),
-                                label: Text(m['label'] as String),
-                                selected: isSel,
-                                selectedColor: color,
-                                labelStyle: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSel ? Colors.white : (isDark ? Colors.white70 : AppTheme.textDark),
-                                ),
-                                onSelected: (val) {
-                                  if (val) setState(() => _motivo = m['id'] as String);
+                                  );
                                 },
-                              );
-                            }).toList(),
-                          ),
+                              ),
 
-                          const SizedBox(height: 18),
+                              const SizedBox(height: 18),
 
-                          // 3. Cantidad y Costo
-                          Text('3. Cantidad y Valorización Contable:', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _cantidadCtrl,
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                  decoration: InputDecoration(
-                                    labelText: 'Cantidad a descontar',
-                                    hintText: '1',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                  onChanged: (_) => setState(() {}),
+                              // 4. Observaciones
+                              Text(
+                                '4. Observaciones (Opcional):',
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13.5,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _costoCtrl,
-                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                  decoration: InputDecoration(
-                                    labelText: 'Costo unitario (S/)',
-                                    hintText: '3.50',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _obsCtrl,
+                                decoration: InputDecoration(
+                                  hintText: 'Ej. Se quebró al desempacar la caja en almacén',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  onChanged: (_) => setState(() {}),
                                 ),
                               ),
                             ],
                           ),
-
-                          const SizedBox(height: 12),
-
-                          // Cálculo de pérdida total
-                          Builder(builder: (_) {
-                            final cant = double.tryParse(_cantidadCtrl.text.trim()) ?? 0.0;
-                            final cost = double.tryParse(_costoCtrl.text.trim()) ?? 0.0;
-                            final total = cant * cost;
-                            return Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(LucideIcons.calculator, color: Color(0xFFEF4444), size: 18),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'Pérdida Total Contable:',
-                                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w700),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(
-                                      '-S/ ${total.toStringAsFixed(2)}',
-                                      style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w900, color: const Color(0xFFEF4444)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-
-                          const SizedBox(height: 18),
-
-                          // 4. Observaciones
-                          Text('4. Observaciones (Opcional):', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _obsCtrl,
-                            decoration: InputDecoration(
-                              hintText: 'Ej. Se quebró al desempacar la caja en almacén',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
 
-                  // Barra Inferior de Confirmación
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      border: Border(top: BorderSide(color: borderColor)),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: SizedBox(
-                            height: 48,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: borderColor),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              ),
-                              onPressed: _isSaving ? null : () => Navigator.pop(context),
-                              child: Text(
-                                'Cancelar',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      // Barra Inferior de Confirmación
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: cardBg,
+                          border: Border(top: BorderSide(color: borderColor)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: SizedBox(
+                                height: 48,
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: borderColor),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  onPressed: _isSaving
+                                      ? null
+                                      : () => Navigator.pop(context),
+                                  child: Text(
+                                    'Cancelar',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: SizedBox(
-                            height: 48,
-                            child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.brandPrimary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: SizedBox(
+                                height: 48,
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.brandPrimary,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  icon: _isSaving
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(LucideIcons.check, size: 18),
+                                  label: Text(
+                                    _isSaving
+                                        ? 'REGISTRANDO...'
+                                        : 'CONFIRMAR BAJA',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  onPressed:
+                                      (_isSaving ||
+                                          _productoSeleccionado == null)
+                                      ? null
+                                      : _guardarMerma,
+                                ),
                               ),
-                              icon: _isSaving
-                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                  : const Icon(LucideIcons.check, size: 18),
-                              label: Text(
-                                _isSaving ? 'REGISTRANDO...' : 'CONFIRMAR BAJA',
-                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
-                              ),
-                              onPressed: (_isSaving || _productoSeleccionado == null) ? null : _guardarMerma,
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
         ),
       ),
     );

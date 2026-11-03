@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
 import 'dashboard_bi_model.dart';
@@ -12,19 +13,25 @@ import '../promociones/promociones_screen.dart';
 class DashboardBiScreen extends StatefulWidget {
   final DashboardBiService? service;
   final int initialTabRotacion;
-  const DashboardBiScreen({super.key, this.service, this.initialTabRotacion = 0});
+  const DashboardBiScreen({
+    super.key,
+    this.service,
+    this.initialTabRotacion = 0,
+  });
 
   @override
   State<DashboardBiScreen> createState() => _DashboardBiScreenState();
 }
 
 class _DashboardBiScreenState extends State<DashboardBiScreen> {
-  late final DashboardBiService _biService = widget.service ?? DashboardBiService();
+  late final DashboardBiService _biService =
+      widget.service ?? DashboardBiService();
   int _diasSeleccionados = 30;
   bool _cargando = true;
   String? _error;
   DashboardBiData? _data;
-  late int _tabRotacion = widget.initialTabRotacion; // 0 = Estrellas, 1 = Huesos
+  late int _tabRotacion =
+      widget.initialTabRotacion; // 0 = Estrellas, 1 = Huesos
   int? _horaSeleccionada;
   final TextEditingController _searchController = TextEditingController();
   String _filtroTexto = '';
@@ -42,7 +49,8 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     final auth = AuthService();
     final plan = await auth.getPlanBodega();
     final rol = await auth.getUserRole();
-    final pro = plan.toUpperCase() == 'PRO' || rol.toUpperCase() == 'SUPERADMIN';
+    final pro =
+        plan.toUpperCase() == 'PRO' || rol.toUpperCase() == 'SUPERADMIN';
     if (!pro) {
       if (mounted) {
         setState(() {
@@ -102,7 +110,10 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
           exito
               ? 'Informe BI exportado y descargado exitosamente.'
               : 'Informe BI copiado al portapapeles.',
-          style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w600),
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: AppTheme.accentGreen,
         behavior: SnackBarBehavior.floating,
@@ -169,11 +180,18 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       color: const Color(0xFFD97706).withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(LucideIcons.lock, size: 40, color: Color(0xFFD97706)),
+                    child: const Icon(
+                      LucideIcons.lock,
+                      size: 40,
+                      color: Color(0xFFD97706),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFD97706).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
@@ -205,7 +223,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       height: 1.5,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -216,12 +236,17 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         backgroundColor: const Color(0xFF0D9488),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       icon: const Icon(LucideIcons.sparkles, size: 18),
                       label: Text(
                         'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
-                        style: GoogleFonts.outfit(fontSize: 13.5, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.outfit(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                       onPressed: () {
                         PlanUpgradeModal.show(
@@ -243,10 +268,15 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       icon: const Icon(LucideIcons.arrowLeft, size: 16),
                       label: Text(
                         'Volver al Panel Principal',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
                       style: TextButton.styleFrom(
-                        foregroundColor: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                        foregroundColor: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
                       ),
                     ),
                 ],
@@ -298,7 +328,10 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
         actions: [
           IconButton(
             tooltip: 'Exportar Informe CSV',
-            icon: const Icon(LucideIcons.fileSpreadsheet, color: AppTheme.brandPrimary),
+            icon: const Icon(
+              LucideIcons.fileSpreadsheet,
+              color: AppTheme.brandPrimary,
+            ),
             onPressed: _data != null ? _exportarCsv : null,
           ),
           IconButton(
@@ -313,10 +346,12 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
         onRefresh: _cargarDatos,
         color: AppTheme.brandPrimary,
         child: _cargando
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.brandPrimary))
+            ? const Center(
+                child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+              )
             : _error != null
-                ? _buildErrorView(isDark)
-                : _buildDashboardContent(isDark),
+            ? _buildErrorView(isDark)
+            : _buildDashboardContent(isDark),
       ),
     );
   }
@@ -328,7 +363,11 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(LucideIcons.circleAlert, size: 56, color: AppTheme.alertRed),
+            const Icon(
+              LucideIcons.circleAlert,
+              size: 56,
+              color: AppTheme.alertRed,
+            ),
             const SizedBox(height: 16),
             Text(
               _error ?? 'Error desconocido',
@@ -345,7 +384,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.brandPrimary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               icon: const Icon(LucideIcons.refreshCw, size: 18),
               label: const Text('Reintentar'),
@@ -397,7 +438,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+        ),
       ),
       child: Row(
         children: opciones.map((op) {
@@ -438,7 +481,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     fontWeight: activo ? FontWeight.w800 : FontWeight.w600,
                     color: activo
                         ? Colors.white
-                        : (isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
+                        : (isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted),
                   ),
                 ),
               ),
@@ -458,7 +503,11 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
       children: [
         Row(
           children: [
-            const Icon(LucideIcons.trendingUp, size: 20, color: AppTheme.brandPrimary),
+            const Icon(
+              LucideIcons.trendingUp,
+              size: 20,
+              color: AppTheme.brandPrimary,
+            ),
             const SizedBox(width: 8),
             Text(
               'Métricas de Rentabilidad Real',
@@ -505,13 +554,18 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : AppTheme.textMuted,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.accentGreen.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
@@ -546,11 +600,33 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                            flex: (data.totalCostos > 0 ? (data.totalCostos / (data.totalVentas > 0 ? data.totalVentas : 1) * 100).toInt() : 70).clamp(5, 95),
-                            child: Container(color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1)),
+                            flex:
+                                (data.totalCostos > 0
+                                        ? (data.totalCostos /
+                                                  (data.totalVentas > 0
+                                                      ? data.totalVentas
+                                                      : 1) *
+                                                  100)
+                                              .toInt()
+                                        : 70)
+                                    .clamp(5, 95),
+                            child: Container(
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : const Color(0xFFCBD5E1),
+                            ),
                           ),
                           Expanded(
-                            flex: (data.margenBrutoSoles > 0 ? (data.margenBrutoSoles / (data.totalVentas > 0 ? data.totalVentas : 1) * 100).toInt() : 30).clamp(5, 95),
+                            flex:
+                                (data.margenBrutoSoles > 0
+                                        ? (data.margenBrutoSoles /
+                                                  (data.totalVentas > 0
+                                                      ? data.totalVentas
+                                                      : 1) *
+                                                  100)
+                                              .toInt()
+                                        : 30)
+                                    .clamp(5, 95),
                             child: Container(color: AppTheme.brandPrimary),
                           ),
                         ],
@@ -566,7 +642,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
                         ),
                       ),
                       Text(
@@ -574,7 +652,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
                         ),
                       ),
                     ],
@@ -601,10 +681,16 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
                         ),
                       ),
-                      const Icon(LucideIcons.receipt, size: 18, color: AppTheme.brandPrimary),
+                      const Icon(
+                        LucideIcons.receipt,
+                        size: 18,
+                        color: AppTheme.brandPrimary,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -613,7 +699,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     style: GoogleFonts.outfit(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
-                      color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                      color: isDark
+                          ? AppTheme.textDarkPrimary
+                          : AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -634,7 +722,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : AppTheme.textMuted,
                               ),
                             ),
                             Text(
@@ -656,7 +746,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : AppTheme.textMuted,
                               ),
                             ),
                             Text(
@@ -664,7 +756,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
-                                color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                                color: isDark
+                                    ? AppTheme.textDarkPrimary
+                                    : AppTheme.textDark,
                               ),
                             ),
                           ],
@@ -697,13 +791,18 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : AppTheme.textMuted,
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.alertRed.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
@@ -733,7 +832,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     'Dinero en góndola sin rotación. Revisa la pestaña "Huesos" para liquidar o armar combos.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : AppTheme.textMuted,
                       height: 1.3,
                     ),
                   ),
@@ -794,7 +895,11 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.flame, size: 20, color: AppTheme.warningAmber),
+                    const Icon(
+                      LucideIcons.flame,
+                      size: 20,
+                      color: AppTheme.warningAmber,
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -802,7 +907,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         style: AppTheme.headingStyle(
                           size: 15,
                           weight: FontWeight.w700,
-                          color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                          color: isDark
+                              ? AppTheme.textDarkPrimary
+                              : AppTheme.textDark,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -817,7 +924,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : AppTheme.textMuted,
                 ),
               ),
             ],
@@ -848,7 +957,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 } else if (hp.cantidadTickets > 0) {
                   barColor = AppTheme.brandPrimary;
                 } else {
-                  barColor = isDark ? const Color(0xFF2E384D) : const Color(0xFFE2E8F0);
+                  barColor = isDark
+                      ? const Color(0xFF2E384D)
+                      : const Color(0xFFE2E8F0);
                 }
 
                 return Expanded(
@@ -866,7 +977,10 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         children: [
                           if (isSelected)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
                               margin: const EdgeInsets.only(bottom: 2),
                               decoration: BoxDecoration(
                                 color: AppTheme.brandPrimary,
@@ -886,11 +1000,15 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                             height: barHeight,
                             decoration: BoxDecoration(
                               color: isSelected ? Colors.white : barColor,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(4),
+                              ),
                               boxShadow: hp.esPico
                                   ? [
                                       BoxShadow(
-                                        color: AppTheme.warningAmber.withValues(alpha: 0.4),
+                                        color: AppTheme.warningAmber.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         blurRadius: 4,
                                         offset: const Offset(0, -1),
                                       ),
@@ -904,7 +1022,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 9,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : AppTheme.textMuted,
                             ),
                           ),
                         ],
@@ -930,11 +1050,17 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                   decoration: BoxDecoration(
                     color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(LucideIcons.clock, size: 18, color: AppTheme.brandPrimary),
+                      const Icon(
+                        LucideIcons.clock,
+                        size: 18,
+                        color: AppTheme.brandPrimary,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -942,13 +1068,18 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.textDarkPrimary
+                                : AppTheme.textDark,
                           ),
                         ),
                       ),
                       if (selectedHp.esPico)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.warningAmber,
                             borderRadius: BorderRadius.circular(6),
@@ -976,12 +1107,18 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
             decoration: BoxDecoration(
               color: isDark ? AppTheme.bgDark : AppTheme.surfaceTint,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: isDark ? AppTheme.borderDark : AppTheme.borderTint),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : AppTheme.borderTint,
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(LucideIcons.sparkles, size: 20, color: AppTheme.brandPrimary),
+                const Icon(
+                  LucideIcons.sparkles,
+                  size: 20,
+                  color: AppTheme.brandPrimary,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -994,7 +1131,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                              color: isDark
+                                  ? AppTheme.textDarkPrimary
+                                  : AppTheme.textDark,
                             ),
                           ),
                           Text(
@@ -1012,7 +1151,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         data.recomendacionTurnos,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
                           height: 1.3,
                         ),
                       ),
@@ -1047,7 +1188,11 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.arrowUpDown, size: 20, color: AppTheme.brandPrimary),
+                    const Icon(
+                      LucideIcons.arrowUpDown,
+                      size: 20,
+                      color: AppTheme.brandPrimary,
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
@@ -1055,7 +1200,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         style: AppTheme.headingStyle(
                           size: 15,
                           weight: FontWeight.w700,
-                          color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                          color: isDark
+                              ? AppTheme.textDarkPrimary
+                              : AppTheme.textDark,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1086,22 +1233,32 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _tabRotacion == 0 ? AppTheme.brandPrimary : Colors.transparent,
+                        color: _tabRotacion == 0
+                            ? AppTheme.brandPrimary
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(LucideIcons.star, size: 16, color: Colors.amber),
+                          const Icon(
+                            LucideIcons.star,
+                            size: 16,
+                            color: Colors.amber,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             'Estrellas (${data.productosEstrella.length})',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              fontWeight: _tabRotacion == 0 ? FontWeight.w800 : FontWeight.w600,
+                              fontWeight: _tabRotacion == 0
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
                               color: _tabRotacion == 0
                                   ? Colors.white
-                                  : (isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
+                                  : (isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : AppTheme.textMuted),
                             ),
                           ),
                         ],
@@ -1117,22 +1274,34 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _tabRotacion == 1 ? (isDark ? const Color(0xFF262E44) : const Color(0xFF1E293B)) : Colors.transparent,
+                        color: _tabRotacion == 1
+                            ? (isDark
+                                  ? const Color(0xFF262E44)
+                                  : const Color(0xFF1E293B))
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(LucideIcons.archive, size: 16, color: Colors.white),
+                          const Icon(
+                            LucideIcons.archive,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             'Huesos (${data.productosHueso.length})',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              fontWeight: _tabRotacion == 1 ? FontWeight.w800 : FontWeight.w600,
+                              fontWeight: _tabRotacion == 1
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
                               color: _tabRotacion == 1
                                   ? Colors.white
-                                  : (isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted),
+                                  : (isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : AppTheme.textMuted),
                             ),
                           ),
                         ],
@@ -1148,7 +1317,8 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
           // Buscador rápido en la lista
           TextField(
             controller: _searchController,
-            onChanged: (val) => setState(() => _filtroTexto = val.trim().toLowerCase()),
+            onChanged: (val) =>
+                setState(() => _filtroTexto = val.trim().toLowerCase()),
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
@@ -1171,7 +1341,10 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       },
                     )
                   : null,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: borderColor),
@@ -1182,7 +1355,10 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppTheme.brandPrimary, width: 1.5),
+                borderSide: const BorderSide(
+                  color: AppTheme.brandPrimary,
+                  width: 1.5,
+                ),
               ),
               filled: true,
               fillColor: isDark ? AppTheme.bgDark : AppTheme.bgLight,
@@ -1204,10 +1380,12 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     var estrellas = data.productosEstrella;
     if (_filtroTexto.isNotEmpty) {
       estrellas = estrellas
-          .where((e) =>
-              e.nombre.toLowerCase().contains(_filtroTexto) ||
-              (e.codigo?.toLowerCase().contains(_filtroTexto) ?? false) ||
-              e.categoria.toLowerCase().contains(_filtroTexto))
+          .where(
+            (e) =>
+                e.nombre.toLowerCase().contains(_filtroTexto) ||
+                (e.codigo?.toLowerCase().contains(_filtroTexto) ?? false) ||
+                e.categoria.toLowerCase().contains(_filtroTexto),
+          )
           .toList();
     }
 
@@ -1222,14 +1400,20 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 height: 58,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.2 : 0.1),
+                  color: const Color(0xFFF59E0B)
+                      .withValues(alpha: isDark ? 0.2 : 0.1),
                   border: Border.all(
-                    color: const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.35 : 0.2),
+                    color: const Color(0xFFF59E0B)
+                        .withValues(alpha: isDark ? 0.35 : 0.2),
                     width: 1.5,
                   ),
                 ),
                 child: const Center(
-                  child: Icon(LucideIcons.sparkles, size: 24, color: Color(0xFFF59E0B)),
+                  child: Icon(
+                    LucideIcons.sparkles,
+                    size: 24,
+                    color: Color(0xFFF59E0B),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1246,7 +1430,13 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               Text(
                 'Conforme cobres en el POS, aquí se listarán los productos con mayor margen bruto y frecuencia de venta.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontSize: 12, fontWeight: FontWeight.w600),
+                style: GoogleFonts.plusJakartaSans(
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF334155),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -1277,10 +1467,10 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 color: rank == 1
                     ? Colors.amber
                     : rank == 2
-                        ? const Color(0xFF94A3B8)
-                        : rank == 3
-                            ? const Color(0xFFB45309)
-                            : (isDark ? AppTheme.borderDark : AppTheme.bgLight),
+                    ? const Color(0xFF94A3B8)
+                    : rank == 3
+                    ? const Color(0xFFB45309)
+                    : (isDark ? AppTheme.borderDark : AppTheme.bgLight),
                 shape: BoxShape.circle,
               ),
               child: Text(
@@ -1288,7 +1478,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
-                  color: rank <= 3 ? Colors.black : (isDark ? Colors.white : AppTheme.textDark),
+                  color: rank <= 3
+                      ? Colors.black
+                      : (isDark ? Colors.white : AppTheme.textDark),
                 ),
               ),
             ),
@@ -1316,7 +1508,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                      color: isDark
+                          ? AppTheme.textDarkPrimary
+                          : AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1324,7 +1518,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     '${item.unidadesVendidas.toStringAsFixed(0)} unidades vendidas • ${item.categoria}',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : AppTheme.textMuted,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1350,7 +1546,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : AppTheme.textMuted,
                   ),
                 ),
               ],
@@ -1365,10 +1563,12 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     var huesos = data.productosHueso;
     if (_filtroTexto.isNotEmpty) {
       huesos = huesos
-          .where((h) =>
-              h.nombre.toLowerCase().contains(_filtroTexto) ||
-              (h.codigo?.toLowerCase().contains(_filtroTexto) ?? false) ||
-              h.categoria.toLowerCase().contains(_filtroTexto))
+          .where(
+            (h) =>
+                h.nombre.toLowerCase().contains(_filtroTexto) ||
+                (h.codigo?.toLowerCase().contains(_filtroTexto) ?? false) ||
+                h.categoria.toLowerCase().contains(_filtroTexto),
+          )
           .toList();
     }
 
@@ -1383,14 +1583,22 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 height: 58,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.2 : 0.1),
+                  color: AppTheme.accentGreen.withValues(
+                    alpha: isDark ? 0.2 : 0.1,
+                  ),
                   border: Border.all(
-                    color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.35 : 0.2),
+                    color: AppTheme.accentGreen.withValues(
+                      alpha: isDark ? 0.35 : 0.2,
+                    ),
                     width: 1.5,
                   ),
                 ),
                 child: const Center(
-                  child: Icon(LucideIcons.shieldCheck, size: 24, color: AppTheme.accentGreen),
+                  child: Icon(
+                    LucideIcons.shieldCheck,
+                    size: 24,
+                    color: AppTheme.accentGreen,
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1407,7 +1615,13 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               Text(
                 'No tienes mercadería estancada por más de 30 días. Todo tu capital invertido está circulando con fluidez.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155), fontSize: 12, fontWeight: FontWeight.w600),
+                style: GoogleFonts.plusJakartaSans(
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF334155),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -1455,7 +1669,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+                            color: isDark
+                                ? AppTheme.textDarkPrimary
+                                : AppTheme.textDark,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1463,7 +1679,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           'Stock: ${item.stockActual.toStringAsFixed(0)} un. • Costo: S/ ${item.precioCosto.toStringAsFixed(2)}',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : AppTheme.textMuted,
                           ),
                         ),
                       ],
@@ -1487,7 +1705,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
                         ),
                       ),
                     ],
@@ -1501,16 +1721,25 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 children: [
                   Flexible(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.warningAmber.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppTheme.warningAmber.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: AppTheme.warningAmber.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.lightbulb, size: 12, color: AppTheme.warningAmber),
+                          const Icon(
+                            LucideIcons.lightbulb,
+                            size: 12,
+                            color: AppTheme.warningAmber,
+                          ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
@@ -1534,7 +1763,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF334155),
                     ),
                   ),
                   const Spacer(),
@@ -1553,23 +1784,36 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                     },
                     borderRadius: BorderRadius.circular(6),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.1),
+                        color: AppTheme.brandPrimary.withValues(
+                          alpha: isDark ? 0.2 : 0.1,
+                        ),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.35)),
+                        border: Border.all(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.sparkles, size: 10, color: AppTheme.brandPrimary),
+                          const Icon(
+                            LucideIcons.sparkles,
+                            size: 10,
+                            color: AppTheme.brandPrimary,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Armar Combo',
                             style: GoogleFonts.outfit(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? const Color(0xFF93C5FD) : AppTheme.brandPrimary,
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : AppTheme.brandPrimary,
                             ),
                           ),
                         ],

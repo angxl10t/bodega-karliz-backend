@@ -50,7 +50,9 @@ class MermaRegistro {
       costoTotal: (json['costoTotal'] as num?)?.toDouble() ?? 0.0,
       observaciones: json['observaciones'] as String? ?? '',
       usuarioResponsable: json['usuarioResponsable'] as String? ?? 'ADMIN',
-      fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha'].toString()) ?? DateTime.now() : DateTime.now(),
+      fecha: json['fecha'] != null
+          ? DateTime.tryParse(json['fecha'].toString()) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 

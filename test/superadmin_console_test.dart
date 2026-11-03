@@ -79,7 +79,9 @@ void main() {
     });
 
     test('BodegaInfo calculates plan expiration days correctly', () {
-      final futureDate = DateTime.now().add(const Duration(days: 15)).toIso8601String();
+      final futureDate = DateTime.now()
+          .add(const Duration(days: 15))
+          .toIso8601String();
       final json = {
         'idBodega': 9,
         'nombreComercial': 'Bodega Esperanza',
@@ -97,15 +99,15 @@ void main() {
   });
 
   group('Superadmin Console Widget & Navigation Tests', () {
-    testWidgets('SuperAdminDashboardScreen renders loading state initially', (WidgetTester tester) async {
+    testWidgets('SuperAdminDashboardScreen renders loading state initially', (
+      WidgetTester tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(1280, 800));
 
       await tester.pumpWidget(
         ChangeNotifierProvider(
           create: (_) => ThemeProvider(),
-          child: const MaterialApp(
-            home: SuperAdminDashboardScreen(),
-          ),
+          child: const MaterialApp(home: SuperAdminDashboardScreen()),
         ),
       );
 

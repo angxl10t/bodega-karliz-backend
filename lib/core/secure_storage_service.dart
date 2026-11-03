@@ -5,9 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// y EncryptedSharedPreferences con cifrado AES-256-GCM).
 class SecureStorageService {
   static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      resetOnError: true,
-    ),
+    aOptions: AndroidOptions(resetOnError: true),
   );
 
   /// Escribe un valor de forma cifrada con respaldo resiliente

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'theme.dart';
 
 class ThemeProvider extends ChangeNotifier {
@@ -13,8 +14,10 @@ class ThemeProvider extends ChangeNotifier {
   ThemeMode get themeMode => _isDarkMode ? ThemeMode.dark : ThemeMode.light;
   Color get accentColor => _accentColor;
 
-  ThemeData get lightTheme => AppTheme.buildLightTheme(primaryColor: _accentColor);
-  ThemeData get darkTheme => AppTheme.buildDarkTheme(primaryColor: _accentColor);
+  ThemeData get lightTheme =>
+      AppTheme.buildLightTheme(primaryColor: _accentColor);
+  ThemeData get darkTheme =>
+      AppTheme.buildDarkTheme(primaryColor: _accentColor);
 
   ThemeProvider() {
     _cargarTemaGuardado();
@@ -41,7 +44,9 @@ class ThemeProvider extends ChangeNotifier {
     _accentColor = color;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    final hex = hexCode ?? '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+    final hex =
+        hexCode ??
+        '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
     await prefs.setString(_accentColorKey, hex);
   }
 

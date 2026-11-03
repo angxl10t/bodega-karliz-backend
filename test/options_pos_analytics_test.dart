@@ -7,26 +7,27 @@ import 'package:bodega_mobile/features/home/usuarios_service.dart';
 
 void main() {
   group('Option 1: POS & Cashier Idempotency and Receipt Model Tests', () {
-    test('VentaEnvio serializes tipoComprobante and idempotencyKey correctly', () {
-      final envio = VentaEnvio(
-        clienteDocumento: '20601234567',
-        clienteNombre: 'Distribuidora Lima S.A.C.',
-        metodoPago: 'Yape',
-        tipoComprobante: 'FACTURA_ELECTRONICA',
-        idempotencyKey: 'pos_1729123456_849201',
-        detalles: [
-          VentaDetalleEnvio(idProducto: 10, cantidad: 2.0),
-        ],
-      );
+    test(
+      'VentaEnvio serializes tipoComprobante and idempotencyKey correctly',
+      () {
+        final envio = VentaEnvio(
+          clienteDocumento: '20601234567',
+          clienteNombre: 'Distribuidora Lima S.A.C.',
+          metodoPago: 'Yape',
+          tipoComprobante: 'FACTURA_ELECTRONICA',
+          idempotencyKey: 'pos_1729123456_849201',
+          detalles: [VentaDetalleEnvio(idProducto: 10, cantidad: 2.0)],
+        );
 
-      final json = envio.toJson();
-      expect(json['tipoComprobante'], 'FACTURA_ELECTRONICA');
-      expect(json['idempotencyKey'], 'pos_1729123456_849201');
-      expect(json['clienteDocumento'], '20601234567');
-      expect(json['clienteNombre'], 'Distribuidora Lima S.A.C.');
-      expect(json['metodoPago'], 'Yape');
-      expect(json['detalles'], hasLength(1));
-    });
+        final json = envio.toJson();
+        expect(json['tipoComprobante'], 'FACTURA_ELECTRONICA');
+        expect(json['idempotencyKey'], 'pos_1729123456_849201');
+        expect(json['clienteDocumento'], '20601234567');
+        expect(json['clienteNombre'], 'Distribuidora Lima S.A.C.');
+        expect(json['metodoPago'], 'Yape');
+        expect(json['detalles'], hasLength(1));
+      },
+    );
 
     test('VentaRegistro correctly handles Sunat Boleta and Factura labels', () {
       final factura = VentaRegistro(
@@ -135,7 +136,9 @@ void main() {
     });
 
     test('SecureStorageService reads transparently from SharedPreferences fallback', () async {
-      SharedPreferences.setMockInitialValues({'test_token': 'jwt_super_secret_token'});
+      SharedPreferences.setMockInitialValues({
+        'test_token': 'jwt_super_secret_token',
+      });
       final val = await SecureStorageService.read('test_token');
       expect(val, 'jwt_super_secret_token');
     });

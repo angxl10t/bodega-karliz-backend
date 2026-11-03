@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
@@ -30,9 +31,7 @@ class AjusteStockSheet extends StatefulWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
       builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-        ),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: AjusteStockSheet(
           producto: producto,
           onAjusteCompletado: onAjusteCompletado,
@@ -97,11 +96,31 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
   ];
 
   final Map<String, List<String>> _motivosSugeridos = {
-    'MERMA': ['Fruta/verdura mal estado', 'Empaque aplastado en bodega', 'Humedad o polilla'],
-    'ROTURA': ['Botella rota al descargar', 'Frasco caído en mostrador', 'Lata abollada'],
-    'VENCIMIENTO': ['Lote expirado en góndola', 'Retiro preventivo 1 día antes', 'Sin rotación comercial'],
-    'CONSUMO_INTERNO': ['Limpieza y mantenimiento', 'Consumo personal turno noche', 'Muestra degustación'],
-    'SOBRANTE': ['Conteo físico fin de mes', 'Ajuste de despacho proveedor', 'Error en venta anterior'],
+    'MERMA': [
+      'Fruta/verdura mal estado',
+      'Empaque aplastado en bodega',
+      'Humedad o polilla',
+    ],
+    'ROTURA': [
+      'Botella rota al descargar',
+      'Frasco caído en mostrador',
+      'Lata abollada',
+    ],
+    'VENCIMIENTO': [
+      'Lote expirado en góndola',
+      'Retiro preventivo 1 día antes',
+      'Sin rotación comercial',
+    ],
+    'CONSUMO_INTERNO': [
+      'Limpieza y mantenimiento',
+      'Consumo personal turno noche',
+      'Muestra degustación',
+    ],
+    'SOBRANTE': [
+      'Conteo físico fin de mes',
+      'Ajuste de despacho proveedor',
+      'Error en venta anterior',
+    ],
   };
 
   @override
@@ -112,7 +131,10 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
   }
 
   bool get _esSalida {
-    final tipo = _tipos.firstWhere((t) => t['id'] == _tipoAjuste, orElse: () => _tipos[0]);
+    final tipo = _tipos.firstWhere(
+      (t) => t['id'] == _tipoAjuste,
+      orElse: () => _tipos[0],
+    );
     return tipo['esSalida'] as bool;
   }
 
@@ -137,7 +159,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
     }
 
     if (_esSalida && cant > widget.producto.stockActual) {
-      _mostrarAlerta('No puedes descontar $cant u. porque el stock actual es de solo ${widget.producto.stockActual.toStringAsFixed(1)} u.');
+      _mostrarAlerta(
+        'No puedes descontar $cant u. porque el stock actual es de solo ${widget.producto.stockActual.toStringAsFixed(1)} u.',
+      );
       return;
     }
 
@@ -166,12 +190,18 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             backgroundColor: AppTheme.accentGreen,
             content: Row(
               children: [
-                const Icon(LucideIcons.checkCheck, color: Colors.white, size: 20),
+                const Icon(
+                  LucideIcons.checkCheck,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     'Ajuste registrado exitosamente en Kardex (${_esSalida ? "-" : "+"}$cant u.)',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -181,7 +211,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
       }
     } else {
       if (mounted) {
-        _mostrarAlerta('Error al registrar el ajuste. Verifica tu conexión y permisos de Administrador.');
+        _mostrarAlerta(
+          'Error al registrar el ajuste. Verifica tu conexión y permisos de Administrador.',
+        );
       }
     }
   }
@@ -201,7 +233,10 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final selectedConfig = _tipos.firstWhere((t) => t['id'] == _tipoAjuste, orElse: () => _tipos[0]);
+    final selectedConfig = _tipos.firstWhere(
+      (t) => t['id'] == _tipoAjuste,
+      orElse: () => _tipos[0],
+    );
     final Color selectedColor = selectedConfig['color'] as Color;
     final nuevoStock = _nuevoStockProyectado;
     final bool stockInvalido = _esSalida && nuevoStock < 0;
@@ -218,7 +253,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
               width: 44,
               height: 5,
               decoration: BoxDecoration(
-                color: isDark ? AppTheme.borderDarkElevated : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? AppTheme.borderDarkElevated
+                    : const Color(0xFFE2E8F0),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -234,10 +271,16 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                 decoration: BoxDecoration(
                   color: selectedColor.withValues(alpha: isDark ? 0.22 : 0.12),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: selectedColor.withValues(alpha: 0.35)),
+                  border: Border.all(
+                    color: selectedColor.withValues(alpha: 0.35),
+                  ),
                 ),
                 child: Center(
-                  child: Icon(selectedConfig['icon'] as IconData, color: selectedColor, size: 24),
+                  child: Icon(
+                    selectedConfig['icon'] as IconData,
+                    color: selectedColor,
+                    size: 24,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -259,7 +302,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                       '${widget.producto.nombre} • SKU: ${widget.producto.codigo}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
@@ -274,7 +319,11 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                   padding: const EdgeInsets.all(6),
                   minimumSize: const Size(32, 32),
                 ),
-                icon: Icon(LucideIcons.x, size: 18, color: isDark ? Colors.white70 : Colors.black54),
+                icon: Icon(
+                  LucideIcons.x,
+                  size: 18,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
                 tooltip: 'Cerrar Ajuste',
                 onPressed: () => Navigator.pop(context),
               ),
@@ -306,7 +355,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                         _tipoAjuste = tipo['id'] as String;
                         // Sugerir primer motivo típico
                         final sugeridos = _motivosSugeridos[_tipoAjuste];
-                        if (sugeridos != null && sugeridos.isNotEmpty && _motivoCtrl.text.isEmpty) {
+                        if (sugeridos != null &&
+                            sugeridos.isNotEmpty &&
+                            _motivoCtrl.text.isEmpty) {
                           _motivoCtrl.text = sugeridos[0];
                         }
                       });
@@ -314,14 +365,23 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                     borderRadius: BorderRadius.circular(14),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? col.withValues(alpha: isDark ? 0.28 : 0.12)
-                            : (isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA)),
+                            : (isDark
+                                  ? AppTheme.cardDarkSunken
+                                  : const Color(0xFFF8F9FA)),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? col : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                          color: isSelected
+                              ? col
+                              : (isDark
+                                    ? AppTheme.borderDark
+                                    : AppTheme.borderLight),
                           width: isSelected ? 1.8 : 1.0,
                         ),
                       ),
@@ -338,8 +398,12 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                             tipo['label'] as String,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                              color: isSelected ? col : (isDark ? Colors.white : AppTheme.textDark),
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? col
+                                  : (isDark ? Colors.white : AppTheme.textDark),
                             ),
                           ),
                         ],
@@ -372,7 +436,13 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                   children: [
                     Text(
                       'Stock Actual',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
                     ),
                     Text(
                       '${widget.producto.stockActual.toStringAsFixed(1)} u.',
@@ -396,7 +466,11 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                       _esSalida ? 'Stock Restante' : 'Nuevo Stock',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
-                        color: stockInvalido ? AppTheme.alertRed : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+                        color: stockInvalido
+                            ? AppTheme.alertRed
+                            : (isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155)),
                       ),
                     ),
                     Text(
@@ -406,7 +480,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                         fontWeight: FontWeight.w900,
                         color: stockInvalido
                             ? AppTheme.alertRed
-                            : (_esSalida ? selectedColor : AppTheme.accentGreen),
+                            : (_esSalida
+                                  ? selectedColor
+                                  : AppTheme.accentGreen),
                       ),
                     ),
                   ],
@@ -418,7 +494,11 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(LucideIcons.triangleAlert, size: 13, color: AppTheme.alertRed),
+                const Icon(
+                  LucideIcons.triangleAlert,
+                  size: 13,
+                  color: AppTheme.alertRed,
+                ),
                 const SizedBox(width: 5),
                 Expanded(
                   child: Text(
@@ -449,14 +529,20 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             children: [
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
-                  backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: isDark
+                      ? AppTheme.cardDarkHighlight
+                      : const Color(0xFFF1F5F9),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 icon: const Icon(LucideIcons.minus, size: 18),
                 onPressed: () {
                   final cur = _cantidadParsed;
                   if (cur > 1) {
-                    setState(() => _cantidadCtrl.text = (cur - 1).toStringAsFixed(0));
+                    setState(
+                      () => _cantidadCtrl.text = (cur - 1).toStringAsFixed(0),
+                    );
                   }
                 },
               ),
@@ -464,17 +550,26 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
               Expanded(
                 child: TextFormField(
                   controller: _cantidadCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     filled: true,
-                    fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA),
+                    fillColor: isDark
+                        ? AppTheme.cardDarkSunken
+                        : const Color(0xFFF8F9FA),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(
-                        color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : AppTheme.borderLight,
                       ),
                     ),
                   ),
@@ -484,13 +579,19 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
               const SizedBox(width: 10),
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
-                  backgroundColor: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: isDark
+                      ? AppTheme.cardDarkHighlight
+                      : const Color(0xFFF1F5F9),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 icon: const Icon(LucideIcons.plus, size: 18),
                 onPressed: () {
                   final cur = _cantidadParsed;
-                  setState(() => _cantidadCtrl.text = (cur + 1).toStringAsFixed(0));
+                  setState(
+                    () => _cantidadCtrl.text = (cur + 1).toStringAsFixed(0),
+                  );
                 },
               ),
             ],
@@ -519,15 +620,23 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                     mot,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? Colors.white : (isDark ? Colors.white : AppTheme.textDark),
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.white : AppTheme.textDark),
                     ),
                   ),
                   backgroundColor: isSelected
                       ? AppTheme.brandPrimary
-                      : (isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9)),
+                      : (isDark
+                            ? AppTheme.cardDarkHighlight
+                            : const Color(0xFFF1F5F9)),
                   onPressed: () => setState(() => _motivoCtrl.text = mot),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   side: BorderSide.none,
                 );
               }).toList(),
@@ -540,9 +649,16 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             maxLines: 2,
             decoration: InputDecoration(
               hintText: 'Describe la razón del ajuste para auditoría...',
-              hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+              ),
               filled: true,
-              fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8F9FA),
+              fillColor: isDark
+                  ? AppTheme.cardDarkSunken
+                  : const Color(0xFFF8F9FA),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(
@@ -560,8 +676,14 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    side: BorderSide(color: isDark ? AppTheme.borderDark : AppTheme.borderLight),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   onPressed: _isSaving ? null : () => Navigator.pop(context),
                   child: Text(
@@ -569,7 +691,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
-                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF334155),
                     ),
                   ),
                 ),
@@ -580,26 +704,38 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: stockInvalido ? Colors.grey : selectedColor,
+                    backgroundColor: stockInvalido
+                        ? Colors.grey
+                        : selectedColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     elevation: 2,
                   ),
                   icon: _isSaving
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
                       : const Icon(LucideIcons.check, size: 18),
                   label: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
                       _isSaving ? 'Guardando...' : 'Confirmar Ajuste',
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13.5,
+                      ),
                     ),
                   ),
-                  onPressed: (_isSaving || stockInvalido) ? null : _guardarAjuste,
+                  onPressed: (_isSaving || stockInvalido)
+                      ? null
+                      : _guardarAjuste,
                 ),
               ),
             ],

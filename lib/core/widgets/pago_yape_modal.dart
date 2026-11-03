@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import '../../features/home/bodega_service.dart';
 
@@ -12,7 +13,9 @@ class PagoYapeModal {
     VoidCallback? onPlanUpdated,
   }) {
     final codOperacionCtrl = TextEditingController();
-    String planSeleccionado = (planInicial.toUpperCase() == 'PRO') ? 'PRO' : 'BASICO';
+    String planSeleccionado = (planInicial.toUpperCase() == 'PRO')
+        ? 'PRO'
+        : 'BASICO';
     String billetera = 'YAPE';
     bool isSubmitting = false;
     String modalError = '';
@@ -31,8 +34,13 @@ class PagoYapeModal {
 
           return Dialog(
             backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 24,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),
               child: SingleChildScrollView(
@@ -49,7 +57,11 @@ class PagoYapeModal {
                             color: walletPrimary.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Icon(LucideIcons.qrCode, color: walletPrimary, size: 24),
+                          child: Icon(
+                            LucideIcons.qrCode,
+                            color: walletPrimary,
+                            size: 24,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -61,7 +73,9 @@ class PagoYapeModal {
                                 style: GoogleFonts.outfit(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
                                 ),
                               ),
                               Text(
@@ -77,7 +91,9 @@ class PagoYapeModal {
                         ),
                         IconButton(
                           icon: const Icon(LucideIcons.x, size: 20),
-                          onPressed: isSubmitting ? null : () => Navigator.pop(dialogCtx),
+                          onPressed: isSubmitting
+                              ? null
+                              : () => Navigator.pop(dialogCtx),
                         ),
                       ],
                     ),
@@ -88,7 +104,9 @@ class PagoYapeModal {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -98,15 +116,24 @@ class PagoYapeModal {
                       children: [
                         Expanded(
                           child: InkWell(
-                            onTap: () => setModalState(() => planSeleccionado = 'BASICO'),
+                            onTap: () => setModalState(
+                              () => planSeleccionado = 'BASICO',
+                            ),
                             borderRadius: BorderRadius.circular(14),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 10,
+                              ),
                               decoration: BoxDecoration(
                                 color: planSeleccionado == 'BASICO'
-                                    ? AppTheme.brandPrimary.withValues(alpha: 0.12)
-                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                                    ? AppTheme.brandPrimary.withValues(
+                                        alpha: 0.12,
+                                      )
+                                    : (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF1F5F9)),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: planSeleccionado == 'BASICO'
@@ -122,7 +149,9 @@ class PagoYapeModal {
                                     style: GoogleFonts.outfit(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -140,7 +169,9 @@ class PagoYapeModal {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -152,15 +183,23 @@ class PagoYapeModal {
                         const SizedBox(width: 10),
                         Expanded(
                           child: InkWell(
-                            onTap: () => setModalState(() => planSeleccionado = 'PRO'),
+                            onTap: () =>
+                                setModalState(() => planSeleccionado = 'PRO'),
                             borderRadius: BorderRadius.circular(14),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 10,
+                              ),
                               decoration: BoxDecoration(
                                 color: planSeleccionado == 'PRO'
-                                    ? AppTheme.accentGreen.withValues(alpha: 0.12)
-                                    : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                                    ? AppTheme.accentGreen.withValues(
+                                        alpha: 0.12,
+                                      )
+                                    : (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF1F5F9)),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: planSeleccionado == 'PRO'
@@ -179,11 +218,17 @@ class PagoYapeModal {
                                         style: GoogleFonts.outfit(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w800,
-                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
                                         ),
                                       ),
                                       const SizedBox(width: 4),
-                                      const Icon(LucideIcons.sparkles, size: 12, color: AppTheme.accentGreen),
+                                      const Icon(
+                                        LucideIcons.sparkles,
+                                        size: 12,
+                                        color: AppTheme.accentGreen,
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 2),
@@ -201,7 +246,9 @@ class PagoYapeModal {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -217,17 +264,22 @@ class PagoYapeModal {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFE2E8F0),
+                        color: isDark
+                            ? AppTheme.cardDarkSunken
+                            : const Color(0xFFE2E8F0),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: InkWell(
-                              onTap: () => setModalState(() => billetera = 'YAPE'),
+                              onTap: () =>
+                                  setModalState(() => billetera = 'YAPE'),
                               borderRadius: BorderRadius.circular(10),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: billetera == 'YAPE'
                                       ? const Color(0xFF732283)
@@ -242,7 +294,9 @@ class PagoYapeModal {
                                       fontWeight: FontWeight.w800,
                                       color: billetera == 'YAPE'
                                           ? Colors.white
-                                          : (isDark ? Colors.white60 : AppTheme.textDark),
+                                          : (isDark
+                                                ? Colors.white60
+                                                : AppTheme.textDark),
                                     ),
                                   ),
                                 ),
@@ -251,10 +305,13 @@ class PagoYapeModal {
                           ),
                           Expanded(
                             child: InkWell(
-                              onTap: () => setModalState(() => billetera = 'PLIN'),
+                              onTap: () =>
+                                  setModalState(() => billetera = 'PLIN'),
                               borderRadius: BorderRadius.circular(10),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: billetera == 'PLIN'
                                       ? const Color(0xFF0084FF)
@@ -269,7 +326,9 @@ class PagoYapeModal {
                                       fontWeight: FontWeight.w800,
                                       color: billetera == 'PLIN'
                                           ? Colors.white
-                                          : (isDark ? Colors.white60 : AppTheme.textDark),
+                                          : (isDark
+                                                ? Colors.white60
+                                                : AppTheme.textDark),
                                     ),
                                   ),
                                 ),
@@ -286,7 +345,9 @@ class PagoYapeModal {
                       decoration: BoxDecoration(
                         color: walletPrimary.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: walletPrimary.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: walletPrimary.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Column(
                         children: [
@@ -304,7 +365,10 @@ class PagoYapeModal {
                                   offset: const Offset(0, 4),
                                 ),
                               ],
-                              border: Border.all(color: walletPrimary.withValues(alpha: 0.25), width: 1.5),
+                              border: Border.all(
+                                color: walletPrimary.withValues(alpha: 0.25),
+                                width: 1.5,
+                              ),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12),
@@ -312,9 +376,14 @@ class PagoYapeModal {
                                 'assets/images/yape_qr_cajaya.png',
                                 fit: BoxFit.contain,
                                 filterQuality: FilterQuality.medium,
-                                errorBuilder: (context, error, stackTrace) => Center(
-                                  child: Icon(LucideIcons.qrCode, color: walletPrimary, size: 54),
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Center(
+                                      child: Icon(
+                                        LucideIcons.qrCode,
+                                        color: walletPrimary,
+                                        size: 54,
+                                      ),
+                                    ),
                               ),
                             ),
                           ),
@@ -323,15 +392,24 @@ class PagoYapeModal {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                                  color: AppTheme.accentGreen.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(LucideIcons.checkCheck, size: 13, color: AppTheme.accentGreen),
+                                    const Icon(
+                                      LucideIcons.checkCheck,
+                                      size: 13,
+                                      color: AppTheme.accentGreen,
+                                    ),
                                     const SizedBox(width: 4),
                                     Text(
                                       'QR Oficial Interoperable',
@@ -361,12 +439,17 @@ class PagoYapeModal {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : AppTheme.textMuted,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 5,
+                            ),
                             decoration: BoxDecoration(
                               color: walletPrimary.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(8),
@@ -411,9 +494,15 @@ class PagoYapeModal {
                       decoration: InputDecoration(
                         labelText: 'Código de Operación ($billetera)',
                         hintText: 'Ej: 849201 (6 a 10 dígitos)',
-                        prefixIcon: const Icon(LucideIcons.receiptText, size: 18),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                        helperText: 'Validación en tiempo real vía pasarela $billetera',
+                        prefixIcon: const Icon(
+                          LucideIcons.receiptText,
+                          size: 18,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        helperText:
+                            'Validación en tiempo real vía pasarela $billetera',
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -423,7 +512,9 @@ class PagoYapeModal {
                         backgroundColor: walletPrimary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                         elevation: 0,
                       ),
                       onPressed: isSubmitting
@@ -431,7 +522,9 @@ class PagoYapeModal {
                           : () async {
                               final cod = codOperacionCtrl.text.trim();
                               if (cod.length < 4) {
-                                setModalState(() => modalError = 'Ingresa un código de operación válido (mín. 4 dígitos).');
+                                setModalState(
+                                  () => modalError = 'Ingresa un código de operación válido (mín. 4 dígitos).',
+                                );
                                 return;
                               }
 
@@ -458,14 +551,19 @@ class PagoYapeModal {
                                     backgroundColor: AppTheme.accentGreen,
                                     content: Text(
                                       '¡Suscripción actualizada exitosamente con $billetera! Tu plan $planSeleccionado está activo por 30 días adicionales.',
-                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 );
                               } catch (e) {
                                 setModalState(() {
                                   isSubmitting = false;
-                                  modalError = e.toString().replaceAll('Exception: ', '');
+                                  modalError = e.toString().replaceAll(
+                                    'Exception: ',
+                                    '',
+                                  );
                                 });
                               }
                             },
@@ -473,11 +571,17 @@ class PagoYapeModal {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
                             )
                           : Text(
                               'CONFIRMAR Y ACTIVAR SUSCRIPCIÓN',
-                              style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800),
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                     ),
                   ],

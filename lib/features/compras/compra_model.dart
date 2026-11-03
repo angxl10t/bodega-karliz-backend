@@ -10,10 +10,10 @@ class CompraDetalleEnvio {
   });
 
   Map<String, dynamic> toJson() => {
-        'idProducto': idProducto,
-        'cantidad': cantidad,
-        'precioUnitario': precioUnitario,
-      };
+    'idProducto': idProducto,
+    'cantidad': cantidad,
+    'precioUnitario': precioUnitario,
+  };
 }
 
 class CompraEnvio {
@@ -28,10 +28,10 @@ class CompraEnvio {
   });
 
   Map<String, dynamic> toJson() => {
-        'idProveedor': idProveedor,
-        'comprobante': comprobante,
-        'detalles': detalles.map((d) => d.toJson()).toList(),
-      };
+    'idProveedor': idProveedor,
+    'comprobante': comprobante,
+    'detalles': detalles.map((d) => d.toJson()).toList(),
+  };
 }
 
 /// Item en canasta de compra multilínea
@@ -107,12 +107,18 @@ class CompraRegistro {
     return CompraRegistro(
       idCompra: (json['idCompra'] as num?)?.toInt() ?? 0,
       idProveedor: (json['idProveedor'] as num?)?.toInt() ?? 0,
-      razonSocialProveedor: json['razonSocialProveedor'] as String? ?? 'Proveedor',
+      razonSocialProveedor:
+          json['razonSocialProveedor'] as String? ?? 'Proveedor',
       comprobante: json['comprobante'] as String? ?? 'S/C',
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
-      fechaCompra: json['fechaCompra'] != null ? DateTime.tryParse(json['fechaCompra'].toString()) : null,
-      detalles: (json['detalles'] as List<dynamic>?)
-              ?.map((d) => CompraDetalleItem.fromJson(d as Map<String, dynamic>))
+      fechaCompra: json['fechaCompra'] != null
+          ? DateTime.tryParse(json['fechaCompra'].toString())
+          : null,
+      detalles:
+          (json['detalles'] as List<dynamic>?)
+              ?.map(
+                (d) => CompraDetalleItem.fromJson(d as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );

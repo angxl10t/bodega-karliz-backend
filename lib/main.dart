@@ -1,7 +1,9 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import 'features/auth/auth_service.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/auth/login_screen.dart';
@@ -54,7 +56,10 @@ final _router = GoRouter(
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
-    GoRoute(path: '/superadmin', builder: (context, state) => const SuperAdminDashboardScreen()),
+    GoRoute(
+      path: '/superadmin',
+      builder: (context, state) => const SuperAdminDashboardScreen(),
+    ),
     GoRoute(
       path: '/catalogo',
       builder: (context, state) {
@@ -79,7 +84,9 @@ class BodegaApp extends StatelessWidget {
       themeMode: themeProvider.themeMode,
       routerConfig: _router,
       scrollBehavior: const MaterialScrollBehavior().copyWith(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         dragDevices: {
           PointerDeviceKind.touch,
           PointerDeviceKind.mouse,

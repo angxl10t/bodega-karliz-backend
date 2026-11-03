@@ -25,10 +25,22 @@ bool coincideCodigoTest(Producto p, String rawCode) {
     final bcDigits = bc.replaceAll(RegExp(r'\D'), '');
     if (bcDigits.isNotEmpty) {
       if (bcDigits == codeDigits) return true;
-      if (codeDigits.length == 13 && codeDigits.startsWith('0') && codeDigits.substring(1) == bcDigits) return true;
-      if (bcDigits.length == 13 && bcDigits.startsWith('0') && bcDigits.substring(1) == codeDigits) return true;
-      if (codeDigits.length == 14 && codeDigits.startsWith('00') && codeDigits.substring(2) == bcDigits) return true;
-      if (bcDigits.length == 14 && bcDigits.startsWith('00') && bcDigits.substring(2) == codeDigits) return true;
+      if (codeDigits.length == 13 &&
+          codeDigits.startsWith('0') &&
+          codeDigits.substring(1) == bcDigits)
+        return true;
+      if (bcDigits.length == 13 &&
+          bcDigits.startsWith('0') &&
+          bcDigits.substring(1) == codeDigits)
+        return true;
+      if (codeDigits.length == 14 &&
+          codeDigits.startsWith('00') &&
+          codeDigits.substring(2) == bcDigits)
+        return true;
+      if (bcDigits.length == 14 &&
+          bcDigits.startsWith('00') &&
+          bcDigits.substring(2) == codeDigits)
+        return true;
     }
   }
 
@@ -170,7 +182,7 @@ void main() {
             'cantidad': 2.0,
             'precioUnitario': 4.80,
             'subtotal': 9.60,
-          }
+          },
         ],
       };
 
@@ -185,29 +197,32 @@ void main() {
       expect(v.detalles.first.idProducto, 10);
     });
 
-    test('VentaRegistro.fromJson parses ANULADA sale with audit information', () {
-      final json = {
-        'idVenta': 106.0,
-        'clienteDocumento': '00000000',
-        'clienteNombre': 'Público General',
-        'metodoPago': 'Efectivo',
-        'total': 15.00,
-        'fechaVenta': '2026-10-15T15:00:00Z',
-        'estado': 'ANULADA',
-        'fechaAnulacion': '2026-10-15T15:10:00Z',
-        'usuarioAnulacion': 'admin',
-        'motivoAnulacion': 'Error en cobro de vuelto',
-        'detalles': [],
-      };
+    test(
+      'VentaRegistro.fromJson parses ANULADA sale with audit information',
+      () {
+        final json = {
+          'idVenta': 106.0,
+          'clienteDocumento': '00000000',
+          'clienteNombre': 'Público General',
+          'metodoPago': 'Efectivo',
+          'total': 15.00,
+          'fechaVenta': '2026-10-15T15:00:00Z',
+          'estado': 'ANULADA',
+          'fechaAnulacion': '2026-10-15T15:10:00Z',
+          'usuarioAnulacion': 'admin',
+          'motivoAnulacion': 'Error en cobro de vuelto',
+          'detalles': [],
+        };
 
-      final v = VentaRegistro.fromJson(json);
-      expect(v.idVenta, 106);
-      expect(v.isAnulada, isTrue);
-      expect(v.estado, 'ANULADA');
-      expect(v.usuarioAnulacion, 'admin');
-      expect(v.motivoAnulacion, 'Error en cobro de vuelto');
-      expect(v.fechaAnulacion, isNotNull);
-    });
+        final v = VentaRegistro.fromJson(json);
+        expect(v.idVenta, 106);
+        expect(v.isAnulada, isTrue);
+        expect(v.estado, 'ANULADA');
+        expect(v.usuarioAnulacion, 'admin');
+        expect(v.motivoAnulacion, 'Error en cobro de vuelto');
+        expect(v.fechaAnulacion, isNotNull);
+      },
+    );
   });
 
   group('Proveedor & Compra Model Tests', () {
@@ -241,7 +256,7 @@ void main() {
             'cantidad': 50.0,
             'precioUnitario': 4.0,
             'subtotal': 200.0,
-          }
+          },
         ],
       };
 
@@ -273,7 +288,10 @@ void main() {
       expect(CategoryHelper.getIcon('Gaseosas y Jugos'), LucideIcons.cupSoda);
       expect(CategoryHelper.getIcon('Snacks y Piqueos'), LucideIcons.cookie);
       expect(CategoryHelper.getIcon('Abarrotes'), LucideIcons.shoppingBasket);
-      expect(CategoryHelper.getIcon('Limpieza del Hogar'), LucideIcons.sparkles);
+      expect(
+        CategoryHelper.getIcon('Limpieza del Hogar'),
+        LucideIcons.sparkles,
+      );
       expect(CategoryHelper.getIcon('Lácteos y Huevos'), LucideIcons.egg);
       expect(CategoryHelper.getIcon('Golosinas y Dulces'), LucideIcons.candy);
       expect(CategoryHelper.getIcon('Panadería'), LucideIcons.croissant);
@@ -355,7 +373,8 @@ void main() {
           final codMatch = p.codigo.toLowerCase().contains(q);
           final marcaMatch = (p.marca ?? '').toLowerCase().contains(q);
           final catMatch = (p.nombreCategoria ?? '').toLowerCase().contains(q);
-          if (!nombreMatch && !codMatch && !marcaMatch && !catMatch) return false;
+          if (!nombreMatch && !codMatch && !marcaMatch && !catMatch)
+            return false;
         }
 
         if (selectedCategoria != 'Todos') {
@@ -373,28 +392,48 @@ void main() {
     }
 
     test('Filters by Category exclusively', () {
-      final bebidas = filtrar(query: '', selectedCategoria: 'Bebidas', estadoStock: 'todos');
+      final bebidas = filtrar(
+        query: '',
+        selectedCategoria: 'Bebidas',
+        estadoStock: 'todos',
+      );
       expect(bebidas.length, 2);
 
-      final snacks = filtrar(query: '', selectedCategoria: 'Snacks', estadoStock: 'todos');
+      final snacks = filtrar(
+        query: '',
+        selectedCategoria: 'Snacks',
+        estadoStock: 'todos',
+      );
       expect(snacks.length, 1);
       expect(snacks.first.codigo, 'SNK-01');
     });
 
     test('Filters simultaneously by Category and Stock Health', () {
       // Bebidas con bajo stock (<=10) -> Solo BEB-01 (stock 4)
-      final bebidasBajoStock = filtrar(query: '', selectedCategoria: 'Bebidas', estadoStock: 'bajo_stock');
+      final bebidasBajoStock = filtrar(
+        query: '',
+        selectedCategoria: 'Bebidas',
+        estadoStock: 'bajo_stock',
+      );
       expect(bebidasBajoStock.length, 1);
       expect(bebidasBajoStock.first.codigo, 'BEB-01');
 
       // Bebidas con stock óptimo (>10) -> Solo BEB-02 (stock 25)
-      final bebidasOptimas = filtrar(query: '', selectedCategoria: 'Bebidas', estadoStock: 'con_stock');
+      final bebidasOptimas = filtrar(
+        query: '',
+        selectedCategoria: 'Bebidas',
+        estadoStock: 'con_stock',
+      );
       expect(bebidasOptimas.length, 1);
       expect(bebidasOptimas.first.codigo, 'BEB-02');
     });
 
     test('Filters by Brand within search query', () {
-      final gloria = filtrar(query: 'gloria', selectedCategoria: 'Todos', estadoStock: 'todos');
+      final gloria = filtrar(
+        query: 'gloria',
+        selectedCategoria: 'Todos',
+        estadoStock: 'todos',
+      );
       expect(gloria.length, 1);
       expect(gloria.first.nombre, 'Leche Gloria Azul 400g');
     });
@@ -405,8 +444,8 @@ void main() {
       final regExp = RegExp(r'^(?:[0-9]{8}|[0-9]{11})$');
       expect(regExp.hasMatch('20601234567'), isTrue); // RUC 11
       expect(regExp.hasMatch('10456789012'), isTrue); // RUC persona natural 11
-      expect(regExp.hasMatch('74839201'), isTrue);    // DNI 8
-      expect(regExp.hasMatch('12345'), isFalse);      // 5 dígitos inválido
+      expect(regExp.hasMatch('74839201'), isTrue); // DNI 8
+      expect(regExp.hasMatch('12345'), isFalse); // 5 dígitos inválido
       expect(regExp.hasMatch('206012345678'), isFalse); // 12 dígitos inválido
       expect(regExp.hasMatch('2060123456A'), isFalse); // Letra inválido
       expect(regExp.hasMatch(''), isFalse);
@@ -416,13 +455,17 @@ void main() {
       final regExp = RegExp(r'^[0-9]{9}$');
       expect(regExp.hasMatch('987654321'), isTrue);
       expect(regExp.hasMatch('912345678'), isTrue);
-      expect(regExp.hasMatch('98765432'), isFalse);  // 8 dígitos
+      expect(regExp.hasMatch('98765432'), isFalse); // 8 dígitos
       expect(regExp.hasMatch('9876543210'), isFalse); // 10 dígitos
       expect(regExp.hasMatch('98765432a'), isFalse);
     });
 
     test('Validates product non-negative constraints for price, stock and min stock', () {
-      bool validarProducto({required double precio, required double stock, required double stockMin}) {
+      bool validarProducto({
+        required double precio,
+        required double stock,
+        required double stockMin,
+      }) {
         if (precio <= 0) return false;
         if (stock < 0) return false;
         if (stockMin < 0) return false;
@@ -462,21 +505,42 @@ void main() {
       expect(m.fechaMovimiento, isNotNull);
     });
 
-    test('Stock projection logic enforces non-negative remaining stock for exits', () {
-      double proyectarStock({required double stockActual, required double cantidad, required bool esSalida}) {
-        if (esSalida) {
-          if (cantidad > stockActual) throw ArgumentError('Merma excede stock actual');
-          return stockActual - cantidad;
-        } else {
-          return stockActual + cantidad;
+    test(
+      'Stock projection logic enforces non-negative remaining stock for exits',
+      () {
+        double proyectarStock({
+          required double stockActual,
+          required double cantidad,
+          required bool esSalida,
+        }) {
+          if (esSalida) {
+            if (cantidad > stockActual)
+              throw ArgumentError('Merma excede stock actual');
+            return stockActual - cantidad;
+          } else {
+            return stockActual + cantidad;
+          }
         }
-      }
 
-      expect(proyectarStock(stockActual: 20.0, cantidad: 5.0, esSalida: true), equals(15.0));
-      expect(proyectarStock(stockActual: 20.0, cantidad: 20.0, esSalida: true), equals(0.0));
-      expect(proyectarStock(stockActual: 20.0, cantidad: 4.5, esSalida: false), equals(24.5));
-      expect(() => proyectarStock(stockActual: 20.0, cantidad: 25.0, esSalida: true), throwsArgumentError);
-    });
+        expect(
+          proyectarStock(stockActual: 20.0, cantidad: 5.0, esSalida: true),
+          equals(15.0),
+        );
+        expect(
+          proyectarStock(stockActual: 20.0, cantidad: 20.0, esSalida: true),
+          equals(0.0),
+        );
+        expect(
+          proyectarStock(stockActual: 20.0, cantidad: 4.5, esSalida: false),
+          equals(24.5),
+        );
+        expect(
+          () =>
+              proyectarStock(stockActual: 20.0, cantidad: 25.0, esSalida: true),
+          throwsArgumentError,
+        );
+      },
+    );
   });
 
   group('SaaS Subscription Quota Tests', () {

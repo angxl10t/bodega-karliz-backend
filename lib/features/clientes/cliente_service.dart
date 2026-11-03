@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../core/api_client.dart';
 import 'cliente_model.dart';
 
@@ -24,9 +26,13 @@ class ClienteService {
     bool soloDeudores = false,
     bool forceRefresh = false,
   }) async {
-    final hasFilter = (query != null && query.trim().isNotEmpty) || soloDeudores;
+    final hasFilter =
+        (query != null && query.trim().isNotEmpty) || soloDeudores;
 
-    if (!forceRefresh && !hasFilter && _cachedClientes != null && _cacheTimestamp != null) {
+    if (!forceRefresh &&
+        !hasFilter &&
+        _cachedClientes != null &&
+        _cacheTimestamp != null) {
       if (DateTime.now().difference(_cacheTimestamp!) < _cacheDuration) {
         return List<Cliente>.from(_cachedClientes!);
       }
@@ -41,12 +47,16 @@ class ClienteService {
         queryParams.add('soloDeudores=true');
       }
 
-      final endpoint = queryParams.isEmpty ? '/clientes' : '/clientes?${queryParams.join('&')}';
+      final endpoint = queryParams.isEmpty
+          ? '/clientes'
+          : '/clientes?${queryParams.join('&')}';
       final response = await _apiClient.get(endpoint);
 
       if (response.statusCode == 200) {
         final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
-        final clientes = list.map((j) => Cliente.fromJson(j as Map<String, dynamic>)).toList();
+        final clientes = list
+            .map((j) => Cliente.fromJson(j as Map<String, dynamic>))
+            .toList();
 
         if (!hasFilter) {
           _cachedClientes = clientes;
@@ -54,10 +64,14 @@ class ClienteService {
         }
         return List<Cliente>.from(clientes);
       }
-      return _cachedClientes != null ? List<Cliente>.from(_cachedClientes!) : [];
+      return _cachedClientes != null
+          ? List<Cliente>.from(_cachedClientes!)
+          : [];
     } catch (e) {
       debugPrint('Error en getClientes: $e');
-      return _cachedClientes != null ? List<Cliente>.from(_cachedClientes!) : [];
+      return _cachedClientes != null
+          ? List<Cliente>.from(_cachedClientes!)
+          : [];
     }
   }
 
@@ -80,7 +94,10 @@ class ClienteService {
       invalidateCache();
       return Cliente.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
     }
-    final msg = ApiClient.extractErrorMessage(response, 'No se pudo registrar al cliente');
+    final msg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo registrar al cliente',
+    );
     throw Exception(msg);
   }
 
@@ -90,7 +107,10 @@ class ClienteService {
       invalidateCache();
       return Cliente.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
     }
-    final msg = ApiClient.extractErrorMessage(response, 'No se pudo actualizar al cliente');
+    final msg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo actualizar al cliente',
+    );
     throw Exception(msg);
   }
 
@@ -100,7 +120,10 @@ class ClienteService {
       invalidateCache();
       return;
     }
-    final msg = ApiClient.extractErrorMessage(response, 'No se pudo dar de baja al cliente');
+    final msg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo dar de baja al cliente',
+    );
     throw Exception(msg);
   }
 
@@ -121,19 +144,27 @@ class ClienteService {
       invalidateCache();
       return AbonoCredito.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
     }
-    final msg = ApiClient.extractErrorMessage(response, 'No se pudo registrar el abono');
+    final msg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo registrar el abono',
+    );
     throw Exception(msg);
   }
 
-  Future<List<Cliente>> buscarClientes(String query) => getClientes(query: query);
+  Future<List<Cliente>> buscarClientes(String query) =>
+      getClientes(query: query);
 
   Future<ResumenCreditos?> obtenerResumenCreditos() => getResumenCreditos();
 
   Future<EstadoCuentaCliente?> getEstadoCuenta(int idCliente) async {
     try {
-      final response = await _apiClient.get('/clientes/$idCliente/estado-cuenta');
+      final response = await _apiClient.get(
+        '/clientes/$idCliente/estado-cuenta',
+      );
       if (response.statusCode == 200) {
-        return EstadoCuentaCliente.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+        return EstadoCuentaCliente.fromJson(
+          jsonDecode(utf8.decode(response.bodyBytes)),
+        );
       }
       return null;
     } catch (e) {
@@ -146,7 +177,9 @@ class ClienteService {
     try {
       final response = await _apiClient.get('/clientes/resumen-creditos');
       if (response.statusCode == 200) {
-        return ResumenCreditos.fromJson(jsonDecode(utf8.decode(response.bodyBytes)));
+        return ResumenCreditos.fromJson(
+          jsonDecode(utf8.decode(response.bodyBytes)),
+        );
       }
       return null;
     } catch (e) {
@@ -167,15 +200,18 @@ class ClienteService {
     // Normalizar a código de país de Perú (51) si tiene 9 dígitos (9XXXXXXXX)
     final tel = telRaw.length == 9 ? '51$telRaw' : telRaw;
 
-    final saludo = 'Hola ${cliente.nombreCompleto}, le saluda *$nombreBodega* 😊.';
-    final deudaTexto = 'Le compartimos su estado de cuenta actualizado de fiados: tiene un saldo pendiente de *S/ ${cliente.saldoDeudor.toStringAsFixed(2)}*.';
+    final saludo =
+        'Hola ${cliente.nombreCompleto}, le saluda *$nombreBodega* 😊.';
+    final deudaTexto =
+        'Le compartimos su estado de cuenta actualizado de fiados: tiene un saldo pendiente de *S/ ${cliente.saldoDeudor.toStringAsFixed(2)}*.';
     final pagoInfo = numeroYape != null && numeroYape.isNotEmpty
         ? '\nPuede cancelar en caja o realizar su pago vía Yape/Plin al número: *$numeroYape*.'
         : '\nPuede cancelar directamente en caja en su próxima visita.';
     final despedida = '\n\n¡Muchas gracias por su preferencia!';
 
     final mensajeCompleto = '$saludo\n\n$deudaTexto$pagoInfo$despedida';
-    final urlString = 'https://wa.me/$tel?text=${Uri.encodeComponent(mensajeCompleto)}';
+    final urlString =
+        'https://wa.me/$tel?text=${Uri.encodeComponent(mensajeCompleto)}';
 
     final uri = Uri.parse(urlString);
     return await launchUrl(uri, mode: LaunchMode.externalApplication);

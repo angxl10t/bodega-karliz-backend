@@ -4,7 +4,7 @@ class Promocion {
   final String titulo;
   final String descripcion;
   final String tipoPromocion; // PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, TRES_POR_DOS, COMBO_HUESO
-  final String alcance;       // CATEGORIA, MARCA, PRODUCTO, COMBO
+  final String alcance; // CATEGORIA, MARCA, PRODUCTO, COMBO
   final double valorDescuento;
   final String? categoriaObjetivo;
   final String? marcaObjetivo;
@@ -151,19 +151,25 @@ class SugerenciaComboHueso {
       imagenUrlHueso: json['imagenUrlHueso']?.toString(),
       stockHueso: (json['stockHueso'] as num?)?.toDouble() ?? 0.0,
       costoHueso: (json['costoHueso'] as num?)?.toDouble() ?? 0.0,
-      precioRegularHueso: (json['precioRegularHueso'] as num?)?.toDouble() ?? 0.0,
-      capitalInmovilizado: (json['capitalInmovilizado'] as num?)?.toDouble() ?? 0.0,
+      precioRegularHueso:
+          (json['precioRegularHueso'] as num?)?.toDouble() ?? 0.0,
+      capitalInmovilizado:
+          (json['capitalInmovilizado'] as num?)?.toDouble() ?? 0.0,
       idProductoEstrella: (json['idProductoEstrella'] as num?)?.toInt() ?? 0,
       nombreEstrella: json['nombreEstrella']?.toString() ?? '',
       categoriaEstrella: json['categoriaEstrella']?.toString() ?? 'General',
       imagenUrlEstrella: json['imagenUrlEstrella']?.toString(),
-      precioRegularEstrella: (json['precioRegularEstrella'] as num?)?.toDouble() ?? 0.0,
+      precioRegularEstrella:
+          (json['precioRegularEstrella'] as num?)?.toDouble() ?? 0.0,
       tituloSugerido: json['tituloSugerido']?.toString() ?? 'Combo Dúo',
       descripcionSugerida: json['descripcionSugerida']?.toString() ?? '',
-      precioRegularTotal: (json['precioRegularTotal'] as num?)?.toDouble() ?? 0.0,
-      precioComboSugerido: (json['precioComboSugerido'] as num?)?.toDouble() ?? 0.0,
+      precioRegularTotal:
+          (json['precioRegularTotal'] as num?)?.toDouble() ?? 0.0,
+      precioComboSugerido:
+          (json['precioComboSugerido'] as num?)?.toDouble() ?? 0.0,
       ahorroCliente: (json['ahorroCliente'] as num?)?.toDouble() ?? 0.0,
-      porcentajeDescuentoSugerido: (json['porcentajeDescuentoSugerido'] as num?)?.toDouble() ?? 15.0,
+      porcentajeDescuentoSugerido:
+          (json['porcentajeDescuentoSugerido'] as num?)?.toDouble() ?? 15.0,
       razonEstrategica: json['razonEstrategica']?.toString() ?? '',
       badgeSugerido: json['badgeSugerido']?.toString() ?? '⭐ COMBO -15%',
     );

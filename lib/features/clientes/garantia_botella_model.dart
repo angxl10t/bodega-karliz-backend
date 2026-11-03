@@ -43,11 +43,15 @@ class GarantiaBotella {
   factory GarantiaBotella.fromJson(Map<String, dynamic> json) {
     final cant = (json['cantidadBotellas'] as num?)?.toInt() ?? 1;
     final bDevueltas = (json['botellasDevueltas'] as num?)?.toInt() ?? 0;
-    final bRestantes = (json['botellasRestantes'] as num?)?.toInt() ?? (cant - bDevueltas).clamp(0, cant);
+    final bRestantes =
+        (json['botellasRestantes'] as num?)?.toInt() ??
+        (cant - bDevueltas).clamp(0, cant);
 
     final mGarantia = (json['montoGarantia'] as num?)?.toDouble() ?? 0.0;
     final mDevuelto = (json['montoDevuelto'] as num?)?.toDouble() ?? 0.0;
-    final mRestante = (json['montoRestante'] as num?)?.toDouble() ?? (mGarantia - mDevuelto).clamp(0.0, mGarantia);
+    final mRestante =
+        (json['montoRestante'] as num?)?.toDouble() ??
+        (mGarantia - mDevuelto).clamp(0.0, mGarantia);
 
     DateTime? parseDate(dynamic v) {
       if (v == null) return null;
@@ -119,11 +123,13 @@ class ResumenGarantias {
 
   factory ResumenGarantias.fromJson(Map<String, dynamic> json) {
     return ResumenGarantias(
-      totalDineroCustodia: (json['totalDineroCustodia'] as num?)?.toDouble() ?? 0.0,
+      totalDineroCustodia:
+          (json['totalDineroCustodia'] as num?)?.toDouble() ?? 0.0,
       botellasPendientes: (json['botellasPendientes'] as num?)?.toInt() ?? 0,
       personasPendientes: (json['personasPendientes'] as num?)?.toInt() ?? 0,
       totalDevueltoMes: (json['totalDevueltoMes'] as num?)?.toDouble() ?? 0.0,
-      botellasDevueltasMes: (json['botellasDevueltasMes'] as num?)?.toInt() ?? 0,
+      botellasDevueltasMes:
+          (json['botellasDevueltasMes'] as num?)?.toInt() ?? 0,
     );
   }
 }

@@ -7,9 +7,9 @@ class VentaDetalleEnvio {
   VentaDetalleEnvio({required this.idProducto, required this.cantidad});
 
   Map<String, dynamic> toJson() => {
-        'idProducto': idProducto,
-        'cantidad': cantidad,
-      };
+    'idProducto': idProducto,
+    'cantidad': cantidad,
+  };
 }
 
 class VentaEnvio {
@@ -34,15 +34,15 @@ class VentaEnvio {
   });
 
   Map<String, dynamic> toJson() => {
-        if (idCliente != null) 'idCliente': idCliente,
-        'clienteDocumento': clienteDocumento,
-        'clienteNombre': clienteNombre,
-        'metodoPago': metodoPago,
-        'detalles': detalles.map((d) => d.toJson()).toList(),
-        if (tipoComprobante != null) 'tipoComprobante': tipoComprobante,
-        if (idempotencyKey != null) 'idempotencyKey': idempotencyKey,
-        if (montoRecibido != null) 'montoRecibido': montoRecibido,
-      };
+    if (idCliente != null) 'idCliente': idCliente,
+    'clienteDocumento': clienteDocumento,
+    'clienteNombre': clienteNombre,
+    'metodoPago': metodoPago,
+    'detalles': detalles.map((d) => d.toJson()).toList(),
+    if (tipoComprobante != null) 'tipoComprobante': tipoComprobante,
+    if (idempotencyKey != null) 'idempotencyKey': idempotencyKey,
+    if (montoRecibido != null) 'montoRecibido': montoRecibido,
+  };
 }
 
 /// Elemento del Carrito en el Punto de Venta (POS)
@@ -157,10 +157,14 @@ class VentaRegistro {
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
       montoRecibido: (json['montoRecibido'] as num?)?.toDouble(),
       vuelto: (json['vuelto'] as num?)?.toDouble(),
-      fechaVenta: json['fechaVenta'] != null ? DateTime.tryParse(json['fechaVenta'].toString()) : null,
+      fechaVenta: json['fechaVenta'] != null
+          ? DateTime.tryParse(json['fechaVenta'].toString())
+          : null,
       usuarioRegistro: json['usuarioRegistro'] as String?,
       estado: json['estado'] as String? ?? 'COMPLETADA',
-      fechaAnulacion: json['fechaAnulacion'] != null ? DateTime.tryParse(json['fechaAnulacion'].toString()) : null,
+      fechaAnulacion: json['fechaAnulacion'] != null
+          ? DateTime.tryParse(json['fechaAnulacion'].toString())
+          : null,
       usuarioAnulacion: json['usuarioAnulacion'] as String?,
       motivoAnulacion: json['motivoAnulacion'] as String?,
       tipoComprobante: json['tipoComprobante'] as String? ?? 'TICKET',
@@ -171,7 +175,8 @@ class VentaRegistro {
       sunatCdrUrl: json['sunatCdrUrl'] as String?,
       sunatPdfUrl: json['sunatPdfUrl'] as String?,
       sunatXmlUrl: json['sunatXmlUrl'] as String?,
-      detalles: (json['detalles'] as List<dynamic>?)
+      detalles:
+          (json['detalles'] as List<dynamic>?)
               ?.map((d) => VentaDetalleItem.fromJson(d as Map<String, dynamic>))
               .toList() ??
           [],
@@ -208,7 +213,9 @@ class EgresoCajaItem {
       monto: (json['monto'] as num?)?.toDouble() ?? 0.0,
       motivo: json['motivo'] as String? ?? 'Gasto menor',
       categoriaGasto: json['categoriaGasto'] as String? ?? 'VARIOS',
-      fechaEgreso: json['fechaEgreso'] != null ? DateTime.tryParse(json['fechaEgreso'].toString()) : null,
+      fechaEgreso: json['fechaEgreso'] != null
+          ? DateTime.tryParse(json['fechaEgreso'].toString())
+          : null,
       usuarioRegistro: json['usuarioRegistro'] as String?,
       estado: json['estado'] as bool? ?? true,
       usuarioAnulacion: json['usuarioAnulacion'] as String?,
@@ -261,7 +268,9 @@ class CierreCaja {
     this.totalAbonosEfectivo = 0.0,
     this.totalAbonosDigitales = 0.0,
     this.cantidadAbonos = 0,
-  }) : totalEfectivoEsperado = totalEfectivoEsperado ?? (fondoInicial + totalEfectivo + totalAbonosEfectivo - totalEgresos);
+  }) : totalEfectivoEsperado =
+           totalEfectivoEsperado ??
+           (fondoInicial + totalEfectivo + totalAbonosEfectivo - totalEgresos);
 
   factory CierreCaja.fromJson(Map<String, dynamic> json) {
     final double ef = (json['totalEfectivo'] as num?)?.toDouble() ?? 0.0;
@@ -269,12 +278,16 @@ class CierreCaja {
     final double egr = (json['totalEgresos'] as num?)?.toDouble() ?? 0.0;
     final double? esp = (json['totalEfectivoEsperado'] as num?)?.toDouble();
 
-    final double abonosCobrados = (json['totalAbonosCobrados'] as num?)?.toDouble() ?? 0.0;
-    final double abonosEf = (json['totalAbonosEfectivo'] as num?)?.toDouble() ?? 0.0;
-    final double abonosDig = (json['totalAbonosDigitales'] as num?)?.toDouble() ?? 0.0;
+    final double abonosCobrados =
+        (json['totalAbonosCobrados'] as num?)?.toDouble() ?? 0.0;
+    final double abonosEf =
+        (json['totalAbonosEfectivo'] as num?)?.toDouble() ?? 0.0;
+    final double abonosDig =
+        (json['totalAbonosDigitales'] as num?)?.toDouble() ?? 0.0;
     final int cantAbonos = (json['cantidadAbonos'] as num?)?.toInt() ?? 0;
 
-    final List<EgresoCajaItem> listaEgresos = (json['egresos'] as List<dynamic>?)
+    final List<EgresoCajaItem> listaEgresos =
+        (json['egresos'] as List<dynamic>?)
             ?.map((e) => EgresoCajaItem.fromJson(e as Map<String, dynamic>))
             .toList() ??
         [];
@@ -282,14 +295,18 @@ class CierreCaja {
     return CierreCaja(
       totalVentas: (json['totalVentas'] as num?)?.toDouble() ?? 0.0,
       totalEfectivo: ef,
-      totalEfectivoRecibido: (json['totalEfectivoRecibido'] as num?)?.toDouble() ?? ef,
-      totalVueltoEntregado: (json['totalVueltoEntregado'] as num?)?.toDouble() ?? 0.0,
+      totalEfectivoRecibido:
+          (json['totalEfectivoRecibido'] as num?)?.toDouble() ?? ef,
+      totalVueltoEntregado:
+          (json['totalVueltoEntregado'] as num?)?.toDouble() ?? 0.0,
       totalYape: (json['totalYape'] as num?)?.toDouble() ?? 0.0,
       totalPlin: (json['totalPlin'] as num?)?.toDouble() ?? 0.0,
       totalTarjeta: (json['totalTarjeta'] as num?)?.toDouble() ?? 0.0,
       totalCredito: (json['totalCredito'] as num?)?.toDouble() ?? 0.0,
       cantidadVentas: (json['cantidadVentas'] as num?)?.toInt() ?? 0,
-      fecha: json['fecha'] != null ? DateTime.tryParse(json['fecha'].toString()) : null,
+      fecha: json['fecha'] != null
+          ? DateTime.tryParse(json['fecha'].toString())
+          : null,
       fondoInicial: fIni,
       totalEgresos: egr,
       totalEfectivoEsperado: esp,

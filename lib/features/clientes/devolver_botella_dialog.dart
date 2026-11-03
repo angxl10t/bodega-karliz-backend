@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../core/theme.dart';
 import 'garantia_botella_model.dart';
 import 'garantia_botella_service.dart';
@@ -23,10 +24,8 @@ class DevolverBotellaDialog extends StatefulWidget {
   }) {
     return showDialog(
       context: context,
-      builder: (ctx) => DevolverBotellaDialog(
-        garantia: garantia,
-        onDevuelto: onDevuelto,
-      ),
+      builder: (ctx) =>
+          DevolverBotellaDialog(garantia: garantia, onDevuelto: onDevuelto),
     );
   }
 
@@ -57,7 +56,8 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
 
   void _recalcularMonto() {
     if (widget.garantia.botellasRestantes > 0) {
-      final unitario = widget.garantia.montoRestante / widget.garantia.botellasRestantes;
+      final unitario =
+          widget.garantia.montoRestante / widget.garantia.botellasRestantes;
       _montoAEntregar = _cantidadADevolver * unitario;
     } else {
       _montoAEntregar = widget.garantia.montoRestante;
@@ -116,13 +116,20 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
               color: const Color(0xFF16A34A).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(LucideIcons.packageCheck, color: Color(0xFF16A34A), size: 22),
+            child: const Icon(
+              LucideIcons.packageCheck,
+              color: Color(0xFF16A34A),
+              size: 22,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               'Devolución de Botellas',
-              style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w800),
+              style: GoogleFonts.outfit(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
           IconButton(
@@ -141,21 +148,34 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(LucideIcons.user, size: 14, color: Color(0xFF2563EB)),
+                      const Icon(
+                        LucideIcons.user,
+                        size: 14,
+                        color: Color(0xFF2563EB),
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           widget.garantia.nombrePersona,
-                          style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800),
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
@@ -168,11 +188,15 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
                       color: isDark ? Colors.white60 : AppTheme.textMuted,
                     ),
                   ),
-                  if (widget.garantia.notas != null && widget.garantia.notas!.isNotEmpty) ...[
+                  if (widget.garantia.notas != null &&
+                      widget.garantia.notas!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       'Nota: ${widget.garantia.notas}',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontStyle: FontStyle.italic),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
                 ],
@@ -183,14 +207,19 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
             // Selector de cuántas botellas devuelve
             Text(
               '¿Cuántas botellas devuelve ahora?',
-              style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700),
+              style: GoogleFonts.outfit(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -207,10 +236,16 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
                             : null,
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
                         child: Text(
                           '$_cantidadADevolver',
-                          style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900),
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -230,7 +265,10 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
                 const SizedBox(width: 8),
                 Text(
                   'de $totalRestantes pendientes',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: isDark ? Colors.white54 : AppTheme.textMuted),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: isDark ? Colors.white54 : AppTheme.textMuted,
+                  ),
                 ),
               ],
             ),
@@ -242,7 +280,9 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
               decoration: BoxDecoration(
                 color: const Color(0xFF16A34A).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF16A34A).withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: const Color(0xFF16A34A).withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 children: [
@@ -252,7 +292,11 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
                       color: const Color(0xFF16A34A).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(LucideIcons.handCoins, color: Color(0xFF16A34A), size: 20),
+                    child: const Icon(
+                      LucideIcons.handCoins,
+                      color: Color(0xFF16A34A),
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -290,8 +334,13 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
                 hintText: 'Observación de entrega (opcional)',
                 filled: true,
                 isDense: true,
-                fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                fillColor: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ],
@@ -306,12 +355,23 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF16A34A),
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           icon: _procesando
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
               : const Icon(LucideIcons.check, size: 16),
-          label: Text('Entregar S/ ${_montoAEntregar.toStringAsFixed(2)} y Recibir Envase'),
+          label: Text(
+            'Entregar S/ ${_montoAEntregar.toStringAsFixed(2)} y Recibir Envase',
+          ),
           onPressed: _procesando ? null : _confirmarDevolucion,
         ),
       ],
