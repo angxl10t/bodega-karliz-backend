@@ -622,7 +622,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                             : const Icon(LucideIcons.check, size: 18),
                         label: Text(
-                          _guardando ? 'Guardando...' : 'Registrar Garantía',
+                          _guardando ? 'Guardando...' : 'Registrar Garantía de Botellas',
                           style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800),
                         ),
                         onPressed: _guardando ? null : _guardar,
