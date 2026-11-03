@@ -87,6 +87,9 @@ public class DataInitializer implements ApplicationRunner {
         // 6. Normalizar y canonicizar marcas de productos en base de datos
         normalizarMarcasDeProductos();
 
+        // 7. Actualizar precios a tarifas reales y cómodas de bodega de barrio peruana
+        starterPackService.actualizarPreciosBodegasRegistradas();
+
         log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
     }
 
@@ -318,43 +321,43 @@ public class DataInitializer implements ApplicationRunner {
         }
 
         String[][] productosBase = {
-            {"7750106001010", "Inca Kola Sabor Original 500ml", "Inca Kola", "Bebidas y Gaseosas", "3.50", "48.000", "packshots/inka_kola_500ml.png"},
-            {"7751234567890", "Coca Cola Sabor Original 3 Litros", "Coca Cola", "Bebidas y Gaseosas", "13.50", "36.000", "packshots/coca_cola_3l.png"},
-            {"7750106000025", "Coca Cola Sabor Original 500ml", "Coca Cola", "Bebidas y Gaseosas", "3.50", "36.000", "packshots/coca_cola_500ml.png"},
-            {"7750106003014", "Agua San Luis 625ml Sin Gas", "San Luis", "Bebidas y Gaseosas", "2.00", "48.000", "packshots/agua_san_luis.png"},
-            {"775117011953", "Agua San Mateo 600ml Sin Gas", "San Mateo", "Bebidas y Gaseosas", "2.00", "48.000", "packshots/agua_san_mateo.png"},
-            {"7750111006014", "Cerveza Pilsen Callao 630ml", "Pilsen Callao", "Licores y Cervezas", "7.50", "60.000", "packshots/cerveza_pilsen.png"},
-            {"7750111006021", "Cerveza Cristal 650ml", "Cristal", "Licores y Cervezas", "7.50", "60.000", "packshots/cerveza_cristal.png"},
-            {"7750106006015", "Cerveza Cusqueña Trigo 310ml", "Cusqueña", "Licores y Cervezas", "6.50", "36.000", "packshots/cerveza_cusquena.png"},
-            {"7750108003013", "Leche Gloria Azul Evaporada 400g", "Gloria", "Lácteos y Huevos", "4.50", "72.000", "packshots/leche_gloria_azul.png"},
-            {"7750108003044", "Leche Gloria Sin Lactosa 400g", "Gloria", "Lácteos y Huevos", "4.50", "36.000", "packshots/leche_gloria_sin_lactosa.png"},
-            {"7750108003068", "Yogur Gloria Fresa 1 Litro", "Gloria", "Lácteos y Huevos", "7.20", "24.000", "packshots/yogur_gloria_fresa.png"},
-            {"7750109004041", "Arroz Extra Costeño Bolsa 1kg", "Costeño", "Abarrotes y Despensa", "4.90", "80.000", "packshots/arroz_costeno.png"},
-            {"7750109004065", "Aceite Vegetal Primor Premium 900ml", "Primor", "Abarrotes y Despensa", "9.50", "40.000", "packshots/aceite_primor.png"},
-            {"7750109004010", "Fideos Don Vittorio Spaghetti 450g", "Don Vittorio", "Abarrotes y Despensa", "3.20", "50.000", "packshots/fideos_don_vittorio.png"},
-            {"7750109004072", "Atún Trozos de Atún Primor 170g", "Primor", "Abarrotes y Despensa", "6.00", "48.000", "packshots/trozos_atun_primor.png"},
-            {"7750243030335", "Crema de Ají Tarí AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "5.50", "30.000", "packshots/crema_tari.png"},
-            {"7758574005541", "Papas Fritas Lay's Clásicas Sal Bolsa 140g", "Lay's", "Snacks y Golosinas", "4.50", "40.000", "packshots/lays_clasicas_140g.png"},
-            {"7613036615303", "Chocolate con Leche Sublime Clásico Tableta 100g", "Nestlé", "Snacks y Golosinas", "4.80", "60.000", "packshots/chocolate_sublime.png"},
-            {"7750115010059", "Galleta Casino Fresa 68g", "Victoria", "Snacks y Golosinas", "1.50", "50.000", "packshots/galleta_casino.png"},
-            {"7750115010035", "Galleta Cua Cua Chocolate 18g", "Field", "Snacks y Golosinas", "1.50", "60.000", "packshots/galleta_cua_cua.png"},
-            {"7750107002016", "Hot Dog de Pollo San Fernando 500g", "San Fernando", "Embutidos y Fiambrería", "6.80", "20.000", "packshots/hot_dog_san_fernando.png"},
-            {"7750107002078", "Queso Fresco Bonlé Gloria 400g", "Gloria", "Embutidos y Fiambrería", "7.50", "20.000", "packshots/queso_fresco_bonle.png"},
-            {"7750727014189", "Pan de Molde Bimbo Blanco Familiar 590g", "Bimbo", "Panadería y Desayuno", "7.50", "25.000", "packshots/pan_bimbo_blanco.png"},
-            {"7750116011049", "Café Soluble Nescafé Tradición Frasco 50g", "Nescafé", "Panadería y Desayuno", "9.50", "24.000", "packshots/cafe_nescafe.png"},
-            {"7750114009015", "Detergente Bolívar Blanco Activo 850g", "Bolívar", "Limpieza del Hogar", "9.90", "30.000", "packshots/detergente_bolivar.png"},
-            {"7750114009060", "Lejía Clorox Tradicional 1 Litro", "Clorox", "Limpieza del Hogar", "4.50", "40.000", "packshots/lejia_clorox.png"},
-            {"7750113008025", "Crema Dental Colgate Total 12 Limpieza 75ml", "Colgate", "Cuidado Personal", "5.50", "36.000", "packshots/colgate_total12.png"},
-            {"7750113008117", "Papel Higiénico Suave Rindemax x4 rollos", "Suave", "Cuidado Personal", "6.50", "40.000", "packshots/papel_higienico_suave.png"},
-            {"7750110005017", "Helado Sublime D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "30.000", "packshots/helado_sublime.png"},
+            {"7750106001010", "Inca Kola Sabor Original 500ml", "Inca Kola", "Bebidas y Gaseosas", "3.00", "48.000", "packshots/inka_kola_500ml.png"},
+            {"7751234567890", "Coca Cola Sabor Original 3 Litros", "Coca Cola", "Bebidas y Gaseosas", "12.00", "36.000", "packshots/coca_cola_3l.png"},
+            {"7750106000025", "Coca Cola Sabor Original 500ml", "Coca Cola", "Bebidas y Gaseosas", "3.00", "36.000", "packshots/coca_cola_500ml.png"},
+            {"7750106003014", "Agua San Luis 625ml Sin Gas", "San Luis", "Bebidas y Gaseosas", "1.50", "48.000", "packshots/agua_san_luis.png"},
+            {"775117011953", "Agua San Mateo 600ml Sin Gas", "San Mateo", "Bebidas y Gaseosas", "1.50", "48.000", "packshots/agua_san_mateo.png"},
+            {"7750111006014", "Cerveza Pilsen Callao 630ml", "Pilsen Callao", "Licores y Cervezas", "6.50", "60.000", "packshots/cerveza_pilsen.png"},
+            {"7750111006021", "Cerveza Cristal 650ml", "Cristal", "Licores y Cervezas", "6.50", "60.000", "packshots/cerveza_cristal.png"},
+            {"7750106006015", "Cerveza Cusqueña Trigo 310ml", "Cusqueña", "Licores y Cervezas", "5.50", "36.000", "packshots/cerveza_cusquena.png"},
+            {"7750108003013", "Leche Gloria Azul Evaporada 400g", "Gloria", "Lácteos y Huevos", "4.20", "72.000", "packshots/leche_gloria_azul.png"},
+            {"7750108003044", "Leche Gloria Sin Lactosa 400g", "Gloria", "Lácteos y Huevos", "4.30", "36.000", "packshots/leche_gloria_sin_lactosa.png"},
+            {"7750108003068", "Yogur Gloria Fresa 1 Litro", "Gloria", "Lácteos y Huevos", "6.20", "24.000", "packshots/yogur_gloria_fresa.png"},
+            {"7750109004041", "Arroz Extra Costeño Bolsa 1kg", "Costeño", "Abarrotes y Despensa", "4.50", "80.000", "packshots/arroz_costeno.png"},
+            {"7750109004065", "Aceite Vegetal Primor Premium 900ml", "Primor", "Abarrotes y Despensa", "8.50", "40.000", "packshots/aceite_primor.png"},
+            {"7750109004010", "Fideos Don Vittorio Spaghetti 450g", "Don Vittorio", "Abarrotes y Despensa", "2.80", "50.000", "packshots/fideos_don_vittorio.png"},
+            {"7750109004072", "Atún Trozos de Atún Primor 170g", "Primor", "Abarrotes y Despensa", "5.20", "48.000", "packshots/trozos_atun_primor.png"},
+            {"7750243030335", "Crema de Ají Tarí AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "4.80", "30.000", "packshots/crema_tari.png"},
+            {"7758574005541", "Papas Fritas Lay's Clásicas Sal Bolsa 140g", "Lay's", "Snacks y Golosinas", "4.00", "40.000", "packshots/lays_clasicas_140g.png"},
+            {"7613036615303", "Chocolate con Leche Sublime Clásico Tableta 100g", "Nestlé", "Snacks y Golosinas", "3.80", "60.000", "packshots/chocolate_sublime.png"},
+            {"7750115010059", "Galleta Casino Fresa 68g", "Victoria", "Snacks y Golosinas", "1.00", "50.000", "packshots/galleta_casino.png"},
+            {"7750115010035", "Galleta Cua Cua Chocolate 18g", "Field", "Snacks y Golosinas", "1.00", "60.000", "packshots/galleta_cua_cua.png"},
+            {"7750107002016", "Hot Dog de Pollo San Fernando 500g", "San Fernando", "Embutidos y Fiambrería", "5.80", "20.000", "packshots/hot_dog_san_fernando.png"},
+            {"7750107002078", "Queso Fresco Bonlé Gloria 400g", "Gloria", "Embutidos y Fiambrería", "9.50", "20.000", "packshots/queso_fresco_bonle.png"},
+            {"7750727014189", "Pan de Molde Bimbo Blanco Familiar 590g", "Bimbo", "Panadería y Desayuno", "6.50", "25.000", "packshots/pan_bimbo_blanco.png"},
+            {"7750116011049", "Café Soluble Nescafé Tradición Frasco 50g", "Nescafé", "Panadería y Desayuno", "7.50", "24.000", "packshots/cafe_nescafe.png"},
+            {"7750114009015", "Detergente Bolívar Blanco Activo 850g", "Bolívar", "Limpieza del Hogar", "8.50", "30.000", "packshots/detergente_bolivar.png"},
+            {"7750114009060", "Lejía Clorox Tradicional 1 Litro", "Clorox", "Limpieza del Hogar", "3.20", "40.000", "packshots/lejia_clorox.png"},
+            {"7750113008025", "Crema Dental Colgate Total 12 Limpieza 75ml", "Colgate", "Cuidado Personal", "4.50", "36.000", "packshots/colgate_total12.png"},
+            {"7750113008117", "Papel Higiénico Suave Rindemax x4 rollos", "Suave", "Cuidado Personal", "5.00", "40.000", "packshots/papel_higienico_suave.png"},
+            {"7750110005017", "Helado Sublime D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "2.50", "30.000", "packshots/helado_sublime.png"},
             {"7750112007028", "Cigarros Lucky Strike Double Click Box x20", "Lucky Strike", "Cigarrillos y Tabaco", "18.00", "20.000", "packshots/cigarros_lucky_strike.png"},
             {"7751201001169", "Cigarrillos Marlboro Summer Mix Cajetilla 20", "Marlboro", "Cigarrillos y Tabaco", "19.00", "20.000", "packshots/cigarros_marlboro_20.png"},
             {"7750110005062", "Helado Jet Chocolate D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "30.000", "packshots/helado_jet.png"},
-            {"7759918006163", "Lavavajilla Líquido Ayudín Lima Limón 900ml", "Ayudín", "Limpieza del Hogar", "6.50", "40.000", "packshots/lavavajilla_ayudin.png"},
-            {"7750109004172", "Trozos de Atún Primor en Aceite 140g", "Primor", "Abarrotes y Despensa", "6.50", "48.000", "packshots/atun_primor.png"},
-            {"7750106000013", "Inca Kola Sabor Original 3 Litros", "Inca Kola", "Bebidas y Gaseosas", "13.50", "36.000", "packshots/inka_kola_3l.png"},
-            {"7750106001027", "Inca Kola 1.5 Litros", "Inca Kola", "Bebidas y Gaseosas", "7.50", "36.000", "packshots/inka_kola.png"},
-            {"7750106002017", "Coca Cola 1.5 Litros", "Coca Cola", "Bebidas y Gaseosas", "7.50", "36.000", "packshots/coca_cola.png"}
+            {"7759918006163", "Lavavajilla Líquido Ayudín Lima Limón 900ml", "Ayudín", "Limpieza del Hogar", "5.80", "40.000", "packshots/lavavajilla_ayudin.png"},
+            {"7750109004172", "Trozos de Atún Primor en Aceite 140g", "Primor", "Abarrotes y Despensa", "5.20", "48.000", "packshots/atun_primor.png"},
+            {"7750106000013", "Inca Kola Sabor Original 3 Litros", "Inca Kola", "Bebidas y Gaseosas", "12.00", "36.000", "packshots/inka_kola_3l.png"},
+            {"7750106001027", "Inca Kola 1.5 Litros", "Inca Kola", "Bebidas y Gaseosas", "6.50", "36.000", "packshots/inka_kola.png"},
+            {"7750106002017", "Coca Cola 1.5 Litros", "Coca Cola", "Bebidas y Gaseosas", "6.50", "36.000", "packshots/coca_cola.png"}
         };
 
         if (bodegaKarliz != null && bodegaKarliz.getIdBodega() != null) {

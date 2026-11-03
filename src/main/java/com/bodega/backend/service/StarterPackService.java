@@ -56,199 +56,200 @@ public class StarterPackService {
      */
     public static final String[][] PRODUCTOS_STARTER_PACK = {
         // --- 1. GASEOSAS Y BEBIDAS ---
-        {"7750106001010", "Inca Kola Sabor Original 500ml", "Inca Kola", "Gaseosas y Bebidas", "3.50", "2.70", "packshots/inka_kola_500ml.png"},
-        {"7750106001027", "Inca Kola Sabor Original 1.5 Litros", "Inca Kola", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/inka_kola.png"},
-        {"7750106000013", "Inca Kola Sabor Original 3 Litros", "Inca Kola", "Gaseosas y Bebidas", "13.50", "10.80", "packshots/inka_kola_3l.png"},
-        {"7750106001034", "Inca Kola Sin Azúcar Zero 500ml", "Inca Kola", "Gaseosas y Bebidas", "3.50", "2.70", "packshots/inka_kola_500ml.png"},
-        {"7750106000025", "Coca Cola Sabor Original 500ml", "Coca Cola", "Gaseosas y Bebidas", "3.50", "2.70", "packshots/coca_cola_500ml.png"},
-        {"7750106002017", "Coca Cola Sabor Original 1.5 Litros", "Coca Cola", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/coca_cola.png"},
-        {"7751234567890", "Coca Cola Sabor Original 3 Litros", "Coca Cola", "Gaseosas y Bebidas", "13.50", "10.80", "packshots/coca_cola_3l.png"},
-        {"7750106000032", "Coca Cola Sin Azúcar Zero 500ml", "Coca Cola", "Gaseosas y Bebidas", "3.50", "2.70", "packshots/coca_cola_500ml.png"},
-        {"7750182220378", "Gaseosa Fanta Naranja 500ml", "Fanta", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/fanta_500ml.png"},
-        {"7750182495301", "Gaseosa Fanta Naranja 3 Litros", "Fanta", "Gaseosas y Bebidas", "11.50", "9.00", "packshots/fanta_3l.png"},
-        {"7750182000321", "Gaseosa Sprite Lima Limón 500ml", "Sprite", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/sprite_500ml.png"},
-        {"7750182000222", "Gaseosa Sprite Lima Limón 3 Litros", "Sprite", "Gaseosas y Bebidas", "11.50", "9.00", "packshots/sprite_3l.png"},
-        {"7753749003186", "Gaseosa Guaraná Backus 450ml", "Backus", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/guarana_450ml.png"},
-        {"7753749003193", "Gaseosa Guaraná Backus 3 Litros", "Backus", "Gaseosas y Bebidas", "10.50", "8.20", "packshots/guarana.png"},
-        {"7750106003014", "Agua San Luis 625ml Sin Gas", "San Luis", "Gaseosas y Bebidas", "2.00", "1.40", "packshots/agua_san_luis.png"},
-        {"7750106003021", "Agua San Luis Sin Gas Bidón 7 Litros", "San Luis", "Gaseosas y Bebidas", "9.50", "7.20", "packshots/agua_san_luis.png"},
-        {"775117011953", "Agua Mineral San Mateo 600ml Sin Gas", "San Mateo", "Gaseosas y Bebidas", "2.00", "1.40", "packshots/agua_san_mateo.png"},
-        {"7750670010238", "Bebida Rehidratante Sporade Tropical 625ml", "Sporade", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/sporade.png"},
-        {"7750670010245", "Bebida Rehidratante Sporade Maracuyá 625ml", "Sporade", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/sporade.png"},
-        {"7750670010412", "Bebida de Frutas Cifrut Citrus Punch 3 Litros", "Cifrut", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/cifrut.png"},
-        {"7750670010429", "Bebida de Frutas Cifrut Citrus Punch 500ml", "Cifrut", "Gaseosas y Bebidas", "2.00", "1.50", "packshots/cifrut.png"},
-        {"90162602", "Bebida Energizante Red Bull Lata 355ml", "Red Bull", "Gaseosas y Bebidas", "9.50", "7.50", "packshots/red_bull.png"},
-        {"7750182000406", "Gaseosa Pepsi Sabor Original 500ml", "Pepsi", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/pepsi_500ml.png"},
-        {"7750182000413", "Gaseosa Pepsi Sabor Original 1.5 Litros", "Pepsi", "Gaseosas y Bebidas", "6.50", "5.00", "packshots/pepsi.png"},
-        {"7750182000420", "Gaseosa Pepsi Sabor Original 3 Litros", "Pepsi", "Gaseosas y Bebidas", "10.50", "8.20", "packshots/pepsi_3l.png"},
-        {"7750182000437", "Gaseosa 7Up Lima Limón 500ml", "7Up", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/seven_up.png"},
-        {"7750182000444", "Gaseosa 7Up Lima Limón 3 Litros", "7Up", "Gaseosas y Bebidas", "10.50", "8.20", "packshots/seven_up.png"},
-        {"7750182000451", "Gaseosa Concordia Piña 500ml", "Concordia", "Gaseosas y Bebidas", "2.00", "1.50", "packshots/concordia_pina.png"},
-        {"7750182000468", "Gaseosa Concordia Piña 3 Litros", "Concordia", "Gaseosas y Bebidas", "8.50", "6.50", "packshots/concordia_pina.png"},
-        {"7750670010115", "Gaseosa Kola Real KR Cola Negra 3 Litros", "Kola Real", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/kr_cola.png"},
-        {"7750670010122", "Gaseosa Kola Real KR Piña 3 Litros", "Kola Real", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/kr_pina.png"},
-        {"7753749003209", "Gaseosa Guaraná Backus Lata 355ml", "Backus", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/guarana_450ml.png"},
-        {"7753749003216", "Gaseosa Guaraná Backus 1.5 Litros", "Backus", "Gaseosas y Bebidas", "6.50", "5.10", "packshots/guarana.png"},
-        {"7750106000049", "Gaseosa Canada Dry Ginger Ale 1.5L", "Canada Dry", "Gaseosas y Bebidas", "6.50", "5.00", "packshots/canada_dry.png"},
-        {"70847811169", "Bebida Energizante Monster Energy 473ml", "Monster Energy", "Gaseosas y Bebidas", "8.50", "6.50", "packshots/monster_energy.png"},
-        {"70847022909", "Bebida Energizante Monster Ultra White 473ml", "Monster Energy", "Gaseosas y Bebidas", "8.50", "6.50", "packshots/monster_energy_ultra.png"},
-        {"7750670010511", "Bebida Energizante Volt Blue Energy 300ml", "Volt", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/volt_blue.png"},
-        {"7750670010528", "Bebida Energizante Volt Maca 300ml", "Volt", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/volt_maca.png"},
-        {"7750670010535", "Bebida Energizante Volt Ginseng 300ml", "Volt", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/volt_ginseng.png"},
-        {"7750106008019", "Jugo Frugos del Valle Durazno 1 Litro", "Frugos", "Gaseosas y Bebidas", "4.50", "3.50", "packshots/frugos_durazno.png"},
-        {"7750106008033", "Jugo Frugos del Valle Mango 1 Litro", "Frugos", "Gaseosas y Bebidas", "4.50", "3.50", "packshots/frugos_mango.png"},
-        {"7750106008040", "Jugo Frugos del Valle Naranja 1 Litro", "Frugos", "Gaseosas y Bebidas", "4.50", "3.50", "packshots/frugos_naranja.png"},
-        {"7750670010320", "Néctar Pulp Durazno Botella 300ml", "Pulp", "Gaseosas y Bebidas", "2.00", "1.50", "packshots/pulp_durazno.png"},
-        {"7750670010313", "Néctar Pulp Durazno Caja 1 Litro", "Pulp", "Gaseosas y Bebidas", "4.20", "3.20", "packshots/pulp_durazno.png"},
-        {"7750800001012", "Bebida de Frutas Tampico Citrus 1 Litro", "Tampico", "Gaseosas y Bebidas", "3.50", "2.60", "packshots/tampico.png"},
-        {"7750800001029", "Bebida de Frutas Tampico Citrus 3 Litros", "Tampico", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/tampico_3l.png"},
-        {"7750670010016", "Agua Cielo Sin Gas 625ml", "Cielo", "Gaseosas y Bebidas", "1.50", "1.00", "packshots/agua_cielo.png"},
-        {"7750670010030", "Agua Cielo Sin Gas Bidón 7 Litros", "Cielo", "Gaseosas y Bebidas", "8.00", "6.00", "packshots/agua_cielo_7l.png"},
-        {"7750182000604", "Bebida Rehidratante Gatorade Cool Blue 500ml", "Gatorade", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/gatorade_cool_blue.png"},
-        {"7750182000611", "Bebida Rehidratante Gatorade Tropical 500ml", "Gatorade", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/gatorade_tropical.png"},
+        {"7750106001010", "Inca Kola Sabor Original 500ml", "Inca Kola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/inka_kola_500ml.png"},
+        {"7750106001027", "Inca Kola Sabor Original 1.5 Litros", "Inca Kola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/inka_kola.png"},
+        {"7750106000013", "Inca Kola Sabor Original 3 Litros", "Inca Kola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/inka_kola_3l.png"},
+        {"7750106001034", "Inca Kola Sin Azúcar Zero 500ml", "Inca Kola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/inka_kola_500ml.png"},
+        {"7750106000025", "Coca Cola Sabor Original 500ml", "Coca Cola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/coca_cola_500ml.png"},
+        {"7750106002017", "Coca Cola Sabor Original 1.5 Litros", "Coca Cola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/coca_cola.png"},
+        {"7751234567890", "Coca Cola Sabor Original 3 Litros", "Coca Cola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/coca_cola_3l.png"},
+        {"7750106000032", "Coca Cola Sin Azúcar Zero 500ml", "Coca Cola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/coca_cola_500ml.png"},
+        {"7750182220378", "Gaseosa Fanta Naranja 500ml", "Fanta", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/fanta_500ml.png"},
+        {"7750182495301", "Gaseosa Fanta Naranja 3 Litros", "Fanta", "Gaseosas y Bebidas", "10.50", "8.40", "packshots/fanta_3l.png"},
+        {"7750182000321", "Gaseosa Sprite Lima Limón 500ml", "Sprite", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/sprite_500ml.png"},
+        {"7750182000222", "Gaseosa Sprite Lima Limón 3 Litros", "Sprite", "Gaseosas y Bebidas", "10.50", "8.40", "packshots/sprite_3l.png"},
+        {"7753749003186", "Gaseosa Guaraná Backus 450ml", "Backus", "Gaseosas y Bebidas", "2.20", "1.70", "packshots/guarana_450ml.png"},
+        {"7753749003193", "Gaseosa Guaraná Backus 3 Litros", "Backus", "Gaseosas y Bebidas", "9.50", "7.60", "packshots/guarana.png"},
+        {"7750106003014", "Agua San Luis 625ml Sin Gas", "San Luis", "Gaseosas y Bebidas", "1.50", "1.10", "packshots/agua_san_luis.png"},
+        {"7750106003021", "Agua San Luis Sin Gas Bidón 7 Litros", "San Luis", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/agua_san_luis.png"},
+        {"775117011953", "Agua Mineral San Mateo 600ml Sin Gas", "San Mateo", "Gaseosas y Bebidas", "1.50", "1.10", "packshots/agua_san_mateo.png"},
+        {"7750670010238", "Bebida Rehidratante Sporade Tropical 625ml", "Sporade", "Gaseosas y Bebidas", "2.20", "1.70", "packshots/sporade.png"},
+        {"7750670010245", "Bebida Rehidratante Sporade Maracuyá 625ml", "Sporade", "Gaseosas y Bebidas", "2.20", "1.70", "packshots/sporade.png"},
+        {"7750670010412", "Bebida de Frutas Cifrut Citrus Punch 3 Litros", "Cifrut", "Gaseosas y Bebidas", "6.00", "4.80", "packshots/cifrut.png"},
+        {"7750670010429", "Bebida de Frutas Cifrut Citrus Punch 500ml", "Cifrut", "Gaseosas y Bebidas", "1.50", "1.10", "packshots/cifrut.png"},
+        {"90162602", "Bebida Energizante Red Bull Lata 355ml", "Red Bull", "Gaseosas y Bebidas", "8.50", "6.80", "packshots/red_bull.png"},
+        {"7750182000406", "Gaseosa Pepsi Sabor Original 500ml", "Pepsi", "Gaseosas y Bebidas", "2.20", "1.70", "packshots/pepsi_500ml.png"},
+        {"7750182000413", "Gaseosa Pepsi Sabor Original 1.5 Litros", "Pepsi", "Gaseosas y Bebidas", "5.50", "4.30", "packshots/pepsi.png"},
+        {"7750182000420", "Gaseosa Pepsi Sabor Original 3 Litros", "Pepsi", "Gaseosas y Bebidas", "9.00", "7.20", "packshots/pepsi_3l.png"},
+        {"7750182000437", "Gaseosa 7Up Lima Limón 500ml", "7Up", "Gaseosas y Bebidas", "2.20", "1.70", "packshots/seven_up.png"},
+        {"7750182000444", "Gaseosa 7Up Lima Limón 3 Litros", "7Up", "Gaseosas y Bebidas", "9.00", "7.20", "packshots/seven_up.png"},
+        {"7750182000451", "Gaseosa Concordia Piña 500ml", "Concordia", "Gaseosas y Bebidas", "1.80", "1.30", "packshots/concordia_pina.png"},
+        {"7750182000468", "Gaseosa Concordia Piña 3 Litros", "Concordia", "Gaseosas y Bebidas", "7.00", "5.50", "packshots/concordia_pina.png"},
+        {"7750670010115", "Gaseosa Kola Real KR Cola Negra 3 Litros", "Kola Real", "Gaseosas y Bebidas", "6.00", "4.70", "packshots/kr_cola.png"},
+        {"7750670010122", "Gaseosa Kola Real KR Piña 3 Litros", "Kola Real", "Gaseosas y Bebidas", "6.00", "4.70", "packshots/kr_pina.png"},
+        {"7753749003209", "Gaseosa Guaraná Backus Lata 355ml", "Backus", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/guarana_450ml.png"},
+        {"7753749003216", "Gaseosa Guaraná Backus 1.5 Litros", "Backus", "Gaseosas y Bebidas", "5.80", "4.60", "packshots/guarana.png"},
+        {"7750106000049", "Gaseosa Canada Dry Ginger Ale 1.5L", "Canada Dry", "Gaseosas y Bebidas", "5.80", "4.50", "packshots/canada_dry.png"},
+        {"70847811169", "Bebida Energizante Monster Energy 473ml", "Monster Energy", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/monster_energy.png"},
+        {"70847022909", "Bebida Energizante Monster Ultra White 473ml", "Monster Energy", "Gaseosas y Bebidas", "7.50", "5.80", "packshots/monster_energy_ultra.png"},
+        {"7750670010511", "Bebida Energizante Volt Blue Energy 300ml", "Volt", "Gaseosas y Bebidas", "2.00", "1.50", "packshots/volt_blue.png"},
+        {"7750670010528", "Bebida Energizante Volt Maca 300ml", "Volt", "Gaseosas y Bebidas", "2.00", "1.50", "packshots/volt_maca.png"},
+        {"7750670010535", "Bebida Energizante Volt Ginseng 300ml", "Volt", "Gaseosas y Bebidas", "2.00", "1.50", "packshots/volt_ginseng.png"},
+        {"7750106008019", "Jugo Frugos del Valle Durazno 1 Litro", "Frugos", "Gaseosas y Bebidas", "3.80", "2.90", "packshots/frugos_durazno.png"},
+        {"7750106008033", "Jugo Frugos del Valle Mango 1 Litro", "Frugos", "Gaseosas y Bebidas", "3.80", "2.90", "packshots/frugos_mango.png"},
+        {"7750106008040", "Jugo Frugos del Valle Naranja 1 Litro", "Frugos", "Gaseosas y Bebidas", "3.80", "2.90", "packshots/frugos_naranja.png"},
+        {"7750670010320", "Néctar Pulp Durazno Botella 300ml", "Pulp", "Gaseosas y Bebidas", "1.80", "1.30", "packshots/pulp_durazno.png"},
+        {"7750670010313", "Néctar Pulp Durazno Caja 1 Litro", "Pulp", "Gaseosas y Bebidas", "3.50", "2.70", "packshots/pulp_durazno.png"},
+        {"7750800001012", "Bebida de Frutas Tampico Citrus 1 Litro", "Tampico", "Gaseosas y Bebidas", "2.80", "2.10", "packshots/tampico.png"},
+        {"7750800001029", "Bebida de Frutas Tampico Citrus 3 Litros", "Tampico", "Gaseosas y Bebidas", "6.50", "5.00", "packshots/tampico_3l.png"},
+        {"7750670010016", "Agua Cielo Sin Gas 625ml", "Cielo", "Gaseosas y Bebidas", "1.20", "0.80", "packshots/agua_cielo.png"},
+        {"7750670010030", "Agua Cielo Sin Gas Bidón 7 Litros", "Cielo", "Gaseosas y Bebidas", "6.50", "5.00", "packshots/agua_cielo_7l.png"},
+        {"7750182000604", "Bebida Rehidratante Gatorade Cool Blue 500ml", "Gatorade", "Gaseosas y Bebidas", "2.80", "2.10", "packshots/gatorade_cool_blue.png"},
+        {"7750182000611", "Bebida Rehidratante Gatorade Tropical 500ml", "Gatorade", "Gaseosas y Bebidas", "2.80", "2.10", "packshots/gatorade_tropical.png"},
 
         // --- 2. BEBIDAS ALCOHÓLICAS Y LICORES ---
-        {"7750111006014", "Cerveza Pilsen Callao 630ml Retornable", "Pilsen Callao", "Bebidas Alcohólicas", "7.50", "6.00", "packshots/cerveza_pilsen.png"},
-        {"7750111006038", "Cerveza Pilsen Callao 355ml Lata", "Pilsen Callao", "Bebidas Alcohólicas", "5.00", "3.90", "packshots/cerveza_pilsen.png"},
-        {"7750111006021", "Cerveza Cristal 650ml Retornable", "Cristal", "Bebidas Alcohólicas", "7.50", "6.00", "packshots/cerveza_cristal.png"},
-        {"7750111006045", "Cerveza Cristal 355ml Lata", "Cristal", "Bebidas Alcohólicas", "5.00", "3.90", "packshots/cerveza_cristal_lata.png"},
-        {"7750106006022", "Cerveza Cusqueña Dorada 310ml", "Cusqueña", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/cerveza_cusquena_dorada.png"},
-        {"7750106006015", "Cerveza Cusqueña Trigo 310ml", "Cusqueña", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/cerveza_cusquena.png"},
-        {"750106419166", "Cerveza Corona Extra Botella 355ml", "Corona", "Bebidas Alcohólicas", "7.50", "5.80", "packshots/cerveza_corona.png"},
-        {"7891991000826", "Cerveza Stella Artois Botella 330ml", "Stella Artois", "Bebidas Alcohólicas", "8.00", "6.20", "packshots/cerveza_stella.png"},
-        {"7750174000018", "Pisco Queirolo Quebranta 750ml", "Santiago Queirolo", "Bebidas Alcohólicas", "32.00", "25.50", "packshots/pisco_queirolo.png"},
-        {"7750148000012", "Ron Cartavio Black 750ml", "Cartavio", "Bebidas Alcohólicas", "28.00", "22.00", "packshots/ron_cartavio.png"},
-        {"7750170000012", "Vino Tabernero Borgoña Tinto 750ml", "Tabernero", "Bebidas Alcohólicas", "24.00", "19.00", "packshots/vino_tabernero.png"},
-        {"5000267014005", "Whisky Johnnie Walker Red Label 750ml", "Johnnie Walker", "Bebidas Alcohólicas", "58.00", "46.00", "packshots/whisky_johnnie_walker.png"},
-        {"849607000100", "Bebida Alcohólica Four Loko Gold Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "12.50", "9.80", "packshots/four_loko_gold.png"},
-        {"849607000117", "Bebida Alcohólica Four Loko Sandía Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "12.50", "9.80", "packshots/four_loko_sandia.png"},
-        {"849607000124", "Bebida Alcohólica Four Loko Blue Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "12.50", "9.80", "packshots/four_loko_blue.png"},
-        {"849607000131", "Bebida Alcohólica Four Loko Black Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "12.50", "9.80", "packshots/four_loko_black.png"},
-        {"7750111006502", "Bebida Preparada Mike's Hard Lemonade 350ml", "Mike's", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/mikes_hard_lemonade.png"},
-        {"7750111006519", "Bebida Preparada Mike's Hard Strawberry 350ml", "Mike's", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/mikes_fresa.png"},
-        {"7750111006526", "Bebida Preparada Mike's Hard Maracuyá 350ml", "Mike's", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/mikes_maracuya.png"},
-        {"5000291020010", "Bebida Preparada Smirnoff Ice Original 275ml", "Smirnoff", "Bebidas Alcohólicas", "7.50", "5.80", "packshots/smirnoff_ice.png"},
-        {"7750170000203", "Chilcano de Pisco Tabernero Lata 310ml", "Tabernero", "Bebidas Alcohólicas", "7.50", "5.80", "packshots/chilcano_tabernero.png"},
-        {"7750170000302", "Pisco Sour Tabernero Botella 700ml", "Tabernero", "Bebidas Alcohólicas", "25.00", "19.50", "packshots/pisco_sour_tabernero.png"},
+        {"7750111006014", "Cerveza Pilsen Callao 630ml Retornable", "Pilsen Callao", "Bebidas Alcohólicas", "6.50", "5.20", "packshots/cerveza_pilsen.png"},
+        {"7750111006038", "Cerveza Pilsen Callao 355ml Lata", "Pilsen Callao", "Bebidas Alcohólicas", "4.20", "3.30", "packshots/cerveza_pilsen.png"},
+        {"7750111006021", "Cerveza Cristal 650ml Retornable", "Cristal", "Bebidas Alcohólicas", "6.50", "5.10", "packshots/cerveza_cristal.png"},
+        {"7750111006045", "Cerveza Cristal 355ml Lata", "Cristal", "Bebidas Alcohólicas", "4.20", "3.30", "packshots/cerveza_cristal_lata.png"},
+        {"7750106006022", "Cerveza Cusqueña Dorada 310ml", "Cusqueña", "Bebidas Alcohólicas", "5.50", "4.30", "packshots/cerveza_cusquena_dorada.png"},
+        {"7750106006015", "Cerveza Cusqueña Trigo 310ml", "Cusqueña", "Bebidas Alcohólicas", "5.50", "4.30", "packshots/cerveza_cusquena.png"},
+        {"750106419166", "Cerveza Corona Extra Botella 355ml", "Corona", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/cerveza_corona.png"},
+        {"7891991000826", "Cerveza Stella Artois Botella 330ml", "Stella Artois", "Bebidas Alcohólicas", "7.00", "5.40", "packshots/cerveza_stella.png"},
+        {"7750174000018", "Pisco Queirolo Quebranta 750ml", "Santiago Queirolo", "Bebidas Alcohólicas", "28.00", "22.50", "packshots/pisco_queirolo.png"},
+        {"7750148000012", "Ron Cartavio Black 750ml", "Cartavio", "Bebidas Alcohólicas", "24.00", "19.00", "packshots/ron_cartavio.png"},
+        {"7750170000012", "Vino Tabernero Borgoña Tinto 750ml", "Tabernero", "Bebidas Alcohólicas", "21.00", "16.80", "packshots/vino_tabernero.png"},
+        {"5000267014005", "Whisky Johnnie Walker Red Label 750ml", "Johnnie Walker", "Bebidas Alcohólicas", "49.00", "39.00", "packshots/whisky_johnnie_walker.png"},
+        {"849607000100", "Bebida Alcohólica Four Loko Gold Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "10.50", "8.20", "packshots/four_loko_gold.png"},
+        {"849607000117", "Bebida Alcohólica Four Loko Sandía Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "10.50", "8.20", "packshots/four_loko_sandia.png"},
+        {"849607000124", "Bebida Alcohólica Four Loko Blue Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "10.50", "8.20", "packshots/four_loko_blue.png"},
+        {"849607000131", "Bebida Alcohólica Four Loko Black Lata 473ml", "Four Loko", "Bebidas Alcohólicas", "10.50", "8.20", "packshots/four_loko_black.png"},
+        {"7750111006502", "Bebida Preparada Mike's Hard Lemonade 350ml", "Mike's", "Bebidas Alcohólicas", "5.20", "4.00", "packshots/mikes_hard_lemonade.png"},
+        {"7750111006519", "Bebida Preparada Mike's Hard Strawberry 350ml", "Mike's", "Bebidas Alcohólicas", "5.20", "4.00", "packshots/mikes_fresa.png"},
+        {"7750111006526", "Bebida Preparada Mike's Hard Maracuyá 350ml", "Mike's", "Bebidas Alcohólicas", "5.20", "4.00", "packshots/mikes_maracuya.png"},
+        {"5000291020010", "Bebida Preparada Smirnoff Ice Original 275ml", "Smirnoff", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/smirnoff_ice.png"},
+        {"7750170000203", "Chilcano de Pisco Tabernero Lata 310ml", "Tabernero", "Bebidas Alcohólicas", "6.50", "5.00", "packshots/chilcano_tabernero.png"},
+        {"7750170000302", "Pisco Sour Tabernero Botella 700ml", "Tabernero", "Bebidas Alcohólicas", "22.00", "17.50", "packshots/pisco_sour_tabernero.png"},
 
         // --- 3. SNACKS Y PIQUEOS ---
-        {"7758574005541", "Papas Fritas Lay's Clásicas 140g", "Lay's", "Snacks y Piqueos", "4.50", "3.50", "packshots/lays_clasicas_140g.png"},
-        {"7758574005558", "Papas Fritas Lay's Onduladas 150g", "Lay's", "Snacks y Piqueos", "4.80", "3.70", "packshots/lays_onduladas.png"},
-        {"7758574005510", "Doritos Mega Queso 45g", "Doritos", "Snacks y Piqueos", "2.00", "1.50", "packshots/doritos_queso_45g.png"},
-        {"7758574005527", "Cheese Tris 150g", "Frito-Lay", "Snacks y Piqueos", "3.50", "2.70", "packshots/cheese_tris.png"},
-        {"7758574005534", "Chizitos Queso Fiesta 120g", "Frito-Lay", "Snacks y Piqueos", "3.50", "2.70", "packshots/chizitos_queso.png"},
-        {"7750670010818", "Cuates Picantes 100g", "Karinto", "Snacks y Piqueos", "2.50", "1.90", "packshots/cuates_picantes_100g.png"},
-        {"7750670010825", "Tortees Picantes 140g", "Karinto", "Snacks y Piqueos", "3.50", "2.70", "packshots/tortees_picantes.png"},
-        {"7758574005565", "Piqueo Snax Familiar 55g", "Frito-Lay", "Snacks y Piqueos", "2.50", "1.90", "packshots/piqueo_snax_55g.png"},
-        {"7750670010832", "Chifle Piurano Salado 100g", "Karinto", "Snacks y Piqueos", "3.00", "2.20", "packshots/chifle_piurano.png"},
-        {"7750670010849", "Maní Salado Karinto 100g", "Karinto", "Snacks y Piqueos", "2.50", "1.90", "packshots/mani_karinto.png"},
+        {"7758574005541", "Papas Fritas Lay's Clásicas 140g", "Lay's", "Snacks y Piqueos", "4.00", "3.10", "packshots/lays_clasicas_140g.png"},
+        {"7758574005558", "Papas Fritas Lay's Onduladas 150g", "Lay's", "Snacks y Piqueos", "4.20", "3.20", "packshots/lays_onduladas.png"},
+        {"7758574005510", "Doritos Mega Queso 45g", "Doritos", "Snacks y Piqueos", "1.80", "1.35", "packshots/doritos_queso_45g.png"},
+        {"7758574005527", "Cheese Tris 150g", "Frito-Lay", "Snacks y Piqueos", "3.00", "2.30", "packshots/cheese_tris.png"},
+        {"7758574005534", "Chizitos Queso Fiesta 120g", "Frito-Lay", "Snacks y Piqueos", "3.00", "2.30", "packshots/chizitos_queso.png"},
+        {"7750670010818", "Cuates Picantes 100g", "Karinto", "Snacks y Piqueos", "2.00", "1.50", "packshots/cuates_picantes_100g.png"},
+        {"7750670010825", "Tortees Picantes 140g", "Karinto", "Snacks y Piqueos", "3.00", "2.30", "packshots/tortees_picantes.png"},
+        {"7758574005565", "Piqueo Snax Familiar 55g", "Frito-Lay", "Snacks y Piqueos", "2.00", "1.50", "packshots/piqueo_snax_55g.png"},
+        {"7750670010832", "Chifle Piurano Salado 100g", "Karinto", "Snacks y Piqueos", "2.50", "1.90", "packshots/chifle_piurano.png"},
+        {"7750670010849", "Maní Salado Karinto 100g", "Karinto", "Snacks y Piqueos", "2.00", "1.50", "packshots/mani_karinto.png"},
 
         // --- 4. LÁCTEOS Y DERIVADOS ---
-        {"7750108003013", "Leche Gloria Azul Evaporada 400g", "Gloria", "Lácteos y Derivados", "4.50", "3.80", "packshots/leche_gloria_azul.png"},
-        {"7750108003020", "Leche Gloria Roja Entera 400g", "Gloria", "Lácteos y Derivados", "4.50", "3.80", "packshots/leche_gloria_roja.png"},
-        {"7750108003037", "Leche Gloria Light 400g", "Gloria", "Lácteos y Derivados", "4.50", "3.80", "packshots/leche_gloria_light.png"},
-        {"7750108003044", "Leche Gloria Sin Lactosa 400g", "Gloria", "Lácteos y Derivados", "4.50", "3.80", "packshots/leche_gloria_sin_lactosa.png"},
-        {"7750108003051", "Leche Chocolatada Gloria 1 Litro", "Gloria", "Lácteos y Derivados", "5.80", "4.80", "packshots/leche_chocolatada_gloria.png"},
-        {"7750108003068", "Yogur Gloria Fresa 1 Litro", "Gloria", "Lácteos y Derivados", "7.20", "5.80", "packshots/yogur_gloria_fresa_1kg.png"},
-        {"7750108003075", "Yogur Gloria Vainilla 1 Litro", "Gloria", "Lácteos y Derivados", "7.20", "5.80", "packshots/yogur_gloria_vainilla_1kg.png"},
-        {"7750108003082", "Mantequilla con Sal Laive Barra 200g", "Laive", "Lácteos y Derivados", "8.50", "6.80", "packshots/mantequilla_laive.png"},
-        {"7750108003099", "Margarina Manty Pote 225g", "Manty", "Lácteos y Derivados", "4.50", "3.50", "packshots/margarina_manty.png"},
-        {"7613036615402", "Leche Condensada Nestlé Lata 393g", "Nestlé", "Lácteos y Derivados", "6.50", "5.20", "packshots/leche_condensada_nestle.png"},
+        {"7750108003013", "Leche Gloria Azul Evaporada 400g", "Gloria", "Lácteos y Derivados", "4.20", "3.65", "packshots/leche_gloria_azul.png"},
+        {"7750108003020", "Leche Gloria Roja Entera 400g", "Gloria", "Lácteos y Derivados", "4.20", "3.65", "packshots/leche_gloria_roja.png"},
+        {"7750108003037", "Leche Gloria Light 400g", "Gloria", "Lácteos y Derivados", "4.20", "3.65", "packshots/leche_gloria_light.png"},
+        {"7750108003044", "Leche Gloria Sin Lactosa 400g", "Gloria", "Lácteos y Derivados", "4.30", "3.70", "packshots/leche_gloria_sin_lactosa.png"},
+        {"7750108003051", "Leche Chocolatada Gloria 1 Litro", "Gloria", "Lácteos y Derivados", "5.20", "4.20", "packshots/leche_chocolatada_gloria.png"},
+        {"7750108003068", "Yogur Gloria Fresa 1 Litro", "Gloria", "Lácteos y Derivados", "6.20", "5.00", "packshots/yogur_gloria_fresa_1kg.png"},
+        {"7750108003075", "Yogur Gloria Vainilla 1 Litro", "Gloria", "Lácteos y Derivados", "6.20", "5.00", "packshots/yogur_gloria_vainilla_1kg.png"},
+        {"7750108003082", "Mantequilla con Sal Laive Barra 200g", "Laive", "Lácteos y Derivados", "7.50", "6.00", "packshots/mantequilla_laive.png"},
+        {"7750108003099", "Margarina Manty Pote 225g", "Manty", "Lácteos y Derivados", "3.80", "2.90", "packshots/margarina_manty.png"},
+        {"7613036615402", "Leche Condensada Nestlé Lata 393g", "Nestlé", "Lácteos y Derivados", "5.80", "4.60", "packshots/leche_condensada_nestle.png"},
 
         // --- 5. ABARROTES Y DESPENSA ---
-        {"7750109004041", "Arroz Extra Costeño Bolsa 1kg", "Costeño", "Abarrotes y Despensa", "4.90", "4.10", "packshots/arroz_costeno.png"},
-        {"7750109004058", "Arroz Superior Faraón Bolsa 1kg", "Faraón", "Abarrotes y Despensa", "4.80", "4.00", "packshots/arroz_faraon.png"},
-        {"7750109004065", "Aceite Vegetal Primor Premium 900ml", "Primor", "Abarrotes y Despensa", "9.50", "8.00", "packshots/aceite_primor.png"},
-        {"7750109004089", "Aceite Vegetal Cocinero 900ml", "Cocinero", "Abarrotes y Despensa", "8.50", "7.10", "packshots/aceite_cocinero.png"},
-        {"7750109004096", "Azúcar Rubia Paramonga 1kg", "Paramonga", "Abarrotes y Despensa", "4.50", "3.70", "packshots/azucar_paramonga.png"},
-        {"7750109004010", "Fideos Don Vittorio Spaghetti 450g", "Don Vittorio", "Abarrotes y Despensa", "3.20", "2.50", "packshots/fideos_spaghetti_don_vittorio.png"},
-        {"7750114002088", "Fideos Molitalia Spaghetti 500g", "Molitalia", "Abarrotes y Despensa", "3.40", "2.60", "packshots/fideos_spaghetti_molitalia.png"},
-        {"7750109004027", "Fideos Don Vittorio Codito 450g", "Don Vittorio", "Abarrotes y Despensa", "3.20", "2.50", "packshots/fideos_codito_don_vittorio.png"},
-        {"7750109004034", "Fideos Lavaggi Canuto Corto 450g", "Lavaggi", "Abarrotes y Despensa", "2.90", "2.20", "packshots/fideos_canuto_lavaggi.png"},
-        {"7750109004072", "Trozos de Atún Primor en Aceite 170g", "Primor", "Abarrotes y Despensa", "6.00", "4.80", "packshots/atun_primor.png"},
-        {"7750109004102", "Filete de Atún Fanny en Aceite 140g", "Fanny", "Abarrotes y Despensa", "5.80", "4.60", "packshots/atun_fanny_140g.png"},
-        {"7750109004119", "Mayonesa Alacena Doypack 850g", "Alacena", "Abarrotes y Despensa", "11.50", "9.20", "packshots/mayonesa_alacena_850g.png"},
-        {"7750243030335", "Crema de Ají Tarí AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "5.50", "4.30", "packshots/crema_tari_400g.png"},
-        {"7750114006079", "Salsa de Rocoto Uchucuta AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "6.90", "5.40", "packshots/salsa_uchucuta_alacena.png"},
-        {"7750109004126", "Salsa de Tomate Tuco Sibarita 260g", "Sibarita", "Abarrotes y Despensa", "3.50", "2.70", "packshots/tuco_sibarita.png"},
-        {"7750109004133", "Sal Yodada Marina Emsal 1kg", "Emsal", "Abarrotes y Despensa", "2.00", "1.40", "packshots/sal_emsal.png"},
+        {"7750109004041", "Arroz Extra Costeño Bolsa 1kg", "Costeño", "Abarrotes y Despensa", "4.50", "3.80", "packshots/arroz_costeno.png"},
+        {"7750109004058", "Arroz Superior Faraón Bolsa 1kg", "Faraón", "Abarrotes y Despensa", "4.30", "3.65", "packshots/arroz_faraon.png"},
+        {"7750109004065", "Aceite Vegetal Primor Premium 900ml", "Primor", "Abarrotes y Despensa", "8.50", "7.20", "packshots/aceite_primor.png"},
+        {"7750109004089", "Aceite Vegetal Cocinero 900ml", "Cocinero", "Abarrotes y Despensa", "7.50", "6.30", "packshots/aceite_cocinero.png"},
+        {"7750109004096", "Azúcar Rubia Paramonga 1kg", "Paramonga", "Abarrotes y Despensa", "3.80", "3.20", "packshots/azucar_paramonga.png"},
+        {"7750109004010", "Fideos Don Vittorio Spaghetti 450g", "Don Vittorio", "Abarrotes y Despensa", "2.80", "2.20", "packshots/fideos_spaghetti_don_vittorio.png"},
+        {"7750114002088", "Fideos Molitalia Spaghetti 500g", "Molitalia", "Abarrotes y Despensa", "3.00", "2.30", "packshots/fideos_spaghetti_molitalia.png"},
+        {"7750109004027", "Fideos Don Vittorio Codito 450g", "Don Vittorio", "Abarrotes y Despensa", "2.80", "2.20", "packshots/fideos_codito_don_vittorio.png"},
+        {"7750109004034", "Fideos Lavaggi Canuto Corto 450g", "Lavaggi", "Abarrotes y Despensa", "2.30", "1.80", "packshots/fideos_canuto_lavaggi.png"},
+        {"7750109004072", "Trozos de Atún Primor en Aceite 170g", "Primor", "Abarrotes y Despensa", "5.20", "4.20", "packshots/atun_primor.png"},
+        {"7750109004102", "Filete de Atún Fanny en Aceite 140g", "Fanny", "Abarrotes y Despensa", "4.80", "3.80", "packshots/atun_fanny_140g.png"},
+        {"7750109004119", "Mayonesa Alacena Doypack 850g", "Alacena", "Abarrotes y Despensa", "9.80", "7.80", "packshots/mayonesa_alacena_850g.png"},
+        {"7750243030335", "Crema de Ají Tarí AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "4.80", "3.80", "packshots/crema_tari_400g.png"},
+        {"7750114006079", "Salsa de Rocoto Uchucuta AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "5.80", "4.60", "packshots/salsa_uchucuta_alacena.png"},
+        {"7750109004126", "Salsa de Tomate Tuco Sibarita 260g", "Sibarita", "Abarrotes y Despensa", "2.80", "2.20", "packshots/tuco_sibarita.png"},
+        {"7750109004133", "Sal Yodada Marina Emsal 1kg", "Emsal", "Abarrotes y Despensa", "1.50", "1.00", "packshots/sal_emsal.png"},
 
         // --- 6. GOLOSINAS Y CHOCOLATES ---
-        {"7613036615303", "Chocolate con Leche Sublime Clásico 100g", "Nestlé", "Golosinas y Chocolates", "4.80", "3.80", "packshots/chocolate_sublime_100g.png"},
-        {"7613036615310", "Chocolate Triángulo D'Onofrio 30g", "D'Onofrio", "Golosinas y Chocolates", "2.50", "1.90", "packshots/chocolate_triangulo.png"},
-        {"7750115010035", "Galleta Cua Cua Chocolate 18g", "Field", "Golosinas y Chocolates", "1.50", "1.10", "packshots/galleta_cua_cua.png"},
-        {"7750115010042", "Galleta Doña Pepa 23g", "Field", "Golosinas y Chocolates", "1.50", "1.10", "packshots/galleta_dona_pepa.png"},
-        {"7750115010059", "Galleta Casino Fresa 68g", "Victoria", "Golosinas y Chocolates", "1.50", "1.10", "packshots/galleta_casino.png"},
-        {"7750115010066", "Galleta Margarita Clásica 80g", "Sayón", "Golosinas y Chocolates", "1.50", "1.10", "packshots/galleta_margarita.png"},
-        {"7750115010073", "Galleta Tentación Chocolate 70g", "Victoria", "Golosinas y Chocolates", "1.50", "1.10", "packshots/galleta_tentacion.png"},
+        {"7613036615303", "Chocolate con Leche Sublime Clásico 100g", "Nestlé", "Golosinas y Chocolates", "3.80", "3.00", "packshots/chocolate_sublime_100g.png"},
+        {"7613036615310", "Chocolate Triángulo D'Onofrio 30g", "D'Onofrio", "Golosinas y Chocolates", "2.00", "1.50", "packshots/chocolate_triangulo.png"},
+        {"7750115010035", "Galleta Cua Cua Chocolate 18g", "Field", "Golosinas y Chocolates", "1.00", "0.70", "packshots/galleta_cua_cua.png"},
+        {"7750115010042", "Galleta Doña Pepa 23g", "Field", "Golosinas y Chocolates", "1.00", "0.70", "packshots/galleta_dona_pepa.png"},
+        {"7750115010059", "Galleta Casino Fresa 68g", "Victoria", "Golosinas y Chocolates", "1.00", "0.75", "packshots/galleta_casino.png"},
+        {"7750115010066", "Galleta Margarita Clásica 80g", "Sayón", "Golosinas y Chocolates", "1.00", "0.75", "packshots/galleta_margarita.png"},
+        {"7750115010073", "Galleta Tentación Chocolate 70g", "Victoria", "Golosinas y Chocolates", "1.00", "0.75", "packshots/galleta_tentacion.png"},
         {"7750115010080", "Galleta Oreo Original Tubo 108g", "Oreo", "Golosinas y Chocolates", "2.50", "1.90", "packshots/galleta_oreo.png"},
-        {"7750115010097", "Pastillas Halls Extra Fuerte Menta", "Halls", "Golosinas y Chocolates", "1.50", "1.10", "packshots/halls_menta.png"},
-        {"7750115010103", "Caramelos Chicho Surtido Paquete 100g", "Chicho", "Golosinas y Chocolates", "3.50", "2.60", "packshots/caramelos_chicho.png"},
+        {"7750115010097", "Pastillas Halls Extra Fuerte Menta", "Halls", "Golosinas y Chocolates", "1.00", "0.70", "packshots/halls_menta.png"},
+        {"7750115010103", "Caramelos Chicho Surtido Paquete 100g", "Chicho", "Golosinas y Chocolates", "2.50", "1.90", "packshots/caramelos_chicho.png"},
 
         // --- 7. EMBUTIDOS Y FIAMBRERÍA ---
-        {"7750107002016", "Hot Dog de Pollo San Fernando 500g", "San Fernando", "Embutidos y Fiambrería", "6.80", "5.40", "packshots/hot_dog_san_fernando.png"},
-        {"7750107002023", "Jamonada de Pollo San Fernando 450g", "San Fernando", "Embutidos y Fiambrería", "7.50", "5.80", "packshots/jamonada_san_fernando.png"},
-        {"7750107002030", "Salchicha Huachana Laive 250g", "Laive", "Embutidos y Fiambrería", "5.50", "4.30", "packshots/salchicha_huachana.png"},
-        {"7750107002047", "Tocino Ahumado en Tiras Braedt 170g", "Braedt", "Embutidos y Fiambrería", "9.50", "7.60", "packshots/tocino_braedt.png"},
-        {"7750107002054", "Chorizo Parrillero San Fernando pack x4", "San Fernando", "Embutidos y Fiambrería", "8.50", "6.70", "packshots/chorizo_parrillero.png"},
-        {"7750107002061", "Queso Edam Laminado Laive 200g", "Laive", "Embutidos y Fiambrería", "9.80", "7.80", "packshots/queso_edam.png"},
-        {"7750107002078", "Queso Fresco Bonlé Gloria 400g", "Gloria", "Embutidos y Fiambrería", "11.00", "8.80", "packshots/queso_fresco_bonle.png"},
-        {"7750107002085", "Jamón del País Braedt 150g", "Braedt", "Embutidos y Fiambrería", "9.50", "7.50", "packshots/jamon_del_pais.png"},
+        {"7750107002016", "Hot Dog de Pollo San Fernando 500g", "San Fernando", "Embutidos y Fiambrería", "5.80", "4.60", "packshots/hot_dog_san_fernando.png"},
+        {"7750107002023", "Jamonada de Pollo San Fernando 450g", "San Fernando", "Embutidos y Fiambrería", "6.50", "5.10", "packshots/jamonada_san_fernando.png"},
+        {"7750107002030", "Salchicha Huachana Laive 250g", "Laive", "Embutidos y Fiambrería", "4.80", "3.80", "packshots/salchicha_huachana.png"},
+        {"7750107002047", "Tocino Ahumado en Tiras Braedt 170g", "Braedt", "Embutidos y Fiambrería", "8.50", "6.80", "packshots/tocino_braedt.png"},
+        {"7750107002054", "Chorizo Parrillero San Fernando pack x4", "San Fernando", "Embutidos y Fiambrería", "7.50", "5.90", "packshots/chorizo_parrillero.png"},
+        {"7750107002061", "Queso Edam Laminado Laive 200g", "Laive", "Embutidos y Fiambrería", "8.50", "6.80", "packshots/queso_edam.png"},
+        {"7750107002078", "Queso Fresco Bonlé Gloria 400g", "Gloria", "Embutidos y Fiambrería", "9.50", "7.60", "packshots/queso_fresco_bonle.png"},
+        {"7750107002085", "Jamón del País Braedt 150g", "Braedt", "Embutidos y Fiambrería", "8.20", "6.50", "packshots/jamon_del_pais.png"},
 
         // --- 8. PANADERÍA Y DESAYUNO ---
-        {"7750116011018", "Pan de Molde Blanco Bimbo Chico 400g", "Bimbo", "Panadería y Desayuno", "5.50", "4.30", "packshots/pan_bimbo_blanco.png"},
-        {"7501000133404", "Pan Bimbo Artesano Rebanada Gruesa 500g", "Bimbo", "Panadería y Desayuno", "8.50", "6.70", "packshots/pan_bimbo_artesano.png"},
-        {"7750116011025", "Pan de Molde Bimbo Integral 400g", "Bimbo", "Panadería y Desayuno", "5.80", "4.50", "packshots/pan_bimbo_integral.png"},
-        {"7750116011032", "Mermelada de Fresa Gloria Vaso 310g", "Gloria", "Panadería y Desayuno", "5.50", "4.30", "packshots/mermelada_gloria.png"},
-        {"7750116011049", "Café Soluble Nescafé Tradición Frasco 50g", "Nescafé", "Panadería y Desayuno", "9.50", "7.60", "packshots/cafe_nescafe.png"},
-        {"7750116011056", "Avena Precocida 3 Ositos Bolsa 250g", "3 Ositos", "Panadería y Desayuno", "2.50", "1.90", "packshots/avena_tres_ositos.png"},
-        {"7750116011063", "Té Herbi Clásico Caja x25 bolsitas", "Herbi", "Panadería y Desayuno", "3.50", "2.60", "packshots/te_herbi.png"},
-        {"7750116011070", "Manzanilla Herbi Caja x25 bolsitas", "Herbi", "Panadería y Desayuno", "3.50", "2.60", "packshots/manzanilla_herbi.png"},
+        {"7750116011018", "Pan de Molde Blanco Bimbo Chico 400g", "Bimbo", "Panadería y Desayuno", "4.80", "3.80", "packshots/pan_bimbo_blanco.png"},
+        {"7501000133404", "Pan Bimbo Artesano Rebanada Gruesa 500g", "Bimbo", "Panadería y Desayuno", "7.50", "6.00", "packshots/pan_bimbo_artesano.png"},
+        {"7750727014189", "Pan de Molde Bimbo Blanco Familiar 590g", "Bimbo", "Panadería y Desayuno", "6.50", "5.10", "packshots/pan_bimbo_blanco.png"},
+        {"7750116011025", "Pan de Molde Bimbo Integral 400g", "Bimbo", "Panadería y Desayuno", "5.20", "4.10", "packshots/pan_bimbo_integral.png"},
+        {"7750116011032", "Mermelada de Fresa Gloria Vaso 310g", "Gloria", "Panadería y Desayuno", "4.50", "3.50", "packshots/mermelada_gloria.png"},
+        {"7750116011049", "Café Soluble Nescafé Tradición Frasco 50g", "Nescafé", "Panadería y Desayuno", "7.50", "6.00", "packshots/cafe_nescafe.png"},
+        {"7750116011056", "Avena Precocida 3 Ositos Bolsa 250g", "3 Ositos", "Panadería y Desayuno", "2.00", "1.50", "packshots/avena_tres_ositos.png"},
+        {"7750116011063", "Té Herbi Clásico Caja x25 bolsitas", "Herbi", "Panadería y Desayuno", "2.80", "2.10", "packshots/te_herbi.png"},
+        {"7750116011070", "Manzanilla Herbi Caja x25 bolsitas", "Herbi", "Panadería y Desayuno", "2.80", "2.10", "packshots/manzanilla_herbi.png"},
 
         // --- 9. LIMPIEZA Y CUIDADO DEL HOGAR ---
-        {"7750114009015", "Detergente Bolívar Blanco Activo 850g", "Bolívar", "Limpieza y Cuidado del Hogar", "9.90", "8.00", "packshots/detergente_bolivar.png"},
-        {"7750114009022", "Detergente Ace Limpieza Completa 750g", "Ace", "Limpieza y Cuidado del Hogar", "8.50", "6.80", "packshots/detergente_ace.png"},
-        {"7750114009039", "Detergente Opal Ultra 750g", "Opal", "Limpieza y Cuidado del Hogar", "8.50", "6.80", "packshots/detergente_opal.png"},
-        {"7759918006163", "Lavavajilla Líquido Ayudín Lima Limón 900ml", "Ayudín", "Limpieza y Cuidado del Hogar", "6.50", "5.10", "packshots/lavavajilla_ayudin.png"},
-        {"7750114009046", "Lavavajillas Líquido Sapolio Limón 750ml", "Sapolio", "Limpieza y Cuidado del Hogar", "5.50", "4.20", "packshots/lavavajilla_sapolio.png"},
-        {"7750114009060", "Lejía Clorox Tradicional 1 Litro", "Clorox", "Limpieza y Cuidado del Hogar", "4.50", "3.50", "packshots/lejia_clorox.png"},
-        {"7750114009077", "Limpiador Multiusos Poett Lavanda 900ml", "Poett", "Limpieza y Cuidado del Hogar", "5.50", "4.30", "packshots/limpiador_poett.png"},
-        {"7750114009084", "Suavizante Suavitel Fresca Primavera 850ml", "Suavitel", "Limpieza y Cuidado del Hogar", "6.50", "5.10", "packshots/suavizante_suavitel.png"},
-        {"7750114009091", "Esponja Verde Scotch Brite Clásica", "Scotch-Brite", "Limpieza y Cuidado del Hogar", "2.50", "1.80", "packshots/esponja_scotch.png"},
-        {"7750114009107", "Bolsas de Basura Negras Grande x10", "Bolsas del Perú", "Limpieza y Cuidado del Hogar", "3.50", "2.50", "packshots/bolsas_basura.png"},
+        {"7750114009015", "Detergente Bolívar Blanco Activo 850g", "Bolívar", "Limpieza y Cuidado del Hogar", "8.50", "6.90", "packshots/detergente_bolivar.png"},
+        {"7750114009022", "Detergente Ace Limpieza Completa 750g", "Ace", "Limpieza y Cuidado del Hogar", "7.50", "6.00", "packshots/detergente_ace.png"},
+        {"7750114009039", "Detergente Opal Ultra 750g", "Opal", "Limpieza y Cuidado del Hogar", "7.50", "6.00", "packshots/detergente_opal.png"},
+        {"7759918006163", "Lavavajilla Líquido Ayudín Lima Limón 900ml", "Ayudín", "Limpieza y Cuidado del Hogar", "5.80", "4.50", "packshots/lavavajilla_ayudin.png"},
+        {"7750114009046", "Lavavajillas Líquido Sapolio Limón 750ml", "Sapolio", "Limpieza y Cuidado del Hogar", "4.50", "3.50", "packshots/lavavajilla_sapolio.png"},
+        {"7750114009060", "Lejía Clorox Tradicional 1 Litro", "Clorox", "Limpieza y Cuidado del Hogar", "3.20", "2.50", "packshots/lejia_clorox.png"},
+        {"7750114009077", "Limpiador Multiusos Poett Lavanda 900ml", "Poett", "Limpieza y Cuidado del Hogar", "4.50", "3.50", "packshots/limpiador_poett.png"},
+        {"7750114009084", "Suavizante Suavitel Fresca Primavera 850ml", "Suavitel", "Limpieza y Cuidado del Hogar", "5.50", "4.30", "packshots/suavizante_suavitel.png"},
+        {"7750114009091", "Esponja Verde Scotch Brite Clásica", "Scotch-Brite", "Limpieza y Cuidado del Hogar", "1.80", "1.30", "packshots/esponja_scotch.png"},
+        {"7750114009107", "Bolsas de Basura Negras Grande x10", "Bolsas del Perú", "Limpieza y Cuidado del Hogar", "2.50", "1.80", "packshots/bolsas_basura.png"},
 
         // --- 10. CUIDADO PERSONAL Y DENTAL ---
-        {"7750113008025", "Crema Dental Colgate Total 12 Limpieza 75ml", "Colgate", "Cuidado Personal y Dental", "5.50", "4.20", "packshots/colgate_total12.png"},
-        {"7750113008032", "Crema Dental Colgate Triple Acción 75ml", "Colgate", "Cuidado Personal y Dental", "4.50", "3.40", "packshots/colgate_triple_accion.png"},
-        {"7750113008018", "Crema Dental Kolynos Triple Limpieza 120g", "Kolynos", "Cuidado Personal y Dental", "4.00", "3.00", "packshots/kolynos.png"},
-        {"7750113008049", "Cepillo Dental Colgate Zig Zag Medio", "Colgate", "Cuidado Personal y Dental", "4.50", "3.30", "packshots/cepillo_colgate.png"},
-        {"7750113008056", "Jabón de Tocador Dove Blanco 90g", "Dove", "Cuidado Personal y Dental", "4.00", "3.00", "packshots/jabon_dove.png"},
-        {"7750113008063", "Jabón Camay Clásico 125g", "Camay", "Cuidado Personal y Dental", "3.00", "2.20", "packshots/jabon_camay.png"},
-        {"7750113008070", "Shampoo Head & Shoulders Limpieza Renovadora 375ml", "Head & Shoulders", "Cuidado Personal y Dental", "16.50", "13.00", "packshots/shampoo_head_shoulders.png"},
-        {"7750113008087", "Shampoo Pantene Restauración 375ml", "Pantene", "Cuidado Personal y Dental", "16.50", "13.00", "packshots/shampoo_pantene.png"},
-        {"7750113008094", "Desodorante Rexona Men Aerosol 150ml", "Rexona", "Cuidado Personal y Dental", "12.50", "9.80", "packshots/rexona_men.png"},
-        {"7750113008100", "Desodorante Rexona Women Aerosol 150ml", "Rexona", "Cuidado Personal y Dental", "12.50", "9.80", "packshots/rexona_women.png"},
-        {"7750113008117", "Papel Higiénico Suave Rindemax x4 rollos", "Suave", "Cuidado Personal y Dental", "6.50", "5.10", "packshots/papel_higienico_suave.png"},
-        {"7750113008148", "Papel Higiénico Elite Dúo Doble Hoja x4 rollos", "Elite", "Cuidado Personal y Dental", "7.50", "5.80", "packshots/papel_higienico_elite.png"},
-        {"7750113008162", "Papel Higiénico Paracas Black Premium x4 rollos", "Paracas", "Cuidado Personal y Dental", "6.90", "5.30", "packshots/papel_higienico_paracas.png"},
-        {"7750113008124", "Toallas Higiénicas Nosotras x10", "Nosotras", "Cuidado Personal y Dental", "4.50", "3.40", "packshots/toallas_nosotras.png"},
+        {"7750113008025", "Crema Dental Colgate Total 12 Limpieza 75ml", "Colgate", "Cuidado Personal y Dental", "4.50", "3.50", "packshots/colgate_total12.png"},
+        {"7750113008032", "Crema Dental Colgate Triple Acción 75ml", "Colgate", "Cuidado Personal y Dental", "3.50", "2.60", "packshots/colgate_triple_accion.png"},
+        {"7750113008018", "Crema Dental Kolynos Triple Limpieza 120g", "Kolynos", "Cuidado Personal y Dental", "3.00", "2.20", "packshots/kolynos.png"},
+        {"7750113008049", "Cepillo Dental Colgate Zig Zag Medio", "Colgate", "Cuidado Personal y Dental", "3.50", "2.50", "packshots/cepillo_colgate.png"},
+        {"7750113008056", "Jabón de Tocador Dove Blanco 90g", "Dove", "Cuidado Personal y Dental", "3.20", "2.40", "packshots/jabon_dove.png"},
+        {"7750113008063", "Jabón Camay Clásico 125g", "Camay", "Cuidado Personal y Dental", "2.50", "1.80", "packshots/jabon_camay.png"},
+        {"7750113008070", "Shampoo Head & Shoulders Limpieza Renovadora 375ml", "Head & Shoulders", "Cuidado Personal y Dental", "14.50", "11.50", "packshots/shampoo_head_shoulders.png"},
+        {"7750113008087", "Shampoo Pantene Restauración 375ml", "Pantene", "Cuidado Personal y Dental", "14.50", "11.50", "packshots/shampoo_pantene.png"},
+        {"7750113008094", "Desodorante Rexona Men Aerosol 150ml", "Rexona", "Cuidado Personal y Dental", "10.50", "8.40", "packshots/rexona_men.png"},
+        {"7750113008100", "Desodorante Rexona Women Aerosol 150ml", "Rexona", "Cuidado Personal y Dental", "10.50", "8.40", "packshots/rexona_women.png"},
+        {"7750113008117", "Papel Higiénico Suave Rindemax x4 rollos", "Suave", "Cuidado Personal y Dental", "5.00", "3.90", "packshots/papel_higienico_suave.png"},
+        {"7750113008148", "Papel Higiénico Elite Dúo Doble Hoja x4 rollos", "Elite", "Cuidado Personal y Dental", "6.00", "4.70", "packshots/papel_higienico_elite.png"},
+        {"7750113008162", "Papel Higiénico Paracas Black Premium x4 rollos", "Paracas", "Cuidado Personal y Dental", "5.50", "4.30", "packshots/papel_higienico_paracas.png"},
+        {"7750113008124", "Toallas Higiénicas Nosotras x10", "Nosotras", "Cuidado Personal y Dental", "3.50", "2.70", "packshots/toallas_nosotras.png"},
 
         // --- 11. HELADOS Y CONGELADOS ---
-        {"7750110005017", "Helado Sublime D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "2.30", "packshots/helado_sublime.png"},
-        {"7750110005178", "Helado D'Onofrio Sándwich Clásico", "D'Onofrio", "Helados y Congelados", "3.50", "2.70", "packshots/helado_sandwich_donofrio.png"},
-        {"7750110005062", "Helado Jet Chocolate D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "3.00", "2.30", "packshots/helado_jet.png"},
-        {"7750110005024", "Helado Sin Parar Lúcuma D'Onofrio Copa", "D'Onofrio", "Helados y Congelados", "4.50", "3.40", "packshots/helado_sin_parar.png"},
+        {"7750110005017", "Helado Sublime D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "2.50", "1.90", "packshots/helado_sublime.png"},
+        {"7750110005178", "Helado D'Onofrio Sándwich Clásico", "D'Onofrio", "Helados y Congelados", "2.50", "1.90", "packshots/helado_sandwich_donofrio.png"},
+        {"7750110005062", "Helado Jet Chocolate D'Onofrio Paleta", "D'Onofrio", "Helados y Congelados", "2.50", "1.90", "packshots/helado_jet.png"},
+        {"7750110005024", "Helado Sin Parar Lúcuma D'Onofrio Copa", "D'Onofrio", "Helados y Congelados", "4.00", "3.00", "packshots/helado_sin_parar.png"},
         {"7750110005031", "Helado Frío Rico Vainilla D'Onofrio Cono", "D'Onofrio", "Helados y Congelados", "4.50", "3.40", "packshots/helado_frio_rico.png"},
-        {"7750110005048", "Helado Bombones D'Onofrio Caja x8", "D'Onofrio", "Helados y Congelados", "6.50", "5.00", "packshots/helado_bombones.png"},
-        {"7750110005055", "Helado Peziduri Tricolor D'Onofrio 900ml", "D'Onofrio", "Helados y Congelados", "12.50", "9.80", "packshots/helado_peziduri_tricolor_900ml.png"},
+        {"7750110005048", "Helado Bombones D'Onofrio Caja x8", "D'Onofrio", "Helados y Congelados", "5.50", "4.20", "packshots/helado_bombones.png"},
+        {"7750110005055", "Helado Peziduri Tricolor D'Onofrio 900ml", "D'Onofrio", "Helados y Congelados", "10.50", "8.40", "packshots/helado_peziduri_tricolor_900ml.png"},
 
         // --- 12. CIGARRILLOS Y TABACO ---
         {"7750112007028", "Cigarrillos Lucky Strike Doble Click Cajetilla x20", "Lucky Strike", "Cigarrillos y Tabaco", "18.00", "15.00", "packshots/cigarros_lucky_strike.png"},
         {"7751201001169", "Cigarrillos Marlboro Summer Mix Cajetilla 20", "Marlboro", "Cigarrillos y Tabaco", "19.00", "16.00", "packshots/cigarros_marlboro_20.png"},
-        {"7750112007035", "Cigarrillos Hamilton Rojo Cajetilla x20", "Hamilton", "Cigarrillos y Tabaco", "16.00", "13.50", "packshots/cigarros_hamilton.png"},
-        {"7750112007042", "Cigarrillos Pall Mall Blue Cajetilla x20", "Pall Mall", "Cigarrillos y Tabaco", "16.00", "13.50", "packshots/cigarros_pall_mall.png"},
-        {"7750112007059", "Fósforos La Llama Paquete x10 cajas", "La Llama", "Cigarrillos y Tabaco", "2.50", "1.80", "packshots/fosforos_la_llama.png"},
-        {"7750112007066", "Encendedor Tokai Descartable", "Tokai", "Cigarrillos y Tabaco", "2.00", "1.40", "packshots/encendedor_tokai.png"}
+        {"7750112007035", "Cigarrillos Hamilton Rojo Cajetilla x20", "Hamilton", "Cigarrillos y Tabaco", "15.00", "12.50", "packshots/cigarros_hamilton.png"},
+        {"7750112007042", "Cigarrillos Pall Mall Blue Cajetilla x20", "Pall Mall", "Cigarrillos y Tabaco", "15.00", "12.50", "packshots/cigarros_pall_mall.png"},
+        {"7750112007059", "Fósforos La Llama Paquete x10 cajas", "La Llama", "Cigarrillos y Tabaco", "2.00", "1.40", "packshots/fosforos_la_llama.png"},
+        {"7750112007066", "Encendedor Tokai Descartable", "Tokai", "Cigarrillos y Tabaco", "1.50", "1.00", "packshots/encendedor_tokai.png"}
     };
 
     /**
@@ -440,6 +441,14 @@ public class StarterPackService {
                     p.setCategoria(categoria);
                     mod = true;
                 }
+                if (p.getPrecioVenta() == null || p.getPrecioVenta().compareTo(venta) != 0) {
+                    p.setPrecioVenta(venta);
+                    mod = true;
+                }
+                if (p.getPrecioCosto() == null || p.getPrecioCosto().compareTo(costo) != 0) {
+                    p.setPrecioCosto(costo);
+                    mod = true;
+                }
                 if (mod) {
                     productoRepository.save(p);
                     actualizados++;
@@ -484,5 +493,42 @@ public class StarterPackService {
     public void enriquecerCatalogoBodegaKarliz(Bodega bodegaKarliz) {
         if (bodegaKarliz == null || bodegaKarliz.getIdBodega() == null) return;
         provisionarStarterPackParaBodega(bodegaKarliz);
+    }
+
+    /**
+     * Actualiza los precios de venta y costo de todos los productos en todas las bodegas registradas
+     * para reflejar tarifas reales de bodega de barrio peruana (cómodas y competitivas de calle).
+     */
+    @Transactional
+    public void actualizarPreciosBodegasRegistradas() {
+        log.info("[StarterPackService] Actualizando precios de todas las bodegas registradas a tarifas reales de calle...");
+        int totalActualizados = 0;
+        for (String[] pData : PRODUCTOS_STARTER_PACK) {
+            String codigoBarras = pData[0];
+            String nombre = pData[1];
+            BigDecimal venta = new BigDecimal(pData[4]);
+            BigDecimal costo = new BigDecimal(pData[5]);
+
+            try {
+                int count = jdbcTemplate.update(
+                    "UPDATE productos SET precio_venta = ?, precio_costo = ? WHERE codigo_barras = ?",
+                    venta, costo, codigoBarras
+                );
+                totalActualizados += count;
+            } catch (Exception e) {
+                log.warn("[StarterPackService] Error actualizando precio por código de barras {}: {}", codigoBarras, e.getMessage());
+            }
+
+            // También actualizar por nombre si no tiene código de barras
+            try {
+                jdbcTemplate.update(
+                    "UPDATE productos SET precio_venta = ?, precio_costo = ? WHERE (codigo_barras IS NULL OR codigo_barras = '') AND nombre ILIKE ?",
+                    venta, costo, "%" + nombre + "%"
+                );
+            } catch (Exception e) {
+                log.debug("[StarterPackService] Actualización por nombre omitida: {}", e.getMessage());
+            }
+        }
+        log.info("[StarterPackService] Precios actualizados en bodegas registradas: {} registros impactados.", totalActualizados);
     }
 }
