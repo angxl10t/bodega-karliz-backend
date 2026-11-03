@@ -3,12 +3,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api_constants.dart';
+import '../../core/cajaya_vectors.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
@@ -1238,7 +1240,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       isTablet ? 20 : 16,
                       10,
                       isTablet ? 20 : 16,
-                      100,
+                      20,
                     ),
                     sliver: SliverGrid(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -1256,8 +1258,194 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   );
                 },
               ),
+            SliverToBoxAdapter(
+              child: _buildFooterLegal(context, isDark),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFooterLegal(BuildContext context, bool isDark) {
+    final String nombreBodega =
+        _bodega['nombreComercial']?.toString() ?? 'CajaYa Cloud POS';
+    final int? idBodega = _bodega['idBodega'] is int
+        ? _bodega['idBodega']
+        : int.tryParse(_bodega['idBodega']?.toString() ?? '');
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CajaYaLogoMark(size: 26),
+              const SizedBox(width: 8),
+              Text(
+                'CajaYa Cloud POS',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$nombreBodega • Catálogo Digital Oficial',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF64748B),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+
+          // Botón Oficial Libro de Reclamaciones INDECOPI
+          InkWell(
+            onTap: () {
+              final query = Uri(queryParameters: {
+                'tienda': nombreBodega,
+                if (idBodega != null) 'idBodega': idBodega.toString(),
+              }).query;
+              context.push('/reclamaciones?$query');
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.bookOpen,
+                      color: Color(0xFFD97706),
+                      size: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'LIBRO DE RECLAMACIONES',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        'Conforme a la normativa INDECOPI - D.S. N° 011-2011-PCM',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    LucideIcons.chevronRight,
+                    size: 14,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Enlaces Legales
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              InkWell(
+                onTap: () => context.push('/terminos'),
+                child: Text(
+                  'Términos y Condiciones',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.brandPrimary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              Text(
+                '•',
+                style: TextStyle(
+                  color: isDark
+                      ? const Color(0xFF475569)
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+              InkWell(
+                onTap: () => context.push('/privacidad'),
+                child: Text(
+                  'Política de Privacidad',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.brandPrimary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          Text(
+            'Comercio formalizado bajo la Ley del Bodeguero N° 30877 y Código del Consumidor N° 29571.\nTodos los derechos reservados © 2026 CajaYa.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              color: isDark
+                  ? const Color(0xFF64748B)
+                  : const Color(0xFF94A3B8),
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

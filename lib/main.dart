@@ -10,6 +10,9 @@ import 'features/auth/login_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/superadmin/superadmin_dashboard_screen.dart';
 import 'features/catalogo/catalogo_publico_screen.dart';
+import 'features/legal/libro_reclamaciones_screen.dart';
+import 'features/legal/terminos_condiciones_screen.dart';
+import 'features/legal/politica_privacidad_screen.dart';
 import 'core/theme_provider.dart';
 import 'core/api_constants.dart';
 import 'core/update_service.dart';
@@ -43,6 +46,9 @@ final _router = GoRouter(
     final uriStr = state.uri.toString();
     if (path == '/splash') return null;
     if (path == '/catalogo' || uriStr.startsWith('/catalogo')) return null;
+    if (path == '/reclamaciones' || uriStr.startsWith('/reclamaciones')) return null;
+    if (path == '/terminos' || uriStr.startsWith('/terminos')) return null;
+    if (path == '/privacidad' || uriStr.startsWith('/privacidad')) return null;
     final isLoggedIn = await AuthService().isLoggedIn();
     if (!isLoggedIn && path != '/login') return '/login';
     if (isLoggedIn && path == '/login') {
@@ -66,6 +72,26 @@ final _router = GoRouter(
         final tienda = state.uri.queryParameters['tienda'] ?? '';
         return CatalogoPublicoScreen(tiendaSlug: tienda);
       },
+    ),
+    GoRoute(
+      path: '/reclamaciones',
+      builder: (context, state) {
+        final tienda = state.uri.queryParameters['tienda'] ?? '';
+        final idBodegaStr = state.uri.queryParameters['idBodega'];
+        final idBodega = idBodegaStr != null ? int.tryParse(idBodegaStr) : null;
+        return LibroReclamacionesScreen(
+          tiendaNombre: tienda,
+          idBodega: idBodega,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/terminos',
+      builder: (context, state) => const TerminosCondicionesScreen(),
+    ),
+    GoRoute(
+      path: '/privacidad',
+      builder: (context, state) => const PoliticaPrivacidadScreen(),
     ),
   ],
 );

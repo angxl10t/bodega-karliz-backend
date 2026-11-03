@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -669,6 +670,93 @@ class ThermalTicketService {
 
     return bytes;
   }
+
+  /// Genera el texto del volante térmico promocional de barrio para entregar con el vuelto
+  static String generateVolanteBarrioText({
+    required String nombreComercio,
+    required String urlCatalogo,
+    String? lemaComercial,
+    String? telefono,
+    int width = width58mm,
+  }) {
+    final buffer = StringBuffer();
+    buffer.writeln(divider(width, '='));
+    buffer.writeln(center(nombreComercio.toUpperCase(), width));
+    if (lemaComercial != null && lemaComercial.isNotEmpty) {
+      buffer.writeln(center(lemaComercial, width));
+    }
+    buffer.writeln(divider(width, '='));
+    buffer.writeln('');
+    buffer.writeln(center('¡VECINO(A), NO HAGAS COLA!', width));
+    buffer.writeln(center('Haz tus pedidos desde casa', width));
+    buffer.writeln(center('por WhatsApp y te lo alistamos.', width));
+    buffer.writeln('');
+    buffer.writeln(divider(width, '-'));
+    buffer.writeln(center('ESCANEA NUESTRA TIENDA VIRTUAL:', width));
+    buffer.writeln(center('[qr]$urlCatalogo[/qr]', width));
+    buffer.writeln(center(urlCatalogo, width));
+    buffer.writeln(divider(width, '-'));
+    buffer.writeln('');
+    buffer.writeln(center('* Abarrotes, Bebidas y Golosinas', width));
+    buffer.writeln(center('* Promociones y Precios del Dia', width));
+    buffer.writeln(center('* Aceptamos Yape, Plin y Efectivo', width));
+    buffer.writeln('');
+    if (telefono != null && telefono.isNotEmpty) {
+      buffer.writeln(center('Pedidos WhatsApp: $telefono', width));
+    }
+    buffer.writeln(divider(width, '='));
+    buffer.writeln(center('¡Gracias por apoyar a tu bodega!', width));
+    buffer.writeln(divider(width, '='));
+    return buffer.toString();
+  }
+
+  /// Genera la secuencia binaria ESC/POS para imprimir el volante de barrio con código QR nativo
+  static List<int> generateVolanteBarrioEscPosBytes({
+    required String nombreComercio,
+    required String urlCatalogo,
+    String? lemaComercial,
+    String? telefono,
+    int width = width58mm,
+  }) {
+    final List<int> bytes = [];
+    // Reset / init
+    bytes.addAll([0x1B, 0x40]);
+
+    final text = generateVolanteBarrioText(
+      nombreComercio: nombreComercio,
+      urlCatalogo: urlCatalogo,
+      lemaComercial: lemaComercial,
+      telefono: telefono,
+      width: width,
+    );
+
+    final lines = text.split('\n');
+    for (final line in lines) {
+      if (line.contains('[qr]')) {
+        bytes.addAll(generateEscPosQrBytes(urlCatalogo, moduleSize: width == width58mm ? 5 : 7));
+      } else {
+        bytes.addAll(utf8.encode('${sanitize(line)}\n'));
+      }
+    }
+
+    // Avance de papel y corte
+    bytes.addAll([0x1B, 0x64, 0x04]);
+    bytes.addAll(cutPaperBytes);
+    return bytes;
+  }
+
+  /// Wrapper de conveniencia para imprimir comprobantes y volantes
+  static Future<PrintResult> printReceipt(
+    BuildContext context, {
+    required List<int> escPosBytes,
+    required String plainText,
+    ConfiguracionTicket? configTicket,
+  }) =>
+      imprimirTicketDirecto(
+        escPosBytes: escPosBytes,
+        receiptText: plainText,
+        config: configTicket,
+      );
 
   /// Despacha la impresión directa al hardware (vía RawBT en móvil/web, servidor local HTTP o fallback)
   static Future<PrintResult> imprimirTicketDirecto({

@@ -22,6 +22,10 @@ import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/responsive_layout.dart';
 import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
+import '../marketing/kit_marketing_barrio_modal.dart';
+import '../legal/libro_reclamaciones_screen.dart';
+import '../legal/terminos_condiciones_screen.dart';
+import '../legal/politica_privacidad_screen.dart';
 import 'pixel_perfect_navbar.dart';
 import '../clientes/clientes_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
@@ -575,9 +579,54 @@ class _HomeScreenState extends State<HomeScreen> {
                           _mostrarGuiaDidactica();
                         },
                       ),
+                      const SizedBox(height: 8),
+
+                      // 4. Kit de Marketing & Viralidad de Barrio (Exclusivo Administrador)
+                      if (_userRol == 'ADMIN') ...[
+                        _buildModalMenuTile(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          icon: LucideIcons.megaphone,
+                          iconColor: const Color(0xFFD97706),
+                          iconBg: const Color(0xFFF59E0B).withValues(
+                            alpha: 0.12,
+                          ),
+                          title: 'Viralidad & Marketing de Barrio',
+                          subtitle:
+                              'Volantes térmicos, afiche vitrina y difusión WhatsApp',
+                          onTap: () {
+                            Navigator.pop(bottomSheetContext);
+                            KitMarketingBarrioModal.show(
+                              context,
+                              nombreBodega: _nombreBodega,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // 5. Marco Legal & Reclamaciones
+                      _buildModalMenuTile(
+                        isDark: isDark,
+                        cardBg: cardBg,
+                        borderColor: borderColor,
+                        icon: LucideIcons.scale,
+                        iconColor: const Color(0xFF6366F1),
+                        iconBg: const Color(0xFF6366F1).withValues(
+                          alpha: 0.12,
+                        ),
+                        title: 'Marco Legal & Reclamaciones',
+                        subtitle:
+                            'Libro de reclamaciones INDECOPI, términos y privacidad',
+                        onTap: () {
+                          Navigator.pop(bottomSheetContext);
+                          _mostrarModalLegal();
+                        },
+                      ),
                       const SizedBox(height: 12),
 
-                      // 4. Salir de Sesión
+                      // 6. Salir de Sesión
                       InkWell(
                         onTap: () {
                           Navigator.pop(bottomSheetContext);
@@ -990,6 +1039,155 @@ class _HomeScreenState extends State<HomeScreen> {
         context.go('/login');
       }
     }
+  }
+
+  void _mostrarModalLegal() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor =
+        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: borderColor),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    LucideIcons.scale,
+                    color: Color(0xFF6366F1),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Marco Legal & Cumplimiento',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
+                      ),
+                      Text(
+                        'Transparencia, protección al consumidor y privacidad',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            _buildModalMenuTile(
+              isDark: isDark,
+              cardBg: cardBg,
+              borderColor: borderColor,
+              icon: LucideIcons.bookOpen,
+              iconColor: const Color(0xFF0D9488),
+              iconBg: const Color(0xFF0D9488).withValues(alpha: 0.12),
+              title: 'Libro de Reclamaciones Virtual',
+              subtitle:
+                  'Formulario oficial INDECOPI y seguimiento correlativo anual',
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LibroReclamacionesScreen(
+                      tiendaNombre: _nombreBodega,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+
+            _buildModalMenuTile(
+              isDark: isDark,
+              cardBg: cardBg,
+              borderColor: borderColor,
+              icon: LucideIcons.fileText,
+              iconColor: const Color(0xFF2563EB),
+              iconBg: const Color(0xFF2563EB).withValues(alpha: 0.12),
+              title: 'Términos y Condiciones del Servicio',
+              subtitle:
+                  'Ley del Bodeguero N° 30877, alcance del SaaS y responsabilidades',
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TerminosCondicionesScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+
+            _buildModalMenuTile(
+              isDark: isDark,
+              cardBg: cardBg,
+              borderColor: borderColor,
+              icon: LucideIcons.shieldCheck,
+              iconColor: const Color(0xFF16A34A),
+              iconBg: const Color(0xFF16A34A).withValues(alpha: 0.12),
+              title: 'Política de Privacidad de Datos',
+              subtitle:
+                  'Ley N° 29733, derechos ARCO y normativas de Google Play',
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PoliticaPrivacidadScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _verificarActualizacion() async {
