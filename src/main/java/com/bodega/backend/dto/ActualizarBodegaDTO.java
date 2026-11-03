@@ -30,6 +30,6 @@ public class ActualizarBodegaDTO {
     @Size(max = 500, message = "La URL del logo no puede exceder 500 caracteres")
     private String logoUrl;
 
-    @Pattern(regexp = "^$|^(NUEVO_RUS|RER|MYPE_TRIBUTARIO|REGIMEN_GENERAL)$", message = "El régimen tributario debe ser: NUEVO_RUS, RER, MYPE_TRIBUTARIO o REGIMEN_GENERAL")
+    @Pattern(regexp = "^$|^(NUEVO_RUS|INFORMAL|RER|MYPE_TRIBUTARIO|REGIMEN_GENERAL)$", message = "El régimen tributario debe ser: NUEVO_RUS o INFORMAL")
     private String regimenTributario;
 }

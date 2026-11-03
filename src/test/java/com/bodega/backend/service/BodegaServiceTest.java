@@ -1163,7 +1163,7 @@ public class BodegaServiceTest {
     }
 
     @Test
-    void testActualizarRegimenTributario_ToggleEntreRusYMype() {
+    void testActualizarRegimenTributario_ToggleEntreRusEInformal() {
         when(tenantService.getCurrentBodegaId()).thenReturn(1L);
         Bodega bodega = new Bodega();
         bodega.setIdBodega(1L);
@@ -1172,15 +1172,42 @@ public class BodegaServiceTest {
         when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
         when(bodegaRepository.save(any(Bodega.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Cambiar a MYPE Tributario (No RUS)
-        BodegaDTO dtoMype = bodegaService.actualizarRegimenTributario("MYPE_TRIBUTARIO");
-        assertEquals("MYPE_TRIBUTARIO", dtoMype.getRegimenTributario());
-        assertFalse(dtoMype.getEsNuevoRus());
+        // Cambiar a Bodega Informal (Sin RUC / Sin SUNAT)
+        BodegaDTO dtoInformal = bodegaService.actualizarRegimenTributario("INFORMAL");
+        assertEquals("INFORMAL", dtoInformal.getRegimenTributario());
+        assertFalse(dtoInformal.getEsNuevoRus());
+        assertFalse(dtoInformal.getFacturacionSunatActiva());
 
-        // Regresar a NUEVO_RUS
+        // Regresar a NUEVO_RUS (Formal)
         BodegaDTO dtoRus = bodegaService.actualizarRegimenTributario("NUEVO_RUS");
         assertEquals("NUEVO_RUS", dtoRus.getRegimenTributario());
         assertTrue(dtoRus.getEsNuevoRus());
+        assertFalse(dtoRus.getFacturacionSunatActiva());
+    }
+
+    @Test
+    void testObtenerResumenNuevoRus_BodegaInformal_SinSunat() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(1L);
+        Bodega bodega = new Bodega();
+        bodega.setIdBodega(1L);
+        bodega.setNombreComercial("Bodega La Ventanita");
+        bodega.setRegimenTributario("INFORMAL");
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+
+        when(ventaRepository.sumTotalVentasByBodegaAndRangoFechas(eq(1L), any(), any()))
+                .thenReturn(new BigDecimal("12000.00"));
+        when(compraRepository.sumTotalComprasByBodegaAndRangoFechas(eq(1L), any(), any()))
+                .thenReturn(new BigDecimal("9000.00"));
+
+        com.bodega.backend.dto.ResumenNuevoRusDTO resumen = bodegaService.obtenerResumenNuevoRus(2026, 11);
+
+        assertNotNull(resumen);
+        assertFalse(resumen.getEsNuevoRus());
+        assertEquals("INFORMAL", resumen.getCategoriaActual());
+        assertEquals(BigDecimal.ZERO, resumen.getCuotaMensualEstimada());
+        assertEquals("NEUTRO", resumen.getEstadoSemaforo());
+        assertNull(resumen.getSugerenciaPagoSunat());
+        assertNull(resumen.getAdvertencia());
     }
 }
 

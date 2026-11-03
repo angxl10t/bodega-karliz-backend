@@ -9,7 +9,7 @@ public class ConfiguracionSunatDTO {
 
     private Boolean facturacionSunatActiva;
 
-    @Pattern(regexp = "^$|^(NUEVO_RUS|RER|MYPE_TRIBUTARIO|REGIMEN_GENERAL)$", message = "El régimen tributario debe ser: NUEVO_RUS, RER, MYPE_TRIBUTARIO o REGIMEN_GENERAL")
+    @Pattern(regexp = "^$|^(NUEVO_RUS|INFORMAL|RER|MYPE_TRIBUTARIO|REGIMEN_GENERAL)$", message = "El régimen tributario debe ser: NUEVO_RUS o INFORMAL")
     private String regimenTributario;
 
     @Size(max = 50, message = "El proveedor no puede exceder 50 caracteres")

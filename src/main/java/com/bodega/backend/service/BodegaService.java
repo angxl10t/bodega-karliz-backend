@@ -2385,6 +2385,35 @@ public class BodegaService {
         BigDecimal limite1 = new BigDecimal("5000.00");
         BigDecimal limite2 = new BigDecimal("8000.00");
 
+        String[] mesesNombres = {"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"};
+        String periodoNombre = mesesNombres[mes] + " " + anio;
+
+        if (!esRus) {
+            return ResumenNuevoRusDTO.builder()
+                    .anio(anio)
+                    .mes(mes)
+                    .periodoNombre(periodoNombre)
+                    .esNuevoRus(false)
+                    .regimenTributario("INFORMAL")
+                    .totalVentasMes(ventas.setScale(2, RoundingMode.HALF_UP))
+                    .totalComprasMes(compras.setScale(2, RoundingMode.HALF_UP))
+                    .montoDeterminante(montoDet.setScale(2, RoundingMode.HALF_UP))
+                    .categoriaActual("INFORMAL")
+                    .categoriaNombre("Bodega Independiente (Sin RUC / Sin SUNAT)")
+                    .cuotaMensualEstimada(BigDecimal.ZERO)
+                    .limiteCat1(limite1)
+                    .limiteCat2(limite2)
+                    .restanteCat1(BigDecimal.ZERO)
+                    .restanteCat2(BigDecimal.ZERO)
+                    .porcentajeCat1(0.0)
+                    .porcentajeCat2(0.0)
+                    .estadoSemaforo("NEUTRO")
+                    .mensajeDiagnostico("Tu bodega opera en modo libre (sin RUC ni SUNAT). No tienes cuotas que pagar a SUNAT ni topes mensuales que cuidar. Tu sistema está enfocado al 100% en cuidar tu caja, tus compras y tu ganancia.")
+                    .advertencia(null)
+                    .sugerenciaPagoSunat(null)
+                    .build();
+        }
+
         String categoria;
         String catNombre;
         BigDecimal cuota;
@@ -2431,9 +2460,6 @@ public class BodegaService {
         double pct1 = Math.min(100.0, montoDet.multiply(new BigDecimal("100")).divide(limite1, 2, RoundingMode.HALF_UP).doubleValue());
         double pct2 = Math.min(100.0, montoDet.multiply(new BigDecimal("100")).divide(limite2, 2, RoundingMode.HALF_UP).doubleValue());
 
-        String[] mesesNombres = {"", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Setiembre", "Octubre", "Noviembre", "Diciembre"};
-        String periodoNombre = mesesNombres[mes] + " " + anio;
-
         String sugerencia = "Paga tu cuota en agentes BCP, BBVA, Interbank, Banco de la Nación o App SUNAT con la 'Guía Pago Fácil Nuevo RUS' (Formulario 1611) usando tu RUC y periodo " + String.format("%02d/%d", mes, anio) + ".";
 
         return ResumenNuevoRusDTO.builder()
@@ -2472,17 +2498,21 @@ public class BodegaService {
                         org.springframework.http.HttpStatus.NOT_FOUND, "Bodega no encontrada"));
 
         String regNormalizado = (regimen != null && !regimen.isBlank()) ? regimen.trim().toUpperCase() : "NUEVO_RUS";
-        if (!regNormalizado.equals("NUEVO_RUS") && !regNormalizado.equals("MYPE_TRIBUTARIO") &&
-            !regNormalizado.equals("REGIMEN_GENERAL") && !regNormalizado.equals("RER")) {
+        if (!regNormalizado.equals("NUEVO_RUS") && !regNormalizado.equals("INFORMAL") &&
+            !regNormalizado.equals("MYPE_TRIBUTARIO") && !regNormalizado.equals("REGIMEN_GENERAL") && !regNormalizado.equals("RER")) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST,
-                    "Régimen inválido: debe ser NUEVO_RUS, MYPE_TRIBUTARIO, REGIMEN_GENERAL o RER");
+                    "Régimen inválido: debe ser NUEVO_RUS o INFORMAL");
+        }
+
+        // Si se recibe un régimen fuera del Nuevo RUS, se asigna INFORMAL (bodega sin RUC / sin SUNAT)
+        if (!"NUEVO_RUS".equals(regNormalizado)) {
+            regNormalizado = "INFORMAL";
         }
 
         bodega.setRegimenTributario(regNormalizado);
-        if ("NUEVO_RUS".equalsIgnoreCase(regNormalizado)) {
-            bodega.setFacturacionSunatActiva(false);
-        }
+        // En ningún caso se activa facturación electrónica SUNAT ni OSE
+        bodega.setFacturacionSunatActiva(false);
         Bodega guardada = bodegaRepository.save(bodega);
         return mapToDTO(guardada);
     }
