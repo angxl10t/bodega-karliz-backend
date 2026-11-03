@@ -1,11 +1,14 @@
 package com.bodega.backend.controller;
 
+import com.bodega.backend.dto.PedidoWebCreacionDTO;
+import com.bodega.backend.dto.PedidoWebDTO;
 import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.Producto;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import com.bodega.backend.repository.PromocionRepository;
+import com.bodega.backend.service.PedidoWebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +37,9 @@ class CatalogoPublicoControllerTest {
 
     @Mock
     private PromocionRepository promocionRepository;
+
+    @Mock
+    private PedidoWebService pedidoWebService;
 
     @InjectMocks
     private CatalogoPublicoController controller;
@@ -151,5 +157,28 @@ class CatalogoPublicoControllerTest {
         assertEquals("Bodega no encontrada", body.get("error"));
         assertFalse((Boolean) body.get("esPro"));
         verify(productoRepository, never()).findByBodega_IdBodegaAndEstadoTrue(anyLong());
+    }
+
+    @Test
+    void testRegistrarPedidoPublicoExitoso() {
+        when(bodegaRepository.findFirstByOrderByIdBodegaAsc()).thenReturn(Optional.of(bodegaPro));
+        PedidoWebCreacionDTO dto = PedidoWebCreacionDTO.builder()
+                .nombreCliente("Carlos Gómez")
+                .total(new BigDecimal("10.50"))
+                .build();
+        PedidoWebDTO mockRet = PedidoWebDTO.builder()
+                .idPedidoWeb(1L)
+                .codigoPedido("#W-1234")
+                .nombreCliente("Carlos Gómez")
+                .total(new BigDecimal("10.50"))
+                .estado("PENDIENTE")
+                .build();
+        when(pedidoWebService.registrarPedidoWebPublico(eq(bodegaPro), any(PedidoWebCreacionDTO.class))).thenReturn(mockRet);
+
+        ResponseEntity<?> resp = controller.registrarPedidoPublicoParam(null, dto);
+        assertEquals(201, resp.getStatusCode().value());
+        assertTrue(resp.getBody() instanceof PedidoWebDTO);
+        PedidoWebDTO resDto = (PedidoWebDTO) resp.getBody();
+        assertEquals("#W-1234", resDto.getCodigoPedido());
     }
 }

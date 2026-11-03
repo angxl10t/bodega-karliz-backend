@@ -6,6 +6,9 @@ import com.bodega.backend.entity.Promocion;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.ProductoRepository;
 import com.bodega.backend.repository.PromocionRepository;
+import com.bodega.backend.dto.PedidoWebCreacionDTO;
+import com.bodega.backend.dto.PedidoWebDTO;
+import com.bodega.backend.service.PedidoWebService;
 import com.bodega.backend.util.MarcaDetectorUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +26,7 @@ public class CatalogoPublicoController {
     private final BodegaRepository bodegaRepository;
     private final ProductoRepository productoRepository;
     private final PromocionRepository promocionRepository;
+    private final PedidoWebService pedidoWebService;
 
     private static final long PROMO_CACHE_TTL_MS = 60_000L;
     private final java.util.concurrent.ConcurrentHashMap<Long, CachedPromosEntry> promosCache = new java.util.concurrent.ConcurrentHashMap<>();
@@ -41,10 +45,12 @@ public class CatalogoPublicoController {
 
     public CatalogoPublicoController(BodegaRepository bodegaRepository,
                                     ProductoRepository productoRepository,
-                                    PromocionRepository promocionRepository) {
+                                    PromocionRepository promocionRepository,
+                                    PedidoWebService pedidoWebService) {
         this.bodegaRepository = bodegaRepository;
         this.productoRepository = productoRepository;
         this.promocionRepository = promocionRepository;
+        this.pedidoWebService = pedidoWebService;
     }
 
     @GetMapping
@@ -55,6 +61,28 @@ public class CatalogoPublicoController {
     @GetMapping("/{slugOrId}")
     public ResponseEntity<Map<String, Object>> obtenerCatalogoPorPath(@PathVariable String slugOrId) {
         return responderCatalogo(slugOrId);
+    }
+
+    @PostMapping("/{slugOrId}/pedidos")
+    public ResponseEntity<?> registrarPedidoPublico(@PathVariable String slugOrId,
+                                                    @RequestBody PedidoWebCreacionDTO dto) {
+        Bodega bodega = resolverBodega(slugOrId);
+        if (bodega == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Bodega no encontrada"));
+        }
+        PedidoWebDTO pedido = pedidoWebService.registrarPedidoWebPublico(bodega, dto);
+        return ResponseEntity.status(201).body(pedido);
+    }
+
+    @PostMapping("/pedidos")
+    public ResponseEntity<?> registrarPedidoPublicoParam(@RequestParam(required = false) String tienda,
+                                                         @RequestBody PedidoWebCreacionDTO dto) {
+        Bodega bodega = resolverBodega(tienda);
+        if (bodega == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "Bodega no encontrada"));
+        }
+        PedidoWebDTO pedido = pedidoWebService.registrarPedidoWebPublico(bodega, dto);
+        return ResponseEntity.status(201).body(pedido);
     }
 
     private ResponseEntity<Map<String, Object>> responderCatalogo(String identificador) {
