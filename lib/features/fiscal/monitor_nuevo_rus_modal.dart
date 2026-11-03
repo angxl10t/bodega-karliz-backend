@@ -4,6 +4,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme.dart';
 import '../home/bodega_service.dart';
+import 'boleta_consolidada_modal.dart';
+import 'boleta_consolidada_service.dart';
 
 class MonitorNuevoRusModal extends StatefulWidget {
   final VoidCallback? onRegimenCambiado;
@@ -30,11 +32,13 @@ class MonitorNuevoRusModal extends StatefulWidget {
 
 class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
   final BodegaService _bodegaService = BodegaService();
+  final BoletaConsolidadaService _boletaService = BoletaConsolidadaService();
 
   bool _isLoading = true;
   bool _isSaving = false;
   BodegaInfo? _bodegaInfo;
   ResumenNuevoRus? _resumenRus;
+  ResumenVentasMenores? _resumenBoletaConsolidada;
   String? _errorMessage;
 
   @override
@@ -53,10 +57,16 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
       final bodega = await _bodegaService.obtenerMiBodega();
       final resumen = await _bodegaService.obtenerMonitorNuevoRus();
 
+      ResumenVentasMenores? resumenBoleta;
+      try {
+        resumenBoleta = await _boletaService.obtenerSugerencia();
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
           _bodegaInfo = bodega;
           _resumenRus = resumen;
+          _resumenBoletaConsolidada = resumenBoleta;
           _isLoading = false;
         });
       }
@@ -260,6 +270,12 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                                   cardBg: cardBg,
                                   borderColor: borderColor,
                                   resumen: _resumenRus!,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildCardBoletaConsolidada(
+                                  isDark: isDark,
+                                  cardBg: cardBg,
+                                  borderColor: borderColor,
                                 ),
                                 const SizedBox(height: 16),
 
@@ -833,6 +849,128 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tarjeta de Boleta Consolidada Diaria (Ventas <= S/ 5.00)
+  Widget _buildCardBoletaConsolidada({
+    required bool isDark,
+    required Color cardBg,
+    required Color borderColor,
+  }) {
+    final resumen = _resumenBoletaConsolidada;
+    final yaRegistrada = resumen?.yaRegistrada == true;
+    final opsSugeridas = resumen?.cantidadOperacionesSugeridas ?? 0;
+    final montoSugerido = resumen?.montoSugerido ?? 0.0;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: yaRegistrada
+              ? AppTheme.accentGreen.withValues(alpha: 0.35)
+              : Colors.amber.shade700.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade700)
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  yaRegistrada ? LucideIcons.fileCheck2 : LucideIcons.receiptText,
+                  size: 20,
+                  color: yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade800,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Boleta Consolidada Diaria',
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Ventas <= S/ 5.00 sin comprobante individual',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: (yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade700)
+                      .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  yaRegistrada ? 'REGISTRADA' : 'PENDIENTE',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            yaRegistrada
+                ? 'Ya registraste la boleta consolidada de hoy (${resumen!.serieCorrelativo}) por un total de S/ ${resumen.montoRegistrado?.toStringAsFixed(2)} (${resumen.cantidadOperacionesRegistradas} ventas).'
+                : 'Hoy tienes $opsSugeridas ventas menores o iguales a S/ 5.00 sumando S/ ${montoSugerido.toStringAsFixed(2)}. La normativa SUNAT exige consolidarlas en una sola boleta al final del día.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: yaRegistrada ? const Color(0xFF1E293B) : AppTheme.brandPrimary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
+              ),
+              icon: Icon(yaRegistrada ? LucideIcons.externalLink : LucideIcons.plusCircle, size: 16),
+              label: Text(
+                yaRegistrada ? 'Ver / Modificar Boleta Consolidada' : 'Registrar Boleta Consolidada de Hoy',
+                style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700),
+              ),
+              onPressed: () {
+                BoletaConsolidadaModal.show(
+                  context,
+                  onRegistrado: _cargarDatos,
+                );
+              },
             ),
           ),
         ],

@@ -719,6 +719,204 @@ class ThermalTicketService {
     return bytes;
   }
 
+  /// Genera el texto monoespaciado para la Boleta Consolidada Diaria del Nuevo RUS
+  /// conforme al Art. 8 num 3.2 de la Res. de Superintendencia N° 007-99/SUNAT y Ley 30877.
+  static String generateBoletaConsolidadaText({
+    required String serieCorrelativo,
+    required DateTime fechaEmision,
+    required double montoTotal,
+    required int cantidadOperaciones,
+    String tipoEmision = 'TALONARIO_FISICO',
+    String? observaciones,
+    String? cajero,
+    DateTime? fechaRegistro,
+    int width = width58mm,
+    String nombreComercio = 'CajaYa POS',
+    String? rucDni,
+    String? direccion = 'Av. Principal 123 - Lima',
+    String? telefono = 'Tel: 987 654 321',
+    String? lemaComercial,
+  }) {
+    final buffer = StringBuffer();
+    final d = fechaEmision;
+    final fechaStr =
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    final reg = fechaRegistro ?? DateTime.now();
+    final regStr =
+        '${reg.day.toString().padLeft(2, '0')}/${reg.month.toString().padLeft(2, '0')}/${reg.year} ${reg.hour.toString().padLeft(2, '0')}:${reg.minute.toString().padLeft(2, '0')}';
+
+    // 1. Datos del Comercio
+    if (nombreComercio.isNotEmpty) {
+      buffer.writeln(center(nombreComercio.toUpperCase(), width));
+    }
+    if (lemaComercial != null && lemaComercial.isNotEmpty) {
+      buffer.writeln(center('"$lemaComercial"', width));
+    }
+    if (rucDni != null && rucDni.isNotEmpty) {
+      buffer.writeln(center('RUC: $rucDni', width));
+    }
+    buffer.writeln(center('Regimen: NUEVO RUS (Ley 30877)', width));
+    if (direccion != null && direccion.isNotEmpty) {
+      buffer.writeln(center(direccion, width));
+    }
+    if (telefono != null && telefono.isNotEmpty) {
+      buffer.writeln(center(telefono, width));
+    }
+
+    buffer.writeln(divider(width, '='));
+    buffer.writeln(center('BOLETA DE VENTA CONSOLIDADA', width));
+    buffer.writeln(center('VENTAS MENORES A S/ 5.00', width));
+    buffer.writeln(center('Res. SUNAT 007-99 Art. 8.3.2', width));
+    buffer.writeln(divider(width, '='));
+
+    buffer.writeln(twoColumns('BOLETA N°:', serieCorrelativo, width));
+    buffer.writeln(twoColumns('FECHA VENTAS:', fechaStr, width));
+    buffer.writeln(twoColumns(
+      'TIPO EMISION:',
+      tipoEmision == 'TALONARIO_FISICO' ? 'Talonario Fisico' : 'Digital CajaYa',
+      width,
+    ));
+    if (cajero != null && cajero.isNotEmpty) {
+      buffer.writeln(twoColumns('REGISTRADO POR:', cajero, width));
+    }
+    buffer.writeln(twoColumns('FECHA REGISTRO:', regStr, width));
+    buffer.writeln(divider(width, '-'));
+
+    buffer.writeln(twoColumns('OPERACIONES:', '$cantidadOperaciones ventas', width));
+    buffer.writeln(twoColumns('TOPE UNITARIO:', '<= S/ 5.00 c/u', width));
+    buffer.writeln(divider(width, '-'));
+    buffer.writeln(twoColumns('TOTAL CONSOLIDADO:', 'S/ ${montoTotal.toStringAsFixed(2)}', width));
+    buffer.writeln(divider(width, '='));
+
+    if (observaciones != null && observaciones.isNotEmpty) {
+      buffer.writeln('NOTAS: $observaciones');
+      buffer.writeln(divider(width, '-'));
+    }
+
+    buffer.writeln(center('Comprobante diario de consolidacion', width));
+    buffer.writeln(center('emitido conforme a normativa de SUNAT.', width));
+    buffer.writeln(center('Valido para sustento fiscal en Nuevo RUS.', width));
+    buffer.writeln(divider(width, '='));
+
+    return buffer.toString();
+  }
+
+  /// Genera los bytes ESC/POS para la Boleta Consolidada Diaria
+  static List<int> generateBoletaConsolidadaEscPosBytes({
+    required String serieCorrelativo,
+    required DateTime fechaEmision,
+    required double montoTotal,
+    required int cantidadOperaciones,
+    String tipoEmision = 'TALONARIO_FISICO',
+    String? observaciones,
+    String? cajero,
+    DateTime? fechaRegistro,
+    String nombreComercio = 'CajaYa POS',
+    String? rucDni,
+    String? direccion = 'Av. Principal 123 - Lima',
+    String? telefono = 'Tel: 987 654 321',
+    String? lemaComercial,
+    ConfiguracionTicket? configTicket,
+  }) {
+    final cfg = configTicket ?? ConfiguracionTicketService.actual;
+    final text = generateBoletaConsolidadaText(
+      serieCorrelativo: serieCorrelativo,
+      fechaEmision: fechaEmision,
+      montoTotal: montoTotal,
+      cantidadOperaciones: cantidadOperaciones,
+      tipoEmision: tipoEmision,
+      observaciones: observaciones,
+      cajero: cajero,
+      fechaRegistro: fechaRegistro,
+      width: cfg.anchoPapel,
+      nombreComercio: nombreComercio,
+      rucDni: rucDni,
+      direccion: direccion,
+      telefono: telefono,
+      lemaComercial: lemaComercial,
+    );
+
+    final List<int> bytes = [];
+
+    // 1. Apertura de gaveta de dinero si está configurado
+    if (cfg.abrirGaveta) {
+      bytes.addAll(openDrawerBytes);
+    }
+
+    // 2. Inicializar impresora (ESC @)
+    bytes.addAll([0x1B, 0x40]);
+
+    // 3. Contenido en alineación izquierda
+    bytes.addAll([0x1B, 0x61, 0x00]);
+    bytes.addAll(utf8.encode(text));
+
+    // 4. Avance de 4 líneas de papel (ESC d 4)
+    bytes.addAll([0x1B, 0x64, 0x04]);
+
+    // 5. Corte de papel parcial / total
+    bytes.addAll(cutPaperBytes);
+    return bytes;
+  }
+
+  /// Imprime directamente el comprobante de respaldo de Boleta Consolidada Diaria
+  static Future<PrintResult> imprimirBoletaConsolidada({
+    required String serieCorrelativo,
+    required DateTime fechaEmision,
+    required double montoTotal,
+    required int cantidadOperaciones,
+    String tipoEmision = 'TALONARIO_FISICO',
+    String? observaciones,
+    String? cajero,
+    DateTime? fechaRegistro,
+    String nombreComercio = 'CajaYa POS',
+    String? rucDni,
+    String? direccion,
+    String? telefono,
+    String? lemaComercial,
+    ConfiguracionTicket? configTicket,
+  }) async {
+    final cfg = configTicket ?? ConfiguracionTicketService.actual;
+    final plainText = generateBoletaConsolidadaText(
+      serieCorrelativo: serieCorrelativo,
+      fechaEmision: fechaEmision,
+      montoTotal: montoTotal,
+      cantidadOperaciones: cantidadOperaciones,
+      tipoEmision: tipoEmision,
+      observaciones: observaciones,
+      cajero: cajero,
+      fechaRegistro: fechaRegistro,
+      width: cfg.anchoPapel,
+      nombreComercio: nombreComercio,
+      rucDni: rucDni,
+      direccion: direccion,
+      telefono: telefono,
+      lemaComercial: lemaComercial,
+    );
+
+    final escPosBytes = generateBoletaConsolidadaEscPosBytes(
+      serieCorrelativo: serieCorrelativo,
+      fechaEmision: fechaEmision,
+      montoTotal: montoTotal,
+      cantidadOperaciones: cantidadOperaciones,
+      tipoEmision: tipoEmision,
+      observaciones: observaciones,
+      cajero: cajero,
+      fechaRegistro: fechaRegistro,
+      configTicket: cfg,
+      nombreComercio: nombreComercio,
+      rucDni: rucDni,
+      direccion: direccion,
+      telefono: telefono,
+      lemaComercial: lemaComercial,
+    );
+
+    return imprimirTicketDirecto(
+      escPosBytes: escPosBytes,
+      receiptText: plainText,
+      config: cfg,
+    );
+  }
+
   /// Wrapper de conveniencia para imprimir comprobantes y volantes
   static Future<PrintResult> printReceipt(
     BuildContext context, {
