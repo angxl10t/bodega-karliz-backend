@@ -17,6 +17,7 @@ class BodegaInfo {
   final String? fechaVencimientoPlan;
   final bool facturacionSunatActiva;
   final String regimenTributario;
+  final bool esNuevoRus;
   final String? sunatProveedor;
   final String? sunatRucEmisor;
   final String? sunatUsuarioSol;
@@ -40,6 +41,7 @@ class BodegaInfo {
     this.fechaVencimientoPlan,
     this.facturacionSunatActiva = false,
     this.regimenTributario = 'NUEVO_RUS',
+    bool? esNuevoRus,
     this.sunatProveedor,
     this.sunatRucEmisor,
     this.sunatUsuarioSol,
@@ -48,9 +50,11 @@ class BodegaInfo {
     this.limiteProductos,
     this.totalProductosActivos,
     this.limiteAlcanzado = false,
-  });
+  }) : esNuevoRus = esNuevoRus ?? (regimenTributario == 'NUEVO_RUS');
 
   factory BodegaInfo.fromJson(Map<String, dynamic> json) {
+    final reg = json['regimenTributario'] as String? ?? 'NUEVO_RUS';
+    final isRus = json['esNuevoRus'] == true || reg == 'NUEVO_RUS';
     return BodegaInfo(
       idBodega: json['idBodega'] is int
           ? json['idBodega']
@@ -66,7 +70,8 @@ class BodegaInfo {
       estado: json['estado'] == true,
       fechaVencimientoPlan: json['fechaVencimientoPlan'],
       facturacionSunatActiva: json['facturacionSunatActiva'] == true,
-      regimenTributario: json['regimenTributario'] as String? ?? 'NUEVO_RUS',
+      regimenTributario: reg,
+      esNuevoRus: isRus,
       sunatProveedor: json['sunatProveedor'],
       sunatRucEmisor: json['sunatRucEmisor'],
       sunatUsuarioSol: json['sunatUsuarioSol'],
@@ -442,6 +447,130 @@ class BodegaService {
       );
       throw Exception(errorMsg);
     }
+  }
+
+  /// Obtiene el monitor y semáforo fiscal del Nuevo RUS (ventas y compras del mes vs límites S/ 5,000 y S/ 8,000)
+  Future<ResumenNuevoRus?> obtenerMonitorNuevoRus({int? anio, int? mes}) async {
+    try {
+      final queryParams = <String, String>{};
+      if (anio != null) queryParams['anio'] = anio.toString();
+      if (mes != null) queryParams['mes'] = mes.toString();
+      final uri = Uri(
+        path: '/bodegas/nuevo-rus/monitor',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      ).toString();
+
+      final response = await _client.get(uri);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        return ResumenNuevoRus.fromJson(data);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Actualiza el régimen tributario de la bodega ('NUEVO_RUS' o 'MYPE_TRIBUTARIO' / 'REGIMEN_GENERAL')
+  Future<BodegaInfo> actualizarRegimenTributario(String regimen) async {
+    final response = await _client.put(
+      '/bodegas/regimen-tributario?regimen=$regimen',
+      {},
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      final info = BodegaInfo.fromJson(data);
+      await SecureStorageService.write(
+        'regimen_tributario',
+        info.regimenTributario,
+      );
+      return info;
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo actualizar el régimen tributario',
+    );
+    throw Exception(errorMsg);
+  }
+}
+
+class ResumenNuevoRus {
+  final int anio;
+  final int mes;
+  final String periodoNombre;
+  final bool esNuevoRus;
+  final String regimenTributario;
+  final double totalVentasMes;
+  final double totalComprasMes;
+  final double montoDeterminante;
+  final String categoriaActual;
+  final String categoriaNombre;
+  final double cuotaMensualEstimada;
+  final double limiteCat1;
+  final double limiteCat2;
+  final double restanteCat1;
+  final double restanteCat2;
+  final double porcentajeCat1;
+  final double porcentajeCat2;
+  final String estadoSemaforo;
+  final String mensajeDiagnostico;
+  final String? advertencia;
+  final String? sugerenciaPagoSunat;
+
+  ResumenNuevoRus({
+    required this.anio,
+    required this.mes,
+    required this.periodoNombre,
+    required this.esNuevoRus,
+    required this.regimenTributario,
+    required this.totalVentasMes,
+    required this.totalComprasMes,
+    required this.montoDeterminante,
+    required this.categoriaActual,
+    required this.categoriaNombre,
+    required this.cuotaMensualEstimada,
+    required this.limiteCat1,
+    required this.limiteCat2,
+    required this.restanteCat1,
+    required this.restanteCat2,
+    required this.porcentajeCat1,
+    required this.porcentajeCat2,
+    required this.estadoSemaforo,
+    required this.mensajeDiagnostico,
+    this.advertencia,
+    this.sugerenciaPagoSunat,
+  });
+
+  factory ResumenNuevoRus.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic val) {
+      if (val == null) return 0.0;
+      if (val is num) return val.toDouble();
+      return double.tryParse(val.toString()) ?? 0.0;
+    }
+
+    return ResumenNuevoRus(
+      anio: json['anio'] as int? ?? DateTime.now().year,
+      mes: json['mes'] as int? ?? DateTime.now().month,
+      periodoNombre: json['periodoNombre'] ?? '',
+      esNuevoRus: json['esNuevoRus'] == true,
+      regimenTributario: json['regimenTributario'] ?? 'NUEVO_RUS',
+      totalVentasMes: parseDouble(json['totalVentasMes']),
+      totalComprasMes: parseDouble(json['totalComprasMes']),
+      montoDeterminante: parseDouble(json['montoDeterminante']),
+      categoriaActual: json['categoriaActual'] ?? 'CATEGORIA_1',
+      categoriaNombre: json['categoriaNombre'] ?? 'Categoría 1',
+      cuotaMensualEstimada: parseDouble(json['cuotaMensualEstimada']),
+      limiteCat1: parseDouble(json['limiteCat1'] ?? 5000),
+      limiteCat2: parseDouble(json['limiteCat2'] ?? 8000),
+      restanteCat1: parseDouble(json['restanteCat1']),
+      restanteCat2: parseDouble(json['restanteCat2']),
+      porcentajeCat1: parseDouble(json['porcentajeCat1']),
+      porcentajeCat2: parseDouble(json['porcentajeCat2']),
+      estadoSemaforo: json['estadoSemaforo'] ?? 'VERDE',
+      mensajeDiagnostico: json['mensajeDiagnostico'] ?? '',
+      advertencia: json['advertencia'],
+      sugerenciaPagoSunat: json['sugerenciaPagoSunat'],
+    );
   }
 }
 

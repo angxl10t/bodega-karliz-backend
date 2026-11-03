@@ -23,6 +23,7 @@ import '../../core/responsive_layout.dart';
 import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
 import '../marketing/kit_marketing_barrio_modal.dart';
+import '../fiscal/monitor_nuevo_rus_modal.dart';
 import '../legal/libro_reclamaciones_screen.dart';
 import '../legal/terminos_condiciones_screen.dart';
 import '../legal/politica_privacidad_screen.dart';
@@ -606,7 +607,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 8),
                       ],
 
-                      // 5. Marco Legal & Reclamaciones
+                      // 5. Frente Fiscal & Monitor Nuevo RUS (Exclusivo Administrador)
+                      if (_userRol == 'ADMIN') ...[
+                        _buildModalMenuTile(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          icon: LucideIcons.landmark,
+                          iconColor: const Color(0xFF0284C7),
+                          iconBg: const Color(0xFF0284C7).withValues(
+                            alpha: 0.12,
+                          ),
+                          title: 'Frente Fiscal: Monitor Nuevo RUS',
+                          subtitle:
+                              'Topes de S/ 5,000 / S/ 8,000, cuota SUNAT y régimen',
+                          onTap: () {
+                            Navigator.pop(bottomSheetContext);
+                            MonitorNuevoRusModal.show(
+                              context,
+                              onRegimenCambiado: _cargarDatosUsuario,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // 6. Marco Legal & Reclamaciones
                       _buildModalMenuTile(
                         isDark: isDark,
                         cardBg: cardBg,

@@ -33,6 +33,7 @@ import '../../core/offline/offline_status_bar.dart';
 import '../../core/offline/uuid_helper.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../home/configuracion_ticket_modal.dart';
+import '../fiscal/monitor_nuevo_rus_modal.dart';
 import '../promociones/promocion_model.dart';
 import '../promociones/promocion_service.dart';
 import '../catalogo/pedido_web_service.dart';
@@ -6967,6 +6968,58 @@ class _VentasScreenState extends State<VentasScreen> {
                 : () {
                     _vaciarCarrito();
                   },
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              MonitorNuevoRusModal.show(
+                context,
+                onRegimenCambiado: _cargarConfiguracionTributaria,
+              );
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: _regimenTributario == 'NUEVO_RUS'
+                    ? AppTheme.accentGreen.withValues(alpha: 0.12)
+                    : const Color(0xFF2563EB).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _regimenTributario == 'NUEVO_RUS'
+                      ? AppTheme.accentGreen.withValues(alpha: 0.35)
+                      : const Color(0xFF2563EB).withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _regimenTributario == 'NUEVO_RUS'
+                        ? LucideIcons.store
+                        : LucideIcons.building2,
+                    size: 13,
+                    color: _regimenTributario == 'NUEVO_RUS'
+                        ? AppTheme.accentGreen
+                        : const Color(0xFF2563EB),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _regimenTributario == 'NUEVO_RUS'
+                        ? 'NUEVO RUS'
+                        : 'MYPE',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: _regimenTributario == 'NUEVO_RUS'
+                          ? AppTheme.accentGreen
+                          : const Color(0xFF2563EB),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
