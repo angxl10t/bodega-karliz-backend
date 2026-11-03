@@ -89,6 +89,27 @@ class CatalogoPublicoControllerTest {
     }
 
     @Test
+    void testCatalogoBodegaProOcultaProductosSinStock() {
+        Producto prodAgotado = new Producto();
+        prodAgotado.setIdProducto(102L);
+        prodAgotado.setNombre("Galletas Oreo");
+        prodAgotado.setStockActual(BigDecimal.ZERO);
+        prodAgotado.setEstado(true);
+
+        when(bodegaRepository.findFirstByOrderByIdBodegaAsc()).thenReturn(Optional.of(bodegaPro));
+        when(productoRepository.findByBodega_IdBodegaAndEstadoTrue(1L)).thenReturn(List.of(prod1, prodAgotado));
+
+        ResponseEntity<Map<String, Object>> response = controller.obtenerCatalogoPorParam(null);
+
+        assertEquals(200, response.getStatusCode().value());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals(1, body.get("totalProductos"));
+        List<?> prods = (List<?>) body.get("productos");
+        assertEquals(1, prods.size());
+    }
+
+    @Test
     void testCatalogoBodegaBasicoBloqueaProductos() {
         when(bodegaRepository.findByEstadoTrueOrderByNombreComercialAsc()).thenReturn(List.of(bodegaBasico));
 

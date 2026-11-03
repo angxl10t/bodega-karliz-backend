@@ -129,9 +129,25 @@ public class CompraService {
             detalle.setBodega(tenantService.getCurrentBodega() != null ? tenantService.getCurrentBodega() : producto.getBodega());
             detallesGuardados.add(detalle);
 
-            // 3. Actualizar Stock del Producto
+            // 3. Actualizar Stock y Costo Promedio Ponderado (CPP) del Producto
             BigDecimal stockPrevio = (producto.getStockActual() != null ? producto.getStockActual() : BigDecimal.ZERO);
-            producto.setStockActual(stockPrevio.add(cantidadTotal));
+            BigDecimal nuevoStock = stockPrevio.add(cantidadTotal);
+            producto.setStockActual(nuevoStock);
+
+            BigDecimal costoPrevio = (producto.getPrecioCosto() != null && producto.getPrecioCosto().compareTo(BigDecimal.ZERO) > 0)
+                    ? producto.getPrecioCosto()
+                    : precioUnitario;
+
+            BigDecimal nuevoCostoPromedio;
+            if (stockPrevio.compareTo(BigDecimal.ZERO) > 0 && nuevoStock.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal valorInventarioPrevio = stockPrevio.multiply(costoPrevio);
+                BigDecimal valorNuevaCompra = cantidadTotal.multiply(precioUnitario);
+                nuevoCostoPromedio = valorInventarioPrevio.add(valorNuevaCompra)
+                        .divide(nuevoStock, 2, java.math.RoundingMode.HALF_UP);
+            } else {
+                nuevoCostoPromedio = precioUnitario;
+            }
+            producto.setPrecioCosto(nuevoCostoPromedio);
             productoRepository.save(producto);
 
             // 4. Registrar en el Kardex (Movimiento Inventario) con protección de longitud VARCHAR(255)

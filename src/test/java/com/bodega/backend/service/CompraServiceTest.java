@@ -172,6 +172,54 @@ public class CompraServiceTest {
     }
 
     @Test
+    void testRegistrarCompra_CalculaCostoPromedioPonderadoExacto() {
+        Bodega bodega = new Bodega();
+        bodega.setIdBodega(1L);
+
+        Proveedor prov = new Proveedor();
+        prov.setIdProveedor(10L);
+        prov.setRazonSocial("Distribuidora Lima");
+        prov.setEstado(true);
+
+        Producto prod = new Producto();
+        prod.setIdProducto(20L);
+        prod.setNombre("Aceite Primor 1L");
+        prod.setStockActual(new BigDecimal("10.000")); // 10 unidades
+        prod.setPrecioCosto(new BigDecimal("4.00"));   // a S/ 4.00 (Total previo = S/ 40.00)
+        prod.setEstado(true);
+        prod.setBodega(bodega);
+
+        CompraDetalleDTO item = new CompraDetalleDTO();
+        item.setIdProducto(20L);
+        item.setCantidad(new BigDecimal("10.000")); // ingresan 10 unidades
+        item.setPrecioUnitario(new BigDecimal("6.00")); // a S/ 6.00 (Total nuevo = S/ 60.00)
+
+        CompraDTO dto = new CompraDTO();
+        dto.setIdProveedor(10L);
+        dto.setComprobante("F001-123456");
+        dto.setDetalles(List.of(item));
+
+        when(proveedorRepository.findByIdProveedorAndBodega_IdBodega(10L, 1L)).thenReturn(Optional.of(prov));
+        when(tenantService.getCurrentBodega()).thenReturn(bodega);
+        when(compraRepository.existsByBodega_IdBodegaAndProveedor_IdProveedorAndComprobanteIgnoreCase(1L, 10L, "F001-123456"))
+                .thenReturn(false);
+        when(productoRepository.findByIdForUpdateAndBodega(20L, 1L)).thenReturn(Optional.of(prod));
+        when(compraRepository.save(any(Compra.class))).thenAnswer(i -> {
+            Compra c = i.getArgument(0);
+            c.setIdCompra(101L);
+            return c;
+        });
+
+        CompraDTO resultado = compraService.registrarCompra(dto);
+
+        assertNotNull(resultado);
+        // Stock final: 10 + 10 = 20
+        assertEquals(new BigDecimal("20.000"), prod.getStockActual());
+        // Costo Promedio Ponderado: (10*4 + 10*6) / 20 = 100 / 20 = S/ 5.00
+        assertEquals(new BigDecimal("5.00"), prod.getPrecioCosto());
+    }
+
+    @Test
     void testListarTodas_RetornaComprasConDetallesBatch() {
         Bodega bodega = new Bodega();
         bodega.setIdBodega(1L);

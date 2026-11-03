@@ -101,8 +101,10 @@ public class CatalogoPublicoController {
             return ResponseEntity.ok(response);
         }
 
-        // Cargar productos de la bodega
-        List<Producto> productos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega());
+        // Cargar productos de la bodega con stock disponible (ocultamiento automático de agotados en web)
+        List<Producto> productos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega()).stream()
+                .filter(p -> p.getStockActual() != null && p.getStockActual().compareTo(BigDecimal.ZERO) > 0)
+                .collect(Collectors.toList());
 
         // Cargar promociones activas individuales de esta bodega respetando fechas de inicio y fin (con cache en memoria de 60s)
         java.time.LocalDate hoy = java.time.LocalDate.now();
