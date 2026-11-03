@@ -15,6 +15,7 @@ import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import '../../core/widgets/product_image_widget.dart';
+import '../../core/marca_detector_service.dart';
 
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -108,6 +109,66 @@ class _VentasScreenState extends State<VentasScreen> {
     return stock % 1 == 0 ? stock.toInt().toString() : stock.toStringAsFixed(2);
   }
 
+  bool _aplicarPromocionesWeb = false;
+
+  Promocion? _obtenerPromocionActivaParaProducto(Producto p) {
+    if (_promocionesActivas.isEmpty) return null;
+    final now = DateTime.now();
+
+    for (final promo in _promocionesActivas) {
+      if (!promo.activo) continue;
+
+      if (promo.fechaInicio != null && promo.fechaInicio!.trim().isNotEmpty) {
+        final ini = DateTime.tryParse(promo.fechaInicio!.trim());
+        if (ini != null && now.isBefore(ini)) continue;
+      }
+      if (promo.fechaFin != null && promo.fechaFin!.trim().isNotEmpty) {
+        final fin = DateTime.tryParse(promo.fechaFin!.trim());
+        if (fin != null && now.isAfter(fin.add(const Duration(days: 1))))
+          continue;
+      }
+
+      // 1. Producto individual, 2x1 o 3x2
+      if ((promo.alcance == 'PRODUCTO' ||
+              promo.tipoPromocion == 'DOS_POR_UNO' ||
+              promo.tipoPromocion == 'TRES_POR_DOS') &&
+          promo.idProductoPrincipal == p.idProducto) {
+        return promo;
+      }
+
+      // 2. Combo
+      if (promo.alcance == 'COMBO' &&
+          (promo.idProductoPrincipal == p.idProducto ||
+              promo.idProductoSecundario == p.idProducto)) {
+        return promo;
+      }
+
+      // 3. Marca
+      if (promo.alcance == 'MARCA' &&
+          promo.marcaObjetivo != null &&
+          promo.marcaObjetivo!.trim().isNotEmpty) {
+        if (MarcaDetectorService.coincideMarca(
+          promo.marcaObjetivo,
+          p.marca,
+          p.nombre,
+        )) {
+          return promo;
+        }
+      }
+
+      // 4. Categoría
+      if (promo.alcance == 'CATEGORIA' &&
+          promo.categoriaObjetivo != null &&
+          promo.categoriaObjetivo!.trim().isNotEmpty) {
+        final catNorm = promo.categoriaObjetivo!.trim().toLowerCase();
+        if ((p.nombreCategoria?.trim().toLowerCase() ?? '') == catNorm) {
+          return promo;
+        }
+      }
+    }
+    return null;
+  }
+
   List<String> _tabletCategorias = ['Frecuentes', 'Todos'];
   Map<String, int> _tabletCategoryCounts = {'Frecuentes': 0, 'Todos': 0};
   List<Producto> _frecuentesProductos = [];
@@ -117,8 +178,13 @@ class _VentasScreenState extends State<VentasScreen> {
     copy.sort((a, b) => b.stockActual.compareTo(a.stockActual));
     _frecuentesProductos = copy.take(16).toList();
 
+    final int promosCount = _safeDisponibles
+        .where((p) => _obtenerPromocionActivaParaProducto(p) != null)
+        .length;
+
     final Map<String, int> counts = {
       'Frecuentes': _frecuentesProductos.length,
+      if (promosCount > 0) 'Promociones': promosCount,
       'Todos': _safeDisponibles.length,
     };
     final Set<String> uniqueCats = {};
@@ -129,6 +195,7 @@ class _VentasScreenState extends State<VentasScreen> {
     }
     _tabletCategorias = [
       'Frecuentes',
+      if (promosCount > 0) 'Promociones',
       'Todos',
       ...(uniqueCats.toList()..sort()),
     ];
@@ -136,6 +203,20 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   List<Producto> get _filteredTabletProductos {
+    if (_tabletSelectedCategoria == 'Promociones') {
+      return _safeDisponibles.where((p) {
+        if (_obtenerPromocionActivaParaProducto(p) == null) return false;
+        if (_tabletSearchQuery.isNotEmpty) {
+          final q = _tabletSearchQuery.toLowerCase().trim();
+          return p.nombre.toLowerCase().contains(q) ||
+              _coincideCodigo(p, q) ||
+              (p.codigoBarras ?? '').toLowerCase().contains(q) ||
+              (p.marca ?? '').toLowerCase().contains(q);
+        }
+        return true;
+      }).toList();
+    }
+
     if (_tabletSelectedCategoria == 'Frecuentes') {
       if (_tabletSearchQuery.isNotEmpty) {
         final q = _tabletSearchQuery.toLowerCase().trim();
@@ -175,11 +256,15 @@ class _VentasScreenState extends State<VentasScreen> {
     return _tabletCategoryCounts[cat] ?? 0;
   }
 
-  IconData _getCategoryIcon(String? categoryName) =>
-      CategoryHelper.getIcon(categoryName);
+  IconData _getCategoryIcon(String? categoryName) {
+    if (categoryName == 'Promociones') return LucideIcons.tag;
+    return CategoryHelper.getIcon(categoryName);
+  }
 
-  Color _getCategoryColor(String? categoryName, bool isDark) =>
-      CategoryHelper.getColor(categoryName, isDark);
+  Color _getCategoryColor(String? categoryName, bool isDark) {
+    if (categoryName == 'Promociones') return const Color(0xFFEF4444);
+    return CategoryHelper.getColor(categoryName, isDark);
+  }
 
   void _handleHardwareKey(KeyEvent event) {
     if (event is! KeyDownEvent) return;
@@ -369,6 +454,7 @@ class _VentasScreenState extends State<VentasScreen> {
       if (mounted) {
         setState(() {
           _promocionesActivas = promos.where((p) => p.activo).toList();
+          _recalcularTabletCatalogCache();
         });
       }
     } catch (_) {
@@ -540,6 +626,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   double get _totalDescuentoPromociones {
+    if (!_aplicarPromocionesWeb) return 0.0;
     return _promocionesAplicadas.fold<double>(
       0.0,
       (acc, p) => acc + p.descuento,
@@ -732,6 +819,7 @@ class _VentasScreenState extends State<VentasScreen> {
       _clienteNombreController.clear();
       _clienteSeleccionado = null;
       _alertaDocMensaje = null;
+      _aplicarPromocionesWeb = false;
     });
   }
 
@@ -1776,16 +1864,26 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   Widget _buildPromocionesCartBanner(bool isDark) {
-    if (_totalDescuentoPromociones <= 0.01) return const SizedBox.shrink();
+    if (_promocionesAplicadas.isEmpty) return const SizedBox.shrink();
+
+    final totalAhorroPotencial = _promocionesAplicadas.fold<double>(
+      0.0,
+      (acc, p) => acc + p.descuento,
+    );
+    if (totalAhorroPotencial <= 0.01) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withValues(alpha: 0.12),
+        color: _aplicarPromocionesWeb
+            ? const Color(0xFF10B981).withValues(alpha: 0.12)
+            : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF10B981).withValues(alpha: 0.4),
+          color: _aplicarPromocionesWeb
+              ? const Color(0xFF10B981).withValues(alpha: 0.4)
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
           width: 1.2,
         ),
       ),
@@ -1794,52 +1892,94 @@ class _VentasScreenState extends State<VentasScreen> {
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.tag, size: 16, color: Color(0xFF059669)),
+              Icon(
+                LucideIcons.tag,
+                size: 16,
+                color: _aplicarPromocionesWeb
+                    ? const Color(0xFF059669)
+                    : (isDark ? Colors.white60 : const Color(0xFF64748B)),
+              ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  '🎉 ¡Ahorro en Promociones: -S/ ${_totalDescuentoPromociones.toStringAsFixed(2)}!',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? const Color(0xFF34D399)
-                        : const Color(0xFF065F46),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _aplicarPromocionesWeb
+                          ? '🎉 ¡Ahorro en Promoción: -S/ ${totalAhorroPotencial.toStringAsFixed(2)}!'
+                          : '🏷️ Promoción Web disponible (-S/ ${totalAhorroPotencial.toStringAsFixed(2)})',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: _aplicarPromocionesWeb
+                            ? (isDark
+                                  ? const Color(0xFF34D399)
+                                  : const Color(0xFF065F46))
+                            : (isDark ? Colors.white : AppTheme.textDark),
+                      ),
+                    ),
+                    Text(
+                      _aplicarPromocionesWeb
+                          ? 'Beneficio web aplicado al total de la venta'
+                          : 'Toca el switch para aplicar si el cliente lo solicita',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Transform.scale(
+                scale: 0.8,
+                child: Switch(
+                  value: _aplicarPromocionesWeb,
+                  activeTrackColor: const Color(0xFF10B981)
+                      .withValues(alpha: 0.5),
+                  activeThumbColor: const Color(0xFF10B981),
+                  onChanged: (val) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _aplicarPromocionesWeb = val);
+                  },
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              for (final pa in _promocionesAplicadas)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF064E3B)
-                        : const Color(0xFFD1FAE5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    pa.descripcion,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
+          if (_aplicarPromocionesWeb) ...[
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                for (final pa in _promocionesAplicadas)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
                       color: isDark
-                          ? const Color(0xFFA7F3D0)
-                          : const Color(0xFF065F46),
+                          ? const Color(0xFF064E3B)
+                          : const Color(0xFFD1FAE5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      pa.descripcion,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? const Color(0xFFA7F3D0)
+                            : const Color(0xFF065F46),
+                      ),
                     ),
                   ),
-                ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1902,6 +2042,7 @@ class _VentasScreenState extends State<VentasScreen> {
 
   void _mostrarModalInfoProducto(Producto p) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final promo = _obtenerPromocionActivaParaProducto(p);
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final catColor = CategoryHelper.getColor(p.nombreCategoria, isDark);
     final categoriaNombre = p.nombreCategoria?.trim() ?? 'General';
@@ -2176,6 +2317,77 @@ class _VentasScreenState extends State<VentasScreen> {
                             ),
                         ],
                       ),
+                      if (promo != null) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFFEF4444)
+                                  .withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEF4444),
+                                  borderRadius: BorderRadius.circular(7),
+                                ),
+                                child: Text(
+                                  promo.badgeTexto.isNotEmpty
+                                      ? promo.badgeTexto
+                                      : '🔥 PROMO',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      promo.titulo,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                    ),
+                                    if (promo.descripcion.isNotEmpty)
+                                      Text(
+                                        promo.descripcion,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark
+                                              ? const Color(0xFFFCA5A5)
+                                              : const Color(0xFF991B1B),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 18),
 
                       // Tarjetas Informativas: Precio + Stock Actual
@@ -2356,9 +2568,18 @@ class _VentasScreenState extends State<VentasScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         String query = '';
+        bool soloPromociones = false;
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final promosCount = _safeDisponibles
+                .where((p) => _obtenerPromocionActivaParaProducto(p) != null)
+                .length;
+
             final filtrados = _safeDisponibles.where((p) {
+              if (soloPromociones &&
+                  _obtenerPromocionActivaParaProducto(p) == null) {
+                return false;
+              }
               final q = query.toLowerCase().trim();
               if (q.isEmpty) return true;
               return p.nombre.toLowerCase().contains(q) ||
@@ -2529,6 +2750,73 @@ class _VentasScreenState extends State<VentasScreen> {
                           },
                         ),
                       ),
+                      if (promosCount > 0) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            ChoiceChip(
+                              label: const Text('Todos'),
+                              selected: !soloPromociones,
+                              onSelected: (val) {
+                                setModalState(() => soloPromociones = false);
+                              },
+                              labelStyle: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: !soloPromociones
+                                    ? Colors.white
+                                    : (isDark
+                                          ? Colors.white70
+                                          : AppTheme.textDark),
+                              ),
+                              selectedColor: AppTheme.brandPrimary,
+                              backgroundColor: isDark
+                                  ? AppTheme.cardDarkSunken
+                                  : const Color(0xFFF1F5F9),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 0,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ChoiceChip(
+                              avatar: const Icon(
+                                LucideIcons.tag,
+                                size: 13,
+                                color: Colors.white,
+                              ),
+                              label: Text('🔥 En Promoción ($promosCount)'),
+                              selected: soloPromociones,
+                              onSelected: (val) {
+                                setModalState(() => soloPromociones = val);
+                              },
+                              labelStyle: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: soloPromociones
+                                    ? Colors.white
+                                    : (isDark
+                                          ? const Color(0xFFFCA5A5)
+                                          : const Color(0xFFDC2626)),
+                              ),
+                              selectedColor: const Color(0xFFEF4444),
+                              backgroundColor: isDark
+                                  ? const Color(0xFF450A0A)
+                                  : const Color(0xFFFEF2F2),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 0,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       Expanded(
                         child: filtrados.isEmpty
@@ -2702,15 +2990,52 @@ class _VentasScreenState extends State<VentasScreen> {
                                           ),
                                       ],
                                     ),
-                                    title: Text(
-                                      p.nombre,
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14,
-                                        color: isDark
-                                            ? Colors.white
-                                            : AppTheme.textDark,
-                                      ),
+                                    title: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            p.nombre,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 14,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : AppTheme.textDark,
+                                            ),
+                                          ),
+                                        ),
+                                        if (_obtenerPromocionActivaParaProducto(
+                                              p,
+                                            ) !=
+                                            null) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFEF4444),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              _obtenerPromocionActivaParaProducto(
+                                                    p,
+                                                  )!.badgeTexto.isNotEmpty
+                                                  ? _obtenerPromocionActivaParaProducto(
+                                                      p,
+                                                    )!.badgeTexto
+                                                  : '🔥 PROMO',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 9.5,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                     subtitle: Text(
                                       'Disp: ${_formatStock(p.stockActual)} u.  •  Cód: ${p.codigo}',
@@ -5061,7 +5386,7 @@ class _VentasScreenState extends State<VentasScreen> {
                         ),
                       ],
                     ),
-                    if (_totalDescuentoPromociones > 0.01) ...[
+                    if (_promocionesAplicadas.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       _buildPromocionesCartBanner(isDark),
                     ],
@@ -5710,6 +6035,7 @@ class _VentasScreenState extends State<VentasScreen> {
                     itemCount: productos.length,
                     itemBuilder: (context, idx) {
                       final p = productos[idx];
+                      final promo = _obtenerPromocionActivaParaProducto(p);
                       final cartIdx = _carrito.indexWhere(
                         (it) => it.producto.idProducto == p.idProducto,
                       );
@@ -5863,6 +6189,43 @@ class _VentasScreenState extends State<VentasScreen> {
                                           isDark: isDark,
                                           padding: 2,
                                         ),
+                                        if (promo != null)
+                                          Positioned(
+                                            bottom: -3,
+                                            left: -3,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 5,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFEF4444),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withValues(
+                                                          alpha: 0.25,
+                                                        ),
+                                                    blurRadius: 3,
+                                                    offset: const Offset(0, 1),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Text(
+                                                promo.badgeTexto.isNotEmpty
+                                                    ? promo.badgeTexto
+                                                    : '🔥 PROMO',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         Positioned(
                                           top: -4,
                                           right: -4,
@@ -5951,13 +6314,29 @@ class _VentasScreenState extends State<VentasScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        'S/ ${p.precioVenta.toStringAsFixed(2)}',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w900,
-                                          color: AppTheme.brandPrimary,
-                                        ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w900,
+                                              color: AppTheme.brandPrimary,
+                                            ),
+                                          ),
+                                          if (promo != null)
+                                            Text(
+                                              promo.badgeTexto,
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 9.5,
+                                                fontWeight: FontWeight.w800,
+                                                color: const Color(0xFFEF4444),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                     Container(
@@ -6441,7 +6820,7 @@ class _VentasScreenState extends State<VentasScreen> {
               ],
             ),
           ),
-          if (_totalDescuentoPromociones > 0.01) ...[
+          if (_promocionesAplicadas.isNotEmpty) ...[
             const SizedBox(height: 8),
             _buildPromocionesCartBanner(isDark),
           ],
