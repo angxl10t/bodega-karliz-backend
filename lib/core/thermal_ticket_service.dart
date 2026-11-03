@@ -1016,10 +1016,86 @@ class ThermalTicketService {
       }
     }
 
-    // Modo 3: Navegador Web / Fallback Estándar
+    // Modo 3: Navegador Web / Impresión Térmica Directa
+    if (cfg.modoConexion == 'navegador' && receiptText.isNotEmpty) {
+      try {
+        final html = generatePrintableHtml(
+          receiptText,
+          widthMm: cfg.anchoPapel == width80mm ? 80 : 58,
+        );
+        final uri = Uri.dataFromString(
+          html,
+          mimeType: 'text/html',
+          encoding: utf8,
+        );
+        final launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+        if (launched) {
+          return const PrintResult(
+            exito: true,
+            mensaje: 'Comprobante enviado al diálogo de impresión del navegador.',
+          );
+        }
+      } catch (_) {}
+    }
+
+    // Fallback estándar
     return const PrintResult(
       exito: true,
       mensaje: 'Ticket generado para vista o impresión desde el navegador.',
+    );
+  }
+
+  /// Genera una página HTML auto-imprimible con estilos CSS térmicos optimizados
+  /// (@page margin: 0, ancho 58mm/80mm continuo, fuente monoespaciada)
+  /// para impresoras térmicas conectadas por USB a computadoras con Windows/Mac/Linux.
+  static String generatePrintableHtml(String receiptText, {int widthMm = 58}) {
+    final cleanText = sanitize(receiptText);
+    return '''<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Comprobante de Venta - CajaYa POS</title>
+  <style>
+    @page {
+      margin: 0;
+      size: ${widthMm}mm auto;
+    }
+    body {
+      margin: 0;
+      padding: 6px 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: ${widthMm == 80 ? '12px' : '11px'};
+      line-height: 1.25;
+      color: #000;
+      white-space: pre-wrap;
+      width: ${widthMm}mm;
+      max-width: ${widthMm}mm;
+    }
+    @media print {
+      body { width: 100%; max-width: 100%; }
+    }
+  </style>
+</head>
+<body><pre style="margin:0; font-family:inherit;">$cleanText</pre><script>
+  window.onload = function() {
+    window.print();
+  };
+</script></body>
+</html>''';
+  }
+
+  /// Abre manualmente la gaveta de dinero (cajón monedero) conectada a la ticketera vía RJ11
+  /// enviando únicamente el pulso ESC/POS sin emitir papel ni realizar una venta.
+  static Future<PrintResult> abrirGavetaDinero({
+    ConfiguracionTicket? config,
+  }) async {
+    final cfg = config ?? ConfiguracionTicketService.actual;
+    final List<int> pulseBytes = List.from(openDrawerBytes);
+
+    return imprimirTicketDirecto(
+      escPosBytes: pulseBytes,
+      receiptText: '',
+      config: cfg,
     );
   }
 }

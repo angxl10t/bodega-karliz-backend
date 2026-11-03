@@ -41,6 +41,7 @@ import 'venta_en_espera_service.dart';
 import '../../core/widgets/solicitar_pin_dialog.dart';
 import '../movimientos/movimiento_service.dart';
 import '../auth/auth_service.dart';
+import 'hardware_mostrador_modal.dart';
 
 class PromoAplicada {
   final Promocion promocion;
@@ -278,7 +279,7 @@ class _VentasScreenState extends State<VentasScreen> {
   void _handleHardwareKey(KeyEvent event) {
     if (event is! KeyDownEvent) return;
 
-    // Fast-keys comerciales de caja (F2, F4, F9, F12, Escape)
+    // Fast-keys comerciales de caja (F2, F4, F7, F8, F9, F12, Escape)
     if (event.logicalKey == LogicalKeyboardKey.f2) {
       _tabletSearchFocusNode.requestFocus();
       HapticFeedback.lightImpact();
@@ -290,6 +291,22 @@ class _VentasScreenState extends State<VentasScreen> {
       if (_carrito.isNotEmpty && !_isProcesando) {
         HapticFeedback.mediumImpact();
         _ejecutarCobroRapido();
+      }
+      return;
+    }
+
+    // F7: Apertura manual de gaveta de dinero RJ11
+    if (event.logicalKey == LogicalKeyboardKey.f7) {
+      _abrirGavetaManual();
+      return;
+    }
+
+    // F8: Poner venta en espera / ver tickets pausados
+    if (event.logicalKey == LogicalKeyboardKey.f8) {
+      if (_carrito.isNotEmpty) {
+        _ponerVentaEnEspera();
+      } else {
+        _mostrarModalVentasEnEspera();
       }
       return;
     }
@@ -873,6 +890,43 @@ class _VentasScreenState extends State<VentasScreen> {
       _descuentoManualCarrito = 0.0;
       _descuentoManualMotivo = '';
     });
+  }
+
+  Future<void> _abrirGavetaManual() async {
+    HapticFeedback.heavyImpact();
+    KarlizSoundService.instance.playBarcodeBeep();
+    final res = await ThermalTicketService.abrirGavetaDinero();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(LucideIcons.vault, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                res.exito
+                    ? '¡Pulso de apertura enviado a la gaveta de dinero!'
+                    : res.mensaje,
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: res.exito ? AppTheme.accentGreen : AppTheme.alertRed,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _abrirHardwareMostrador() {
+    HardwareMostradorModal.show(
+      context,
+      productos: _productosDisponibles,
+      onConfiguracionActualizada: () {
+        if (mounted) setState(() {});
+      },
+    );
   }
 
   Future<void> _ponerVentaEnEspera() async {
@@ -6213,6 +6267,28 @@ class _VentasScreenState extends State<VentasScreen> {
                       onTap: () => BriefingTurnoModal.show(context),
                       isDark: isDark,
                     ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.vault,
+                      label: 'Abrir Gaveta',
+                      color: const Color(0xFF10B981),
+                      bgColor: isDark
+                          ? const Color(0xFF10B981).withValues(alpha: 0.18)
+                          : const Color(0xFFECFDF5),
+                      onTap: _abrirGavetaManual,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.cpu,
+                      label: 'Hardware POS',
+                      color: const Color(0xFF6366F1),
+                      bgColor: isDark
+                          ? const Color(0xFF6366F1).withValues(alpha: 0.18)
+                          : const Color(0xFFEEF2FF),
+                      onTap: _abrirHardwareMostrador,
+                      isDark: isDark,
+                    ),
                   ],
                 ),
               ),
@@ -6870,6 +6946,28 @@ class _VentasScreenState extends State<VentasScreen> {
                     ),
                     const SizedBox(width: 6),
                     _buildPosActionChip(
+                      icon: LucideIcons.vault,
+                      label: 'Abrir Gaveta',
+                      color: const Color(0xFF10B981),
+                      bgColor: isDark
+                          ? const Color(0xFF10B981).withValues(alpha: 0.18)
+                          : const Color(0xFFECFDF5),
+                      onTap: _abrirGavetaManual,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
+                      icon: LucideIcons.cpu,
+                      label: 'Hardware POS',
+                      color: const Color(0xFF6366F1),
+                      bgColor: isDark
+                          ? const Color(0xFF6366F1).withValues(alpha: 0.18)
+                          : const Color(0xFFEEF2FF),
+                      onTap: _abrirHardwareMostrador,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 6),
+                    _buildPosActionChip(
                       icon: LucideIcons.settings,
                       label: 'Ticket',
                       color: const Color(0xFF6B7280),
@@ -6954,6 +7052,28 @@ class _VentasScreenState extends State<VentasScreen> {
                     HapticFeedback.mediumImpact();
                     _ejecutarCobroRapido();
                   },
+          ),
+          const SizedBox(width: 6),
+          _buildKeyBadge(
+            'F7',
+            'Gaveta',
+            LucideIcons.vault,
+            isDark,
+            _abrirGavetaManual,
+          ),
+          const SizedBox(width: 6),
+          _buildKeyBadge(
+            'F8',
+            'Espera',
+            LucideIcons.pauseCircle,
+            isDark,
+            () {
+              if (_carrito.isNotEmpty) {
+                _ponerVentaEnEspera();
+              } else {
+                _mostrarModalVentasEnEspera();
+              }
+            },
           ),
           const SizedBox(width: 6),
           _buildKeyBadge(
