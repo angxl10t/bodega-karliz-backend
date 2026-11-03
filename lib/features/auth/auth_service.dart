@@ -15,6 +15,16 @@ class AuthResult {
 }
 
 class AuthService {
+  static String _cachedRol = 'CAJERO';
+  static String get cachedUserRole => _cachedRol;
+  static bool get esCajero => _cachedRol == 'CAJERO';
+  static bool get esAdmin =>
+      _cachedRol == 'ADMIN' ||
+      _cachedRol == 'ADMINISTRADOR' ||
+      _cachedRol == 'SUPERADMIN';
+  static void setCachedRol(String rol) {
+    _cachedRol = rol;
+  }
   Future<AuthResult> login(String username, String password) async {
     try {
       final response = await http
@@ -169,7 +179,9 @@ class AuthService {
   }
 
   Future<String> getUserRole() async {
-    return await SecureStorageService.read('user_rol') ?? 'CAJERO';
+    final r = await SecureStorageService.read('user_rol') ?? 'CAJERO';
+    _cachedRol = r;
+    return r;
   }
 
   Future<String> getNombreBodega() async {

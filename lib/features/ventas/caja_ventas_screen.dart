@@ -15,6 +15,7 @@ import '../../core/theme.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
+import '../../core/widgets/solicitar_pin_dialog.dart';
 
 class CajaVentasScreen extends StatefulWidget {
   const CajaVentasScreen({super.key});
@@ -1091,6 +1092,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     required double monto,
     required Color color,
     required bool isDark,
+    bool ocultarMonto = false,
     String? actionLabel,
     VoidCallback? onAction,
   }) {
@@ -1150,7 +1152,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              'S/ ${monto.toStringAsFixed(2)}',
+              ocultarMonto ? 'S/ ••••' : 'S/ ${monto.toStringAsFixed(2)}',
               style: GoogleFonts.outfit(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
@@ -1335,6 +1337,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 child: _buildMiniFlujoCard(
                   titulo: '(+) Ventas Ef.',
                   monto: efectivoVentas,
+                  ocultarMonto: !_esAdmin && contado == null,
                   color: AppTheme.accentGreen,
                   isDark: isDark,
                 ),
@@ -1344,6 +1347,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 child: _buildMiniFlujoCard(
                   titulo: '(-) Egresos',
                   monto: egresos,
+                  ocultarMonto: !_esAdmin && contado == null,
                   color: const Color(0xFFE11D48),
                   isDark: isDark,
                   actionLabel: '+ Egreso',
@@ -1531,7 +1535,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                         ),
                       ),
                       Text(
-                        'Base + Ventas Efectivo - Egresos',
+                        (!_esAdmin && contado == null)
+                            ? '🔒 Conteo a Ciegas: Ingresa el dinero contado abajo'
+                            : 'Base + Ventas Efectivo - Egresos',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
@@ -1549,7 +1555,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    'S/ ${esperado.toStringAsFixed(2)}',
+                    (!_esAdmin && contado == null)
+                        ? 'S/ ••••'
+                        : 'S/ ${esperado.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
@@ -2207,6 +2215,16 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   }
 
   Future<void> _confirmarAnulacion(VentaRegistro venta) async {
+    if (!_esAdmin) {
+      final autorizado = await SolicitarPinDialog.mostrar(
+        context,
+        titulo: 'Autorización Requerida',
+        mensaje:
+            'La anulación de ventas repone inventario y altera el arqueo. Requiere PIN de Administrador.',
+      );
+      if (!autorizado) return;
+      if (!mounted) return;
+    }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final motivoCtrl = TextEditingController();
     ({bool confirmar, String motivo})? resultado;

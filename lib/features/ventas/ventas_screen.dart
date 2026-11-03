@@ -35,6 +35,11 @@ import '../../core/configuracion_ticket_service.dart';
 import '../home/configuracion_ticket_modal.dart';
 import '../promociones/promocion_model.dart';
 import '../promociones/promocion_service.dart';
+import '../catalogo/pedido_web_service.dart';
+import 'venta_en_espera_service.dart';
+import '../../core/widgets/solicitar_pin_dialog.dart';
+import '../movimientos/movimiento_service.dart';
+import '../auth/auth_service.dart';
 
 class PromoAplicada {
   final Promocion promocion;
@@ -61,7 +66,10 @@ class _VentasScreenState extends State<VentasScreen> {
   final DocumentoService _documentoService = DocumentoService();
   final ClienteService _clienteService = ClienteService();
   final PromocionService _promocionService = PromocionService();
+  final MovimientoService _movimientoService = MovimientoService();
   List<Promocion> _promocionesActivas = [];
+  double _descuentoManualCarrito = 0.0;
+  String _descuentoManualMotivo = '';
 
   List<Producto> _productosDisponibles = [];
   final List<CartItem> _carrito = [];
@@ -337,6 +345,8 @@ class _VentasScreenState extends State<VentasScreen> {
   @override
   void initState() {
     super.initState();
+    PedidoWebService.inicializar();
+    VentaEnEsperaService.inicializar();
     OfflineSyncManager.instance.init();
     ConfiguracionTicketService.cargar();
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
@@ -444,7 +454,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   double get _totalVenta {
-    final finalTotal = _subtotalVenta - _totalDescuentoPromociones;
+    final finalTotal = _subtotalVenta - _totalDescuentoPromociones - _descuentoManualCarrito;
     return finalTotal < 0 ? 0.0 : finalTotal;
   }
 
@@ -820,7 +830,1172 @@ class _VentasScreenState extends State<VentasScreen> {
       _clienteSeleccionado = null;
       _alertaDocMensaje = null;
       _aplicarPromocionesWeb = false;
+      _descuentoManualCarrito = 0.0;
+      _descuentoManualMotivo = '';
     });
+  }
+
+  Future<void> _ponerVentaEnEspera() async {
+    if (_carrito.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('La canasta está vacía. No hay productos para poner en espera.'),
+          backgroundColor: AppTheme.alertRed,
+        ),
+      );
+      return;
+    }
+
+    final refCtrl = TextEditingController(
+      text: _clienteNombreController.text.trim().isNotEmpty
+          ? _clienteNombreController.text.trim()
+          : '',
+    );
+
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(LucideIcons.pauseCircle, color: Color(0xFFD97706), size: 22),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Poner Venta en Espera',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Esta venta ($_totalUnidades u. • S/ ${_totalVenta.toStringAsFixed(2)}) se pausará para atender al siguiente cliente en la fila sin perder los productos escaneados.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: refCtrl,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Nombre o referencia del cliente (opcional)',
+                  hintText: 'Ej. Don Carlos (fue por dinero), Señora de chompa roja',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(LucideIcons.user, size: 18),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFD97706),
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(LucideIcons.pause, size: 16),
+              label: const Text('Poner en Espera'),
+              onPressed: () => Navigator.pop(ctx, true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmado == true) {
+      final etiqueta = refCtrl.text.trim().isNotEmpty
+          ? refCtrl.text.trim()
+          : 'Cliente ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+
+      final ventaPausada = VentaEnEspera(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        fecha: DateTime.now(),
+        etiqueta: etiqueta,
+        items: _carrito.map((it) => CartItem(
+          producto: it.producto,
+          cantidad: it.cantidad,
+          descuentoManual: it.descuentoManual,
+          descuentoMotivo: it.descuentoMotivo,
+        )).toList(),
+        cliente: _clienteSeleccionado,
+        metodoPago: _metodoPago,
+        tipoComprobante: _tipoComprobante,
+        descuentoManualCarrito: _descuentoManualCarrito,
+        descuentoManualMotivo: _descuentoManualMotivo,
+        aplicarPromocionesWeb: _aplicarPromocionesWeb,
+      );
+
+      await VentaEnEsperaService.ponerEnEspera(ventaPausada);
+      _vaciarCarrito();
+      KarlizSoundService.instance.playBarcodeBeep();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(LucideIcons.pauseCircle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Ticket "$etiqueta" guardado en espera. Listo para la siguiente venta.',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFFD97706),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _mostrarModalVentasEnEspera() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final lista = VentaEnEsperaService.ventas;
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDark : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(LucideIcons.pauseCircle, color: Color(0xFFD97706), size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tickets en Espera (Park Cart)',
+                                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
+                              ),
+                              Text(
+                                '${lista.length} tickets pausados en caja',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.x, size: 20),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: lista.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.shoppingCart,
+                                    size: 48,
+                                    color: isDark ? Colors.white24 : Colors.black26,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No hay tickets en espera',
+                                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Cuando un cliente olvide un producto o vaya a sacar efectivo, presiona el icono de pausa en el carrito para seguir atendiendo a los demás clientes sin perder su canasta.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: lista.length,
+                            separatorBuilder: (_, _) => const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              final venta = lista[index];
+                              return Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            venta.etiqueta,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 15.5,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            venta.tiempoTranscurrido,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFFD97706),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '${venta.items.length} productos (${venta.totalUnidades.toStringAsFixed(venta.totalUnidades % 1 == 0 ? 0 : 2)} u.) • Comprobante: ${venta.tipoComprobante}',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Total: S/ ${venta.totalNeto.toStringAsFixed(2)}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.brandPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(LucideIcons.trash2, size: 18, color: AppTheme.alertRed),
+                                          tooltip: 'Descartar ticket',
+                                          onPressed: () async {
+                                            await VentaEnEsperaService.eliminar(venta.id);
+                                            setModalState(() {});
+                                          },
+                                        ),
+                                        const SizedBox(width: 8),
+                                        FilledButton.icon(
+                                          style: FilledButton.styleFrom(
+                                            backgroundColor: AppTheme.brandPrimary,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                          ),
+                                          icon: const Icon(LucideIcons.play, size: 15),
+                                          label: const Text('Recuperar a Caja'),
+                                          onPressed: () async {
+                                            if (_carrito.isNotEmpty) {
+                                              final sobreescribir = await showDialog<bool>(
+                                                context: context,
+                                                builder: (dCtx) => AlertDialog(
+                                                  title: const Text('¿Reemplazar canasta actual?'),
+                                                  content: const Text(
+                                                    'Tienes productos en la canasta actual. ¿Deseas pausar la venta actual antes de recuperar este ticket?',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () => Navigator.pop(dCtx, false),
+                                                      child: const Text('Cancelar'),
+                                                    ),
+                                                    FilledButton(
+                                                      onPressed: () => Navigator.pop(dCtx, true),
+                                                      child: const Text('Pausar actual y Recuperar'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                              if (sobreescribir != true) return;
+                                              final actualPausada = VentaEnEspera(
+                                                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                                fecha: DateTime.now(),
+                                                etiqueta: 'Venta rápida ${_carrito.length} items',
+                                                items: List<CartItem>.from(_carrito),
+                                                cliente: _clienteSeleccionado,
+                                                metodoPago: _metodoPago,
+                                                tipoComprobante: _tipoComprobante,
+                                                descuentoManualCarrito: _descuentoManualCarrito,
+                                                descuentoManualMotivo: _descuentoManualMotivo,
+                                                aplicarPromocionesWeb: _aplicarPromocionesWeb,
+                                              );
+                                              await VentaEnEsperaService.ponerEnEspera(actualPausada);
+                                            }
+
+                                            final recuperada = await VentaEnEsperaService.recuperar(venta.id);
+                                            if (recuperada != null) {
+                                              setState(() {
+                                                _carrito.clear();
+                                                _carrito.addAll(recuperada.items);
+                                                _clienteSeleccionado = recuperada.cliente;
+                                                _metodoPago = recuperada.metodoPago;
+                                                _tipoComprobante = recuperada.tipoComprobante;
+                                                _descuentoManualCarrito = recuperada.descuentoManualCarrito;
+                                                _descuentoManualMotivo = recuperada.descuentoManualMotivo ?? '';
+                                                _aplicarPromocionesWeb = recuperada.aplicarPromocionesWeb;
+                                              });
+                                              KarlizSoundService.instance.playBarcodeBeep();
+                                            }
+                                            if (ctx.mounted) Navigator.pop(ctx);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _mostrarBandejaPedidosWeb() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final lista = PedidoWebService.pedidos;
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDark : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(LucideIcons.globe, color: Color(0xFF0D9488), size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Bandeja de Pedidos Web',
+                                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
+                              ),
+                              Text(
+                                '${PedidoWebService.pedidosPendientes.length} pedidos web pendientes de atención',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.x, size: 20),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: lista.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.globe,
+                                    size: 48,
+                                    color: isDark ? Colors.white24 : Colors.black26,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No hay pedidos web registrados',
+                                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Cuando los clientes armen su pedido desde el catálogo web de la bodega, aparecerán aquí para cargarlos al carrito en 1 toque.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: lista.length,
+                            separatorBuilder: (_, _) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final pedido = lista[index];
+                              final esPendiente = pedido.estado == 'PENDIENTE';
+                              return Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: esPendiente
+                                        ? const Color(0xFF0D9488)
+                                        : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                                    width: esPendiente ? 1.5 : 1.0,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            pedido.nombreCliente,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: esPendiente
+                                                ? const Color(0xFF0D9488).withValues(alpha: 0.15)
+                                                : Colors.grey.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            esPendiente ? 'PENDIENTE' : pedido.estado,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w800,
+                                              color: esPendiente ? const Color(0xFF0D9488) : Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (pedido.telefonoCliente != null && pedido.telefonoCliente!.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(LucideIcons.phone, size: 14, color: AppTheme.brandPrimary),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            pedido.telefonoCliente!,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    if (pedido.notas != null && pedido.notas!.isNotEmpty) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Nota: ${pedido.notas!}',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
+                                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? AppTheme.cardDarkSunken : Colors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          for (final it in pedido.items)
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 2),
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    '${it.cantidad.toStringAsFixed(it.cantidad % 1 == 0 ? 0 : 2)}x',
+                                                    style: GoogleFonts.plusJakartaSans(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: AppTheme.brandPrimary,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      it.nombre,
+                                                      style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'S/ ${it.subtotal.toStringAsFixed(2)}',
+                                                    style: GoogleFonts.plusJakartaSans(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Total: S/ ${pedido.total.toStringAsFixed(2)}',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppTheme.brandPrimary,
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(LucideIcons.trash2, size: 18, color: AppTheme.alertRed),
+                                              tooltip: 'Eliminar pedido',
+                                              onPressed: () async {
+                                                await PedidoWebService.eliminarPedido(pedido.idPedido);
+                                                setModalState(() {});
+                                              },
+                                            ),
+                                            if (esPendiente) ...[
+                                              const SizedBox(width: 6),
+                                              FilledButton.icon(
+                                                style: FilledButton.styleFrom(
+                                                  backgroundColor: const Color(0xFF0D9488),
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                                ),
+                                                icon: const Icon(LucideIcons.shoppingBag, size: 15),
+                                                label: const Text('Cargar al Carrito'),
+                                                onPressed: () async {
+                                                  int itemsCargados = 0;
+                                                  setState(() {
+                                                    for (final itemWeb in pedido.items) {
+                                                      Producto? prod;
+                                                      for (final p in _productosDisponibles) {
+                                                        if (p.idProducto == itemWeb.idProducto) {
+                                                          prod = p;
+                                                          break;
+                                                        }
+                                                      }
+                                                      if (prod == null) {
+                                                        final nomLimpio = itemWeb.nombre.trim().toLowerCase();
+                                                        for (final p in _productosDisponibles) {
+                                                          if (p.nombre.trim().toLowerCase() == nomLimpio) {
+                                                            prod = p;
+                                                            break;
+                                                          }
+                                                        }
+                                                      }
+
+                                                      if (prod != null) {
+                                                        _agregarAlCarrito(prod, playSound: false, cantidad: itemWeb.cantidad);
+                                                        itemsCargados++;
+                                                      }
+                                                    }
+
+                                                    _identificarCliente = true;
+                                                    _clienteNombreController.text = pedido.nombreCliente;
+                                                    if (pedido.ahorroPromociones > 0) {
+                                                      _aplicarPromocionesWeb = true;
+                                                    }
+                                                  });
+
+                                                  await PedidoWebService.marcarComoCargadoEnPos(pedido.idPedido);
+                                                  KarlizSoundService.instance.playBarcodeBeep();
+
+                                                  if (ctx.mounted) {
+                                                    Navigator.pop(ctx);
+                                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(
+                                                          '¡Pedido de ${pedido.nombreCliente} ($itemsCargados productos) cargado al carrito!',
+                                                        ),
+                                                        backgroundColor: const Color(0xFF0D9488),
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _mostrarModalDescuentoManual({CartItem? itemEspecifico}) async {
+    if (_carrito.isEmpty && itemEspecifico == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Añade productos a la canasta antes de aplicar un descuento.'),
+          backgroundColor: AppTheme.alertRed,
+        ),
+      );
+      return;
+    }
+
+    if (AuthService.esCajero) {
+      final autorizado = await SolicitarPinDialog.mostrar(
+        context,
+        titulo: 'Autorización de Descuento',
+        mensaje: 'Se requiere PIN de Administrador para aplicar un descuento manual o de cortesía.',
+      );
+      if (!mounted) return;
+      if (autorizado != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Operación cancelada o PIN incorrecto.'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+        return;
+      }
+    }
+
+    final double baseCalculo = itemEspecifico != null
+        ? itemEspecifico.subtotalBruto
+        : _subtotalVenta;
+
+    final valorCtrl = TextEditingController();
+    final motivoCtrl = TextEditingController(text: 'Cortesía');
+    bool esPorcentaje = false;
+
+    if (!mounted) return;
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (dlgCtx) {
+        final isDark = Theme.of(dlgCtx).brightness == Brightness.dark;
+        return StatefulBuilder(
+          builder: (context, setDlgState) {
+            final double val = double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+            final double dsctoCalculado = esPorcentaje
+                ? (baseCalculo * (val / 100.0)).clamp(0.0, baseCalculo)
+                : val.clamp(0.0, baseCalculo);
+
+            return AlertDialog(
+              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(LucideIcons.tag, color: AppTheme.brandPrimary, size: 22),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      itemEspecifico != null
+                          ? 'Descuento en ${itemEspecifico.producto.nombre}'
+                          : 'Descuento de Cortesía / Manual',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Base sobre la cual aplica: S/ ${baseCalculo.toStringAsFixed(2)}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ChoiceChip(
+                            label: const Center(child: Text('Monto Fijo (S/)')),
+                            selected: !esPorcentaje,
+                            onSelected: (sel) {
+                              if (sel) setDlgState(() => esPorcentaje = false);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ChoiceChip(
+                            label: const Center(child: Text('Porcentaje (%)')),
+                            selected: esPorcentaje,
+                            onSelected: (sel) {
+                              if (sel) setDlgState(() => esPorcentaje = true);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: valorCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      autofocus: true,
+                      onChanged: (_) => setDlgState(() {}),
+                      decoration: InputDecoration(
+                        labelText: esPorcentaje ? 'Porcentaje de Descuento (%)' : 'Monto de Descuento (S/)',
+                        prefixText: esPorcentaje ? '% ' : 'S/ ',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                    if (val > 0) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Descuento a descontar: - S/ ${dsctoCalculado.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.accentGreen,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    Text(
+                      'Motivo / Justificación:',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        for (final m in ['Cortesía', 'Redondeo', 'Empaque dañado', 'Familiar', 'Promoción especial'])
+                          ActionChip(
+                            label: Text(m, style: const TextStyle(fontSize: 11)),
+                            onPressed: () {
+                              setDlgState(() => motivoCtrl.text = m);
+                            },
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: motivoCtrl,
+                      decoration: InputDecoration(
+                        hintText: 'Ej. Cortesía al vecino / cliente frecuente',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dlgCtx, false),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(dlgCtx, true),
+                  child: const Text('Aplicar Descuento'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (resultado == true) {
+      final double val = double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+      final double dsctoFinal = esPorcentaje
+          ? (baseCalculo * (val / 100.0)).clamp(0.0, baseCalculo)
+          : val.clamp(0.0, baseCalculo);
+      final motivoFinal = motivoCtrl.text.trim().isNotEmpty ? motivoCtrl.text.trim() : 'Cortesía';
+
+      final totalAnterior = _totalVenta;
+      setState(() {
+        if (itemEspecifico != null) {
+          itemEspecifico.descuentoManual = dsctoFinal;
+          itemEspecifico.descuentoMotivo = motivoFinal;
+        } else {
+          _descuentoManualCarrito = dsctoFinal;
+          _descuentoManualMotivo = motivoFinal;
+        }
+        _actualizarMontoExactoSiCorresponde(totalAnterior);
+      });
+
+      KarlizSoundService.instance.playBarcodeBeep();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Descuento de S/ ${dsctoFinal.toStringAsFixed(2)} ($motivoFinal) aplicado.',
+            ),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _registrarConsumoInterno() async {
+    if (_carrito.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Añade productos a la canasta para registrar el autoconsumo.'),
+          backgroundColor: AppTheme.alertRed,
+        ),
+      );
+      return;
+    }
+
+    if (AuthService.esCajero) {
+      final autorizado = await SolicitarPinDialog.mostrar(
+        context,
+        titulo: 'Autorización de Consumo Interno',
+        mensaje: 'Se requiere PIN de Administrador para autorizar salida por autoconsumo o uso de la bodega.',
+      );
+      if (!mounted) return;
+      if (autorizado != true) return;
+    }
+
+    final double totalCosto = _carrito.fold(
+      0.0,
+      (acc, it) => acc + ((it.producto.precioCosto ?? 0.0) * it.cantidad),
+    );
+
+    final motivoCtrl = TextEditingController(text: 'Refrigerio de personal');
+
+    if (!mounted) return;
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(LucideIcons.coffee, color: Color(0xFF8B5CF6), size: 22),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Consumo Interno / Bodega',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Los productos se darán de baja del stock al costo sin generar cobro en caja:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      for (final it in _carrito)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '${_formatCantidad(it.cantidad)}x ${it.producto.nombre}',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                                ),
+                              ),
+                              Text(
+                                'Costo: S/ ${((it.producto.precioCosto ?? 0.0) * it.cantidad).toStringAsFixed(2)}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Valor total al costo:', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+                          Text(
+                            'S/ ${totalCosto.toStringAsFixed(2)}',
+                            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: const Color(0xFF8B5CF6)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text('Motivo del consumo:', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                TextField(
+                  controller: motivoCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Ej. Refrigerio de personal, Limpieza de local, Muestra',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6)),
+              icon: const Icon(LucideIcons.check, size: 16),
+              label: const Text('Confirmar Autoconsumo'),
+              onPressed: () => Navigator.pop(ctx, true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmado == true) {
+      final motivo = motivoCtrl.text.trim().isNotEmpty ? motivoCtrl.text.trim() : 'Consumo interno de bodega';
+      setState(() => _isProcesando = true);
+
+      int exitos = 0;
+      for (final it in _carrito) {
+        if (it.producto.idProducto != null) {
+          final ok = await _movimientoService.registrarAjuste(
+            idProducto: it.producto.idProducto!,
+            cantidad: it.cantidad,
+            tipoAjuste: 'CONSUMO_INTERNO',
+            motivo: 'Consumo Interno: $motivo',
+          );
+          if (ok) exitos++;
+        }
+      }
+
+      setState(() => _isProcesando = false);
+      _vaciarCarrito();
+      KarlizSoundService.instance.playBarcodeBeep();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ $exitos productos registrados como consumo interno de bodega.'),
+            backgroundColor: const Color(0xFF8B5CF6),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildDescuentoManualBanner(bool isDark) {
+    final double itemDsctos = _carrito.fold(0.0, (acc, it) => acc + it.descuentoManual);
+    final double totalDscto = _descuentoManualCarrito + itemDsctos;
+
+    if (totalDscto > 0.01) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3B82F6).withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(LucideIcons.tag, size: 16, color: Color(0xFF2563EB)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '🎁 Descuento Manual / Cortesía: -S/ ${totalDscto.toStringAsFixed(2)}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                    ),
+                  ),
+                  if (_descuentoManualMotivo.isNotEmpty)
+                    Text(
+                      'Motivo: $_descuentoManualMotivo',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(LucideIcons.x, size: 16, color: Color(0xFF2563EB)),
+              tooltip: 'Quitar descuento manual',
+              onPressed: () {
+                final totalAnterior = _totalVenta;
+                setState(() {
+                  _descuentoManualCarrito = 0.0;
+                  _descuentoManualMotivo = '';
+                  for (final it in _carrito) {
+                    it.descuentoManual = 0.0;
+                    it.descuentoMotivo = null;
+                  }
+                  _actualizarMontoExactoSiCorresponde(totalAnterior);
+                });
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_carrito.isEmpty) return const SizedBox.shrink();
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton.icon(
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFF2563EB),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          minimumSize: Size.zero,
+        ),
+        icon: const Icon(LucideIcons.tag, size: 14),
+        label: Text(
+          '+ Descuento / Cortesía',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        onPressed: () => _mostrarModalDescuentoManual(),
+      ),
+    );
   }
 
   void _abrirModalGarantiaEnvase({
@@ -4838,6 +6013,38 @@ class _VentasScreenState extends State<VentasScreen> {
                 physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: [
+                    ValueListenableBuilder<int>(
+                      valueListenable: VentaEnEsperaService.countNotifier,
+                      builder: (context, count, _) {
+                        return _buildPosActionChip(
+                          icon: LucideIcons.pauseCircle,
+                          label: count > 0 ? 'En Espera ($count)' : 'En Espera',
+                          color: count > 0 ? const Color(0xFFD97706) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                          bgColor: count > 0
+                              ? (isDark ? const Color(0xFF78350F).withValues(alpha: 0.3) : const Color(0xFFFEF3C7))
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                          onTap: _mostrarModalVentasEnEspera,
+                          isDark: isDark,
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 6),
+                    ValueListenableBuilder<int>(
+                      valueListenable: PedidoWebService.pedidosPendientesCountNotifier,
+                      builder: (context, count, _) {
+                        return _buildPosActionChip(
+                          icon: LucideIcons.globe,
+                          label: count > 0 ? 'Pedidos Web ($count)' : 'Pedidos Web',
+                          color: count > 0 ? const Color(0xFF0D9488) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                          bgColor: count > 0
+                              ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.3) : const Color(0xFFCCFBF1))
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                          onTap: _mostrarBandejaPedidosWeb,
+                          isDark: isDark,
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 6),
                     _buildPosActionChip(
                       icon: _isLoading ? null : LucideIcons.refreshCw,
                       isLoading: _isLoading,
@@ -4967,21 +6174,42 @@ class _VentasScreenState extends State<VentasScreen> {
                           ],
                         ),
                         if (_carrito.isNotEmpty)
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppTheme.alertRed,
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: _vaciarCarrito,
-                            child: Text(
-                              'Vaciar',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: 'Poner en Espera (Pausar Ticket)',
+                                icon: const Icon(LucideIcons.pauseCircle, size: 18, color: Color(0xFFD97706)),
+                                onPressed: _ponerVentaEnEspera,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                tooltip: 'Registrar como Consumo Interno de Bodega',
+                                icon: const Icon(LucideIcons.coffee, size: 18, color: Color(0xFF8B5CF6)),
+                                onPressed: _registrarConsumoInterno,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: 8),
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppTheme.alertRed,
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                onPressed: _vaciarCarrito,
+                                child: Text(
+                                  'Vaciar',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                       ],
                     ),
@@ -5390,6 +6618,8 @@ class _VentasScreenState extends State<VentasScreen> {
                       const SizedBox(height: 8),
                       _buildPromocionesCartBanner(isDark),
                     ],
+                    const SizedBox(height: 6),
+                    _buildDescuentoManualBanner(isDark),
                     if (_totalBotellasRetornablesEnCarrito > 0) ...[
                       const SizedBox(height: 12),
                       _buildRetornablesCartBanner(isDark),
@@ -5800,6 +7030,38 @@ class _VentasScreenState extends State<VentasScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const CajaVentasScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 6),
+              ValueListenableBuilder<int>(
+                valueListenable: VentaEnEsperaService.countNotifier,
+                builder: (context, count, _) {
+                  return _buildPosActionChip(
+                    icon: LucideIcons.pauseCircle,
+                    label: count > 0 ? 'En Espera ($count)' : 'En Espera',
+                    color: count > 0 ? const Color(0xFFD97706) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                    bgColor: count > 0
+                        ? (isDark ? const Color(0xFF78350F).withValues(alpha: 0.3) : const Color(0xFFFEF3C7))
+                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                    onTap: _mostrarModalVentasEnEspera,
+                    isDark: isDark,
+                  );
+                },
+              ),
+              const SizedBox(width: 6),
+              ValueListenableBuilder<int>(
+                valueListenable: PedidoWebService.pedidosPendientesCountNotifier,
+                builder: (context, count, _) {
+                  return _buildPosActionChip(
+                    icon: LucideIcons.globe,
+                    label: count > 0 ? 'Pedidos Web ($count)' : 'Pedidos Web',
+                    color: count > 0 ? const Color(0xFF0D9488) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                    bgColor: count > 0
+                        ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.3) : const Color(0xFFCCFBF1))
+                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                    onTap: _mostrarBandejaPedidosWeb,
+                    isDark: isDark,
                   );
                 },
               ),
@@ -6461,23 +7723,44 @@ class _VentasScreenState extends State<VentasScreen> {
                 ),
               ),
               if (_carrito.isNotEmpty)
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.alertRed,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      tooltip: 'Poner en Espera (Pausar Ticket)',
+                      icon: const Icon(LucideIcons.pauseCircle, size: 18, color: Color(0xFFD97706)),
+                      onPressed: _ponerVentaEnEspera,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    minimumSize: Size.zero,
-                  ),
-                  onPressed: _vaciarCarrito,
-                  child: Text(
-                    'Vaciar',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
+                    const SizedBox(width: 6),
+                    IconButton(
+                      tooltip: 'Registrar como Consumo Interno de Bodega',
+                      icon: const Icon(LucideIcons.coffee, size: 18, color: Color(0xFF8B5CF6)),
+                      onPressed: _registrarConsumoInterno,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.alertRed,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        minimumSize: Size.zero,
+                      ),
+                      onPressed: _vaciarCarrito,
+                      child: Text(
+                        'Vaciar',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
             ],
           ),
@@ -6824,6 +8107,8 @@ class _VentasScreenState extends State<VentasScreen> {
             const SizedBox(height: 8),
             _buildPromocionesCartBanner(isDark),
           ],
+          const SizedBox(height: 6),
+          _buildDescuentoManualBanner(isDark),
           if (_totalBotellasRetornablesEnCarrito > 0) ...[
             const SizedBox(height: 8),
             _buildRetornablesCartBanner(isDark),

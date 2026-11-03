@@ -12,6 +12,7 @@ import '../../core/api_constants.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
+import 'pedido_web_service.dart';
 
 class CatalogoPublicoScreen extends StatefulWidget {
   final String tiendaSlug;
@@ -84,6 +85,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         final rawProds = (data['productos'] as List<dynamic>?) ?? [];
         final prodsList = rawProds
             .map((e) => Map<String, dynamic>.from(e as Map))
+            .where((p) => p['stockActual'] == null || ((p['stockActual'] as num).toDouble() > 0))
             .toList();
         final rawCats = (data['categorias'] as List<dynamic>?) ?? [];
         final catsList = rawCats.map((e) => e.toString()).toList();
@@ -235,13 +237,14 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     }
 
     final buffer = StringBuffer();
-    buffer.writeln('¡Hola *$nombreBodega*! 👋');
-    buffer.writeln(
-      'Quisiera realizar el siguiente pedido desde su catálogo digital:',
-    );
-    buffer.writeln('');
+    buffer.writeln('*Pedido Web - $nombreBodega*');
+    if (notas != null && notas.trim().isNotEmpty) {
+      buffer.writeln('Cliente/Nota: ${notas.trim()}');
+    }
+    buffer.writeln('--------------------------------');
 
-    int index = 1;
+    final List<PedidoWebItem> itemsParaBandeja = [];
+
     _carrito.forEach((id, cant) {
       final prod = _productos.firstWhere(
         (p) => p['idProducto']?.toString() == id.toString(),
@@ -257,27 +260,28 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       final bool tienePromo = prod['tienePromocion'] == true && promo > 0;
       final double precioFinal = tienePromo ? promo : regular;
       final subtotal = precioFinal * cant;
+      final badge = tienePromo ? (prod['badgePromocion']?.toString() ?? 'PROMO') : null;
+
+      itemsParaBandeja.add(PedidoWebItem(
+        idProducto: (prod['idProducto'] as num?)?.toInt() ?? int.tryParse(id.toString()) ?? 0,
+        nombre: nombre,
+        cantidad: cant.toDouble(),
+        precioUnitario: precioFinal,
+        subtotal: subtotal,
+        badge: badge,
+      ));
+
       if (tienePromo) {
-        final badge = prod['badgePromocion'] ?? 'OFERTA';
-        buffer.writeln(
-          '$index. $cant x *$nombre* - S/ ${subtotal.toStringAsFixed(2)} ~S/ ${(regular * cant).toStringAsFixed(2)}~ ($badge)',
-        );
+        buffer.writeln('• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)} ($badge)');
       } else {
-        buffer.writeln(
-          '$index. $cant x *$nombre* - S/ ${subtotal.toStringAsFixed(2)}',
-        );
+        buffer.writeln('• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)}');
       }
-      index++;
     });
 
-    buffer.writeln('');
-    buffer.writeln(
-      '*TOTAL ESTIMADO: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*',
-    );
+    buffer.writeln('--------------------------------');
+    buffer.writeln('*Total a Pagar: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*');
     if (_totalAhorroCarrito > 0) {
-      buffer.writeln(
-        '🎁 *¡Ahorro total por Promociones: S/ ${_totalAhorroCarrito.toStringAsFixed(2)}!*',
-      );
+      buffer.writeln('Descuento web aplicado: -S/ ${_totalAhorroCarrito.toStringAsFixed(2)}');
     }
     final bool incluyeRetornables = _carrito.keys.any((id) {
       final p = _productos.firstWhere(
@@ -287,18 +291,25 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       return _esProductoRetornable(p);
     });
     if (incluyeRetornables) {
-      buffer.writeln(
-        '🍾 *Envases:* El pedido incluye productos con botella retornable (llevo envase vacío o consulto garantía).',
-      );
-    }
-    if (notas != null && notas.trim().isNotEmpty) {
-      buffer.writeln('');
-      buffer.writeln('📝 *Indicaciones del cliente:* ${notas.trim()}');
+      buffer.writeln('(Incluye botellas retornables)');
     }
     buffer.writeln('');
-    buffer.writeln(
-      'Por favor indíquenme si lo tienen listo para pasar a recogerlo. ¡Muchas gracias!',
+    buffer.writeln('¿Me confirman disponibilidad para recoger?');
+
+    // Registrar en la bandeja de pedidos web de CajaYa
+    final nuevoPedido = PedidoWeb(
+      idPedido: 'WEB-${DateTime.now().millisecondsSinceEpoch % 100000}',
+      fecha: DateTime.now(),
+      nombreCliente: (notas != null && notas.trim().isNotEmpty) ? notas.trim() : 'Cliente Web',
+      telefonoCliente: limpio,
+      notas: notas,
+      items: itemsParaBandeja,
+      total: _totalMontoCarrito,
+      ahorroPromociones: _totalAhorroCarrito,
+      incluyeRetornables: incluyeRetornables,
+      estado: 'PENDIENTE',
     );
+    PedidoWebService.registrarPedido(nuevoPedido);
 
     final encoded = Uri.encodeComponent(buffer.toString());
     final urlStr = telefonoFinal.isNotEmpty

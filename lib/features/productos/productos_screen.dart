@@ -23,6 +23,7 @@ import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/product_image_widget.dart';
+import '../../core/widgets/solicitar_pin_dialog.dart';
 
 class ProductosScreen extends StatefulWidget {
   const ProductosScreen({super.key});
@@ -2144,8 +2145,17 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               fontSize: 12,
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             Navigator.pop(ctx);
+                            if (AuthService.esCajero) {
+                              final auth = await SolicitarPinDialog.mostrar(
+                                context,
+                                titulo: 'Modo Cajero Protegido',
+                                mensaje: 'Se requiere PIN de Administrador para modificar precios o catálogo.',
+                              );
+                              if (!auth) return;
+                            }
+                            if (!mounted) return;
                             EditarProductoSheet.show(
                               context,
                               p,

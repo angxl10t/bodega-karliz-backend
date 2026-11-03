@@ -49,10 +49,36 @@ class VentaEnvio {
 class CartItem {
   final Producto producto;
   double cantidad;
+  double descuentoManual;
+  String? descuentoMotivo;
 
-  CartItem({required this.producto, this.cantidad = 1.0});
+  CartItem({
+    required this.producto,
+    this.cantidad = 1.0,
+    this.descuentoManual = 0.0,
+    this.descuentoMotivo,
+  });
 
-  double get subtotal => producto.precioVenta * cantidad;
+  double get subtotalBruto =>
+      double.parse((producto.precioVenta * cantidad).toStringAsFixed(2));
+  double get subtotal => double.parse(
+      ((subtotalBruto - descuentoManual).clamp(0.0, double.infinity))
+          .toStringAsFixed(2));
+
+  Map<String, dynamic> toJson() => {
+        'producto': producto.toJson(),
+        'cantidad': cantidad,
+        'descuentoManual': descuentoManual,
+        if (descuentoMotivo != null) 'descuentoMotivo': descuentoMotivo,
+      };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
+        producto: Producto.fromJson(
+            Map<String, dynamic>.from(json['producto'] as Map)),
+        cantidad: (json['cantidad'] as num?)?.toDouble() ?? 1.0,
+        descuentoManual: (json['descuentoManual'] as num?)?.toDouble() ?? 0.0,
+        descuentoMotivo: json['descuentoMotivo']?.toString(),
+      );
 }
 
 /// Detalle de venta retornado por la API

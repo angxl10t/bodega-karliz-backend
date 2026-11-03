@@ -886,6 +886,12 @@ class _ComprasScreenState extends State<ComprasScreen>
           final subtotal = cant * costo;
           final pv = productoActual.precioVenta;
           final gananciaUnitaria = pv - costo;
+          final stockPrevio = productoActual.stockActual;
+          final costoPrevio = productoActual.precioCosto ?? (pv * 0.75);
+          final nuevoStock = stockPrevio + cant;
+          final nuevoCpp = (stockPrevio > 0 && nuevoStock > 0 && costo > 0)
+              ? ((stockPrevio * costoPrevio) + (cant * costo)) / nuevoStock
+              : (costo > 0 ? costo : costoPrevio);
           final margenPct = pv > 0 ? (gananciaUnitaria / pv) * 100 : 0.0;
           final esMargenCritico = costo >= pv && costo > 0;
           final esMargenBajo =
@@ -1020,6 +1026,35 @@ class _ComprasScreenState extends State<ComprasScreen>
                     ],
                   ),
                 ),
+                if (cant > 0 && costo > 0) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.scale, color: Color(0xFF6366F1), size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Costo Promedio Ponderado (CPP): S/ ${nuevoCpp.toStringAsFixed(2)}  (Costo ant: S/ ${costoPrevio.toStringAsFixed(2)})',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4338CA),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (esMargenCritico || esMargenBajo) ...[
                   const SizedBox(height: 10),
                   Container(
