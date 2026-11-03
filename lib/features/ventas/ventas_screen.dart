@@ -404,6 +404,27 @@ class _VentasScreenState extends State<VentasScreen> {
             }
           }
         }
+      } else if (promo.tipoPromocion == 'TRES_POR_DOS') {
+        if (promo.idProductoPrincipal != null) {
+          CartItem? it;
+          for (final c in _carrito) {
+            if (c.producto.idProducto == promo.idProductoPrincipal) {
+              it = c;
+              break;
+            }
+          }
+          if (it != null && it.cantidad >= 3) {
+            final trios = (it.cantidad ~/ 3);
+            final ahorro = trios * it.producto.precioVenta;
+            if (ahorro > 0.01) {
+              aplicadas.add(PromoAplicada(
+                promocion: promo,
+                descuento: ahorro,
+                descripcion: '${promo.titulo}: 3x2 en ${it.producto.nombre} (-S/ ${ahorro.toStringAsFixed(2)})',
+              ));
+            }
+          }
+        }
       } else if (promo.tipoPromocion == 'PORCENTAJE') {
         if (promo.alcance == 'PRODUCTO' && promo.idProductoPrincipal != null) {
           for (final it in _carrito) {

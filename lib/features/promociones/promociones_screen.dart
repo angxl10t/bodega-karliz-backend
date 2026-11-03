@@ -397,7 +397,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
                       ? 'Categoría: ${p.categoriaObjetivo ?? ""}'
                       : (p.alcance == 'MARCA'
                           ? 'Marca: ${p.marcaObjetivo ?? ""}'
-                          : (p.alcance == 'COMBO' ? 'Combo Especial' : 'Producto Individual')),
+                          : (p.alcance == 'COMBO' ? 'Combo Especial' : (p.nombreProductoPrincipal != null ? 'Producto: ${p.nombreProductoPrincipal}' : 'Producto Individual'))),
                   style: GoogleFonts.outfit(fontSize: 10.5, fontWeight: FontWeight.w700, color: isDark ? Colors.white70 : AppTheme.textDark),
                 ),
               ),
@@ -441,7 +441,7 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
           // Footer info + Actions
           Row(
             children: [
-              if (p.valorDescuento > 0)
+              if (p.valorDescuento > 0 || p.tipoPromocion == 'DOS_POR_UNO' || p.tipoPromocion == 'TRES_POR_DOS')
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -449,7 +449,13 @@ class _PromocionesScreenState extends State<PromocionesScreen> with SingleTicker
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    p.tipoPromocion == 'PORCENTAJE' ? '-${p.valorDescuento.toStringAsFixed(0)}% OFF' : '-S/ ${p.valorDescuento.toStringAsFixed(2)}',
+                    p.tipoPromocion == 'TRES_POR_DOS'
+                        ? '🎁 3x2 (LLEVA 3 PAGA 2)'
+                        : p.tipoPromocion == 'DOS_POR_UNO'
+                            ? '🎁 2x1 (LLEVA 2 PAGA 1)'
+                            : p.tipoPromocion == 'PORCENTAJE'
+                                ? '-${p.valorDescuento.toStringAsFixed(0)}% OFF'
+                                : '-S/ ${p.valorDescuento.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(fontSize: 11.5, fontWeight: FontWeight.w900, color: const Color(0xFF16A34A)),
                   ),
                 ),

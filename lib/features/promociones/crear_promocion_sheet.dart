@@ -53,7 +53,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
   late final TextEditingController _badgeTextoCtrl;
 
   String _alcance = 'CATEGORIA'; // CATEGORIA, MARCA, PRODUCTO, COMBO
-  String _tipoPromocion = 'PORCENTAJE'; // PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, COMBO_HUESO
+  String _tipoPromocion = 'PORCENTAJE'; // PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, TRES_POR_DOS, COMBO_HUESO
   String? _categoriaSeleccionada;
   Producto? _productoPrincipal;
   Producto? _productoSecundario;
@@ -178,7 +178,20 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
     setState(() => _guardando = true);
 
     try {
-      final double valDescuento = double.tryParse(_descuentoCtrl.text.trim()) ?? 0.0;
+      if ((_tipoPromocion == 'DOS_POR_UNO' || _tipoPromocion == 'TRES_POR_DOS') && _productoPrincipal == null) {
+        setState(() => _guardando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor, selecciona el producto para la promoción.'),
+            backgroundColor: Color(0xFFDC2626),
+          ),
+        );
+        return;
+      }
+
+      final double valDescuento = (_tipoPromocion == 'DOS_POR_UNO' || _tipoPromocion == 'TRES_POR_DOS')
+          ? 0.0
+          : (double.tryParse(_descuentoCtrl.text.trim()) ?? 0.0);
 
       String? fInicioStr;
       if (_fechaInicio != null) {
@@ -193,12 +206,12 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
         'titulo': _tituloCtrl.text.trim(),
         'descripcion': _descripcionCtrl.text.trim(),
         'tipoPromocion': _tipoPromocion,
-        'alcance': _alcance,
+        'alcance': (_tipoPromocion == 'DOS_POR_UNO' || _tipoPromocion == 'TRES_POR_DOS') ? 'PRODUCTO' : _alcance,
         'valorDescuento': valDescuento,
         'categoriaObjetivo': _alcance == 'CATEGORIA' ? _categoriaSeleccionada : null,
         'marcaObjetivo': _alcance == 'MARCA' ? _marcaCtrl.text.trim() : null,
-        'idProductoPrincipal': (_alcance == 'PRODUCTO' || _alcance == 'COMBO') ? _productoPrincipal?.idProducto : null,
-        'nombreProductoPrincipal': (_alcance == 'PRODUCTO' || _alcance == 'COMBO') ? _productoPrincipal?.nombre : null,
+        'idProductoPrincipal': (_alcance == 'PRODUCTO' || _alcance == 'COMBO' || _tipoPromocion == 'DOS_POR_UNO' || _tipoPromocion == 'TRES_POR_DOS') ? _productoPrincipal?.idProducto : null,
+        'nombreProductoPrincipal': (_alcance == 'PRODUCTO' || _alcance == 'COMBO' || _tipoPromocion == 'DOS_POR_UNO' || _tipoPromocion == 'TRES_POR_DOS') ? _productoPrincipal?.nombre : null,
         'idProductoSecundario': _alcance == 'COMBO' ? _productoSecundario?.idProducto : null,
         'nombreProductoSecundario': _alcance == 'COMBO' ? _productoSecundario?.nombre : null,
         'badgeTexto': _badgeTextoCtrl.text.trim().isNotEmpty ? _badgeTextoCtrl.text.trim() : '🔥 OFERTA',
@@ -562,7 +575,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                   const SizedBox(height: 14),
                 ],
 
-                if (_alcance == 'PRODUCTO' || _alcance == 'COMBO') ...[
+                if (_alcance == 'PRODUCTO' || _alcance == 'COMBO' || _tipoPromocion == 'DOS_POR_UNO' || _tipoPromocion == 'TRES_POR_DOS') ...[
                   Text(
                     _alcance == 'COMBO' ? 'PRODUCTO 1 (PRINCIPAL / HUESO)' : 'PRODUCTO SELECCIONADO',
                     style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.textMuted),
@@ -570,7 +583,16 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                   const SizedBox(height: 6),
                   _buildProductSelector(
                     selected: _productoPrincipal,
-                    onSelected: (p) => setState(() => _productoPrincipal = p),
+                    onSelected: (p) => setState(() {
+                      _productoPrincipal = p;
+                      if (p != null) {
+                        if (_tipoPromocion == 'TRES_POR_DOS') {
+                          _tituloCtrl.text = '¡Lleva 3 Paga 2 en ${p.nombre}!';
+                        } else if (_tipoPromocion == 'DOS_POR_UNO') {
+                          _tituloCtrl.text = '¡Promoción 2x1 en ${p.nombre}!';
+                        }
+                      }
+                    }),
                     hint: 'Seleccionar producto...',
                     isDark: isDark,
                   ),
@@ -617,11 +639,35 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                                 items: const [
                                   DropdownMenuItem(value: 'PORCENTAJE', child: Text('Descuento %')),
                                   DropdownMenuItem(value: 'MONTO_FIJO', child: Text('Rebaja en Soles (S/)')),
-                                  DropdownMenuItem(value: 'DOS_POR_UNO', child: Text('Promoción 2x1')),
+                                  DropdownMenuItem(value: 'DOS_POR_UNO', child: Text('Promoción 2x1 (Lleva 2 Paga 1)')),
+                                  DropdownMenuItem(value: 'TRES_POR_DOS', child: Text('Promoción 3x2 (Lleva 3 Paga 2)')),
                                   DropdownMenuItem(value: 'COMBO_HUESO', child: Text('Combo Especial')),
                                 ],
                                 onChanged: (val) {
-                                  if (val != null) setState(() => _tipoPromocion = val);
+                                  if (val != null) {
+                                    setState(() {
+                                      _tipoPromocion = val;
+                                      if (val == 'TRES_POR_DOS') {
+                                        _alcance = 'PRODUCTO';
+                                        _badgeTextoCtrl.text = '🎁 3x2';
+                                        if (_productoPrincipal != null) {
+                                          _tituloCtrl.text = '¡Lleva 3 Paga 2 en ${_productoPrincipal!.nombre}!';
+                                        } else {
+                                          _tituloCtrl.text = '¡Súper Promo 3x2: Lleva 3 y Paga 2!';
+                                        }
+                                        _descripcionCtrl.text = 'Por la compra de 3 unidades, pagas solo 2 (la tercera unidad te sale GRATIS).';
+                                      } else if (val == 'DOS_POR_UNO') {
+                                        _alcance = 'PRODUCTO';
+                                        _badgeTextoCtrl.text = '🎁 2x1';
+                                        if (_productoPrincipal != null) {
+                                          _tituloCtrl.text = '¡Promoción 2x1 en ${_productoPrincipal!.nombre}!';
+                                        } else {
+                                          _tituloCtrl.text = '¡Súper Promo 2x1: Lleva 2 Paga 1!';
+                                        }
+                                        _descripcionCtrl.text = 'Por la compra de 2 unidades, pagas solo 1 (la segunda unidad es GRATIS).';
+                                      }
+                                    });
+                                  }
                                 },
                               ),
                             ),
@@ -630,7 +676,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    if (_tipoPromocion != 'DOS_POR_UNO') ...[
+                    if (_tipoPromocion != 'DOS_POR_UNO' && _tipoPromocion != 'TRES_POR_DOS') ...[
                       Expanded(
                         flex: 4,
                         child: Column(
@@ -663,6 +709,60 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                     ],
                   ],
                 ),
+                if (_tipoPromocion == 'TRES_POR_DOS') ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF2563EB).withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.sparkles, color: Color(0xFF2563EB), size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'En la promoción 3x2, por cada 3 unidades que compre el cliente en mostrador o catálogo, pagará solo 2 y la tercera se descontará automáticamente en caja.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (_tipoPromocion == 'DOS_POR_UNO') ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.sparkles, color: Color(0xFF10B981), size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'En la promoción 2x1, por cada 2 unidades que compre el cliente, pagará solo 1 y la segunda será completamente gratis.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? const Color(0xFF6EE7B7) : const Color(0xFF047857),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
 
                 // Título y Descripción

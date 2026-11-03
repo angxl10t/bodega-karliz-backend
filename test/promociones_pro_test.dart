@@ -68,6 +68,68 @@ void main() {
       expect(map['fechaFin'], '2026-11-12');
     });
 
+    test('Promocion 3x2 (TRES_POR_DOS) serializes and deserializes correctly', () {
+      final json = {
+        'idPromocion': 33,
+        'idBodega': 3,
+        'titulo': '¡Lleva 3 Paga 2 en Galletas Casino!',
+        'descripcion': 'Por la compra de 3 paquetes pagas solo 2',
+        'tipoPromocion': 'TRES_POR_DOS',
+        'alcance': 'PRODUCTO',
+        'idProductoPrincipal': 105,
+        'nombreProductoPrincipal': 'Galleta Casino Chocolate',
+        'badgeTexto': '🎁 3x2',
+        'colorBadge': '#2563EB',
+        'activo': true,
+      };
+
+      final promo = Promocion.fromJson(json);
+
+      expect(promo.idPromocion, 33);
+      expect(promo.tipoPromocion, 'TRES_POR_DOS');
+      expect(promo.idProductoPrincipal, 105);
+      expect(promo.nombreProductoPrincipal, 'Galleta Casino Chocolate');
+      expect(promo.badgeTexto, '🎁 3x2');
+      expect(promo.activo, isTrue);
+
+      final map = promo.toJson();
+      expect(map['idPromocion'], 33);
+      expect(map['tipoPromocion'], 'TRES_POR_DOS');
+      expect(map['badgeTexto'], '🎁 3x2');
+    });
+
+    test('Promocion 3x2 calculation logic produces exact trios discount', () {
+      const double precioUnitario = 4.50;
+
+      double calcularDescuento3x2(int cantidad) {
+        if (cantidad < 3) return 0.0;
+        final trios = cantidad ~/ 3;
+        return trios * precioUnitario;
+      }
+
+      // 1 or 2 units -> no discount
+      expect(calcularDescuento3x2(1), 0.0);
+      expect(calcularDescuento3x2(2), 0.0);
+
+      // 3 units -> 1 unit free (S/ 4.50 discount, customer pays S/ 9.00 instead of S/ 13.50)
+      expect(calcularDescuento3x2(3), 4.50);
+
+      // 4 units -> 1 unit free (S/ 4.50 discount, customer pays S/ 13.50)
+      expect(calcularDescuento3x2(4), 4.50);
+
+      // 5 units -> 1 unit free (S/ 4.50 discount)
+      expect(calcularDescuento3x2(5), 4.50);
+
+      // 6 units -> 2 units free (S/ 9.00 discount, customer pays S/ 18.00 instead of S/ 27.00)
+      expect(calcularDescuento3x2(6), 9.00);
+
+      // 7 units -> 2 units free (S/ 9.00 discount)
+      expect(calcularDescuento3x2(7), 9.00);
+
+      // 9 units -> 3 units free (S/ 13.50 discount)
+      expect(calcularDescuento3x2(9), 13.50);
+    });
+
     test('SugerenciaComboHueso deserializes financial & strategic combo metrics', () {
       final json = {
         'idProductoHueso': 45,

@@ -3,7 +3,7 @@ class Promocion {
   final int? idBodega;
   final String titulo;
   final String descripcion;
-  final String tipoPromocion; // PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, COMBO_HUESO
+  final String tipoPromocion; // PORCENTAJE, MONTO_FIJO, DOS_POR_UNO, TRES_POR_DOS, COMBO_HUESO
   final String alcance;       // CATEGORIA, MARCA, PRODUCTO, COMBO
   final double valorDescuento;
   final String? categoriaObjetivo;
