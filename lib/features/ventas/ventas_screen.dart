@@ -385,7 +385,9 @@ class _VentasScreenState extends State<VentasScreen> {
         _direccionBodega = dir;
         _lemaBodega = lema;
 
-        if (_facturacionSunatActiva) {
+        if (_regimenTributario == 'INFORMAL') {
+          _tipoComprobante = 'TICKET';
+        } else if (_facturacionSunatActiva) {
           _tipoComprobante = 'BOLETA_ELECTRONICA';
         } else {
           _tipoComprobante = 'TICKET';
@@ -712,6 +714,12 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   void _alternarTipoComprobante() {
+    if (_regimenTributario == 'INFORMAL') {
+      if (_tipoComprobante != 'TICKET') {
+        setState(() => _tipoComprobante = 'TICKET');
+      }
+      return;
+    }
     setState(() {
       _tipoComprobante = (_tipoComprobante == 'BOLETA_ELECTRONICA')
           ? 'TICKET'
@@ -6950,12 +6958,16 @@ class _VentasScreenState extends State<VentasScreen> {
           const SizedBox(width: 6),
           _buildKeyBadge(
             'F9',
-            _tipoComprobante == 'BOLETA_ELECTRONICA' ? 'Boleta' : 'Ticket',
+            _regimenTributario == 'INFORMAL'
+                ? 'Ticket'
+                : (_tipoComprobante == 'BOLETA_ELECTRONICA' ? 'Boleta' : 'Ticket'),
             LucideIcons.fileText,
             isDark,
-            () {
-              _alternarTipoComprobante();
-            },
+            _regimenTributario == 'INFORMAL'
+                ? null
+                : () {
+                    _alternarTipoComprobante();
+                  },
           ),
           const SizedBox(width: 6),
           _buildKeyBadge(
@@ -6984,12 +6996,12 @@ class _VentasScreenState extends State<VentasScreen> {
               decoration: BoxDecoration(
                 color: _regimenTributario == 'NUEVO_RUS'
                     ? AppTheme.accentGreen.withValues(alpha: 0.12)
-                    : const Color(0xFF2563EB).withValues(alpha: 0.12),
+                    : const Color(0xFF0D9488).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: _regimenTributario == 'NUEVO_RUS'
                       ? AppTheme.accentGreen.withValues(alpha: 0.35)
-                      : const Color(0xFF2563EB).withValues(alpha: 0.35),
+                      : const Color(0xFF0D9488).withValues(alpha: 0.35),
                 ),
               ),
               child: Row(
@@ -6998,23 +7010,23 @@ class _VentasScreenState extends State<VentasScreen> {
                   Icon(
                     _regimenTributario == 'NUEVO_RUS'
                         ? LucideIcons.store
-                        : LucideIcons.building2,
+                        : LucideIcons.leaf,
                     size: 13,
                     color: _regimenTributario == 'NUEVO_RUS'
                         ? AppTheme.accentGreen
-                        : const Color(0xFF2563EB),
+                        : const Color(0xFF0D9488),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     _regimenTributario == 'NUEVO_RUS'
                         ? 'NUEVO RUS'
-                        : 'MYPE',
+                        : '🌿 SIN RUC',
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       color: _regimenTributario == 'NUEVO_RUS'
                           ? AppTheme.accentGreen
-                          : const Color(0xFF2563EB),
+                          : const Color(0xFF0D9488),
                     ),
                   ),
                 ],
@@ -10574,6 +10586,8 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   Widget _buildTipoComprobanteSelector(bool isDark) {
+    final bool esInformal = _regimenTributario == 'INFORMAL';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -10584,20 +10598,23 @@ class _VentasScreenState extends State<VentasScreen> {
             color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+              color: esInformal
+                  ? const Color(0xFF0D9488).withValues(alpha: 0.3)
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
             ),
           ),
           child: Row(
             children: [
-              _buildTipoComprobanteTab(
-                'BOLETA_ELECTRONICA',
-                'Boleta de Venta',
-                LucideIcons.fileText,
-                isDark,
-              ),
+              if (!esInformal)
+                _buildTipoComprobanteTab(
+                  'BOLETA_ELECTRONICA',
+                  'Boleta de Venta',
+                  LucideIcons.fileText,
+                  isDark,
+                ),
               _buildTipoComprobanteTab(
                 'TICKET',
-                'Ticket de Venta',
+                esInformal ? 'Ticket de Venta / Mostrador' : 'Ticket de Venta',
                 LucideIcons.receipt,
                 isDark,
               ),
@@ -10609,15 +10626,17 @@ class _VentasScreenState extends State<VentasScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                LucideIcons.checkCircle2,
+              Icon(
+                esInformal ? LucideIcons.leaf : LucideIcons.checkCircle2,
                 size: 11,
-                color: AppTheme.accentGreen,
+                color: esInformal ? const Color(0xFF0D9488) : AppTheme.accentGreen,
               ),
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
-                  'Venta ágil de mostrador a consumidor final',
+                  esInformal
+                      ? '🌿 Bodega Independiente: Nota de mostrador sin trámites fiscales'
+                      : 'Venta ágil de mostrador a consumidor final (Nuevo RUS)',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(

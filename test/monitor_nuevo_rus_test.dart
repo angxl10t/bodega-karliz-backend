@@ -84,6 +84,40 @@ void main() {
       expect(resumen.advertencia, equals('Te quedan menos de S/ 600.00'));
     });
 
+    test('ResumenNuevoRus parsea correctamente bodega informal / independiente', () {
+      final jsonInformal = {
+        'anio': 2026,
+        'mes': 11,
+        'periodoNombre': 'Noviembre 2026',
+        'esNuevoRus': false,
+        'regimenTributario': 'INFORMAL',
+        'totalVentasMes': 2100.00,
+        'totalComprasMes': 1300.00,
+        'montoDeterminante': 2100.00,
+        'categoriaActual': 'INFORMAL',
+        'categoriaNombre': 'Bodega Independiente (Sin SUNAT)',
+        'cuotaMensualEstimada': 0.00,
+        'limiteCat1': 5000.00,
+        'limiteCat2': 8000.00,
+        'restanteCat1': 2900.00,
+        'restanteCat2': 5900.00,
+        'porcentajeCat1': 42.00,
+        'porcentajeCat2': 26.25,
+        'estadoSemaforo': 'NEUTRO',
+        'mensajeDiagnostico': 'Bodega no sujeta a obligaciones del Nuevo RUS.',
+        'advertencia': null,
+        'sugerenciaPagoSunat': null,
+      };
+
+      final resumen = ResumenNuevoRus.fromJson(jsonInformal);
+
+      expect(resumen.esNuevoRus, isFalse);
+      expect(resumen.regimenTributario, equals('INFORMAL'));
+      expect(resumen.categoriaActual, equals('INFORMAL'));
+      expect(resumen.cuotaMensualEstimada, equals(0.00));
+      expect(resumen.estadoSemaforo, equals('NEUTRO'));
+    });
+
     test('BodegaInfo detecta esNuevoRus de forma consistente', () {
       final jsonRus = {
         'idBodega': 1,
@@ -97,17 +131,17 @@ void main() {
       expect(infoRus.regimenTributario, equals('NUEVO_RUS'));
       expect(infoRus.esNuevoRus, isTrue);
 
-      final jsonMype = {
+      final jsonInformal = {
         'idBodega': 2,
-        'nombreComercial': 'Minimarket San Jorge',
-        'regimenTributario': 'MYPE_TRIBUTARIO',
-        'plan': 'CORPORATIVO',
+        'nombreComercial': 'Bodega Doña Rosa',
+        'regimenTributario': 'INFORMAL',
+        'plan': 'BASICO',
         'colorPrimario': '#2563EB',
         'estado': true,
       };
-      final infoMype = BodegaInfo.fromJson(jsonMype);
-      expect(infoMype.regimenTributario, equals('MYPE_TRIBUTARIO'));
-      expect(infoMype.esNuevoRus, isFalse);
+      final infoInformal = BodegaInfo.fromJson(jsonInformal);
+      expect(infoInformal.regimenTributario, equals('INFORMAL'));
+      expect(infoInformal.esNuevoRus, isFalse);
 
       final jsonDefault = {
         'idBodega': 3,

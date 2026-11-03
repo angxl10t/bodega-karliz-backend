@@ -1244,7 +1244,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 width: btnWidth,
                                 title: 'Mi Suscripción',
                                 subtitle: _plan == 'PRO'
-                                    ? 'Plan Minimarket Pro • Facturas'
+                                    ? 'Plan Minimarket Pro • Ilimitado'
                                     : 'Plan Bodega Básico • Renovar',
                                 icon: LucideIcons.crown,
                                 color: const Color(0xFF0D9488),

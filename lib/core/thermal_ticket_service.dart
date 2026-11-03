@@ -181,18 +181,12 @@ class ThermalTicketService {
     if (lemaComercial != null && lemaComercial.isNotEmpty) {
       buffer.writeln(center('"$lemaComercial"', width));
     }
-    if (rucDni != null && rucDni.isNotEmpty) {
-      buffer.writeln(center('RUC/DNI: $rucDni', width));
-    }
-    if (regimenTributario != null && regimenTributario.isNotEmpty) {
-      final regLabel = switch (regimenTributario) {
-        'NUEVO_RUS' => 'Regimen: NUEVO RUS',
-        'RER' => 'Regimen: ESP. RENTA (RER)',
-        'MYPE_TRIBUTARIO' => 'Regimen: MYPE TRIBUTARIO',
-        'REGIMEN_GENERAL' => 'Regimen: GENERAL',
-        _ => 'Regimen: $regimenTributario',
-      };
-      buffer.writeln(center(regLabel, width));
+    final bool esInformal = regimenTributario == 'INFORMAL';
+    if (!esInformal) {
+      if (rucDni != null && rucDni.isNotEmpty) {
+        buffer.writeln(center('RUC/DNI: $rucDni', width));
+      }
+      buffer.writeln(center('Regimen: NUEVO RUS (Ley 30877)', width));
     }
     if (direccion != null && direccion.isNotEmpty) {
       buffer.writeln(center(direccion, width));
@@ -202,10 +196,9 @@ class ThermalTicketService {
     }
     buffer.writeln(divider(width, '='));
 
-    // Datos del Comprobante
-    final bool esBoleta =
-        tipoComprobante == 'BOLETA_ELECTRONICA' || tipoComprobante == 'BOLETA';
-    final bool esFactura = tipoComprobante == 'FACTURA_ELECTRONICA';
+    // Datos del Comprobante (Boleta de Venta en Nuevo RUS o Ticket de Mostrador en modo Informal)
+    final bool esBoleta = !esInformal &&
+        (tipoComprobante == 'BOLETA_ELECTRONICA' || tipoComprobante == 'BOLETA');
 
     if (esBoleta) {
       buffer.writeln(center('BOLETA DE VENTA', width));
@@ -214,15 +207,6 @@ class ThermalTicketService {
           twoColumns('SERIE-CORRELATIVO:', serieCorrelativo, width),
         );
       }
-    } else if (esFactura) {
-      buffer.writeln(center('FACTURA ELECTRONICA', width));
-      buffer.writeln(
-        twoColumns(
-          'SERIE-CORRELATIVO:',
-          serieCorrelativo ?? 'F001-00000001',
-          width,
-        ),
-      );
     } else {
       final ticketNum = ticketId != null
           ? '#${ticketId.toString().padLeft(6, '0')}'
@@ -290,16 +274,6 @@ class ThermalTicketService {
         ),
       );
     }
-    if (esFactura && regimenTributario != 'NUEVO_RUS') {
-      final opGravada = total / 1.18;
-      final igv = total - opGravada;
-      buffer.writeln(
-        twoColumns('OP. GRAVADA:', 'S/ ${opGravada.toStringAsFixed(2)}', width),
-      );
-      buffer.writeln(
-        twoColumns('I.G.V. (18%):', 'S/ ${igv.toStringAsFixed(2)}', width),
-      );
-    }
     buffer.writeln(
       twoColumns('TOTAL A PAGAR:', 'S/ ${total.toStringAsFixed(2)}', width),
     );
@@ -328,7 +302,7 @@ class ThermalTicketService {
 
     buffer.writeln(divider(width, '-'));
 
-    if (esBoleta || esFactura) {
+    if (esBoleta) {
       buffer.writeln(
         center('Representacion impresa de comprobante electronico', width),
       );

@@ -71,7 +71,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
   }
 
   Future<void> _cambiarRegimen(bool esNuevoRus) async {
-    final nuevoRegimen = esNuevoRus ? 'NUEVO_RUS' : 'MYPE_TRIBUTARIO';
+    final nuevoRegimen = esNuevoRus ? 'NUEVO_RUS' : 'INFORMAL';
 
     setState(() => _isSaving = true);
     try {
@@ -92,7 +92,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             content: Row(
               children: [
                 Icon(
-                  esNuevoRus ? LucideIcons.badgeCheck : LucideIcons.building2,
+                  esNuevoRus ? LucideIcons.badgeCheck : LucideIcons.leaf,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -100,14 +100,14 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 Expanded(
                   child: Text(
                     esNuevoRus
-                        ? 'Régimen actualizado: Acogido al Nuevo RUS (Ley N° 30877)'
-                        : 'Régimen actualizado: Comercio fuera del Nuevo RUS (Control interno)',
+                        ? 'Modo actualizado: Bodega en el Nuevo RUS (Ley N° 30877)'
+                        : 'Modo actualizado: Bodega Independiente (Sin RUC / Sin SUNAT)',
                     style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
             ),
-            backgroundColor: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF2563EB),
+            backgroundColor: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -279,8 +279,8 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                                 ),
                               ],
                             ] else ...[
-                              // COMERCIO FUERA DEL NUEVO RUS (MYPE / GENERAL)
-                              _buildCardComercioNoRus(
+                              // BODEGA INDEPENDIENTE (SIN SUNAT / SIN RUC)
+                              _buildCardBodegaInformal(
                                 isDark: isDark,
                                 cardBg: cardBg,
                                 borderColor: borderColor,
@@ -328,14 +328,14 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (esNuevoRus ? AppTheme.accentGreen : const Color(0xFF64748B))
+                  color: (esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488))
                       .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  esNuevoRus ? LucideIcons.store : LucideIcons.building,
+                  esNuevoRus ? LucideIcons.store : LucideIcons.leaf,
                   size: 20,
-                  color: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF64748B),
+                  color: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488),
                 ),
               ),
               const SizedBox(width: 12),
@@ -344,7 +344,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Comercio en el Nuevo RUS',
+                      '¿Bodega inscrita en el Nuevo RUS?',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -353,8 +353,8 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                     ),
                     Text(
                       esNuevoRus
-                          ? 'Acogido a la Ley del Bodeguero (D.L. 937)'
-                          : 'Régimen MYPE Tributario / Especial / General',
+                          ? 'Formal con RUC 10 ante SUNAT (D.L. 937)'
+                          : 'Bodega Independiente (Sin RUC / Sin SUNAT)',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -388,14 +388,14 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 Icon(
                   LucideIcons.info,
                   size: 16,
-                  color: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF3B82F6),
+                  color: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     esNuevoRus
-                        ? 'En el Nuevo RUS emites Tickets de Venta simplificados sin IGV desglosado. No se conecta motor SUNAT ni emites facturas con crédito fiscal.'
-                        : 'Comercio fuera del Nuevo RUS. Podrás emitir comprobantes de control interno con cálculo referencial de IGV (18%).',
+                        ? 'En el Nuevo RUS emites Tickets y Boletas simples. Cero facturas electrónicas. Te ayudamos a monitorear tus topes de S/ 5,000 y S/ 8,000 para pagar solo tu cuota fija (S/ 20 o S/ 50).'
+                        : 'Modo Bodega Independiente: Cero obligaciones tributarias, cero cuotas y cero topes. Todos tus tickets son comprobantes de mostrador para tus clientes y tu cuadre de caja diario.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
@@ -840,8 +840,8 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
     );
   }
 
-  /// Contenido cuando el negocio está fuera del Nuevo RUS
-  Widget _buildCardComercioNoRus({
+  /// Contenido cuando la bodega es independiente (fuera del Nuevo RUS / Sin SUNAT)
+  Widget _buildCardBodegaInformal({
     required bool isDark,
     required Color cardBg,
     required Color borderColor,
@@ -851,7 +851,10 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor),
+        border: Border.all(
+          color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -861,12 +864,12 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  LucideIcons.building2,
-                  color: Color(0xFF2563EB),
+                  LucideIcons.leaf,
+                  color: Color(0xFF0D9488),
                   size: 24,
                 ),
               ),
@@ -876,7 +879,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Comercio fuera del Nuevo RUS',
+                      '🌿 Bodega Independiente (Sin SUNAT)',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -884,7 +887,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                       ),
                     ),
                     Text(
-                      'Régimen MYPE Tributario / Especial (RER) / General',
+                      'Control 100% libre de trámites, topes e impuestos',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -897,38 +900,82 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Tu comercio está configurado como negocio de régimen general o MYPE. En este modo:',
+            'Tu bodega opera de forma libre sin registro en SUNAT. En este modo:',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
+              fontWeight: FontWeight.w500,
               color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _buildItemLista(
             icon: LucideIcons.receipt,
-            texto: 'En el POS podrás emitir Boletas y Facturas de control interno con RUC de 11 dígitos y razón social.',
+            texto: 'Mostrador enfocado: emite únicamente Tickets de Venta / Notas de Mostrador para entregar a tus clientes.',
             isDark: isDark,
           ),
           const SizedBox(height: 8),
           _buildItemLista(
-            icon: LucideIcons.percent,
-            texto: 'El ticket térmico calculará y mostrará el desglose referencial de I.G.V. (18%) y Operación Gravada.',
+            icon: LucideIcons.shieldCheck,
+            texto: 'Cero cuotas mensuales a pagar, sin declaraciones ni límites o semáforos de S/ 5,000 o S/ 8,000.',
             isDark: isDark,
           ),
           const SizedBox(height: 8),
           _buildItemLista(
-            icon: LucideIcons.shieldAlert,
-            texto: 'Nota: CajaYa no emite facturación electrónica con OSE SUNAT en tiempo real para mantener la máxima velocidad y simplicidad de tu mostrador.',
+            icon: LucideIcons.sparkles,
+            texto: 'Control total de tu negocio: cuadre diario de caja, control de stock de abarrotes y fiados vecinales.',
             isDark: isDark,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  LucideIcons.info,
+                  size: 18,
+                  color: Color(0xFF0D9488),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Si más adelante decides inscribirte en el Nuevo RUS, obtendrás tu RUC 10 gratis en 5 min desde el celular (App Personas SUNAT) con tu DNI.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 18),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentGreen,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
               icon: const Icon(LucideIcons.arrowLeftRight, size: 18),
               label: Text(
-                'Cambiar mi negocio al Nuevo RUS',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+                'Cambiar mi bodega al Nuevo RUS',
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               onPressed: () => _cambiarRegimen(true),
             ),
@@ -946,7 +993,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF2563EB)),
+        Icon(icon, size: 16, color: const Color(0xFF0D9488)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
