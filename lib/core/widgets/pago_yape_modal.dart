@@ -2,11 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme.dart';
 import '../../features/home/bodega_service.dart';
 
 class PagoYapeModal {
+  static Future<void> _abrirWhatsApp({
+    required BuildContext context,
+    required String plan,
+    required double monto,
+    String? codigoOperacion,
+  }) async {
+    final cod = (codigoOperacion != null && codigoOperacion.isNotEmpty)
+        ? ' Código de operación: $codigoOperacion.'
+        : '';
+    final mensaje =
+        'Hola, adjunto mi comprobante de pago para mi suscripción CajaYa Cloud POS (Plan $plan - S/ ${monto.toStringAsFixed(2)}).$cod Favor de confirmar la activación.';
+    final uri = Uri.parse(
+      'https://wa.me/51987654321?text=${Uri.encodeComponent(mensaje)}',
+    );
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Comunícate al WhatsApp oficial: +51 987 654 321'),
+          ),
+        );
+      }
+    }
+  }
   static Future<void> show(
     BuildContext context, {
     String planInicial = 'PRO',
@@ -470,19 +501,231 @@ class PagoYapeModal {
 
                     if (modalError.isNotEmpty) ...[
                       Container(
-                        padding: const EdgeInsets.all(8),
-                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: AppTheme.alertRed.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          modalError,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: AppTheme.alertRed,
-                            fontWeight: FontWeight.w600,
+                          color: AppTheme.alertRed.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppTheme.alertRed.withValues(alpha: 0.25),
                           ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  LucideIcons.alertTriangle,
+                                  color: AppTheme.alertRed,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    modalError,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      color: AppTheme.alertRed,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            InkWell(
+                              onTap: isSubmitting
+                                  ? null
+                                  : () async {
+                                      final cod = codOperacionCtrl.text.trim();
+                                      if (cod.length < 4) {
+                                        setModalState(
+                                          () => modalError =
+                                              'Ingresa un código de operación válido para reportar.',
+                                        );
+                                        return;
+                                      }
+
+                                      setModalState(() {
+                                        isSubmitting = true;
+                                        modalError = '';
+                                      });
+
+                                      try {
+                                        await bodegaService.reportarPagoManual(
+                                          codigoOperacion: cod,
+                                          plan: planSeleccionado,
+                                          monto: monto,
+                                          billetera: billetera,
+                                        );
+
+                                        if (dialogCtx.mounted) {
+                                          Navigator.pop(dialogCtx);
+                                        }
+
+                                        onPlanUpdated?.call();
+
+                                        if (context.mounted) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (alertCtx) => AlertDialog(
+                                              backgroundColor: isDark
+                                                  ? AppTheme.cardDarkElevated
+                                                  : Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              title: Row(
+                                                children: [
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          const Color(0xFFF59E0B)
+                                                              .withValues(
+                                                                alpha: 0.15,
+                                                              ),
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: const Icon(
+                                                      LucideIcons.clockAlert,
+                                                      color: Color(0xFFD97706),
+                                                      size: 20,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 10),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Comprobante Reportado',
+                                                      style: GoogleFonts.outfit(
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        fontSize: 17,
+                                                        color: isDark
+                                                            ? Colors.white
+                                                            : AppTheme.textDark,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              content: Text(
+                                                'Tu operación N° $cod ha sido registrada como PENDIENTE.\n\nEl macro del sistema la validará en breve. También puedes enviar tu captura a WhatsApp para atención y activación prioritaria.',
+                                                style: GoogleFonts
+                                                    .plusJakartaSans(
+                                                  fontSize: 12.5,
+                                                  color: isDark
+                                                      ? AppTheme
+                                                          .textDarkSecondary
+                                                      : const Color(0xFF475569),
+                                                  height: 1.4,
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(alertCtx),
+                                                  child: Text(
+                                                    'Cerrar',
+                                                    style: GoogleFonts
+                                                        .plusJakartaSans(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                                ElevatedButton.icon(
+                                                  onPressed: () {
+                                                    Navigator.pop(alertCtx);
+                                                    _abrirWhatsApp(
+                                                      context: context,
+                                                      plan: planSeleccionado,
+                                                      monto: monto,
+                                                      codigoOperacion: cod,
+                                                    );
+                                                  },
+                                                  icon: const Icon(
+                                                    LucideIcons.messageCircle,
+                                                    size: 16,
+                                                  ),
+                                                  label: const Text(
+                                                    'Enviar a WhatsApp',
+                                                  ),
+                                                  style: ElevatedButton
+                                                      .styleFrom(
+                                                    backgroundColor:
+                                                        AppTheme.accentGreen,
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    elevation: 0,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                        10,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }
+                                      } catch (errReport) {
+                                        setModalState(() {
+                                          isSubmitting = false;
+                                          modalError = errReport
+                                              .toString()
+                                              .replaceAll('Exception: ', '');
+                                        });
+                                      }
+                                    },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade700.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.amber.shade700.withValues(
+                                      alpha: 0.35,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      LucideIcons.fileCheck2,
+                                      size: 15,
+                                      color: Colors.amber.shade800,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        '¿Ya transferiste? Reportar comprobante para revisión por Macro / WhatsApp',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.amber.shade900,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -583,6 +826,44 @@ class PagoYapeModal {
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    OutlinedButton.icon(
+                      onPressed: isSubmitting
+                          ? null
+                          : () => _abrirWhatsApp(
+                                context: context,
+                                plan: planSeleccionado,
+                                monto: monto,
+                                codigoOperacion: codOperacionCtrl.text.trim(),
+                              ),
+                      icon: const Icon(
+                        LucideIcons.messageCircle,
+                        size: 16,
+                        color: AppTheme.accentGreen,
+                      ),
+                      label: Text(
+                        'Enviar comprobante directo por WhatsApp',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : const Color(0xFFE2E8F0),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
                     ),
                   ],
                 ),

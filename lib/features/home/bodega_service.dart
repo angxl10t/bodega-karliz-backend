@@ -208,6 +208,32 @@ class BodegaService {
     throw Exception(errorMsg);
   }
 
+  /// Reportar comprobante de pago para validación manual y conciliación por macro
+  Future<bool> reportarPagoManual({
+    required String codigoOperacion,
+    required String plan,
+    required double monto,
+    required String billetera,
+  }) async {
+    final body = <String, dynamic>{
+      'codigoOperacion': codigoOperacion,
+      'plan': plan,
+      'monto': monto,
+      'billetera': billetera,
+    };
+
+    final response = await _client.post('/bodegas/reportar-pago-manual', body);
+    if (response.statusCode == 200) {
+      return true;
+    }
+
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo reportar el comprobante de pago',
+    );
+    throw Exception(errorMsg);
+  }
+
   /// Solución 2: Configurar y activar el Módulo SUNAT (Exclusivo Administrador)
   Future<BodegaInfo> actualizarConfiguracionSunat({
     required bool activa,

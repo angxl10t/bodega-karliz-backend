@@ -21,6 +21,7 @@ import '../../core/widgets/karliz_lock_screen.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/responsive_layout.dart';
 import 'bodega_service.dart';
+import 'mi_suscripcion_modal.dart';
 import 'pixel_perfect_navbar.dart';
 import '../clientes/clientes_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
@@ -44,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _userRol = 'ADMIN';
   String _nombreBodega = 'CajaYa POS';
   String _plan = 'BASICO';
+  int? _diasRestantesPlan;
   Map<String, dynamic> _anuncioGlobal = {};
   bool _anuncioDismissed = false;
   Timer? _inactivityTimer;
@@ -144,10 +146,20 @@ class _HomeScreenState extends State<HomeScreen> {
       BodegaService()
           .obtenerMiBodega()
           .then((info) {
-            if (mounted &&
-                info != null &&
-                info.plan.toUpperCase() != _plan.toUpperCase()) {
-              setState(() => _plan = info.plan);
+            if (mounted && info != null) {
+              int? dias;
+              if (info.fechaVencimientoPlan != null) {
+                try {
+                  final fv = DateTime.parse(info.fechaVencimientoPlan!);
+                  dias = fv.difference(DateTime.now()).inDays;
+                } catch (_) {}
+              }
+              setState(() {
+                if (info.plan.toUpperCase() != _plan.toUpperCase()) {
+                  _plan = info.plan;
+                }
+                _diasRestantesPlan = dias;
+              });
             }
           })
           .catchError((_) {});
@@ -353,42 +365,75 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              (_userRol == 'SUPERADMIN'
+                                      InkWell(
+                                        onTap: _userRol == 'ADMIN'
+                                            ? () {
+                                                Navigator.pop(
+                                                  bottomSheetContext,
+                                                );
+                                                MiSuscripcionModal.show(
+                                                  context,
+                                                  nombreBodega: _nombreBodega,
+                                                  planActual: _plan,
+                                                  onPlanUpdated:
+                                                      _cargarDatosUsuario,
+                                                );
+                                              }
+                                            : null,
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                (_userRol == 'SUPERADMIN'
+                                                        ? const Color(
+                                                            0xFF8B5CF6,
+                                                          )
+                                                        : (_userRol == 'ADMIN'
+                                                              ? AppTheme
+                                                                    .brandPrimary
+                                                              : const Color(
+                                                                  0xFF64748B,
+                                                                )))
+                                                    .withValues(alpha: 0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                _userRol == 'SUPERADMIN'
+                                                    ? 'SUPERADMIN'
+                                                    : (_userRol == 'ADMIN'
+                                                          ? 'ADMIN • PLAN $_plan'
+                                                          : 'CAJERO'),
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: _userRol ==
+                                                          'SUPERADMIN'
                                                       ? const Color(0xFF8B5CF6)
                                                       : (_userRol == 'ADMIN'
                                                             ? AppTheme
                                                                   .brandPrimary
                                                             : const Color(
                                                                 0xFF64748B,
-                                                              )))
-                                                  .withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          _userRol == 'SUPERADMIN'
-                                              ? 'SUPERADMIN'
-                                              : (_userRol == 'ADMIN'
-                                                    ? 'ADMIN • PLAN $_plan'
-                                                    : 'CAJERO'),
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 9.5,
-                                            fontWeight: FontWeight.w800,
-                                            color: _userRol == 'SUPERADMIN'
-                                                ? const Color(0xFF8B5CF6)
-                                                : (_userRol == 'ADMIN'
-                                                      ? AppTheme.brandPrimary
-                                                      : const Color(
-                                                          0xFF64748B,
-                                                        )),
+                                                              )),
+                                                ),
+                                              ),
+                                              if (_userRol == 'ADMIN') ...[
+                                                const SizedBox(width: 3),
+                                                const Icon(
+                                                  LucideIcons.chevronRight,
+                                                  size: 10,
+                                                  color: AppTheme.brandPrimary,
+                                                ),
+                                              ],
+                                            ],
                                           ),
                                         ),
                                       ),
@@ -414,6 +459,66 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
+
+                      // Suscripción SaaS (Exclusivo Administrador)
+                      if (_userRol == 'ADMIN') ...[
+                        _buildModalMenuTile(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          icon: LucideIcons.badgePercent,
+                          iconColor: const Color(0xFF2563EB),
+                          iconBg: const Color(0xFF2563EB).withValues(
+                            alpha: 0.12,
+                          ),
+                          title: 'Mi Suscripción SaaS (Plan $_plan)',
+                          subtitle: _diasRestantesPlan != null
+                              ? (_diasRestantesPlan! < 0
+                                  ? 'Suscripción vencida • Renovar ahora'
+                                  : (_diasRestantesPlan! <= 5
+                                      ? '¡Vence en $_diasRestantesPlan días! • Renovar'
+                                      : 'Activa • Vence en $_diasRestantesPlan días'))
+                              : 'Consultar estado, comprobantes y renovación',
+                          trailing: _diasRestantesPlan != null &&
+                                  _diasRestantesPlan! <= 5
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 7,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: (_diasRestantesPlan! < 0
+                                            ? AppTheme.alertRed
+                                            : const Color(0xFFF59E0B))
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    _diasRestantesPlan! < 0
+                                        ? 'VENCIDO'
+                                        : '${_diasRestantesPlan}D',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: _diasRestantesPlan! < 0
+                                          ? AppTheme.alertRed
+                                          : const Color(0xFFD97706),
+                                    ),
+                                  ),
+                                )
+                              : null,
+                          onTap: () {
+                            Navigator.pop(bottomSheetContext);
+                            MiSuscripcionModal.show(
+                              context,
+                              nombreBodega: _nombreBodega,
+                              planActual: _plan,
+                              onPlanUpdated: _cargarDatosUsuario,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                      ],
 
                       // 1. Configurar PIN de Caja
                       _buildModalMenuTile(
@@ -592,6 +697,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Widget? trailing,
   }) {
     return InkWell(
       onTap: onTap,
@@ -639,13 +745,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            Icon(
-              LucideIcons.chevronRight,
-              size: 16,
-              color: isDark
-                  ? AppTheme.textDarkSecondary
-                  : const Color(0xFF94A3B8),
-            ),
+            trailing ??
+                Icon(
+                  LucideIcons.chevronRight,
+                  size: 16,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF94A3B8),
+                ),
           ],
         ),
       ),
@@ -1469,6 +1576,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   _anuncioGlobal.isNotEmpty &&
                   _anuncioGlobal['activo'] == true)
                 _buildAnuncioGlobalBanner(context, isDark),
+              if (_userRol == 'ADMIN' &&
+                  _diasRestantesPlan != null &&
+                  _diasRestantesPlan! <= 5)
+                _buildSuscripcionAlertBanner(context, isDark),
               Expanded(
                 child: Row(
                   children: [
@@ -1750,6 +1861,114 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: isDark
                     ? AppTheme.textDarkSecondary
                     : const Color(0xFF64748B),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuscripcionAlertBanner(BuildContext context, bool isDark) {
+    final int dias = _diasRestantesPlan ?? 0;
+    final bool vencido = dias < 0;
+    final Color barColor =
+        vencido ? AppTheme.alertRed : const Color(0xFFD97706);
+    final Color bgTint = vencido
+        ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
+        : (isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB));
+    final Color borderTint = vencido
+        ? (isDark
+            ? AppTheme.alertRed.withValues(alpha: 0.4)
+            : const Color(0xFFFECACA))
+        : (isDark
+            ? const Color(0xFFD97706).withValues(alpha: 0.4)
+            : const Color(0xFFFDE68A));
+
+    final String badgeText = vencido
+        ? 'PLAN VENCIDO'
+        : (dias == 0 ? 'VENCE HOY' : 'VENCE EN $dias DÍAS');
+    final String mainText = vencido
+        ? 'Tu suscripción al Plan $_plan ha vencido. Renueva hoy para mantener el servicio activo sin interrupciones.'
+        : 'Tu Plan $_plan vence pronto. Renueva mediante Yape/Plin o WhatsApp para continuar sin interrupciones.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgTint,
+        border: Border(
+          bottom: BorderSide(color: borderTint, width: 1.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: barColor.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              vencido ? LucideIcons.alertOctagon : LucideIcons.clockAlert,
+              size: 16,
+              color: barColor,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: barColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              badgeText,
+              style: GoogleFonts.outfit(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              mainText,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton.icon(
+            onPressed: () => MiSuscripcionModal.show(
+              context,
+              nombreBodega: _nombreBodega,
+              planActual: _plan,
+              onPlanUpdated: _cargarDatosUsuario,
+            ),
+            icon: const Icon(LucideIcons.arrowRight, size: 13),
+            label: Text(
+              'Renovar Plan',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: barColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: const Size(0, 32),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
           ),
