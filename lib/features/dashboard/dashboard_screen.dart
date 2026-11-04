@@ -1,3 +1,4 @@
+import '../marketing/kit_marketing_barrio_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -1259,6 +1260,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   onPlanUpdated: () =>
                                       _cargarDatos(forceRefresh: true),
                                 ),
+                              ),
+                              _buildQuickActionBtn(
+                                width: btnWidth,
+                                title: 'Marketing de Barrio',
+                                subtitle: 'Afiche Vitrina & Volante QR',
+                                icon: LucideIcons.megaphone,
+                                color: const Color(0xFFD97706),
+                                isDark: isDark,
+                                onTap: () {
+                                  KitMarketingBarrioModal.show(
+                                    context,
+                                    nombreBodega: _nombreBodega,
+                                    telefono: _telefono.isNotEmpty ? _telefono : null,
+                                    slugOrId: KitMarketingBarrioModal.normalizarSlug(_nombreBodega),
+                                  );
+                                },
                               ),
                             ],
                           ],

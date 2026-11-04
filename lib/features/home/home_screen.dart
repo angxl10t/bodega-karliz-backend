@@ -22,8 +22,6 @@ import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/responsive_layout.dart';
 import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
-import '../marketing/kit_marketing_barrio_modal.dart';
-import '../fiscal/monitor_nuevo_rus_modal.dart';
 import '../legal/libro_reclamaciones_screen.dart';
 import '../legal/terminos_condiciones_screen.dart';
 import '../legal/politica_privacidad_screen.dart';
@@ -452,7 +450,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${_nombreBodega.isNotEmpty ? _nombreBodega : "CajaYa"} • Terminal Activo',
+                                    '${_bodegaInfo?.nombreComercial ?? (_nombreBodega.isNotEmpty ? _nombreBodega : "CajaYa")} • Terminal Activo',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w600,
@@ -472,52 +470,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 12),
 
                       // Suscripción SaaS (Exclusivo Administrador)
-                      if (_userRol == 'ADMIN') ...[
-                        _buildModalMenuTile(
-                          isDark: isDark,
-                          cardBg: cardBg,
-                          borderColor: borderColor,
-                          icon: LucideIcons.badgePercent,
-                          iconColor: const Color(0xFF2563EB),
-                          iconBg: const Color(0xFF2563EB).withValues(
-                            alpha: 0.12,
-                          ),
-                          title: 'Mi Suscripción SaaS (Plan $_plan)',
-                          subtitle: _diasRestantesPlan != null
-                              ? (_diasRestantesPlan! < 0
-                                  ? 'Suscripción vencida • Renovar ahora'
-                                  : (_diasRestantesPlan! <= 5
-                                      ? '¡Vence en $_diasRestantesPlan días! • Renovar'
-                                      : 'Activa • Vence en $_diasRestantesPlan días'))
-                              : 'Consultar estado, comprobantes y renovación',
-                          trailing: _diasRestantesPlan != null &&
-                                  _diasRestantesPlan! <= 5
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 7,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: (_diasRestantesPlan! < 0
-                                            ? AppTheme.alertRed
-                                            : const Color(0xFFF59E0B))
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    _diasRestantesPlan! < 0
-                                        ? 'VENCIDO'
-                                        : '${_diasRestantesPlan}D',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800,
-                                      color: _diasRestantesPlan! < 0
-                                          ? AppTheme.alertRed
-                                          : const Color(0xFFD97706),
-                                    ),
-                                  ),
-                                )
-                              : null,
+                      if (_userRol == 'ADMIN' || _userRol == 'SUPERADMIN') ...[
+                        InkWell(
                           onTap: () {
                             Navigator.pop(bottomSheetContext);
                             MiSuscripcionModal.show(
@@ -527,145 +481,252 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPlanUpdated: _cargarDatosUsuario,
                             );
                           },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 11,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                                    : const Color(0xFFBFDBFE),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    LucideIcons.crown,
+                                    color: Color(0xFF2563EB),
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Plan ${_plan.toUpperCase()} • Mi Suscripción',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? Colors.white
+                                              : const Color(0xFF1E3A8A),
+                                        ),
+                                      ),
+                                      Text(
+                                        _diasRestantesPlan != null
+                                            ? (_diasRestantesPlan! < 0
+                                                ? 'Suscripción vencida • Renovar ahora'
+                                                : (_diasRestantesPlan! <= 5
+                                                    ? '¡Vence en $_diasRestantesPlan días! • Renovar'
+                                                    : 'Activa • Vence en $_diasRestantesPlan días'))
+                                            : 'Gestionar plan y comprobantes',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: _diasRestantesPlan != null &&
+                                                  _diasRestantesPlan! <= 5
+                                              ? const Color(0xFFD97706)
+                                              : (isDark
+                                                  ? const Color(0xFF93C5FD)
+                                                  : const Color(0xFF2563EB)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 9,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2563EB),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Gestionar',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                       ],
 
-                      // 1. Configurar PIN de Caja
-                      _buildModalMenuTile(
-                        isDark: isDark,
-                        cardBg: cardBg,
-                        borderColor: borderColor,
-                        icon: LucideIcons.keyRound,
-                        iconColor: AppTheme.accentGreen,
-                        iconBg: AppTheme.accentGreen.withValues(alpha: 0.12),
-                        title: 'Configurar mi PIN de Caja',
-                        subtitle: 'Clave de 4 dígitos para desbloqueo de turno',
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          ConfigurarPinModal.show(
-                            context,
-                            onPinGuardado: () {
-                              if (mounted) setState(() {});
-                            },
-                          );
-                        },
+                      // Acciones de Turno y Seguridad de Mostrador (Fila ergonómica de 2 tarjetas)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.pop(bottomSheetContext);
+                                _bloquearPantalla();
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: borderColor),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(7),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.brandPrimary.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.lock,
+                                        color: AppTheme.brandPrimary,
+                                        size: 17,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Bloquear Terminal',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      'Pausa con PIN',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.pop(bottomSheetContext);
+                                ConfigurarPinModal.show(
+                                  context,
+                                  onPinGuardado: () {
+                                    if (mounted) setState(() {});
+                                  },
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: cardBg,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: borderColor),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(7),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.accentGreen.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.keyRound,
+                                        color: AppTheme.accentGreen,
+                                        size: 17,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Mi PIN de Caja',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      'Clave de 4 dígitos',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
 
-                      // 2. Bloquear Terminal Ahora
-                      _buildModalMenuTile(
-                        isDark: isDark,
-                        cardBg: cardBg,
-                        borderColor: borderColor,
-                        icon: LucideIcons.lock,
-                        iconColor: AppTheme.brandPrimary,
-                        iconBg: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                        title: 'Bloquear Terminal Ahora',
-                        subtitle:
-                            'Pausa de turno protegida con PIN de seguridad',
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _bloquearPantalla();
-                        },
-                      ),
-                      const SizedBox(height: 8),
-
-                      // 3. Guía Rápida & Centro de Ayuda
+                      // Centro de Ayuda & Atajos de Mostrador
                       _buildModalMenuTile(
                         isDark: isDark,
                         cardBg: cardBg,
                         borderColor: borderColor,
                         icon: LucideIcons.helpCircle,
-                        iconColor: const Color(0xFF3B82F6),
-                        iconBg: const Color(0xFF3B82F6).withValues(alpha: 0.12),
-                        title: 'Centro de Ayuda & Guía',
-                        subtitle: 'Atajos de teclado y manual del sistema',
+                        iconColor: const Color(0xFF0284C7),
+                        iconBg: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                        title: 'Centro de Ayuda & Atajos',
+                        subtitle: 'Manual del sistema, atajos F2, F4, Esc y guías',
                         onTap: () {
                           Navigator.pop(bottomSheetContext);
                           _mostrarGuiaDidactica();
                         },
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
 
-                      // 4. Kit de Marketing & Viralidad de Barrio (Exclusivo Administrador)
-                      if (_userRol == 'ADMIN') ...[
-                        _buildModalMenuTile(
-                          isDark: isDark,
-                          cardBg: cardBg,
-                          borderColor: borderColor,
-                          icon: LucideIcons.megaphone,
-                          iconColor: const Color(0xFFD97706),
-                          iconBg: const Color(0xFFF59E0B).withValues(
-                            alpha: 0.12,
-                          ),
-                          title: 'Viralidad & Marketing de Barrio',
-                          subtitle:
-                              'Volantes térmicos, afiche vitrina y difusión WhatsApp',
-                          onTap: () {
-                            Navigator.pop(bottomSheetContext);
-                            final nombreFinal = _bodegaInfo?.nombreComercial ?? _nombreBodega;
-                            KitMarketingBarrioModal.show(
-                              context,
-                              nombreBodega: nombreFinal,
-                              telefono: _bodegaInfo?.telefono,
-                              lemaComercial: _bodegaInfo?.lemaComercial,
-                              bodegaId: _bodegaInfo?.idBodega,
-                              slugOrId: _bodegaInfo != null
-                                  ? KitMarketingBarrioModal.normalizarSlug(_bodegaInfo!.nombreComercial)
-                                  : KitMarketingBarrioModal.normalizarSlug(nombreFinal),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-
-                      // 5. Frente Fiscal & Monitor Nuevo RUS (Exclusivo Administrador)
-                      if (_userRol == 'ADMIN') ...[
-                        _buildModalMenuTile(
-                          isDark: isDark,
-                          cardBg: cardBg,
-                          borderColor: borderColor,
-                          icon: LucideIcons.landmark,
-                          iconColor: const Color(0xFF0284C7),
-                          iconBg: const Color(0xFF0284C7).withValues(
-                            alpha: 0.12,
-                          ),
-                          title: 'Frente Fiscal: Monitor Nuevo RUS',
-                          subtitle:
-                              'Topes de S/ 5,000 / S/ 8,000, cuota SUNAT y régimen',
-                          onTap: () {
-                            Navigator.pop(bottomSheetContext);
-                            MonitorNuevoRusModal.show(
-                              context,
-                              onRegimenCambiado: _cargarDatosUsuario,
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-
-                      // 6. Marco Legal & Reclamaciones
-                      _buildModalMenuTile(
-                        isDark: isDark,
-                        cardBg: cardBg,
-                        borderColor: borderColor,
-                        icon: LucideIcons.scale,
-                        iconColor: const Color(0xFF6366F1),
-                        iconBg: const Color(0xFF6366F1).withValues(
-                          alpha: 0.12,
-                        ),
-                        title: 'Marco Legal & Reclamaciones',
-                        subtitle:
-                            'Libro de reclamaciones INDECOPI, términos y privacidad',
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _mostrarModalLegal();
-                        },
-                      ),
-                      const SizedBox(height: 12),
-
-                      // 6. Salir de Sesión
+                      // Cerrar Sesión del Terminal
                       InkWell(
                         onTap: () {
                           Navigator.pop(bottomSheetContext);
@@ -687,7 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(7),
                                 decoration: BoxDecoration(
                                   color: AppTheme.alertRed.withValues(
                                     alpha: 0.15,
@@ -697,7 +758,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: const Icon(
                                   LucideIcons.logOut,
                                   color: AppTheme.alertRed,
-                                  size: 18,
+                                  size: 17,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -705,7 +766,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Text(
                                   'Cerrar Sesión del Terminal',
                                   style: GoogleFonts.outfit(
-                                    fontSize: 14,
+                                    fontSize: 13.5,
                                     fontWeight: FontWeight.w800,
                                     color: AppTheme.alertRed,
                                   ),
@@ -720,50 +781,83 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
 
-                      // Pie sutil con versión del sistema
+                      // Footer sutil: versión y enlaces legales discretos
                       Center(
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.pop(bottomSheetContext);
-                            _verificarActualizacion();
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(bottomSheetContext);
+                                _verificarActualizacion();
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'CajaYa POS v2.4.0',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '• Buscar actualización',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark
+                                            ? AppTheme.brandLight
+                                            : AppTheme.brandPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'CajaYa POS v2.4.0',
+                            const SizedBox(height: 4),
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(bottomSheetContext);
+                                _mostrarModalLegal();
+                              },
+                              borderRadius: BorderRadius.circular(6),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                child: Text(
+                                  'Términos & Privacidad • Libro de Reclamaciones',
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
                                     color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF64748B),
+                                        ? const Color(0xFF64748B)
+                                        : const Color(0xFF94A3B8),
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: isDark
+                                        ? const Color(0xFF475569)
+                                        : const Color(0xFFCBD5E1),
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '• Comprobar actualizaciones',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark
-                                        ? AppTheme.brandLight
-                                        : AppTheme.brandPrimary,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ),
+                      )
                     ],
                   ),
                 ),
