@@ -16,13 +16,13 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    @Value("${RESEND_API_KEY:#{null}}")
+    @Value("${resend.api.key:${RESEND_API_KEY:#{null}}}")
     private String resendApiKey;
 
-    @Value("${BREVO_API_KEY:#{null}}")
+    @Value("${brevo.api.key:${BREVO_API_KEY:#{null}}}")
     private String brevoApiKey;
 
-    @Value("${EMAIL_FROM:CajaYa POS <soporte@resend.dev>}")
+    @Value("${email.from:${EMAIL_FROM:CajaYa POS <onboarding@resend.dev>}}")
     private String emailFrom;
 
     private final HttpClient httpClient;
@@ -48,7 +48,10 @@ public class EmailService {
 
         // 1. Si existe clave de Resend API, enviar vía HTTPS REST
         if (resendApiKey != null && !resendApiKey.isBlank()) {
-            return enviarViaResend(emailDestino, asunto, htmlBody);
+            boolean enviado = enviarViaResend(emailDestino, asunto, htmlBody, username, codigoOtp);
+            if (enviado) {
+                return true;
+            }
         }
 
         // 2. Si existe clave de Brevo API, enviar vía HTTPS REST
@@ -67,7 +70,7 @@ public class EmailService {
         return true;
     }
 
-    private boolean enviarViaResend(String emailDestino, String asunto, String htmlContent) {
+    private boolean enviarViaResend(String emailDestino, String asunto, String htmlContent, String username, String codigoOtp) {
         try {
             String payloadJson = "{"
                     + "\"from\":\"" + escaparJson(emailFrom) + "\","
@@ -91,6 +94,7 @@ public class EmailService {
                 return true;
             } else {
                 log.error("Error al enviar correo vía Resend. HTTP Status: {} - Body: {}", response.statusCode(), response.body());
+                log.warn("[AVISO RESEND] Si aún no has verificado un dominio propio en resend.com/domains, Resend solo enviará al correo asociado a tu cuenta de Resend o a delivered@resend.dev. Código OTP para {}: >>> {} <<<", username, codigoOtp);
                 return false;
             }
         } catch (Exception e) {
