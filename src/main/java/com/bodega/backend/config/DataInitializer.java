@@ -244,6 +244,7 @@ public class DataInitializer implements ApplicationRunner {
             Usuario superadmin = adminOpt.get();
             superadmin.setRol("SUPERADMIN");
             superadmin.setBodega(null);
+            superadmin.setEmail("cajayapos@gmail.com");
             if (superadmin.getPassword() == null || superadmin.getPassword().isBlank()) {
                 superadmin.setPassword(passwordEncoder.encode(superadminPass));
             }
@@ -256,6 +257,7 @@ public class DataInitializer implements ApplicationRunner {
             superadmin.setRol("SUPERADMIN");
             superadmin.setEstado(true);
             superadmin.setBodega(null);
+            superadmin.setEmail("cajayapos@gmail.com");
             superadmin.setFechaCambioClave(OffsetDateTime.now());
             usuarioRepository.save(superadmin);
             log.info("[DataInitializer] Usuario 'admin' creado como SUPERADMIN global.");
