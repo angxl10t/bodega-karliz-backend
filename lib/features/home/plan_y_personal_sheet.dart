@@ -195,10 +195,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
     final confirmPassCtrl = TextEditingController();
 
-    final emailCtrl = TextEditingController();
-
-    final nombreCompletoCtrl = TextEditingController();
-
     String rolSeleccionado = 'CAJERO';
 
     bool obscurePass = true;
@@ -545,28 +541,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     ),
                   ],
 
-                  const SizedBox(height: 12),
 
-                  // Campo opcional: Correo Electrónico
-                  Text(
-                    'Correo Electrónico (Para recuperación)',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  TextField(
-                    controller: emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      hintText: 'Ej. usuario@gmail.com',
-                      prefixIcon: Icon(LucideIcons.mail, size: 18),
-                      helperText: 'Opcional. Para recuperar contraseña en caso de olvido',
-                    ),
-                  ),
 
                   const SizedBox(height: 12),
 
@@ -790,12 +765,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                         try {
                           await _usuariosService.crearUsuario(
                             username: u,
-                            nombreCompleto: nombreCompletoCtrl.text.trim().isNotEmpty
-                                ? nombreCompletoCtrl.text.trim()
-                                : null,
-                            email: emailCtrl.text.trim().isNotEmpty
-                                ? emailCtrl.text.trim()
-                                : null,
                             password: p,
                             rol: rolSeleccionado,
                           );
@@ -869,10 +838,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
       passCtrl.dispose();
 
       confirmPassCtrl.dispose();
-
-      emailCtrl.dispose();
-
-      nombreCompletoCtrl.dispose();
     });
   }
 
@@ -3607,9 +3572,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                             const SizedBox(height: 2),
 
                                             Text(
-                                              u.rol == 'ADMIN'
-                                                  ? 'Administrador'
-                                                  : 'Cajero / Operador',
+                                              u.rol == 'SUPERADMIN'
+                                                  ? 'Superadministrador'
+                                                  : (u.rol == 'ADMIN'
+                                                      ? 'Administrador (Dueño)'
+                                                      : 'Cajero / Operador'),
 
                                               style:
                                                   GoogleFonts.plusJakartaSans(
@@ -3619,65 +3586,69 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                                   ),
                                             ),
 
-                                            const SizedBox(height: 3),
-
-                                            if (u.email != null && u.email!.trim().isNotEmpty)
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    LucideIcons.mail,
-                                                    size: 11,
-                                                    color: AppTheme.brandPrimary,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Flexible(
-                                                    child: Text(
-                                                      u.email!,
-                                                      style: GoogleFonts.plusJakartaSans(
-                                                        fontSize: 11,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: isDark
-                                                            ? const Color(0xFF93C5FD)
-                                                            : const Color(0xFF1D4ED8),
+                                            // Correo de recuperación: Exclusivo para Administrador / Dueño
+                                            if (u.rol == 'ADMIN' || u.rol == 'SUPERADMIN') ...[
+                                              const SizedBox(height: 3),
+                                              if (u.email != null && u.email!.trim().isNotEmpty)
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      LucideIcons.mail,
+                                                      size: 11,
+                                                      color: AppTheme.brandPrimary,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Flexible(
+                                                      child: Text(
+                                                        u.email!,
+                                                        style: GoogleFonts.plusJakartaSans(
+                                                          fontSize: 11,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: isDark
+                                                              ? const Color(0xFF93C5FD)
+                                                              : const Color(0xFF1D4ED8),
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
                                                       ),
-                                                      overflow: TextOverflow.ellipsis,
                                                     ),
-                                                  ),
-                                                ],
-                                              )
-                                            else
-                                              Row(
-                                                children: [
-                                                  Icon(
-                                                    LucideIcons.mailWarning,
-                                                    size: 11,
-                                                    color: Colors.amber.shade700,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Sin correo asociado',
-                                                    style: GoogleFonts.plusJakartaSans(
-                                                      fontSize: 10.5,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: Colors.amber.shade800,
+                                                  ],
+                                                )
+                                              else
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      LucideIcons.mailWarning,
+                                                      size: 11,
+                                                      color: Colors.amber.shade700,
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'Sin correo de recuperación (Configurar)',
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 10.5,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: Colors.amber.shade800,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                            ],
                                           ],
                                         ),
                                       ),
 
-                                      IconButton(
-                                        icon: const Icon(
-                                          LucideIcons.pencil,
-                                          size: 17,
-                                          color: AppTheme.brandPrimary,
+                                      // Botón editar correo de recuperación: Solo para Administradores
+                                      if (u.rol == 'ADMIN' || u.rol == 'SUPERADMIN')
+                                        IconButton(
+                                          icon: const Icon(
+                                            LucideIcons.pencil,
+                                            size: 17,
+                                            color: AppTheme.brandPrimary,
+                                          ),
+                                          tooltip: 'Configurar correo de recuperación',
+                                          onPressed: () =>
+                                              _abrirEditarUsuarioModal(u),
                                         ),
-                                        tooltip: 'Editar correo y perfil',
-                                        onPressed: () =>
-                                            _abrirEditarUsuarioModal(u),
-                                      ),
 
                                       IconButton(
                                         icon: const Icon(
