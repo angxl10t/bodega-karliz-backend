@@ -194,18 +194,33 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioDTO actualizarEmail(Long idUsuario, String nuevoEmail, String adminActual) {
+        return actualizarPerfil(idUsuario, null, nuevoEmail, adminActual);
+    }
+
+    @Transactional
+    public UsuarioDTO actualizarPerfil(Long idUsuario, String nuevoNombre, String nuevoEmail, String adminActual) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
 
         Usuario admin = obtenerUsuarioEnSesion();
         validarMismaBodega(admin, usuario);
 
-        String cleanEmail = (nuevoEmail != null && !nuevoEmail.isBlank()) ? nuevoEmail.trim().toLowerCase() : null;
-        if (cleanEmail != null && !cleanEmail.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            throw new RuntimeException("El formato del correo electrónico no es válido.");
+        if (nuevoNombre != null) {
+            usuario.setNombreCompleto(nuevoNombre.trim().isEmpty() ? null : nuevoNombre.trim());
         }
 
-        usuario.setEmail(cleanEmail);
+        if (nuevoEmail != null) {
+            String cleanEmail = nuevoEmail.trim().toLowerCase();
+            if (cleanEmail.isEmpty()) {
+                usuario.setEmail(null);
+            } else {
+                if (!cleanEmail.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                    throw new RuntimeException("El formato del correo electrónico no es válido.");
+                }
+                usuario.setEmail(cleanEmail);
+            }
+        }
+
         Usuario guardado = usuarioRepository.save(usuario);
         return mapToDTO(guardado);
     }
