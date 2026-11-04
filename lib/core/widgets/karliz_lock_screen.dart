@@ -20,11 +20,122 @@ class KarlizLockScreen extends StatefulWidget {
     required this.onLogout,
   });
 
+  /// Diálogo informativo cuando se intenta bloquear la caja sin tener un PIN configurado
+  static Future<void> mostrarDialogoPinRequerido(
+    BuildContext context, {
+    VoidCallback? onPinConfigurado,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.warningAmber.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                LucideIcons.shieldAlert,
+                color: AppTheme.warningAmber,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'PIN No Configurado',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.brandInk,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Para bloquear y proteger tu terminal de mostrador, primero necesitas establecer un PIN de seguridad de 4 dígitos.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            height: 1.45,
+            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white60 : const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.brandPrimary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              ConfigurarPinModal.show(
+                context,
+                onPinGuardado: () {
+                  if (onPinConfigurado != null) {
+                    onPinConfigurado();
+                  }
+                },
+              );
+            },
+            icon: const Icon(LucideIcons.keyRound, size: 16),
+            label: Text(
+              'Crear PIN Ahora',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   static Future<void> show(
     BuildContext context, {
     required VoidCallback onUnlocked,
     required VoidCallback onLogout,
-  }) {
+  }) async {
+    final hasPin = await LockService().hasPin();
+    if (!hasPin) {
+      if (!context.mounted) return;
+      return mostrarDialogoPinRequerido(
+        context,
+        onPinConfigurado: () {
+          if (context.mounted) {
+            KarlizLockScreen.show(
+              context,
+              onUnlocked: onUnlocked,
+              onLogout: onLogout,
+            );
+          }
+        },
+      );
+    }
+
+    if (!context.mounted) return;
     LockService().isLocked = true;
     return showDialog(
       context: context,
@@ -75,6 +186,25 @@ class _KarlizLockScreenState extends State<KarlizLockScreen>
   }
 
   Future<void> _cargarDatos() async {
+    final hasPin = await LockService().hasPin();
+    if (!hasPin && mounted) {
+      LockService().isLocked = false;
+      Navigator.of(context, rootNavigator: true).pop();
+      KarlizLockScreen.mostrarDialogoPinRequerido(
+        context,
+        onPinConfigurado: () {
+          if (mounted) {
+            KarlizLockScreen.show(
+              context,
+              onUnlocked: widget.onUnlocked,
+              onLogout: widget.onLogout,
+            );
+          }
+        },
+      );
+      return;
+    }
+
     final user = await AuthService().getUsername();
     final canBio = await LockService().canCheckBiometrics();
     final remaining = LockService().remainingBlockedSeconds;

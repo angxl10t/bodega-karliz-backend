@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bodega_mobile/core/lock_service.dart';
+import 'package:bodega_mobile/core/widgets/karliz_lock_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -76,6 +78,48 @@ void main() {
       expect(service.failedAttempts, 0);
       expect(service.remainingBlockedSeconds, 0);
       expect(await service.hasPin(), isFalse);
+    });
+
+    testWidgets('KarlizLockScreen.show without PIN prompts dialog instead of locking', (tester) async {
+      await LockService().removePin();
+      expect(await LockService().hasPin(), isFalse);
+      expect(LockService().isLocked, isFalse);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () {
+                  KarlizLockScreen.show(
+                    context,
+                    onUnlocked: () {},
+                    onLogout: () {},
+                  );
+                },
+                child: const Text('Bloquear'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Bloquear'));
+      await tester.pumpAndSettle();
+
+      // LockService should NOT be locked!
+      expect(LockService().isLocked, isFalse);
+
+      // Dialog should be visible
+      expect(find.text('PIN No Configurado'), findsOneWidget);
+      expect(find.text('Crear PIN Ahora'), findsOneWidget);
+      expect(find.text('Cancelar'), findsOneWidget);
+
+      // Tapping Cancelar dismisses dialog and leaves state unlocked
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+      expect(find.text('PIN No Configurado'), findsNothing);
+      expect(LockService().isLocked, isFalse);
     });
   });
 }

@@ -117,7 +117,20 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _bloquearPantalla() {
+  Future<void> _bloquearPantalla() async {
+    final hasPin = await LockService().hasPin();
+    if (!hasPin) {
+      if (!mounted) return;
+      KarlizLockScreen.mostrarDialogoPinRequerido(
+        context,
+        onPinConfigurado: () {
+          if (mounted) _bloquearPantalla();
+        },
+      );
+      return;
+    }
+
+    if (!mounted) return;
     KarlizLockScreen.show(
       context,
       onUnlocked: () {
