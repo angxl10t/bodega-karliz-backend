@@ -35,6 +35,9 @@ public class UsuarioServiceTest {
     @Mock
     private UserSecurityCacheService userSecurityCacheService;
 
+    @Mock
+    private com.bodega.backend.repository.RecuperacionClaveRepository recuperacionClaveRepository;
+
     @InjectMocks
     private UsuarioService usuarioService;
 
@@ -96,7 +99,7 @@ public class UsuarioServiceTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> usuarioService.crearUsuario(dto));
 
-        assertTrue(ex.getMessage().contains("ya está registrado y activo en tu bodega"));
+        assertTrue(ex.getMessage().contains("Ya existe un usuario activo") && ex.getMessage().contains("en tu bodega"));
         verify(usuarioRepository, never()).save(any());
     }
 
@@ -265,6 +268,60 @@ public class UsuarioServiceTest {
         });
 
         verify(usuarioRepository, never()).save(targetSuperAdmin);
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void testEliminarCajero_Exitoso() {
+        Usuario cajero = new Usuario();
+        cajero.setIdUsuario(20L);
+        cajero.setUsername("cajero_eliminar");
+        cajero.setRol("CAJERO");
+        cajero.setBodega(bodega1);
+
+        Usuario adminSesion = new Usuario();
+        adminSesion.setUsername("admin_bodega1");
+        adminSesion.setRol("ADMIN");
+        adminSesion.setBodega(bodega1);
+
+        when(usuarioRepository.findById(20L)).thenReturn(Optional.of(cajero));
+
+        org.springframework.security.core.Authentication auth = mock(org.springframework.security.core.Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("admin_bodega1");
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        when(usuarioRepository.findByUsernameIgnoreCase("admin_bodega1")).thenReturn(Optional.of(adminSesion));
+
+        usuarioService.eliminarUsuario(20L, "admin_bodega1");
+
+        verify(userSecurityCacheService, times(1)).evict("cajero_eliminar");
+        verify(recuperacionClaveRepository, times(1)).deleteByUsuario(cajero);
+        verify(usuarioRepository, times(1)).delete(cajero);
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void testEliminarUsuario_MismoAdmin_LanzaError() {
+        Usuario adminSesion = new Usuario();
+        adminSesion.setIdUsuario(1L);
+        adminSesion.setUsername("admin_bodega1");
+        adminSesion.setRol("ADMIN");
+        adminSesion.setBodega(bodega1);
+
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(adminSesion));
+
+        org.springframework.security.core.Authentication auth = mock(org.springframework.security.core.Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getName()).thenReturn("admin_bodega1");
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        when(usuarioRepository.findByUsernameIgnoreCase("admin_bodega1")).thenReturn(Optional.of(adminSesion));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+            usuarioService.eliminarUsuario(1L, "admin_bodega1");
+        });
+
+        assertTrue(ex.getMessage().contains("No puedes eliminar tu propia cuenta"));
+        verify(usuarioRepository, never()).delete(any());
         org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }
 }

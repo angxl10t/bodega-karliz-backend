@@ -16,15 +16,18 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final com.bodega.backend.repository.BodegaRepository bodegaRepository;
+    private final com.bodega.backend.repository.RecuperacionClaveRepository recuperacionClaveRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
 
     public UsuarioService(UsuarioRepository usuarioRepository, 
                           com.bodega.backend.repository.BodegaRepository bodegaRepository,
+                          com.bodega.backend.repository.RecuperacionClaveRepository recuperacionClaveRepository,
                           PasswordEncoder passwordEncoder,
                           com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService) {
         this.usuarioRepository = usuarioRepository;
         this.bodegaRepository = bodegaRepository;
+        this.recuperacionClaveRepository = recuperacionClaveRepository;
         this.passwordEncoder = passwordEncoder;
         this.userSecurityCacheService = userSecurityCacheService;
     }
@@ -167,6 +170,41 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
         userSecurityCacheService.evict(usuario.getUsername());
         return mapToDTO(usuario);
+    }
+
+    @Transactional
+    public void eliminarUsuario(Long idUsuario, String adminActual) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+
+        Usuario admin = obtenerUsuarioEnSesion();
+        validarMismaBodega(admin, usuario);
+
+        if (usuario.getUsername().equalsIgnoreCase(adminActual)) {
+            throw new RuntimeException("No puedes eliminar tu propia cuenta de administrador en sesión.");
+        }
+
+        if ("admin".equalsIgnoreCase(usuario.getUsername())) {
+            throw new RuntimeException("No se puede eliminar la cuenta administradora central del sistema.");
+        }
+
+        if ("SUPERADMIN".equalsIgnoreCase(usuario.getRol())) {
+            throw new RuntimeException("No se puede eliminar una cuenta con privilegios SUPERADMIN.");
+        }
+
+        if ("ADMIN".equalsIgnoreCase(usuario.getRol()) && (admin == null || !"SUPERADMIN".equalsIgnoreCase(admin.getRol()))) {
+            throw new RuntimeException("Solo un Superadministrador puede eliminar cuentas de administradores.");
+        }
+
+        // Desalojar inmediatamente de caché de seguridad
+        userSecurityCacheService.evict(usuario.getUsername());
+
+        // Eliminar tokens de recuperación de contraseña si existieran
+        if (recuperacionClaveRepository != null) {
+            recuperacionClaveRepository.deleteByUsuario(usuario);
+        }
+
+        usuarioRepository.delete(usuario);
     }
 
     @Transactional

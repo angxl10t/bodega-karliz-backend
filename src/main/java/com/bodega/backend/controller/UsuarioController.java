@@ -87,13 +87,13 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> desactivarUsuario(
+    public ResponseEntity<Map<String, String>> eliminarUsuario(
             @PathVariable Long id,
             Principal principal) {
         String adminActual = principal != null ? principal.getName() : "";
-        usuarioService.cambiarEstado(id, false, adminActual);
+        usuarioService.eliminarUsuario(id, adminActual);
         Map<String, String> res = new HashMap<>();
-        res.put("mensaje", "Usuario desactivado exitosamente.");
+        res.put("mensaje", "Usuario o cajero eliminado exitosamente.");
         return ResponseEntity.ok(res);
     }
 }

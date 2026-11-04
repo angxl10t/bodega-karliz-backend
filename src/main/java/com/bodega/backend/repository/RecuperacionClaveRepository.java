@@ -17,4 +17,6 @@ public interface RecuperacionClaveRepository extends JpaRepository<RecuperacionC
     long countByUsuarioAndFechaCreacionAfter(Usuario usuario, OffsetDateTime after);
 
     List<RecuperacionClave> findByUsuarioAndUsadoFalse(Usuario usuario);
+
+    void deleteByUsuario(Usuario usuario);
 }

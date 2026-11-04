@@ -94,4 +94,17 @@ public class UsuarioControllerTest {
         assertTrue(response.getBody().get("mensaje").contains("restablecida"));
         verify(usuarioService).resetearPassword(2L, "nuevaClave123", "admin");
     }
+
+    @Test
+    void testEliminarUsuario() {
+        when(principal.getName()).thenReturn("admin");
+        doNothing().when(usuarioService).eliminarUsuario(2L, "admin");
+
+        ResponseEntity<Map<String, String>> response = usuarioController.eliminarUsuario(2L, principal);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().get("mensaje").contains("eliminado exitosamente"));
+        verify(usuarioService).eliminarUsuario(2L, "admin");
+    }
 }
