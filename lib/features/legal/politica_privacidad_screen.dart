@@ -95,7 +95,7 @@ class PoliticaPrivacidadScreen extends StatelessWidget {
                   isDark: isDark,
                   titulo: '5. Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición)',
                   contenido:
-                      'El titular de los datos personales puede ejercer en cualquier momento sus derechos de información, acceso, rectificación, cancelación y oposición comunicándose a nuestro canal de soporte legal vía correo electrónico a privacidad@cajaya.pe o mediante el WhatsApp oficial de la plataforma.',
+                      'El titular de los datos personales puede ejercer en cualquier momento sus derechos de información, acceso, rectificación, cancelación y oposición comunicándose a nuestro canal de soporte legal vía correo electrónico a privacidad@cajaya-pos.onrender.com o mediante el WhatsApp oficial de la plataforma.',
                 ),
 
                 _buildSeccion(

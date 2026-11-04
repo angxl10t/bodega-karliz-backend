@@ -667,8 +667,15 @@ class ThermalTicketService {
     buffer.writeln('');
     buffer.writeln(divider(width, '-'));
     buffer.writeln(center('ESCANEA NUESTRA TIENDA VIRTUAL:', width));
-    buffer.writeln(center('[qr]$urlCatalogo[/qr]', width));
-    buffer.writeln(center(urlCatalogo, width));
+    buffer.writeln('[qr]$urlCatalogo[/qr]');
+    if (urlCatalogo.length <= width) {
+      buffer.writeln(center(urlCatalogo, width));
+    } else {
+      for (int i = 0; i < urlCatalogo.length; i += width) {
+        final end = (i + width < urlCatalogo.length) ? i + width : urlCatalogo.length;
+        buffer.writeln(center(urlCatalogo.substring(i, end), width));
+      }
+    }
     buffer.writeln(divider(width, '-'));
     buffer.writeln('');
     buffer.writeln(center('* Abarrotes, Bebidas y Golosinas', width));

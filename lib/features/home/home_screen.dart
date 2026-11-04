@@ -51,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _nombreBodega = 'CajaYa POS';
   String _plan = 'BASICO';
   int? _diasRestantesPlan;
+  BodegaInfo? _bodegaInfo;
   Map<String, dynamic> _anuncioGlobal = {};
   bool _anuncioDismissed = false;
   Timer? _inactivityTimer;
@@ -160,6 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 } catch (_) {}
               }
               setState(() {
+                _bodegaInfo = info;
+                if (info.nombreComercial.trim().isNotEmpty &&
+                    (_nombreBodega == 'CajaYa POS' || _nombreBodega.isEmpty)) {
+                  _nombreBodega = info.nombreComercial.trim();
+                }
                 if (info.plan.toUpperCase() != _plan.toUpperCase()) {
                   _plan = info.plan;
                 }
@@ -598,9 +604,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               'Volantes térmicos, afiche vitrina y difusión WhatsApp',
                           onTap: () {
                             Navigator.pop(bottomSheetContext);
+                            final nombreFinal = _bodegaInfo?.nombreComercial ?? _nombreBodega;
                             KitMarketingBarrioModal.show(
                               context,
-                              nombreBodega: _nombreBodega,
+                              nombreBodega: nombreFinal,
+                              telefono: _bodegaInfo?.telefono,
+                              lemaComercial: _bodegaInfo?.lemaComercial,
+                              bodegaId: _bodegaInfo?.idBodega,
+                              slugOrId: _bodegaInfo != null
+                                  ? KitMarketingBarrioModal.normalizarSlug(_bodegaInfo!.nombreComercial)
+                                  : KitMarketingBarrioModal.normalizarSlug(nombreFinal),
                             );
                           },
                         ),

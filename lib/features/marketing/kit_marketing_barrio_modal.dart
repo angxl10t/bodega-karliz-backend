@@ -7,12 +7,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/cajaya_vectors.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
+import '../home/bodega_service.dart';
 
 class KitMarketingBarrioModal extends StatefulWidget {
   final String nombreBodega;
   final String? telefono;
   final String? lemaComercial;
   final String? slugOrId;
+  final int? bodegaId;
 
   const KitMarketingBarrioModal({
     super.key,
@@ -20,6 +22,7 @@ class KitMarketingBarrioModal extends StatefulWidget {
     this.telefono,
     this.lemaComercial,
     this.slugOrId,
+    this.bodegaId,
   });
 
   static Future<void> show(
@@ -28,6 +31,7 @@ class KitMarketingBarrioModal extends StatefulWidget {
     String? telefono,
     String? lemaComercial,
     String? slugOrId,
+    int? bodegaId,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -38,8 +42,50 @@ class KitMarketingBarrioModal extends StatefulWidget {
         telefono: telefono,
         lemaComercial: lemaComercial,
         slugOrId: slugOrId,
+        bodegaId: bodegaId,
       ),
     );
+  }
+
+  static String normalizarSlug(String texto) {
+    if (texto.trim().isEmpty) return '';
+    return texto
+        .toLowerCase()
+        .replaceAll(RegExp(r'[áàäâã]'), 'a')
+        .replaceAll(RegExp(r'[éèëê]'), 'e')
+        .replaceAll(RegExp(r'[íìïî]'), 'i')
+        .replaceAll(RegExp(r'[óòöôõ]'), 'o')
+        .replaceAll(RegExp(r'[úùüû]'), 'u')
+        .replaceAll(RegExp(r'[ñ]'), 'n')
+        .replaceAll(RegExp(r'[^a-z0-9]'), '-')
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+  }
+
+  static String buildUrlCatalogo({
+    String? slugOrId,
+    String? nombreBodega,
+    int? bodegaId,
+  }) {
+    if (slugOrId != null && slugOrId.trim().isNotEmpty) {
+      final s = normalizarSlug(slugOrId);
+      if (s.isNotEmpty) {
+        return 'https://cajaya-pos.onrender.com/#/catalogo?tienda=${Uri.encodeComponent(s)}';
+      }
+    }
+    final nombreVal = (nombreBodega ?? '').trim();
+    if (nombreVal.isNotEmpty &&
+        nombreVal.toLowerCase() != 'cajaya pos' &&
+        nombreVal.toLowerCase() != 'cajaya') {
+      final s = normalizarSlug(nombreVal);
+      if (s.isNotEmpty) {
+        return 'https://cajaya-pos.onrender.com/#/catalogo?tienda=${Uri.encodeComponent(s)}';
+      }
+    }
+    if (bodegaId != null && bodegaId > 0) {
+      return 'https://cajaya-pos.onrender.com/#/catalogo?tienda=$bodegaId';
+    }
+    return 'https://cajaya-pos.onrender.com/#/catalogo?tienda=bodega-karliz';
   }
 
   @override
@@ -53,19 +99,46 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
   int _cantidadVolantes = 5;
   bool _isPrinting = false;
 
-  String get _urlCatalogo {
-    final slug = (widget.slugOrId != null && widget.slugOrId!.isNotEmpty)
-        ? widget.slugOrId!
-        : (widget.nombreBodega.isNotEmpty
-            ? widget.nombreBodega.toLowerCase().replaceAll(' ', '-')
-            : '1');
-    return 'https://cajaya.pe/#/catalogo?tienda=${Uri.encodeComponent(slug)}';
-  }
+  late String _nombreBodega;
+  late String _telefono;
+  late String _lemaComercial;
+  int? _bodegaId;
+
+  String get _urlCatalogo => KitMarketingBarrioModal.buildUrlCatalogo(
+        slugOrId: widget.slugOrId,
+        nombreBodega: _nombreBodega,
+        bodegaId: _bodegaId,
+      );
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _nombreBodega = widget.nombreBodega.trim().isEmpty ? 'Bodega Karliz' : widget.nombreBodega.trim();
+    _telefono = widget.telefono?.trim() ?? '';
+    _lemaComercial = widget.lemaComercial?.trim() ?? '';
+    _bodegaId = widget.bodegaId;
+    _cargarInfoBodega();
+  }
+
+  Future<void> _cargarInfoBodega() async {
+    try {
+      final info = await BodegaService().obtenerMiBodega();
+      if (info != null && mounted) {
+        setState(() {
+          if (info.nombreComercial.isNotEmpty && (_nombreBodega == 'CajaYa POS' || _nombreBodega.isEmpty)) {
+            _nombreBodega = info.nombreComercial;
+          }
+          if (_telefono.isEmpty && info.telefono != null && info.telefono!.trim().isNotEmpty) {
+            _telefono = info.telefono!.trim();
+          }
+          if (_lemaComercial.isEmpty && info.lemaComercial != null && info.lemaComercial!.trim().isNotEmpty) {
+            _lemaComercial = info.lemaComercial!.trim();
+          }
+          _bodegaId ??= info.idBodega;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -79,20 +152,23 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     final messenger = ScaffoldMessenger.of(context);
 
     try {
+      final lema = _lemaComercial.isNotEmpty ? _lemaComercial : widget.lemaComercial;
+      final tel = _telefono.isNotEmpty ? _telefono : widget.telefono;
+
       final List<int> singleVolanteBytes =
           ThermalTicketService.generateVolanteBarrioEscPosBytes(
-        nombreComercio: widget.nombreBodega,
+        nombreComercio: _nombreBodega,
         urlCatalogo: _urlCatalogo,
-        lemaComercial: widget.lemaComercial,
-        telefono: widget.telefono,
+        lemaComercial: lema,
+        telefono: tel,
       );
 
       final String plainText =
           ThermalTicketService.generateVolanteBarrioText(
-        nombreComercio: widget.nombreBodega,
+        nombreComercio: _nombreBodega,
         urlCatalogo: _urlCatalogo,
-        lemaComercial: widget.lemaComercial,
-        telefono: widget.telefono,
+        lemaComercial: lema,
+        telefono: tel,
       );
 
       // Concatenar N copias si se solicitaron varias
@@ -305,11 +381,14 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
 
   // --- 1. PESTAÑA: VOLANTE TÉRMICO DE BOLSILLO ---
   Widget _buildTabVolanteTermico(bool isDark) {
+    final lema = _lemaComercial.isNotEmpty ? _lemaComercial : widget.lemaComercial;
+    final tel = _telefono.isNotEmpty ? _telefono : widget.telefono;
+
     final previewText = ThermalTicketService.generateVolanteBarrioText(
-      nombreComercio: widget.nombreBodega,
+      nombreComercio: _nombreBodega,
       urlCatalogo: _urlCatalogo,
-      lemaComercial: widget.lemaComercial,
-      telefono: widget.telefono,
+      lemaComercial: lema,
+      telefono: tel,
     );
 
     return SingleChildScrollView(
@@ -489,7 +568,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                 const CajaYaLogoMark(size: 42),
                 const SizedBox(height: 8),
                 Text(
-                  widget.nombreBodega.toUpperCase(),
+                  _nombreBodega.toUpperCase(),
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -498,11 +577,11 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (widget.lemaComercial != null &&
-                    widget.lemaComercial!.isNotEmpty) ...[
+                if (_lemaComercial.isNotEmpty ||
+                    (widget.lemaComercial != null && widget.lemaComercial!.isNotEmpty)) ...[
                   const SizedBox(height: 2),
                   Text(
-                    widget.lemaComercial!,
+                    _lemaComercial.isNotEmpty ? _lemaComercial : widget.lemaComercial!,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -644,7 +723,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                 child: ElevatedButton.icon(
                   onPressed: () {
                     final texto =
-                        '¡Hola vecinos! Les comparto el catálogo virtual de ${widget.nombreBodega}. Pueden escanear o ingresar aquí: $_urlCatalogo';
+                        '¡Hola vecinos! Les comparto el catálogo virtual de $_nombreBodega. Pueden escanear o ingresar aquí: $_urlCatalogo';
                     _compartirEnWhatsApp(texto);
                   },
                   icon: const Icon(LucideIcons.share2, size: 16),
@@ -669,7 +748,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
   // --- 3. PESTAÑA: DIFUSIÓN POR WHATSAPP A VECINOS ---
   Widget _buildTabDifusionVecinal(bool isDark) {
     final mensajeVecinal =
-        '👋 ¡Hola vecinos! En *${widget.nombreBodega}* ya tenemos tienda virtual.\n\n'
+        '👋 ¡Hola vecinos! En *$_nombreBodega* ya tenemos tienda virtual.\n\n'
         'Pueden revisar nuestros precios del día, ofertas y hacernos sus pedidos directo por WhatsApp sin salir de casa ni hacer colas:\n'
         '👉 $_urlCatalogo\n\n'
         '🧀 Abarrotes, lácteos, bebidas y golosinas con delivery en el barrio.\n'
@@ -773,7 +852,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     const mensajeReferido =
         '🤝 ¡Hola colega! Te recomiendo *CajaYa Cloud POS* para llevar las cuentas de tu bodega o minimarket.\n\n'
         '• Te permite vender rápido, fiar con control, hacer arqueos sin descuadres y vender por WhatsApp a los vecinos.\n'
-        '• Pruébalo 30 días gratis en: https://cajaya.pe\n\n'
+        '• Pruébalo 30 días gratis en: https://cajaya-pos.onrender.com\n\n'
         '¡Es ideal para bodegas de barrio del Perú!';
 
     return SingleChildScrollView(
