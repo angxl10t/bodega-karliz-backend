@@ -1199,6 +1199,184 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     });
   }
 
+  void _confirmarEliminarUsuario(UsuarioItem u) {
+    bool isDeleting = false;
+    String modalError = '';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.alertRed.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    LucideIcons.trash2,
+                    color: AppTheme.alertRed,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '¿Eliminar cajero @${u.username}?',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (modalError.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.alertRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppTheme.alertRed.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.alertCircle, size: 14, color: AppTheme.alertRed),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              modalError,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppTheme.alertRed,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  Text(
+                    'Esta acción eliminará la cuenta de este cajero y revocará su acceso al sistema de inmediato.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          LucideIcons.info,
+                          size: 16,
+                          color: AppTheme.brandPrimary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Historial seguro: Las ventas y movimientos registrados por @${u.username} permanecerán en los reportes contables y auditoría de tu negocio.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              height: 1.35,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isDeleting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.alertRed,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: isDeleting
+                    ? null
+                    : () async {
+                        setModalState(() {
+                          isDeleting = true;
+                          modalError = '';
+                        });
+
+                        final messenger = ScaffoldMessenger.of(context);
+                        try {
+                          await _usuariosService.eliminarUsuario(u.idUsuario);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          await _cargarUsuarios();
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text('Cajero @${u.username} eliminado correctamente.'),
+                              backgroundColor: AppTheme.accentGreen,
+                            ),
+                          );
+                        } catch (e) {
+                          setModalState(() {
+                            isDeleting = false;
+                            modalError = e.toString().replaceAll('Exception: ', '');
+                          });
+                        }
+                      },
+                icon: isDeleting
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(LucideIcons.trash2, size: 16),
+                label: Text(
+                  isDeleting ? 'Eliminando...' : 'Eliminar Cajero',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   String _formatearFecha(String isoDate) {
     try {
       final dt = DateTime.parse(isoDate);
@@ -3661,6 +3839,19 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                         onPressed: () =>
                                             _abrirResetPasswordModal(u),
                                       ),
+
+                                      // Botón eliminar: Disponible para cajeros
+                                      if (!isMe && (u.rol == 'CAJERO' || widget.userRol == 'SUPERADMIN'))
+                                        IconButton(
+                                          icon: const Icon(
+                                            LucideIcons.trash2,
+                                            size: 17,
+                                            color: AppTheme.alertRed,
+                                          ),
+                                          tooltip: 'Eliminar cajero',
+                                          onPressed: () =>
+                                              _confirmarEliminarUsuario(u),
+                                        ),
 
                                       if (!isMe)
                                         Switch(

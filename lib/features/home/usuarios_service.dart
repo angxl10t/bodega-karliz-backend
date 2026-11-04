@@ -148,4 +148,15 @@ class UsuariosService {
       throw Exception(msg);
     }
   }
+
+  Future<void> eliminarUsuario(int idUsuario) async {
+    final response = await _client.delete('/usuarios/$idUsuario');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final msg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo eliminar el usuario',
+      );
+      throw Exception(msg);
+    }
+  }
 }
