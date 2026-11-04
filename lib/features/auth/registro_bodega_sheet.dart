@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'auth_service.dart';
+import 'selector_plan_registro_modal.dart';
 import '../../core/theme.dart';
 
 class RegistroBodegaSheet extends StatefulWidget {
@@ -80,11 +81,12 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
       context.go(
         '/home',
       ); // Ingresa al sistema con la nueva bodega aprovisionada
+      final exitoMsg = _selectedPlan == 'PRO'
+          ? '¡Bienvenido a tu nuevo sistema! Bodega creada con 1 mes gratis (30 días) de Plan Minimarket PRO.'
+          : '¡Bienvenido a tu nuevo sistema! Bodega creada exitosamente con Plan Bodega Básico.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '¡Bienvenido a tu nuevo sistema! Bodega creada con 1 mes gratis (30 días) de Plan Minimarket PRO.',
-          ),
+          content: Text(exitoMsg),
           backgroundColor: AppTheme.accentGreen,
           duration: const Duration(seconds: 4),
         ),
@@ -522,133 +524,8 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                       ),
                       const SizedBox(height: 20),
 
-                      // 5. Selector de Plan con Diferenciación Real y 1 Mes Gratis
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentGreen.withValues(
-                            alpha: isDark ? 0.15 : 0.08,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: AppTheme.accentGreen.withValues(alpha: 0.35),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              LucideIcons.gift,
-                              color: AppTheme.accentGreen,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '¡1 Mes Gratis de Plan Minimarket PRO!',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                      color: isDark
-                                          ? const Color(0xFF4ADE80)
-                                          : const Color(0xFF15803D),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Tu bodega inicia con 30 días de acceso total PRO sin costo para probar todas las funciones. Sin tarjetas ni cobros automáticos.',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      Text(
-                        'Selecciona tu Plan',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textDark,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Ambos planes incluyen cajeros y administradores ilimitados con PIN individual.',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF475569),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isNarrow = constraints.maxWidth < 480;
-                          final planBasico = _buildPlanOption(
-                            id: 'BASICO',
-                            title: 'Plan Bodega Básico',
-                            price: 'S/ 50 /mes',
-                            badge: 'Hasta 150 productos',
-                            bulletPoints: const [
-                              'Hasta 150 productos en inventario',
-                              'POS rápido, tickets y código de barras',
-                              'Caja chica, arqueo diario y fiados',
-                              'Modo Offline para vender sin internet',
-                              'Cajeros y admins ilimitados (PIN 4 d.)',
-                            ],
-                            isDark: isDark,
-                          );
-                          final planPro = _buildPlanOption(
-                            id: 'PRO',
-                            title: 'Plan Minimarket PRO',
-                            price: 'S/ 100 /mes (1er Mes S/ 0)',
-                            badge: 'Catálogo Ilimitado',
-                            isPopular: true,
-                            bulletPoints: const [
-                              'Catálogo de productos ILIMITADO',
-                              'Enlace propio de Catálogo Digital Online',
-                              'Dashboard BI: rotación ABC, margen y utilidad',
-                              'Auditoría Ciega y Detector Stock Hueso',
-                              'Reportes a WhatsApp y Meta Diaria',
-                              'Cajeros y admins ilimitados (PIN 4 d.)',
-                            ],
-                            isDark: isDark,
-                          );
-
-                          if (isNarrow) {
-                            return Column(
-                              children: [
-                                planPro,
-                                const SizedBox(height: 12),
-                                planBasico,
-                              ],
-                            );
-                          }
-
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: planPro),
-                              const SizedBox(width: 12),
-                              Expanded(child: planBasico),
-                            ],
-                          );
-                        },
-                      ),
+                      // 5. Selector de Plan con Acceso a Modal Comparativo
+                      _buildPlanSelectorSection(isDark),
                       const SizedBox(height: 24),
 
                       // Botón Crear Bodega
@@ -658,10 +535,13 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.brandPrimary,
+                            backgroundColor: _selectedPlan == 'PRO'
+                                ? AppTheme.accentGreen
+                                : AppTheme.brandPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
+                            elevation: 2,
                           ),
                           child: _isLoading
                               ? const SizedBox(
@@ -677,14 +557,18 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                               : Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(
-                                      LucideIcons.rocket,
+                                    Icon(
+                                      _selectedPlan == 'PRO'
+                                          ? LucideIcons.gift
+                                          : LucideIcons.rocket,
                                       size: 20,
                                       color: Colors.white,
                                     ),
                                     const SizedBox(width: 10),
                                     Text(
-                                      'CREAR BODEGA & EMPEZAR (1 MES GRATIS)',
+                                      _selectedPlan == 'PRO'
+                                          ? 'CREAR BODEGA & EMPEZAR (1 MES GRATIS)'
+                                          : 'CREAR BODEGA (PLAN BÁSICO)',
                                       style: GoogleFonts.outfit(
                                         fontSize: 13.5,
                                         fontWeight: FontWeight.w800,
@@ -707,139 +591,54 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
     );
   }
 
-  Widget _buildPlanOption({
-    required String id,
-    required String title,
-    required String price,
-    required String badge,
-    required List<String> bulletPoints,
-    bool isPopular = false,
-    required bool isDark,
-  }) {
-    final isSelected = _selectedPlan == id;
-    final cardBg = isSelected
-        ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.22 : 0.08)
-        : (isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC));
-    final borderColor = isSelected
-        ? AppTheme.brandPrimary
-        : (isDark ? AppTheme.borderDark : AppTheme.borderLight);
+  Future<void> _abrirModalSeleccionarPlan() async {
+    final nuevoPlan = await SelectorPlanRegistroModal.show(
+      context,
+      planActual: _selectedPlan,
+    );
+    if (nuevoPlan != null && mounted) {
+      setState(() => _selectedPlan = nuevoPlan);
+    }
+  }
 
-    return InkWell(
-      onTap: () => setState(() => _selectedPlan = id),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: isSelected ? 2 : 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildPlanSelectorSection(bool isDark) {
+    final isPro = _selectedPlan == 'PRO';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Encabezado con acción rápida
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (isPopular)
-              Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 7,
-                  vertical: 2.5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentGreen,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '1 MES GRATIS • RECOMENDADO',
-                  style: GoogleFonts.outfit(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.outfit(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : AppTheme.textDark,
-                    ),
-                  ),
-                ),
-                if (isSelected) ...[
-                  const SizedBox(width: 4),
-                  const Icon(
-                    LucideIcons.checkCircle2,
-                    color: AppTheme.brandPrimary,
-                    size: 18,
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 2),
             Text(
-              price,
+              'Plan de Suscripción',
               style: GoogleFonts.outfit(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.brandPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppTheme.textDark,
               ),
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppTheme.brandPrimary.withValues(alpha: 0.15)
-                    : (isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE2E8F0)),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                badge,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: isSelected
-                      ? AppTheme.brandPrimary
-                      : (isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF475569)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            ...bulletPoints.map(
-              (bp) => Padding(
-                padding: const EdgeInsets.only(bottom: 5),
+            InkWell(
+              onTap: _abrirModalSeleccionarPlan,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2, right: 6),
-                      child: Icon(
-                        LucideIcons.check,
-                        size: 12,
-                        color: AppTheme.accentGreen,
+                    Text(
+                      'Ver comparativa',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.brandPrimary,
                       ),
                     ),
-                    Expanded(
-                      child: Text(
-                        bp,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          height: 1.25,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
-                        ),
-                      ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      LucideIcons.arrowRight,
+                      size: 14,
+                      color: AppTheme.brandPrimary,
                     ),
                   ],
                 ),
@@ -847,7 +646,201 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 4),
+        Text(
+          'Por defecto tu tienda inicia con 30 días gratis en Plan PRO (sin tarjeta).',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11.5,
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Tarjeta interactiva del plan actual seleccionado
+        InkWell(
+          onTap: _abrirModalSeleccionarPlan,
+          borderRadius: BorderRadius.circular(18),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: isPro
+                  ? LinearGradient(
+                      colors: isDark
+                          ? [
+                              const Color(0xFF14532D).withValues(alpha: 0.35),
+                              const Color(0xFF0F172A),
+                            ]
+                          : [
+                              const Color(0xFFF0FDF4),
+                              Colors.white,
+                            ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: isPro
+                  ? null
+                  : (isDark
+                      ? AppTheme.cardDarkElevated
+                      : const Color(0xFFF8FAFC)),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isPro
+                    ? AppTheme.accentGreen.withValues(alpha: 0.7)
+                    : (isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFCBD5E1)),
+                width: 1.8,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: (isPro ? AppTheme.accentGreen : Colors.black)
+                      .withValues(alpha: isDark ? 0.2 : 0.06),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (isPro
+                                ? AppTheme.accentGreen
+                                : const Color(0xFF64748B))
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        isPro
+                            ? '🔥 1 MES GRATIS (30 DÍAS) • SELECCIONADO'
+                            : '🏪 PLAN BÁSICO SELECCIONADO',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          color: isPro
+                              ? (isDark
+                                  ? const Color(0xFF4ADE80)
+                                  : const Color(0xFF166534))
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'Cambiar',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.brandPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          LucideIcons.slidersHorizontal,
+                          size: 14,
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      isPro ? 'S/ 0.00' : 'S/ 50.00',
+                      style: GoogleFonts.outfit(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isPro ? 'el 1er mes (luego S/ 100/mes)' : '/ mes',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+
+                Text(
+                  isPro ? 'Plan Minimarket PRO' : 'Plan Bodega Básico',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: isPro
+                        ? (isDark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF15803D))
+                        : (isDark ? Colors.white : AppTheme.brandDark),
+                  ),
+                ),
+                const SizedBox(height: 4),
+
+                Text(
+                  isPro
+                      ? 'Catálogo ilimitado de productos • Catálogo Web oficial para clientes • Marketing de Barrio y Dashboard BI'
+                      : 'Hasta 150 productos en inventario • POS rápido en mostrador • Modo Offline y arqueos de caja',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF475569),
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Botón llamativo para abrir el modal de comparativa
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _abrirModalSeleccionarPlan,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      side: BorderSide(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(LucideIcons.slidersHorizontal, size: 15),
+                    label: Text(
+                      'VER TODAS LAS DIFERENCIAS DE LOS PLANES',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
