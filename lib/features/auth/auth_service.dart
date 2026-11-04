@@ -25,6 +25,7 @@ class AuthService {
   static void setCachedRol(String rol) {
     _cachedRol = rol;
   }
+
   Future<AuthResult> login(String username, String password) async {
     try {
       final response = await http
@@ -44,6 +45,9 @@ class AuthService {
         await SecureStorageService.write('jwt_token', token);
         await SecureStorageService.write('user_rol', rol);
         await SecureStorageService.write('username', username);
+        if (data['email'] != null) {
+          await SecureStorageService.write('user_email', data['email']);
+        }
         if (data['idBodega'] != null) {
           await SecureStorageService.write(
             'id_bodega',
@@ -178,6 +182,10 @@ class AuthService {
     return await SecureStorageService.read('username') ?? 'Usuario';
   }
 
+  Future<String> getUserEmail() async {
+    return await SecureStorageService.read('user_email') ?? '';
+  }
+
   Future<String> getUserRole() async {
     final r = await SecureStorageService.read('user_rol') ?? 'CAJERO';
     _cachedRol = r;
@@ -234,6 +242,7 @@ class AuthService {
     String? ruc,
     String? direccion,
     String? telefono,
+    String? email,
     required String adminUsername,
     required String adminPassword,
     String? colorPrimario,
@@ -241,21 +250,26 @@ class AuthService {
     String plan = 'PRO',
   }) async {
     try {
+      final Map<String, dynamic> body = {
+        'nombreComercial': nombreComercial,
+        'rucDni': ruc,
+        'direccion': direccion,
+        'telefono': telefono,
+        'username': adminUsername,
+        'password': adminPassword,
+        'colorPrimario': colorPrimario ?? '#2563EB',
+        'lemaComercial': lemaComercial,
+        'plan': plan,
+      };
+      if (email != null && email.trim().isNotEmpty) {
+        body['email'] = email.trim();
+      }
+
       final response = await http
           .post(
             Uri.parse('${ApiConstants.baseUrl}/auth/registrar-bodega'),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'nombreComercial': nombreComercial,
-              'rucDni': ruc,
-              'direccion': direccion,
-              'telefono': telefono,
-              'username': adminUsername,
-              'password': adminPassword,
-              'colorPrimario': colorPrimario ?? '#2563EB',
-              'lemaComercial': lemaComercial,
-              'plan': plan,
-            }),
+            body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 25));
 
@@ -267,6 +281,9 @@ class AuthService {
         await SecureStorageService.write('jwt_token', token);
         await SecureStorageService.write('user_rol', rol);
         await SecureStorageService.write('username', adminUsername);
+        if (data['email'] != null) {
+          await SecureStorageService.write('user_email', data['email']);
+        }
         if (data['idBodega'] != null) {
           await SecureStorageService.write(
             'id_bodega',
@@ -335,6 +352,118 @@ class AuthService {
         errorMessage:
             'Error de conexión con el servidor. Verifica tu internet.',
       );
+    }
+  }
+
+  // =========================================================================
+  // Flujo de Recuperación de Contraseña con Código OTP de 6 Dígitos
+  // =========================================================================
+
+  Future<Map<String, dynamic>> solicitarRecuperacionPassword(String identificador) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${ApiConstants.baseUrl}/auth/recuperar-password/solicitar'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'identificador': identificador.trim()}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        return {
+          'success': true,
+          'mensaje': data['mensaje'] ?? 'Código enviado con éxito.',
+          'emailEnmascarado': data['emailEnmascarado'] ?? '',
+          'sinEmail': data['sinEmail'] == 'true',
+        };
+      }
+
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo procesar la solicitud de recuperación',
+      );
+      return {'success': false, 'mensaje': errorMsg};
+    } catch (_) {
+      return {
+        'success': false,
+        'mensaje': 'Error de red al solicitar el código. Verifica tu conexión.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> verificarCodigoRecuperacion(
+      String identificador, String codigo) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${ApiConstants.baseUrl}/auth/recuperar-password/verificar'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'identificador': identificador.trim(),
+              'codigo': codigo.trim(),
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        return {
+          'success': true,
+          'mensaje': data['mensaje'] ?? 'Código verificado correctamente.',
+        };
+      }
+
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Código de verificación incorrecto o expirado',
+      );
+      return {'success': false, 'mensaje': errorMsg};
+    } catch (_) {
+      return {
+        'success': false,
+        'mensaje': 'Error de conexión al verificar el código.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> restablecerPasswordConCodigo({
+    required String identificador,
+    required String codigo,
+    required String nuevaPassword,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${ApiConstants.baseUrl}/auth/recuperar-password/restablecer'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'identificador': identificador.trim(),
+              'codigo': codigo.trim(),
+              'nuevaPassword': nuevaPassword.trim(),
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        return {
+          'success': true,
+          'mensaje': data['mensaje'] ?? 'Contraseña restablecida con éxito.',
+          'username': data['username'] ?? identificador,
+        };
+      }
+
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo restablecer la contraseña',
+      );
+      return {'success': false, 'mensaje': errorMsg};
+    } catch (_) {
+      return {
+        'success': false,
+        'mensaje': 'Error de conexión al restablecer la contraseña.',
+      };
     }
   }
 }

@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import 'auth_service.dart';
+import 'recuperar_password_modal.dart';
 import 'registro_bodega_sheet.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
@@ -106,6 +107,30 @@ class _LoginScreenState extends State<LoginScreen> {
               result.errorMessage ?? 'Usuario o contraseña incorrectos',
         );
       }
+    }
+  }
+
+  Future<void> _abrirModalRecuperarPassword() async {
+    final recoveredUsername = await RecuperarPasswordModal.show(
+      context,
+      initialIdentificador: _usernameController.text.trim(),
+    );
+    if (recoveredUsername != null && recoveredUsername.isNotEmpty && mounted) {
+      setState(() {
+        _usernameController.text = recoveredUsername;
+        _passwordController.clear();
+        _errorMessage = '';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '¡Contraseña restablecida! Ingresa con tu nueva clave.',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: AppTheme.accentGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -837,47 +862,65 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 14),
 
           // Mantener sesión
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => setState(() => _keepMeSignedIn = !_keepMeSignedIn),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: _keepMeSignedIn
-                            ? AppTheme.brandPrimary
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: _keepMeSignedIn
-                              ? AppTheme.brandPrimary
-                              : const Color(0xFFCBD5E1),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: _keepMeSignedIn
-                          ? const Icon(
-                              Icons.check,
-                              size: 13,
-                              color: Colors.white,
-                            )
-                          : null,
+          GestureDetector(
+            onTap: () => setState(() => _keepMeSignedIn = !_keepMeSignedIn),
+            child: Row(
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: _keepMeSignedIn
+                        ? AppTheme.brandPrimary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: _keepMeSignedIn
+                          ? AppTheme.brandPrimary
+                          : const Color(0xFFCBD5E1),
+                      width: 1.5,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Recordar dispositivo',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
+                  ),
+                  child: _keepMeSignedIn
+                      ? const Icon(
+                          Icons.check,
+                          size: 13,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Recordar dispositivo',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Enlace ¿Olvidaste tu contraseña?
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: _abrirModalRecuperarPassword,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                child: Text(
+                  '¿Olvidaste tu contraseña?',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
 
           const SizedBox(height: 20),

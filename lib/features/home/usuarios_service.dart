@@ -6,6 +6,7 @@ class UsuarioItem {
   final int idUsuario;
   final String username;
   final String? nombreCompleto;
+  final String? email;
   final String rol;
   final bool estado;
   final int? idBodega;
@@ -16,6 +17,7 @@ class UsuarioItem {
     required this.idUsuario,
     required this.username,
     this.nombreCompleto,
+    this.email,
     required this.rol,
     required this.estado,
     this.idBodega,
@@ -30,6 +32,7 @@ class UsuarioItem {
           : int.parse(json['idUsuario'].toString()),
       username: json['username'] ?? '',
       nombreCompleto: json['nombreCompleto'],
+      email: json['email'],
       rol: json['rol'] ?? 'CAJERO',
       estado: json['estado'] == true,
       idBodega: json['idBodega'],
@@ -54,6 +57,7 @@ class UsuariosService {
   Future<void> crearUsuario({
     required String username,
     String? nombreCompleto,
+    String? email,
     required String password,
     required String rol,
   }) async {
@@ -65,11 +69,27 @@ class UsuariosService {
     if (nombreCompleto != null && nombreCompleto.trim().isNotEmpty) {
       body['nombreCompleto'] = nombreCompleto.trim();
     }
+    if (email != null && email.trim().isNotEmpty) {
+      body['email'] = email.trim();
+    }
     final response = await _client.post('/usuarios', body);
     if (response.statusCode != 200 && response.statusCode != 201) {
       final msg = ApiClient.extractErrorMessage(
         response,
         'No se pudo crear el usuario',
+      );
+      throw Exception(msg);
+    }
+  }
+
+  Future<void> actualizarEmail(int idUsuario, String email) async {
+    final response = await _client.put('/usuarios/$idUsuario/email', {
+      'email': email.trim(),
+    });
+    if (response.statusCode != 200) {
+      final msg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo actualizar el correo electrónico',
       );
       throw Exception(msg);
     }

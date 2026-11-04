@@ -30,6 +30,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
   final _rucCtrl = TextEditingController();
   final _direccionCtrl = TextEditingController();
   final _telefonoCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
   final _adminUserCtrl = TextEditingController();
   final _adminPassCtrl = TextEditingController();
 
@@ -45,6 +46,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
     _rucCtrl.dispose();
     _direccionCtrl.dispose();
     _telefonoCtrl.dispose();
+    _emailCtrl.dispose();
     _adminUserCtrl.dispose();
     _adminPassCtrl.dispose();
     super.dispose();
@@ -67,6 +69,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
       telefono: _telefonoCtrl.text.trim().isEmpty
           ? null
           : _telefonoCtrl.text.trim(),
+      email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
       adminUsername: _adminUserCtrl.text.trim(),
       adminPassword: _adminPassCtrl.text.trim(),
       plan: _selectedPlan,
@@ -478,6 +481,35 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           }
                           if (v.trim().contains(' '))
                             return 'No debe contener espacios';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 14),
+
+                      Text(
+                        'Correo Electrónico (Para recuperación de clave y avisos)',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          hintText: 'Ej. micorreo@gmail.com (Opcional)',
+                          prefixIcon: Icon(LucideIcons.mail, size: 18),
+                        ),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return null;
+                          final clean = v.trim();
+                          if (!clean.contains('@') || !clean.contains('.')) {
+                            return 'Ingresa un correo electrónico válido';
+                          }
                           return null;
                         },
                       ),
