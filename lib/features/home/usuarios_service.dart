@@ -95,6 +95,33 @@ class UsuariosService {
     }
   }
 
+  Future<void> actualizarPerfil({
+    required int idUsuario,
+    String? nombreCompleto,
+    String? email,
+  }) async {
+    final Map<String, dynamic> body = {};
+    if (nombreCompleto != null) {
+      body['nombreCompleto'] = nombreCompleto.trim();
+    }
+    if (email != null) {
+      body['email'] = email.trim();
+    }
+    final response = await _client.put('/usuarios/$idUsuario/perfil', body);
+    if (response.statusCode != 200) {
+      // Fallback a /email si el servidor aún no tiene /perfil disponible
+      if (email != null) {
+        await actualizarEmail(idUsuario, email);
+        return;
+      }
+      final msg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo actualizar los datos del usuario',
+      );
+      throw Exception(msg);
+    }
+  }
+
   Future<void> cambiarEstado(int idUsuario, bool activo) async {
     final response = await _client.patch(
       '/usuarios/$idUsuario/estado?activo=$activo',

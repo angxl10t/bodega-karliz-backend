@@ -186,6 +186,10 @@ class AuthService {
     return await SecureStorageService.read('user_email') ?? '';
   }
 
+  Future<void> setUserEmail(String email) async {
+    await SecureStorageService.write('user_email', email.trim());
+  }
+
   Future<String> getUserRole() async {
     final r = await SecureStorageService.read('user_rol') ?? 'CAJERO';
     _cachedRol = r;

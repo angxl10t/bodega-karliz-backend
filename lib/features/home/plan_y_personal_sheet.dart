@@ -195,6 +195,10 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
     final confirmPassCtrl = TextEditingController();
 
+    final emailCtrl = TextEditingController();
+
+    final nombreCompletoCtrl = TextEditingController();
+
     String rolSeleccionado = 'CAJERO';
 
     bool obscurePass = true;
@@ -543,6 +547,29 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                   const SizedBox(height: 12),
 
+                  // Campo opcional: Correo Electrónico
+                  Text(
+                    'Correo Electrónico (Para recuperación)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      hintText: 'Ej. usuario@gmail.com',
+                      prefixIcon: Icon(LucideIcons.mail, size: 18),
+                      helperText: 'Opcional. Para recuperar contraseña en caso de olvido',
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
                   // Campo: Contraseña Inicial + Generador Aleatorio
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -763,9 +790,13 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                         try {
                           await _usuariosService.crearUsuario(
                             username: u,
-
+                            nombreCompleto: nombreCompletoCtrl.text.trim().isNotEmpty
+                                ? nombreCompletoCtrl.text.trim()
+                                : null,
+                            email: emailCtrl.text.trim().isNotEmpty
+                                ? emailCtrl.text.trim()
+                                : null,
                             password: p,
-
                             rol: rolSeleccionado,
                           );
 
@@ -838,6 +869,10 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
       passCtrl.dispose();
 
       confirmPassCtrl.dispose();
+
+      emailCtrl.dispose();
+
+      nombreCompletoCtrl.dispose();
     });
   }
 
@@ -957,6 +992,246 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
         },
       ),
     ).then((_) => passCtrl.dispose());
+  }
+
+  void _abrirEditarUsuarioModal(UsuarioItem u) {
+    final nombreCtrl = TextEditingController(text: u.nombreCompleto ?? '');
+    final emailCtrl = TextEditingController(text: u.email ?? '');
+    String modalError = '';
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: !isSubmitting,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final isMe = u.username.equalsIgnoreCase(widget.currentUsername);
+
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    LucideIcons.userCheck,
+                    color: AppTheme.brandPrimary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isMe ? 'Mi Perfil y Correo' : 'Editar Datos: @${u.username}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16.5,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        'Actualiza correo de recuperación y titular',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  tooltip: 'Cerrar',
+                  onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (modalError.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.alertRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppTheme.alertRed.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.alertCircle, size: 14, color: AppTheme.alertRed),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              modalError,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppTheme.alertRed,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  // Badge info usuario
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.shield, size: 14, color: AppTheme.brandPrimary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Cuenta: @${u.username} • Rol: ${u.rol}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Campo: Correo Electrónico
+                  Text(
+                    'Correo Electrónico (Para recuperación) *',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (_) => setModalState(() => modalError = ''),
+                    decoration: const InputDecoration(
+                      hintText: 'Ej. mimarketz@gmail.com',
+                      prefixIcon: Icon(LucideIcons.mail, size: 18),
+                      helperText: 'A este correo te llegará el código de 6 dígitos si olvidas tu contraseña.',
+                      helperMaxLines: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Campo: Nombre Completo
+                  Text(
+                    'Nombre del Titular o Cajero',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: nombreCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      hintText: 'Ej. Karliz Quispe o Carlos Pérez',
+                      prefixIcon: Icon(LucideIcons.user, size: 18),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: isSubmitting ? null : () async {
+                  final emailIngresado = emailCtrl.text.trim();
+                  if (emailIngresado.isNotEmpty &&
+                      !RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(emailIngresado)) {
+                    setModalState(() => modalError = 'Por favor ingresa un correo electrónico válido (ej. usuario@gmail.com).');
+                    return;
+                  }
+
+                  setModalState(() {
+                    isSubmitting = true;
+                    modalError = '';
+                  });
+
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    await _usuariosService.actualizarPerfil(
+                      idUsuario: u.idUsuario,
+                      nombreCompleto: nombreCtrl.text.trim(),
+                      email: emailIngresado,
+                    );
+
+                    if (isMe && emailIngresado.isNotEmpty) {
+                      await AuthService().setUserEmail(emailIngresado);
+                    }
+
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    await _cargarUsuarios();
+
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Datos y correo de @${u.username} actualizados con éxito.'),
+                        backgroundColor: AppTheme.accentGreen,
+                      ),
+                    );
+                  } catch (e) {
+                    setModalState(() {
+                      isSubmitting = false;
+                      modalError = e.toString().replaceAll('Exception: ', '');
+                    });
+                  }
+                },
+                icon: isSubmitting
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(LucideIcons.save, size: 16),
+                label: Text(
+                  isSubmitting ? 'Guardando...' : 'Guardar Cambios',
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    ).then((_) {
+      nombreCtrl.dispose();
+      emailCtrl.dispose();
+    });
   }
 
   String _formatearFecha(String isoDate) {
@@ -3343,8 +3618,65 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                                     color: AppTheme.textMuted,
                                                   ),
                                             ),
+
+                                            const SizedBox(height: 3),
+
+                                            if (u.email != null && u.email!.trim().isNotEmpty)
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    LucideIcons.mail,
+                                                    size: 11,
+                                                    color: AppTheme.brandPrimary,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Flexible(
+                                                    child: Text(
+                                                      u.email!,
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: isDark
+                                                            ? const Color(0xFF93C5FD)
+                                                            : const Color(0xFF1D4ED8),
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            else
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    LucideIcons.mailWarning,
+                                                    size: 11,
+                                                    color: Colors.amber.shade700,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Sin correo asociado',
+                                                    style: GoogleFonts.plusJakartaSans(
+                                                      fontSize: 10.5,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Colors.amber.shade800,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                           ],
                                         ),
+                                      ),
+
+                                      IconButton(
+                                        icon: const Icon(
+                                          LucideIcons.pencil,
+                                          size: 17,
+                                          color: AppTheme.brandPrimary,
+                                        ),
+                                        tooltip: 'Editar correo y perfil',
+                                        onPressed: () =>
+                                            _abrirEditarUsuarioModal(u),
                                       ),
 
                                       IconButton(
