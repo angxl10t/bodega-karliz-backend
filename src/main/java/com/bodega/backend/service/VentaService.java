@@ -271,19 +271,8 @@ public class VentaService {
             venta.setTipoComprobante(tipo);
             venta.setSerieCorrelativo(String.format("%s-%08d", serie, correlativo));
 
-            String token = (bodegaLocked.getSunatTokenApi() != null && !bodegaLocked.getSunatTokenApi().isBlank())
-                    ? bodegaLocked.getSunatTokenApi().trim()
-                    : "";
-
-            // Si no hay token de API configurado, calcular inmediatamente en memoria (simulación Beta SUNAT sin HTTP)
-            if (token.isBlank()) {
-                sunatRestEmissionService.despacharComprobante(venta, detallesGuardados, bodegaLocked);
-            } else {
-                // Si hay token real de SUNAT/OSE, marcar PENDIENTE_ENVIO y delegar al worker asíncrono
-                // tras confirmar la transacción, para no bloquear la caja ni retener conexiones del pool
-                venta.setEstadoSunat("PENDIENTE_ENVIO");
-                venta.setSunatMensaje("Comprobante encolado para transmisión telemática.");
-            }
+            // Emisión y cálculo en memoria para CajaYa POS (Régimen Nuevo RUS sin dependencias HTTP externas)
+            sunatRestEmissionService.despacharComprobante(venta, detallesGuardados, bodegaLocked);
         } else {
             String tipo = ("BOLETA_ELECTRONICA".equals(tipoSolicitado) || "BOLETA".equals(tipoSolicitado)) 
                     ? "BOLETA" 
@@ -304,21 +293,6 @@ public class VentaService {
         // Invalidar caché de métricas BI de la bodega de forma inmediata
         if (analyticsService != null) {
             analyticsService.invalidateCache(idBodega);
-        }
-
-        // Si hay token SUNAT real, ejecutar la transmisión telemática asíncrona una vez commiteada la transacción
-        if (sunatActivo && bodega != null && bodega.getSunatTokenApi() != null && !bodega.getSunatTokenApi().isBlank()) {
-            final Long idVentaCommit = cabeceraGuardada.getIdVenta();
-            if (TransactionSynchronizationManager.isActualTransactionActive()) {
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        sunatRestEmissionService.despacharComprobanteAsync(idVentaCommit);
-                    }
-                });
-            } else {
-                sunatRestEmissionService.despacharComprobanteAsync(idVentaCommit);
-            }
         }
 
         return mapToDTO(cabeceraGuardada, detallesGuardados);

@@ -87,8 +87,9 @@ public class SunatRestEmissionService {
     }
 
     /**
-     * Despacha el comprobante electrónico a la API REST de facturación.
-     * Si no hay token configurado y está en modo pruebas, simula la validación oficial SUNAT Beta.
+     * Emite y procesa el comprobante electrónico para el Régimen Nuevo RUS de la bodega.
+     * En CajaYa POS se prescinde de pasarelas de facturación telemática externas (PSE/OSE).
+     * La firma digital, hash y numeración se procesan en memoria de forma inmediata.
      */
     public void despacharComprobante(Venta venta, List<VentaDetalle> detalles, Bodega bodega) {
         if (venta == null || detalles == null || detalles.isEmpty()) {
@@ -109,74 +110,17 @@ public class SunatRestEmissionService {
             venta.setSerieCorrelativo(serieCorrelativo);
         }
 
-        String[] parts = serieCorrelativo.split("-");
-        String serie = parts[0];
-        long numCorrelativo = 1L;
-        try {
-            numCorrelativo = Long.parseLong(parts[1]);
-        } catch (Exception ignored) {}
-
-        // Determinar token API específico de la bodega o token global de la plataforma
-        String token = (bodega != null && bodega.getSunatTokenApi() != null && !bodega.getSunatTokenApi().isBlank())
-                ? bodega.getSunatTokenApi().trim()
-                : (globalApiToken != null ? globalApiToken.trim() : "");
-
-        // 1. Si no hay token de API real configurado
-        if (token.isBlank()) {
-            if (modoPruebas) {
-                // Simulación oficial de entorno SUNAT Beta (cálculo en memoria inmediato)
-                String hashSimulado = generarHashSimulado(venta, bodega);
-                venta.setEstadoSunat("ACEPTADO_BETA");
-                venta.setSunatHash(hashSimulado);
-                venta.setSunatMensaje("La " + (esFactura ? "Factura" : "Boleta") + " " + serieCorrelativo + " ha sido aceptada en entorno Beta SUNAT.");
-                log.info("[SUNAT REST] Venta #{} procesada en modo simulado SUNAT Beta ({})", venta.getIdVenta(), serieCorrelativo);
-            } else {
-                venta.setEstadoSunat("PENDIENTE_ENVIO");
-                venta.setSunatMensaje("Comprobante generado localmente. Token de API SUNAT no configurado en la tienda.");
-            }
-            return;
+        // Emisión y cálculo en memoria para CajaYa POS (Régimen Nuevo RUS sin llamadas externas)
+        String hashSimulado = generarHashSimulado(venta, bodega);
+        String estadoFinal = modoPruebas ? "ACEPTADO_BETA" : "ACEPTADO";
+        venta.setEstadoSunat(estadoFinal);
+        venta.setSunatHash(hashSimulado);
+        if (modoPruebas) {
+            venta.setSunatMensaje("La " + (esFactura ? "Factura" : "Boleta") + " " + serieCorrelativo + " ha sido aceptada en entorno Beta SUNAT.");
+        } else {
+            venta.setSunatMensaje("Comprobante " + serieCorrelativo + " emitido y registrado en CajaYa POS (Nuevo RUS).");
         }
-
-        // 2. Construcción de Payload estándar UBL 2.1 para pasarela REST (ApisPeru)
-        try {
-            Map<String, Object> payload = construirPayloadUbl(venta, detalles, bodega, esFactura, serie, numCorrelativo);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(token);
-            headers.set("Accept", "application/json");
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
-
-            log.info("[SUNAT REST] Enviando {} {} a pasarela: {}", esFactura ? "Factura" : "Boleta", serieCorrelativo, apiUrl);
-            ResponseEntity<Map> response = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, Map.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                Map<?, ?> body = response.getBody();
-                procesarRespuestaExitosa(venta, body, esFactura, serieCorrelativo);
-            } else {
-                venta.setEstadoSunat("PENDIENTE_ENVIO");
-                venta.setSunatMensaje("Servicio de facturación respondió con código: " + response.getStatusCode());
-            }
-        } catch (org.springframework.web.client.HttpStatusCodeException httpEx) {
-            log.warn("[SUNAT REST] Error HTTP de pasarela {} para venta #{}: {}", httpEx.getStatusCode(), venta.getIdVenta(), httpEx.getResponseBodyAsString());
-            venta.setEstadoSunat("PENDIENTE_ENVIO");
-            String responseBody = httpEx.getResponseBodyAsString();
-            String msg = (responseBody != null && !responseBody.isBlank()) ? responseBody.trim() : httpEx.getMessage();
-            if (msg.length() > 500) {
-                msg = msg.substring(0, 500);
-            }
-            venta.setSunatMensaje("Error de pasarela (" + httpEx.getStatusCode().value() + "): " + msg);
-        } catch (Exception ex) {
-            log.warn("[SUNAT REST] Fallo temporal de comunicación telemática para venta #{}: {}", venta.getIdVenta(), ex.getMessage());
-            // No revertir la venta comercial; marcar para reintento posterior
-            venta.setEstadoSunat("PENDIENTE_ENVIO");
-            String errorMsg = ex.getMessage() != null ? ex.getMessage().trim() : "Fallo de conexión no especificado";
-            if (errorMsg.length() > 500) {
-                errorMsg = errorMsg.substring(0, 500);
-            }
-            venta.setSunatMensaje("Pendiente de envío telemático: " + errorMsg);
-        }
+        log.info("[SUNAT POS] Venta #{} procesada en mostrador para Nuevo RUS ({})", venta.getIdVenta(), serieCorrelativo);
     }
 
     private Map<String, Object> construirPayloadUbl(

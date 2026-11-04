@@ -88,13 +88,13 @@ public class SunatRestEmissionServiceTest {
     }
 
     @Test
-    void testDespacharComprobante_SinTokenModoProduccion_QuedaPendienteEnvio() {
+    void testDespacharComprobante_SinTokenModoProduccion_QuedaAceptadoLocal() {
         ReflectionTestUtils.setField(sunatService, "modoPruebas", false);
         ReflectionTestUtils.setField(sunatService, "globalApiToken", "");
 
         sunatService.despacharComprobante(venta, detalles, bodega);
 
-        assertEquals("PENDIENTE_ENVIO", venta.getEstadoSunat());
-        assertTrue(venta.getSunatMensaje().contains("Token de API SUNAT no configurado"));
+        assertEquals("ACEPTADO", venta.getEstadoSunat());
+        assertTrue(venta.getSunatMensaje().contains("CajaYa POS"));
     }
 }
