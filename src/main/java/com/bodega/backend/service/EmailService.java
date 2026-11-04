@@ -49,17 +49,20 @@ public class EmailService {
         String asunto = "Tu código de recuperación en CajaYa: " + codigoOtp;
         String htmlBody = construirPlantillaHtmlRecuperacion(username, codigoOtp);
 
-        // 1. Si existe clave de Resend API, enviar vía HTTPS REST
-        if (resendApiKey != null && !resendApiKey.isBlank()) {
-            boolean enviado = enviarViaResend(emailDestino, asunto, htmlBody, username, codigoOtp);
+        // 1. Si existe clave de Brevo API, enviar vía HTTPS REST (envíos universales a cualquier destinatario)
+        if (brevoApiKey != null && !brevoApiKey.isBlank()) {
+            boolean enviado = enviarViaBrevo(emailDestino, asunto, htmlBody);
             if (enviado) {
                 return true;
             }
         }
 
-        // 2. Si existe clave de Brevo API, enviar vía HTTPS REST
-        if (brevoApiKey != null && !brevoApiKey.isBlank()) {
-            return enviarViaBrevo(emailDestino, asunto, htmlBody);
+        // 2. Si existe clave de Resend API, intentar vía HTTPS REST (requiere dominio o envío al propietario de la cuenta)
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            boolean enviado = enviarViaResend(emailDestino, asunto, htmlBody, username, codigoOtp);
+            if (enviado) {
+                return true;
+            }
         }
 
         // 3. Modo Simulación / Desarrollo (sin costos ni bloqueos de red)
