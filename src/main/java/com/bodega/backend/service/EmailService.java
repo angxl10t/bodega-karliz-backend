@@ -22,6 +22,9 @@ public class EmailService {
     @Value("${brevo.api.key:${BREVO_API_KEY:#{null}}}")
     private String brevoApiKey;
 
+    @Value("${brevo.sender.email:${BREVO_SENDER_EMAIL:cajayapos@gmail.com}}")
+    private String brevoSenderEmail;
+
     @Value("${email.from:${EMAIL_FROM:CajaYa POS <onboarding@resend.dev>}}")
     private String emailFrom;
 
@@ -105,8 +108,12 @@ public class EmailService {
 
     private boolean enviarViaBrevo(String emailDestino, String asunto, String htmlContent) {
         try {
+            String remitenteBrevo = (brevoSenderEmail != null && !brevoSenderEmail.isBlank())
+                    ? brevoSenderEmail.trim()
+                    : "cajayapos@gmail.com";
+
             String payloadJson = "{"
-                    + "\"sender\":{\"name\":\"CajaYa POS\",\"email\":\"soporte@cajaya.pe\"},"
+                    + "\"sender\":{\"name\":\"CajaYa POS\",\"email\":\"" + escaparJson(remitenteBrevo) + "\"},"
                     + "\"to\":[{\"email\":\"" + escaparJson(emailDestino) + "\"}],"
                     + "\"subject\":\"" + escaparJson(asunto) + "\","
                     + "\"htmlContent\":\"" + escaparJson(htmlContent) + "\""
