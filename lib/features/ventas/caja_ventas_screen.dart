@@ -2476,62 +2476,6 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     }
   }
 
-  Future<void> _reintentarSunat(VentaRegistro venta) async {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text('Sincronizando ${venta.etiquetaComprobante}...'),
-          ],
-        ),
-        duration: const Duration(seconds: 4),
-      ),
-    );
-
-    final result = await _ventaService.reintentarSunat(venta.idVenta);
-    if (!mounted) return;
-
-    messenger.hideCurrentSnackBar();
-    if (result.success && result.venta != null) {
-      final v = result.venta!;
-      final estado = (v.estadoSunat ?? '').toUpperCase();
-      final esAceptado = estado.contains('ACEPTADO');
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            esAceptado
-                ? '¡${v.serieCorrelativo ?? "#${v.idVenta}"} sincronizado correctamente!'
-                : (v.sunatMensaje ?? 'Estado: $estado'),
-          ),
-          backgroundColor: esAceptado
-              ? AppTheme.accentGreen
-              : const Color(0xFFF59E0B),
-        ),
-      );
-      _cargarDatos();
-    } else {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            result.errorMessage ??
-                'Error al conectar con el servicio de comprobantes',
-          ),
-          backgroundColor: AppTheme.alertRed,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -3802,6 +3746,37 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                     ),
                     onPressed: _exportarVentasCsv,
                   ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      side: BorderSide(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : AppTheme.borderLight,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: Icon(
+                      LucideIcons.refreshCw,
+                      size: 14,
+                      color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    ),
+                    label: Text(
+                      'Actualizar',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    onPressed: _isLoading ? null : _cargarDatos,
+                  ),
                 ],
               ),
             ),
@@ -4164,28 +4139,23 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                                   final Color fg;
                                   final String label;
 
-                                  if (estado == 'ACEPTADO') {
-                                    bg = AppTheme.accentGreen.withValues(
-                                      alpha: 0.15,
-                                    );
-                                    fg = AppTheme.accentGreen;
-                                    label = 'EMITIDO';
-                                  } else if (estado == 'ACEPTADO_BETA') {
-                                    bg = const Color(0xFF0D9488)
-                                        .withValues(alpha: 0.15);
-                                    fg = const Color(0xFF0D9488);
-                                    label = 'EMITIDO (TEST)';
-                                  } else if (estado == 'RECHAZADO') {
+                                  if (estado == 'RECHAZADO') {
                                     bg = AppTheme.alertRed.withValues(
                                       alpha: 0.15,
                                     );
                                     fg = AppTheme.alertRed;
                                     label = 'RECHAZADO';
-                                  } else {
-                                    bg = const Color(0xFFF59E0B)
+                                  } else if (estado == 'ACEPTADO_BETA') {
+                                    bg = const Color(0xFF0D9488)
                                         .withValues(alpha: 0.15);
-                                    fg = const Color(0xFFF59E0B);
-                                    label = 'PENDIENTE';
+                                    fg = const Color(0xFF0D9488);
+                                    label = 'EMITIDO (TEST)';
+                                  } else {
+                                    bg = AppTheme.accentGreen.withValues(
+                                      alpha: 0.15,
+                                    );
+                                    fg = AppTheme.accentGreen;
+                                    label = 'EMITIDO';
                                   }
 
                                   return Container(
@@ -4433,36 +4403,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                       ),
                       onPressed: () => _confirmarAnulacion(v),
                     ),
-                  if (_esAdmin &&
-                      v.esSunat &&
-                      !v.isAnulada &&
-                      (v.estadoSunat == 'PENDIENTE_ENVIO' ||
-                          v.estadoSunat == 'RECHAZADO' ||
-                          v.estadoSunat == 'ERROR_ENVIO' ||
-                          v.estadoSunat == null)) ...[
-                    const SizedBox(width: 4),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFF59E0B),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 6,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: const Icon(LucideIcons.send, size: 14),
-                      label: Text(
-                        'Sincronizar',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      onPressed: () => _reintentarSunat(v),
-                    ),
-                  ],
+
                   if (v.isAnulada)
                     Row(
                       mainAxisSize: MainAxisSize.min,
