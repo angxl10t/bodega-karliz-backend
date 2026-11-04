@@ -114,7 +114,7 @@ public class SecurityConfig {
 
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/login", "/api/auth/registrar-bodega").permitAll()
 
-                .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**", "/api/auth/recuperar-password/**").permitAll()
 
                 // Health check ultraligero público para monitor de Render (diagnóstico restringido a SUPERADMIN)
 

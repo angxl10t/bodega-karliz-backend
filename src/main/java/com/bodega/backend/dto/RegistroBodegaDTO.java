@@ -1,5 +1,6 @@
 package com.bodega.backend.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -20,6 +21,10 @@ public class RegistroBodegaDTO {
 
     @Size(max = 30)
     private String telefono;
+
+    @Email(message = "El formato del correo electrónico no es válido")
+    @Size(max = 150, message = "El correo electrónico no puede exceder los 150 caracteres")
+    private String email;
 
     @Size(max = 20)
     private String colorPrimario;

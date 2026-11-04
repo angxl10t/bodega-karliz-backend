@@ -100,23 +100,24 @@ public class UsuarioService {
                     bodega.getIdBodega().equals(usuarioExistente.getBodega().getIdBodega());
 
             if (esMismaBodega) {
-                if (Boolean.TRUE.equals(usuarioExistente.getEstado())) {
-                    throw new RuntimeException("El cajero/usuario '" + normalizedUsername + "' ya está registrado y activo en tu bodega. Si olvidó su clave, puedes restablecerla desde la lista.");
-                } else {
-                    // Reactivación transparente de un cajero que estaba desactivado
+                if (!usuarioExistente.getEstado()) {
                     usuarioExistente.setEstado(true);
                     usuarioExistente.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
                     usuarioExistente.setRol(normalizedRol);
                     if (dto.getNombreCompleto() != null && !dto.getNombreCompleto().isBlank()) {
                         usuarioExistente.setNombreCompleto(dto.getNombreCompleto().trim());
                     }
+                    if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+                        usuarioExistente.setEmail(dto.getEmail().trim().toLowerCase());
+                    }
                     usuarioExistente.setFechaCambioClave(OffsetDateTime.now());
                     Usuario reactivado = usuarioRepository.save(usuarioExistente);
                     userSecurityCacheService.evict(reactivado.getUsername());
                     return mapToDTO(reactivado);
+                } else {
+                    throw new RuntimeException("Ya existe un usuario activo con el nombre '" + normalizedUsername + "' en tu bodega.");
                 }
             } else {
-                // Colisión Multi-Tenant: El username ya existe en OTRA bodega
                 String slugBodega = (bodega != null && bodega.getNombreComercial() != null)
                         ? bodega.getNombreComercial().toLowerCase().replaceAll("[^a-z0-9]", "")
                         : "b" + (bodega != null ? bodega.getIdBodega() : "1");
@@ -132,6 +133,7 @@ public class UsuarioService {
             Usuario usuario = new Usuario();
             usuario.setUsername(normalizedUsername);
             usuario.setNombreCompleto(dto.getNombreCompleto() != null && !dto.getNombreCompleto().isBlank() ? dto.getNombreCompleto().trim() : null);
+            usuario.setEmail(dto.getEmail() != null && !dto.getEmail().isBlank() ? dto.getEmail().trim().toLowerCase() : null);
             usuario.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
             usuario.setRol(normalizedRol);
             usuario.setEstado(true);
@@ -190,6 +192,24 @@ public class UsuarioService {
         userSecurityCacheService.evict(usuario.getUsername());
     }
 
+    @Transactional
+    public UsuarioDTO actualizarEmail(Long idUsuario, String nuevoEmail, String adminActual) {
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + idUsuario));
+
+        Usuario admin = obtenerUsuarioEnSesion();
+        validarMismaBodega(admin, usuario);
+
+        String cleanEmail = (nuevoEmail != null && !nuevoEmail.isBlank()) ? nuevoEmail.trim().toLowerCase() : null;
+        if (cleanEmail != null && !cleanEmail.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new RuntimeException("El formato del correo electrónico no es válido.");
+        }
+
+        usuario.setEmail(cleanEmail);
+        Usuario guardado = usuarioRepository.save(usuario);
+        return mapToDTO(guardado);
+    }
+
     private Usuario obtenerUsuarioEnSesion() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
@@ -223,6 +243,7 @@ public class UsuarioService {
         dto.setIdUsuario(u.getIdUsuario());
         dto.setUsername(u.getUsername());
         dto.setNombreCompleto(u.getNombreCompleto());
+        dto.setEmail(u.getEmail());
         dto.setRol(u.getRol());
         dto.setEstado(u.getEstado());
         dto.setFechaCambioClave(u.getFechaCambioClave());

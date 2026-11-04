@@ -45,6 +45,17 @@ public class UsuarioController {
         return ResponseEntity.ok(actualizado);
     }
 
+    @PutMapping("/{id}/email")
+    public ResponseEntity<UsuarioDTO> actualizarEmail(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body,
+            Principal principal) {
+        String adminActual = principal != null ? principal.getName() : "";
+        String nuevoEmail = body != null ? body.get("email") : null;
+        UsuarioDTO actualizado = usuarioService.actualizarEmail(id, nuevoEmail, adminActual);
+        return ResponseEntity.ok(actualizado);
+    }
+
     @PutMapping("/{id}/reset-password")
     public ResponseEntity<Map<String, String>> resetearPassword(
             @PathVariable Long id,

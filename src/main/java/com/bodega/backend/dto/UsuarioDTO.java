@@ -1,6 +1,7 @@
 package com.bodega.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -20,6 +21,10 @@ public class UsuarioDTO {
 
     @Size(max = 150, message = "El nombre completo no puede exceder los 150 caracteres")
     private String nombreCompleto;
+
+    @Email(message = "El formato del correo electrónico no es válido")
+    @Size(max = 150, message = "El correo electrónico no puede exceder los 150 caracteres")
+    private String email;
 
     // Solo se recibe en peticiones (creación o reseteo). Jamás se expone en respuestas JSON hacia el frontend.
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
