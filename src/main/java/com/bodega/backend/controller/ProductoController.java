@@ -169,7 +169,7 @@ public class ProductoController {
 
                 byte[] body = res.body();
                 if (body != null && body.length > MAX_IMAGE_BYTES) {
-                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).build();
+                    return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE).build();
                 }
 
                 return ResponseEntity.ok()

@@ -104,7 +104,7 @@ public class AuthControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, response.getStatusCode());
-        assertTrue(response.getBody().get("error").contains("bloqueado temporalmente"));
+        assertTrue(response.getBody().get("error").contains("Operación bloqueada temporalmente"));
     }
 
     @Test
