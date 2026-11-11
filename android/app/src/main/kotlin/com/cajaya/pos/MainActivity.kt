@@ -1,4 +1,4 @@
-package com.bodega.bodega_mobile
+package com.cajaya.pos
 
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity

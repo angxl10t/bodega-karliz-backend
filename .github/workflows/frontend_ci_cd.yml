@@ -50,7 +50,7 @@ jobs:
 
       - name: Ejecución de Suite de Pruebas con Cobertura
         run: |
-          echo "==> Ejecutando 188 pruebas unitarias y de widgets..."
+          echo "==> Ejecutando suite de pruebas unitarias y de widgets con cobertura..."
           flutter test --coverage
 
   deploy-web-gh-pages:
@@ -115,7 +115,24 @@ jobs:
           flutter config --jdk-dir "$JAVA_HOME"
           yes | flutter doctor --android-licenses || true
 
+      - name: Configurar Firma de Producción Android (Opcional vía Secrets)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            echo "==> Decodificando keystore de produccion desde GitHub Secrets..."
+            KEYSTORE_FILE="$GITHUB_WORKSPACE/android/app/cajaya-upload-keystore.jks"
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > "$KEYSTORE_FILE"
+            echo "ANDROID_KEYSTORE_PATH=$KEYSTORE_FILE" >> "$GITHUB_ENV"
+          else
+            echo "==> Sin ANDROID_KEYSTORE_BASE64 configurado; se compilara APK con firma debug de previsualizacion."
+          fi
+
       - name: Compilar APK Android Release
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           echo "==> Compilando APK Android optimizado..."
           flutter build apk --release

@@ -7,7 +7,7 @@
 -keep class io.flutter.plugins.** { *; }
 
 # Keep MainActivity and application classes
--keep class com.bodega.bodega_mobile.** { *; }
+-keep class com.cajaya.pos.** { *; }
 
 # Shorebird Code Push updater
 -keep class dev.shorebird.** { *; }

@@ -1,5 +1,7 @@
+import java.io.File
 import java.io.FileInputStream
 import java.util.Properties
+import org.gradle.api.GradleException
 
 plugins {
     id("com.android.application")
@@ -10,11 +12,33 @@ plugins {
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
 }
 
+fun resolveKeystoreFile(rawPath: String): File {
+    val direct = project.file(rawPath)
+    if (direct.exists()) return direct
+    val fromRoot = rootProject.file(rawPath)
+    if (fromRoot.exists()) return fromRoot
+    return direct
+}
+
+val envStorePath = System.getenv("ANDROID_KEYSTORE_PATH")?.trim().orEmpty()
+val envStorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")?.trim().orEmpty()
+val envKeyAlias = System.getenv("ANDROID_KEY_ALIAS")?.trim().orEmpty()
+val envKeyPassword = System.getenv("ANDROID_KEY_PASSWORD")?.trim().orEmpty()
+val hasAnyEnvSigning =
+    envStorePath.isNotEmpty() ||
+        envStorePassword.isNotEmpty() ||
+        envKeyAlias.isNotEmpty() ||
+        envKeyPassword.isNotEmpty()
+val hasReleaseSigningSource = keystorePropertiesFile.exists() || hasAnyEnvSigning
+val isStrictReleaseSigningRequested =
+    gradle.startParameter.taskNames.any { it.contains("bundle", ignoreCase = true) } ||
+        project.hasProperty("requireReleaseSigning")
+
 android {
-    namespace = "com.bodega.bodega_mobile"
+    namespace = "com.cajaya.pos"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -24,8 +48,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.bodega.bodega_mobile"
+        applicationId = "com.cajaya.pos"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -40,13 +63,51 @@ android {
 
     signingConfigs {
         create("release") {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-                storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
-                storePassword = keystoreProperties.getProperty("storePassword")
+            if (hasReleaseSigningSource) {
+                val rawAlias = if (keystorePropertiesFile.exists()) {
+                    keystoreProperties.getProperty("keyAlias")?.trim().orEmpty()
+                } else {
+                    envKeyAlias
+                }
+                val rawKeyPassword = if (keystorePropertiesFile.exists()) {
+                    keystoreProperties.getProperty("keyPassword")?.trim().orEmpty()
+                } else {
+                    envKeyPassword
+                }
+                val rawStorePath = if (keystorePropertiesFile.exists()) {
+                    keystoreProperties.getProperty("storeFile")?.trim().orEmpty()
+                } else {
+                    envStorePath
+                }
+                val rawStorePassword = if (keystorePropertiesFile.exists()) {
+                    keystoreProperties.getProperty("storePassword")?.trim().orEmpty()
+                } else {
+                    envStorePassword
+                }
+
+                if (rawAlias.isEmpty() || rawKeyPassword.isEmpty() || rawStorePath.isEmpty() || rawStorePassword.isEmpty()) {
+                    throw GradleException(
+                        "Configuracion de firma Android incompleta: verifica storeFile, keyAlias, storePassword y keyPassword."
+                    )
+                }
+
+                val resolvedStoreFile = resolveKeystoreFile(rawStorePath)
+                if (!resolvedStoreFile.exists()) {
+                    throw GradleException(
+                        "No se encontro el keystore de produccion en '${resolvedStoreFile.absolutePath}'."
+                    )
+                }
+
+                keyAlias = rawAlias
+                keyPassword = rawKeyPassword
+                storeFile = resolvedStoreFile
+                storePassword = rawStorePassword
+            } else if (isStrictReleaseSigningRequested) {
+                throw GradleException(
+                    "Falta firma de produccion para generar AAB de Play Store. Configura android/key.properties o las variables ANDROID_KEYSTORE_*."
+                )
             } else {
-                // Fallback controlado para desarrollo local sin claves de producción
+                // Fallback controlado solo para builds APK de previsualizacion sin claves de produccion
                 initWith(getByName("debug"))
             }
         }
