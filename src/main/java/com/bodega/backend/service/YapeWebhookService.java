@@ -107,14 +107,19 @@ public class YapeWebhookService {
         tx.setTextoNotificacion(raw);
         tx.setUsado(false);
 
-        YapeTransaccionRecibida guardada = yapeTransaccionRecibidaRepository.save(tx);
-        log.info("[YapeWebhook] Nueva transacción {} registrada exitosamente. Op: {}, Monto: S/ {}, Remitente: {}", 
-                billetera, codOp, monto, remitente);
-        return guardada;
+        try {
+            YapeTransaccionRecibida guardada = yapeTransaccionRecibidaRepository.save(tx);
+            log.info("[YapeWebhook] Nueva transacción {} registrada exitosamente. Op: {}, Monto: S/ {}, Remitente: {}", 
+                    billetera, codOp, monto, remitente);
+            return guardada;
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            return yapeTransaccionRecibidaRepository.findFirstByCodigoOperacion(codOp)
+                    .orElseThrow(() -> ex);
+        }
     }
 
     @Transactional(readOnly = true)
     public List<YapeTransaccionRecibida> listarTodas() {
-        return yapeTransaccionRecibidaRepository.findAllByOrderByFechaRecepcionDesc();
+        return yapeTransaccionRecibidaRepository.findTop200ByOrderByFechaRecepcionDesc();
     }
 }

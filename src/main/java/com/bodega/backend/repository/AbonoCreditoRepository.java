@@ -14,6 +14,11 @@ import java.util.List;
 public interface AbonoCreditoRepository extends JpaRepository<AbonoCredito, Long> {
     List<AbonoCredito> findByCliente_IdClienteOrderByFechaAbonoDesc(Long idCliente);
 
+    List<AbonoCredito> findTop50ByCliente_IdClienteAndBodega_IdBodegaOrderByFechaAbonoDesc(Long idCliente, Long idBodega);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(a.monto), 0) FROM AbonoCredito a WHERE a.cliente.idCliente = :idCliente AND a.bodega.idBodega = :idBodega")
+    java.math.BigDecimal sumTotalAbonosByClienteAndBodega(@org.springframework.data.repository.query.Param("idCliente") Long idCliente, @org.springframework.data.repository.query.Param("idBodega") Long idBodega);
+
     List<AbonoCredito> findByBodega_IdBodegaOrderByFechaAbonoDesc(Long idBodega);
 
     List<AbonoCredito> findByBodega_IdBodegaAndFechaAbonoBetweenOrderByFechaAbonoDesc(

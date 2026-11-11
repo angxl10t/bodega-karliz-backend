@@ -96,6 +96,13 @@ public class UserSecurityCacheService {
     /**
      * Invalida toda la memoria de perfiles.
      */
+    public void evictByBodega(Long idBodega) {
+        if (idBodega == null) {
+            return;
+        }
+        cache.entrySet().removeIf(entry -> idBodega.equals(entry.getValue().getIdBodega()));
+    }
+
     public void evictAll() {
         cache.clear();
     }

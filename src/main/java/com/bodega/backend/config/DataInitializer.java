@@ -88,34 +88,35 @@ public class DataInitializer implements ApplicationRunner {
         normalizarMarcasDeProductos();
 
         // 7. Actualizar precios a tarifas reales y cómodas de bodega de barrio peruana
-        starterPackService.actualizarPreciosBodegasRegistradas();
+        // 7. Tarifas personalizadas de bodegas registradas se preservan intactas en producción (sin sobrescritura en arranque).
 
         log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
     }
 
     private void normalizarMarcasDeProductos() {
         try {
-            List<Producto> productos = productoRepository.findAll();
-            int actualizados = 0;
+            List<Producto> productos = productoRepository.findProductosSinMarca();
+            List<Producto> dirty = new java.util.ArrayList<>();
             for (Producto p : productos) {
                 String marcaDetectada = MarcaDetectorUtil.detectarMarca(p.getNombre());
                 if (marcaDetectada != null) {
                     if (p.getMarca() == null || !p.getMarca().equals(marcaDetectada)) {
                         p.setMarca(marcaDetectada);
-                        productoRepository.save(p);
-                        actualizados++;
+                        // batched below
+                        dirty.add(p);
                     }
                 } else if (p.getMarca() != null && !p.getMarca().isBlank()) {
                     String norm = MarcaDetectorUtil.normalizarMarca(p.getMarca());
                     if (!p.getMarca().equals(norm)) {
                         p.setMarca(norm);
-                        productoRepository.save(p);
-                        actualizados++;
+                        // batched below
+                        dirty.add(p);
                     }
                 }
             }
-            if (actualizados > 0) {
-                log.info("[DataInitializer] Normalizadas y estandarizadas {} marcas de productos en base de datos.", actualizados);
+            if (!dirty.isEmpty()) {
+                productoRepository.saveAll(dirty);
+                log.info("[DataInitializer] Normalizadas y estandarizadas {} marcas de productos en base de datos.", dirty.size());
             }
         } catch (Exception e) {
             log.warn("[DataInitializer] Normalización de marcas omitida: {}", e.getMessage());

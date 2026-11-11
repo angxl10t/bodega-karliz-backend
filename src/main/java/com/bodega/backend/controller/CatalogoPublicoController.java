@@ -144,6 +144,12 @@ public class CatalogoPublicoController {
             promocionesRaw = (promocionRepository != null
                     ? promocionRepository.findByBodega_IdBodegaAndActivoTrue(bodega.getIdBodega())
                     : java.util.Collections.<Promocion>emptyList());
+            if (promosCache.size() > 500) {
+                promosCache.entrySet().removeIf(e -> !e.getValue().isValid());
+                if (promosCache.size() > 500) {
+                    promosCache.clear();
+                }
+            }
             promosCache.put(bodega.getIdBodega(), new CachedPromosEntry(promocionesRaw));
         }
 
@@ -301,6 +307,13 @@ public class CatalogoPublicoController {
         response.put("productos", prodsDto);
 
         return ResponseEntity.ok(response);
+    }
+
+    @org.springframework.context.event.EventListener
+    public void onPromocionesActualizadas(com.bodega.backend.service.PromocionService.PromocionesActualizadasEvent event) {
+        if (event != null && event.idBodega() != null) {
+            promosCache.remove(event.idBodega());
+        }
     }
 
     private Bodega resolverBodega(String idOrSlug) {

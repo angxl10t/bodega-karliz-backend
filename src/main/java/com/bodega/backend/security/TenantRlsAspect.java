@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * Aspecto AOP de Defensa en Profundidad:
@@ -38,7 +39,7 @@ public class TenantRlsAspect {
             "&& execution(* com.bodega.backend.service..*(..)) " +
             "&& !within(com.bodega.backend.service.TenantService)")
     public void setTenantSession() {
-        if (Boolean.TRUE.equals(IN_RLS_SET.get())) {
+        if (Boolean.TRUE.equals(IN_RLS_SET.get()) || !TransactionSynchronizationManager.isActualTransactionActive()) {
             return;
         }
         IN_RLS_SET.set(Boolean.TRUE);

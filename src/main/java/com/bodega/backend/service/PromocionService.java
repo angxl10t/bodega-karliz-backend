@@ -29,6 +29,17 @@ public class PromocionService {
     private final VentaDetalleRepository ventaDetalleRepository;
     private final TenantService tenantService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
+    public record PromocionesActualizadasEvent(Long idBodega) {}
+
+    private void notificarActualizacionCatalogo(Bodega bodega) {
+        if (eventPublisher != null && bodega != null && bodega.getIdBodega() != null) {
+            eventPublisher.publishEvent(new PromocionesActualizadasEvent(bodega.getIdBodega()));
+        }
+    }
+
     public PromocionService(PromocionRepository promocionRepository,
                             ProductoRepository productoRepository,
                             VentaDetalleRepository ventaDetalleRepository,
@@ -95,6 +106,7 @@ public class PromocionService {
                 .build();
 
         Promocion saved = promocionRepository.save(p);
+        notificarActualizacionCatalogo(bodega);
         return toDTO(saved);
     }
 
@@ -124,7 +136,9 @@ public class PromocionService {
         p.setFechaFin(dto.getFechaFin());
         if (dto.getActivo() != null) p.setActivo(dto.getActivo());
 
-        return toDTO(promocionRepository.save(p));
+        Promocion saved = promocionRepository.save(p);
+        notificarActualizacionCatalogo(bodega);
+        return toDTO(saved);
     }
 
     @Transactional
@@ -136,7 +150,9 @@ public class PromocionService {
                 .orElseThrow(() -> new NoSuchElementException("Promoción no encontrada"));
 
         p.setActivo(activo);
-        return toDTO(promocionRepository.save(p));
+        Promocion saved = promocionRepository.save(p);
+        notificarActualizacionCatalogo(bodega);
+        return toDTO(saved);
     }
 
     @Transactional
@@ -148,6 +164,7 @@ public class PromocionService {
                 .orElseThrow(() -> new NoSuchElementException("Promoción no encontrada"));
 
         promocionRepository.delete(p);
+        notificarActualizacionCatalogo(bodega);
     }
 
     @Transactional(readOnly = true)

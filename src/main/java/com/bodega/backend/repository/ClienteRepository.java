@@ -29,6 +29,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     Optional<Cliente> findByBodega_IdBodegaAndDocumentoAndEstadoTrue(Long idBodega, String documento);
 
+    boolean existsByBodega_IdBodegaAndDocumentoIgnoreCaseAndEstadoTrueAndIdClienteNot(Long idBodega, String documento, Long idCliente);
+
     @Query("SELECT c FROM Cliente c WHERE c.bodega.idBodega = :idBodega AND c.estado = true " +
            "AND (LOWER(c.nombreCompleto) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR (c.documento IS NOT NULL AND c.documento LIKE CONCAT('%', :query, '%')) " +

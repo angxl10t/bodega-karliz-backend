@@ -17,6 +17,12 @@ public interface ReclamacionRepository extends JpaRepository<Reclamacion, Long> 
 
     List<Reclamacion> findAllByOrderByFechaReclamoDesc();
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"bodega"})
+    List<Reclamacion> findTop200ByOrderByFechaReclamoDesc();
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"bodega"})
+    List<Reclamacion> findTop200ByBodega_IdBodegaOrderByFechaReclamoDesc(Long idBodega);
+
     @Query(value = "SELECT nextval('seq_reclamaciones_correlativo')", nativeQuery = true)
     Long obtenerSiguienteCorrelativo();
 }

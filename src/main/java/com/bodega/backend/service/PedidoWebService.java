@@ -109,7 +109,8 @@ public class PedidoWebService {
             Map<Long, Producto> productosPorId = new HashMap<>();
             if (!productIds.isEmpty()) {
                 for (Producto p : productoRepository.findAllById(productIds)) {
-                    if (p.getIdProducto() != null) {
+                    if (p != null && p.getIdProducto() != null
+                            && (p.getBodega() == null || bodega.getIdBodega().equals(p.getBodega().getIdBodega()))) {
                         productosPorId.put(p.getIdProducto(), p);
                     }
                 }

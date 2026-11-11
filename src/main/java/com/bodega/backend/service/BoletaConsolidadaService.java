@@ -100,7 +100,8 @@ public class BoletaConsolidadaService {
         String usuarioActual = obtenerUsuarioActual();
 
         // Buscar si ya existe una boleta para esa fecha para actualizarla o crear nueva
-        BoletaConsolidada bc = boletaConsolidadaRepository.findByBodega_IdBodegaAndFechaEmision(idBodega, dto.getFecha())
+        BoletaConsolidada bc = boletaConsolidadaRepository.findByBodegaAndFechaEmisionForUpdate(idBodega, dto.getFecha())
+                .or(() -> boletaConsolidadaRepository.findByBodega_IdBodegaAndFechaEmision(idBodega, dto.getFecha()))
                 .orElse(new BoletaConsolidada());
 
         bc.setBodega(bodega);

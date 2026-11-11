@@ -362,7 +362,7 @@ public class BodegaServiceTest {
 
 
 
-        verify(userSecurityCacheService, times(1)).evictAll();
+        verify(userSecurityCacheService, times(1)).evictByBodega(1L);
 
 
 
@@ -526,7 +526,7 @@ public class BodegaServiceTest {
 
 
 
-        verify(userSecurityCacheService, times(1)).evictAll();
+        verify(userSecurityCacheService, times(1)).evictByBodega(1L);
 
 
 
@@ -790,7 +790,7 @@ public class BodegaServiceTest {
 
 
 
-        verify(userSecurityCacheService).evictAll();
+        verify(userSecurityCacheService).evictByBodega(1L);
 
 
 
@@ -830,7 +830,7 @@ public class BodegaServiceTest {
 
 
 
-        verify(userSecurityCacheService).evictAll();
+        verify(userSecurityCacheService).evictByBodega(1L);
 
 
 
@@ -982,7 +982,7 @@ public class BodegaServiceTest {
 
 
 
-        verify(userSecurityCacheService).evictAll();
+        verify(userSecurityCacheService).evictByBodega(15L);
 
 
 
@@ -1208,6 +1208,52 @@ public class BodegaServiceTest {
         assertEquals("NEUTRO", resumen.getEstadoSemaforo());
         assertNull(resumen.getSugerenciaPagoSunat());
         assertNull(resumen.getAdvertencia());
+    }
+
+    @Test
+    void testRegistrarPagoYape_CodigoDuplicadoEntreBilleteras_LanzaExcepcion() {
+        PagoYapeDTO dto = new PagoYapeDTO();
+        dto.setPlan("BASICO");
+        dto.setMonto(new BigDecimal("50.00"));
+        dto.setCodigoOperacion("849201");
+        dto.setBilletera("PLIN");
+
+        when(pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion("PLIN", "849201"))
+                .thenReturn(false);
+        when(pagoSuscripcionRepository.existsByCodigoOperacionIgnoreCase("849201"))
+                .thenReturn(true);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bodegaService.registrarPagoYape(dto));
+        assertTrue(ex.getMessage().contains("849201"));
+        verify(pagoSuscripcionRepository, never()).save(any());
+        verify(bodegaRepository, never()).save(any());
+    }
+
+    @Test
+    void testRegistrarPagoYape_TxYaUsadaAlLockear_LanzaExcepcion() {
+        PagoYapeDTO dto = new PagoYapeDTO();
+        dto.setPlan("BASICO");
+        dto.setMonto(new BigDecimal("50.00"));
+        dto.setCodigoOperacion("777123");
+        dto.setBilletera("YAPE");
+
+        com.bodega.backend.entity.YapeTransaccionRecibida txUsada = new com.bodega.backend.entity.YapeTransaccionRecibida();
+        txUsada.setIdTransaccion(9L);
+        txUsada.setCodigoOperacion("777123");
+        txUsada.setMonto(new BigDecimal("50.00"));
+        txUsada.setUsado(true);
+
+        when(pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion("YAPE", "777123"))
+                .thenReturn(false);
+        when(pagoSuscripcionRepository.existsByCodigoOperacionIgnoreCase("777123"))
+                .thenReturn(false);
+        when(yapeTransaccionRecibidaRepository.findByCodigoOperacionForUpdate("777123"))
+                .thenReturn(Optional.of(txUsada));
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> bodegaService.registrarPagoYape(dto));
+        assertTrue(ex.getMessage().toLowerCase().contains("canjeado"));
+        verify(pagoSuscripcionRepository, never()).save(any());
+        verify(bodegaRepository, never()).save(any());
     }
 }
 

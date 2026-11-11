@@ -617,7 +617,7 @@ public class BodegaService {
 
 
 
-        userSecurityCacheService.evictAll();
+        evictCacheBodega(guardada, bodega);
 
 
 
@@ -658,10 +658,9 @@ public class BodegaService {
 
 
         Bodega bodega = tenantService.getCurrentBodega();
-
-
-
-
+        if (bodega != null && bodega.getIdBodega() != null) {
+            bodega = bodegaRepository.findByIdForUpdate(bodega.getIdBodega()).orElse(bodega);
+        }
 
 
 
@@ -673,15 +672,12 @@ public class BodegaService {
 
 
 
-
-
-
-
         // 1. Blindaje Anti-Fraude: Prevención estricta de vouchers/códigos reutilizados en historial
 
 
 
-        if (pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion(billetera, codOp)) {
+        if (pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion(billetera, codOp)
+                || (!codOp.isBlank() && pagoSuscripcionRepository.existsByCodigoOperacionIgnoreCase(codOp))) {
 
 
 
@@ -807,7 +803,9 @@ public class BodegaService {
 
         com.bodega.backend.entity.YapeTransaccionRecibida tx = txOpt.get();
 
-
+        if (tx.isUsado()) {
+            throw new RuntimeException("El comprobante con código de operación '" + codOp + "' ya fue validado y canjeado previamente.");
+        }
 
         if (tx.getMonto().compareTo(montoEsperado) < 0) {
 
@@ -951,19 +949,7 @@ public class BodegaService {
 
         pagoSuscripcionRepository.save(pago);
 
-
-
-
-
-
-
-        userSecurityCacheService.evictAll();
-
-
-
-
-
-
+        evictCacheBodega(guardada, bodega);
 
         return mapToDTO(guardada);
 
@@ -1217,7 +1203,7 @@ public class BodegaService {
 
 
 
-        userSecurityCacheService.evictAll();
+        evictCacheBodega(guardada, bodega);
 
 
 
@@ -1430,7 +1416,7 @@ public class BodegaService {
 
 
 
-        Bodega bodega = bodegaRepository.findById(idBodega)
+        Bodega bodega = bodegaRepository.findByIdForUpdate(idBodega).or(() -> bodegaRepository.findById(idBodega))
 
 
 
@@ -1446,7 +1432,7 @@ public class BodegaService {
 
 
 
-        userSecurityCacheService.evictAll();
+        evictCacheBodega(guardada, bodega);
 
 
 
@@ -1470,7 +1456,7 @@ public class BodegaService {
 
 
 
-        Bodega bodega = bodegaRepository.findById(idBodega)
+        Bodega bodega = bodegaRepository.findByIdForUpdate(idBodega).or(() -> bodegaRepository.findById(idBodega))
 
 
 
@@ -1502,7 +1488,7 @@ public class BodegaService {
 
 
 
-        userSecurityCacheService.evictAll();
+        evictCacheBodega(guardada, bodega);
 
 
 
@@ -1880,19 +1866,7 @@ public class BodegaService {
 
         starterPackService.provisionarStarterPackParaBodega(guardada);
 
-
-
-
-
-
-
-        userSecurityCacheService.evictAll();
-
-
-
-
-
-
+        evictCacheBodega(guardada, guardada);
 
         return mapToDTO(guardada);
 
@@ -2038,13 +2012,17 @@ public class BodegaService {
 
 
 
+        String estadoAnterior = pago.getEstado();
         String estadoNorm = (nuevoEstado != null && !nuevoEstado.isBlank()) ? nuevoEstado.trim().toUpperCase() : "CONFIRMADO";
 
         pago.setEstado(estadoNorm);
 
-        if ("CONFIRMADO".equalsIgnoreCase(estadoNorm)) {
+        if ("CONFIRMADO".equalsIgnoreCase(estadoNorm) && !"CONFIRMADO".equalsIgnoreCase(estadoAnterior)) {
             Bodega b = pago.getBodega();
             if (b != null) {
+                if (b.getIdBodega() != null) {
+                    b = bodegaRepository.findByIdForUpdate(b.getIdBodega()).orElse(b);
+                }
                 java.time.OffsetDateTime baseTime = (b.getFechaVencimientoPlan() != null && b.getFechaVencimientoPlan().isAfter(java.time.OffsetDateTime.now()))
                         ? b.getFechaVencimientoPlan()
                         : java.time.OffsetDateTime.now();
@@ -2054,7 +2032,7 @@ public class BodegaService {
                 }
                 b.setEstado(true);
                 bodegaRepository.save(b);
-                userSecurityCacheService.evictAll();
+                evictCacheBodega(b, b);
             }
         }
 
@@ -2154,7 +2132,7 @@ public class BodegaService {
 
 
 
-        return pagoSuscripcionRepository.findByBodega_IdBodegaOrderByFechaPagoDesc(bodega.getIdBodega())
+        return pagoSuscripcionRepository.findTop100ByBodega_IdBodegaOrderByFechaPagoDesc(bodega.getIdBodega())
 
 
 
@@ -2186,7 +2164,7 @@ public class BodegaService {
 
 
 
-        return pagoSuscripcionRepository.findAllByOrderByFechaPagoDesc()
+        return pagoSuscripcionRepository.findTop200ByOrderByFechaPagoDesc()
 
 
 
@@ -2282,7 +2260,8 @@ public class BodegaService {
         String billetera = dto.getBilletera() != null ? dto.getBilletera().trim().toUpperCase() : "YAPE";
         String planSolicitado = dto.getPlan() != null ? dto.getPlan().trim().toUpperCase() : "PRO";
 
-        if (pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion(billetera, codOp)) {
+        if (pagoSuscripcionRepository.existsByBilleteraIgnoreCaseAndCodigoOperacion(billetera, codOp)
+                || (!codOp.isBlank() && pagoSuscripcionRepository.existsByCodigoOperacionIgnoreCase(codOp))) {
             throw new RuntimeException("El código de operación '" + codOp + "' de " + billetera + " ya fue registrado previamente en el sistema.");
         }
 
@@ -2367,7 +2346,7 @@ public class BodegaService {
     @Transactional(readOnly = true)
     public ResumenNuevoRusDTO obtenerResumenNuevoRus(Integer anioParam, Integer mesParam) {
         Long idBodega = tenantService.getCurrentBodegaId();
-        Bodega bodega = bodegaRepository.findById(idBodega)
+        Bodega bodega = bodegaRepository.findByIdForUpdate(idBodega).or(() -> bodegaRepository.findById(idBodega))
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND, "Bodega no encontrada"));
 
@@ -2501,7 +2480,7 @@ public class BodegaService {
     @Transactional
     public BodegaDTO actualizarRegimenTributario(String regimen) {
         Long idBodega = tenantService.getCurrentBodegaId();
-        Bodega bodega = bodegaRepository.findById(idBodega)
+        Bodega bodega = bodegaRepository.findByIdForUpdate(idBodega).or(() -> bodegaRepository.findById(idBodega))
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
                         org.springframework.http.HttpStatus.NOT_FOUND, "Bodega no encontrada"));
 
@@ -2523,5 +2502,12 @@ public class BodegaService {
         bodega.setFacturacionSunatActiva(false);
         Bodega guardada = bodegaRepository.save(bodega);
         return mapToDTO(guardada);
+    }
+
+    private void evictCacheBodega(Bodega guardada, Bodega original) {
+        Long idBodega = (guardada != null && guardada.getIdBodega() != null)
+                ? guardada.getIdBodega()
+                : (original != null ? original.getIdBodega() : null);
+        userSecurityCacheService.evictByBodega(idBodega);
     }
 }

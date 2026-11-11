@@ -29,6 +29,9 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT TRIM(p.marca), COUNT(p) FROM Producto p WHERE p.bodega.idBodega = :idBodega AND p.estado = true AND p.marca IS NOT NULL AND TRIM(p.marca) != '' GROUP BY TRIM(p.marca) ORDER BY COUNT(p) DESC, TRIM(p.marca) ASC")
     List<Object[]> findMarcasConConteoByBodega(@Param("idBodega") Long idBodega);
 
+    @Query("SELECT p.marca, p.nombre FROM Producto p WHERE p.bodega.idBodega = :idBodega AND p.estado = true")
+    List<Object[]> findMarcasAndNombresActivosByBodega(@Param("idBodega") Long idBodega);
+
     @Query("SELECT DISTINCT TRIM(p.marca) FROM Producto p WHERE p.bodega.idBodega = :idBodega AND p.estado = true AND p.marca IS NOT NULL AND TRIM(p.marca) != '' ORDER BY TRIM(p.marca) ASC")
     List<String> findDistinctMarcasByBodega(@Param("idBodega") Long idBodega);
 
@@ -36,6 +39,22 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Object[]> countActiveProductsGroupedByBodega();
 
     List<Producto> findByEstadoFalse();
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @Query("UPDATE Producto p SET p.codigoBarras = NULL WHERE p.estado = false AND p.codigoBarras IS NOT NULL")
+    int limpiarCodigoBarrasDeInactivos();
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @Query("UPDATE Producto p SET p.codigo = CONCAT(SUBSTRING(p.codigo, 1, 30), '_BAJA_', p.idProducto) WHERE p.estado = false AND p.codigo IS NOT NULL AND LOCATE('_BAJA_', p.codigo) = 0")
+    int marcarCodigosDeInactivosComoBaja();
+
+    @Query("SELECT p.codigo FROM Producto p WHERE p.bodega.idBodega = :idBodega AND p.codigo LIKE CONCAT(:prefix, '%')")
+    List<String> findCodigosByBodegaAndPrefix(@Param("idBodega") Long idBodega, @Param("prefix") String prefix);
+
+    @Query("SELECT p FROM Producto p WHERE p.marca IS NULL OR TRIM(p.marca) = ''")
+    List<Producto> findProductosSinMarca();
+
+    List<Producto> findByBodega_IdBodega(Long idBodega);
     List<Producto> findByBodega_IdBodegaAndEstadoFalse(Long idBodega);
     
     // Para validar que no se repitan códigos (Reglas RN-01 y RN-02)

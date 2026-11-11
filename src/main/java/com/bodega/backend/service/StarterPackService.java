@@ -410,6 +410,19 @@ public class StarterPackService {
         Categoria fallbackCat = categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega).stream()
                 .findFirst().orElse(null);
 
+        List<Producto> existentes = productoRepository.findByBodega_IdBodega(idBodega);
+        Map<String, Producto> porCodigoBarras = new HashMap<>();
+        Set<String> codigosExistentes = new HashSet<>();
+        for (Producto prod : existentes) {
+            if (prod.getCodigoBarras() != null && !prod.getCodigoBarras().isBlank()) {
+                porCodigoBarras.putIfAbsent(prod.getCodigoBarras().trim(), prod);
+            }
+            if (prod.getCodigo() != null && !prod.getCodigo().isBlank()) {
+                codigosExistentes.add(prod.getCodigo().trim());
+            }
+        }
+
+        Set<Producto> porGuardar = new LinkedHashSet<>();
         int creados = 0;
         int actualizados = 0;
 
@@ -425,42 +438,47 @@ public class StarterPackService {
             Categoria categoria = categoriasMap.getOrDefault(catNombre.toLowerCase().trim(), fallbackCat);
             if (categoria == null) continue;
 
-            Optional<Producto> existenteOpt = productoRepository.findByBodega_IdBodegaAndCodigoBarras(idBodega, codigoBarras);
-            if (existenteOpt.isPresent()) {
-                Producto p = existenteOpt.get();
+            Producto existente = codigoBarras != null ? porCodigoBarras.get(codigoBarras.trim()) : null;
+            if (existente != null) {
                 boolean mod = false;
-                if ((p.getImagenUrl() == null || p.getImagenUrl().isBlank()) && imagenUrl != null) {
-                    p.setImagenUrl(imagenUrl);
+                if ((existente.getImagenUrl() == null || existente.getImagenUrl().isBlank()) && imagenUrl != null) {
+                    existente.setImagenUrl(imagenUrl);
                     mod = true;
                 }
-                if ((p.getMarca() == null || p.getMarca().isBlank()) && marca != null) {
-                    p.setMarca(marca);
+                if ((existente.getMarca() == null || existente.getMarca().isBlank()) && marca != null) {
+                    existente.setMarca(marca);
                     mod = true;
                 }
-                if (p.getCategoria() == null) {
-                    p.setCategoria(categoria);
+                if (existente.getCategoria() == null) {
+                    existente.setCategoria(categoria);
                     mod = true;
                 }
-                if (p.getPrecioVenta() == null || p.getPrecioVenta().compareTo(venta) != 0) {
-                    p.setPrecioVenta(venta);
+                if (existente.getPrecioVenta() == null || existente.getPrecioVenta().compareTo(BigDecimal.ZERO) <= 0) {
+                    existente.setPrecioVenta(venta);
                     mod = true;
                 }
-                if (p.getPrecioCosto() == null || p.getPrecioCosto().compareTo(costo) != 0) {
-                    p.setPrecioCosto(costo);
+                if (existente.getPrecioCosto() == null || existente.getPrecioCosto().compareTo(BigDecimal.ZERO) <= 0) {
+                    existente.setPrecioCosto(costo);
                     mod = true;
                 }
                 if (mod) {
-                    productoRepository.save(p);
+                    porGuardar.add(existente);
                     actualizados++;
                 }
                 continue;
             }
 
-            // Generar código único para el producto dentro del tenant
-            String codigo = "PROD-" + codigoBarras;
-            if (productoRepository.findByBodega_IdBodegaAndCodigo(idBodega, codigo).isPresent()) {
-                codigo = codigo + "-" + (System.currentTimeMillis() % 1000);
+            // Generar codigo unico para el producto dentro del tenant sin consultas N+1
+            String codigoBase = "PROD-" + codigoBarras;
+            String codigo = codigoBase;
+            if (codigosExistentes.contains(codigo)) {
+                codigo = codigoBase + "-" + (System.currentTimeMillis() % 1000);
+                int sufijo = 1;
+                while (codigosExistentes.contains(codigo)) {
+                    codigo = codigoBase + "-" + sufijo++;
+                }
             }
+            codigosExistentes.add(codigo);
 
             Producto p = new Producto();
             p.setCodigo(codigo);
@@ -477,8 +495,15 @@ public class StarterPackService {
             p.setBodega(bodega);
             p.setEstado(true);
 
-            productoRepository.save(p);
+            porGuardar.add(p);
+            if (codigoBarras != null && !codigoBarras.isBlank()) {
+                porCodigoBarras.putIfAbsent(codigoBarras.trim(), p);
+            }
             creados++;
+        }
+
+        if (!porGuardar.isEmpty()) {
+            productoRepository.saveAll(porGuardar);
         }
 
         log.info("[StarterPackService] Starter Pack completado para Bodega '{}': {} creados, {} enriquecidos.",

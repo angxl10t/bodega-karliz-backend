@@ -175,4 +175,46 @@ class PedidoWebServiceTest {
 
         verify(pedidoWebRepository).delete(pedido);
     }
+
+    @Test
+    void testRegistrarPedidoWebPublicoIgnoraProductoDeOtraBodega() {
+        Bodega bodegaAjena = new Bodega();
+        bodegaAjena.setIdBodega(99L);
+
+        Producto productoAjeno = new Producto();
+        productoAjeno.setIdProducto(777L);
+        productoAjeno.setNombre("Arroz Costeño 1kg");
+        productoAjeno.setBodega(bodegaAjena);
+
+        PedidoWebCreacionDTO dto = PedidoWebCreacionDTO.builder()
+                .nombreCliente("Carlos Diaz")
+                .telefonoCliente("912345678")
+                .total(new BigDecimal("5.00"))
+                .items(List.of(
+                        PedidoWebDetalleCreacionDTO.builder()
+                                .idProducto(777L)
+                                .nombre("Arroz Costeño 1kg")
+                                .cantidad(BigDecimal.ONE)
+                                .precioUnitario(new BigDecimal("5.00"))
+                                .subtotal(new BigDecimal("5.00"))
+                                .build()
+                ))
+                .build();
+
+        when(productoRepository.findAllById(anyIterable())).thenReturn(List.of(productoAjeno));
+        when(pedidoWebRepository.save(any(PedidoWeb.class))).thenAnswer(inv -> {
+            PedidoWeb saved = inv.getArgument(0);
+            saved.setIdPedidoWeb(60L);
+            return saved;
+        });
+
+        service.registrarPedidoWebPublico(bodega, dto);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(PedidoWeb.class);
+        verify(pedidoWebRepository).save(captor.capture());
+        PedidoWeb persisted = captor.getValue();
+        assertEquals(1, persisted.getDetalles().size());
+        assertNull(persisted.getDetalles().get(0).getProducto(),
+                "Un producto de otra bodega nunca debe asociarse como entidad del pedido web");
+    }
 }

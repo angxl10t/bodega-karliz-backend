@@ -62,27 +62,8 @@ public class ProductoService {
     @Transactional
     public void liberarCodigosInactivos() {
         try {
-            List<Producto> inactivos = productoRepository.findByEstadoFalse();
-            List<Producto> porActualizar = new ArrayList<>();
-            for (Producto p : inactivos) {
-                boolean modificado = false;
-                if (p.getCodigoBarras() != null && !p.getCodigoBarras().isBlank()) {
-                    p.setCodigoBarras(null);
-                    modificado = true;
-                }
-                if (p.getCodigo() != null && !p.getCodigo().contains("_BAJA_")) {
-                    String base = p.getCodigo();
-                    if (base.length() > 30) base = base.substring(0, 30);
-                    p.setCodigo(base + "_BAJA_" + p.getIdProducto());
-                    modificado = true;
-                }
-                if (modificado) {
-                    porActualizar.add(p);
-                }
-            }
-            if (!porActualizar.isEmpty()) {
-                productoRepository.saveAll(porActualizar);
-            }
+            productoRepository.limpiarCodigoBarrasDeInactivos();
+            productoRepository.marcarCodigosDeInactivosComoBaja();
         } catch (Exception ignored) {}
     }
 
@@ -141,13 +122,14 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listarMarcasConConteo() {
         Long idBodega = tenantService.getCurrentBodegaId();
-        List<Producto> productos = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega);
+        List<Object[]> rows = productoRepository.findMarcasAndNombresActivosByBodega(idBodega);
         Map<String, Long> conteoPorMarca = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-        for (Producto p : productos) {
-            String marca = p.getMarca();
+        for (Object[] row : rows) {
+            String marca = row[0] != null ? row[0].toString() : null;
+            String nombre = row[1] != null ? row[1].toString() : null;
             if (marca == null || marca.isBlank()) {
-                marca = MarcaDetectorUtil.detectarMarca(p.getNombre());
+                marca = MarcaDetectorUtil.detectarMarca(nombre);
             }
             if (marca != null && !marca.isBlank()) {
                 marca = MarcaDetectorUtil.normalizarMarca(marca);
@@ -177,12 +159,12 @@ public class ProductoService {
         Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(idCategoria, idBodega)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + idCategoria));
         String prefix = getPrefixForCategoria(categoria.getNombre());
-        List<Producto> productos = productoRepository.findByBodega_IdBodegaAndCodigoStartingWith(idBodega, prefix);
+        List<String> codigos = productoRepository.findCodigosByBodegaAndPrefix(idBodega, prefix);
         int maxNum = 0;
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^" + java.util.regex.Pattern.quote(prefix) + "-(\\d+)$");
-        for (Producto p : productos) {
-            if (p.getCodigo() != null) {
-                java.util.regex.Matcher m = pattern.matcher(p.getCodigo().trim());
+        for (String cod : codigos) {
+            if (cod != null) {
+                java.util.regex.Matcher m = pattern.matcher(cod.trim());
                 if (m.matches()) {
                     try {
                         int num = Integer.parseInt(m.group(1));
@@ -268,7 +250,7 @@ public class ProductoService {
         }
 
         Producto producto = new Producto();
-        producto.setBodega(tenantService.getCurrentBodega());
+        producto.setBodega(bodega != null ? bodega : tenantService.getCurrentBodega());
         producto.setCategoria(categoria);
         producto.setCodigo(dto.getCodigo().trim());
         producto.setCodigoBarras(dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank() ? dto.getCodigoBarras().trim() : null);

@@ -41,17 +41,16 @@ public class ClienteService {
 
         if (query != null && !query.trim().isEmpty()) {
             clientes = clienteRepository.buscarClientes(idBodega, query.trim());
+            if (Boolean.TRUE.equals(soloDeudores)) {
+                clientes = clientes.stream()
+                        .filter(c -> c.getSaldoDeudor() != null && c.getSaldoDeudor().compareTo(BigDecimal.ZERO) > 0)
+                        .collect(Collectors.toList());
+            }
         } else if (Boolean.TRUE.equals(soloDeudores)) {
             clientes = clienteRepository.findByBodega_IdBodegaAndEstadoTrueAndSaldoDeudorGreaterThanOrderBySaldoDeudorDesc(
                     idBodega, BigDecimal.ZERO);
         } else {
             clientes = clienteRepository.findByBodega_IdBodegaAndEstadoTrueOrderByNombreCompletoAsc(idBodega);
-        }
-
-        if (Boolean.TRUE.equals(soloDeudores)) {
-            clientes = clientes.stream()
-                    .filter(c -> c.getSaldoDeudor() != null && c.getSaldoDeudor().compareTo(BigDecimal.ZERO) > 0)
-                    .collect(Collectors.toList());
         }
 
         return clientes.stream().map(this::mapToDTO).collect(Collectors.toList());
@@ -98,8 +97,15 @@ public class ClienteService {
         Cliente c = clienteRepository.findByIdClienteAndBodega_IdBodega(idCliente, idBodega)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + idCliente));
 
+        String docTrim = (dto.getDocumento() != null && !dto.getDocumento().trim().isEmpty())
+                ? dto.getDocumento().trim() : null;
+        if (docTrim != null && clienteRepository.existsByBodega_IdBodegaAndDocumentoIgnoreCaseAndEstadoTrueAndIdClienteNot(
+                idBodega, docTrim, idCliente)) {
+            throw new RuntimeException("Ya existe otro cliente activo registrado con el documento: " + docTrim);
+        }
+
         c.setNombreCompleto(dto.getNombreCompleto().trim());
-        c.setDocumento(dto.getDocumento() != null ? dto.getDocumento().trim() : null);
+        c.setDocumento(docTrim);
         c.setTelefono(dto.getTelefono() != null ? dto.getTelefono().trim() : null);
         c.setDireccion(dto.getDireccion() != null ? dto.getDireccion().trim() : null);
         if (dto.getLimiteCredito() != null) {
@@ -180,17 +186,16 @@ public class ClienteService {
         Cliente c = clienteRepository.findByIdClienteAndBodega_IdBodega(idCliente, idBodega)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + idCliente));
 
-        List<Venta> ventasCredito = ventaRepository.findByCliente_IdClienteOrderByFechaVentaDesc(idCliente);
-        List<AbonoCredito> abonos = abonoCreditoRepository.findByCliente_IdClienteOrderByFechaAbonoDesc(idCliente);
+        List<Venta> ventasCredito = ventaRepository.findVentasCreditoRecientesByClienteAndBodega(
+                idCliente, idBodega, org.springframework.data.domain.PageRequest.of(0, 50));
+        List<AbonoCredito> abonos = abonoCreditoRepository
+                .findTop50ByCliente_IdClienteAndBodega_IdBodegaOrderByFechaAbonoDesc(idCliente, idBodega);
 
-        BigDecimal totalCredito = ventasCredito.stream()
-                .filter(v -> "COMPLETADA".equalsIgnoreCase(v.getEstado()))
-                .map(Venta::getTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCredito = ventaRepository.sumTotalCreditoByClienteAndBodega(idCliente, idBodega);
+        if (totalCredito == null) totalCredito = BigDecimal.ZERO;
 
-        BigDecimal totalAbonos = abonos.stream()
-                .map(AbonoCredito::getMonto)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalAbonos = abonoCreditoRepository.sumTotalAbonosByClienteAndBodega(idCliente, idBodega);
+        if (totalAbonos == null) totalAbonos = BigDecimal.ZERO;
 
         EstadoCuentaClienteDTO dto = new EstadoCuentaClienteDTO();
         dto.setCliente(mapToDTO(c));

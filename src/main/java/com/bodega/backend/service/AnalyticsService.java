@@ -28,6 +28,9 @@ public class AnalyticsService {
     private final ProductoRepository productoRepository;
     private final TenantService tenantService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
+
     // Caché en memoria de 120 segundos y capacidad acotada para proteger RAM en instancias de 512MB
     private static final long CACHE_TTL_SECONDS = 120;
     private static final int MAX_BI_CACHE_SIZE = 300;
@@ -69,6 +72,17 @@ public class AnalyticsService {
         if (dias > 365) dias = 365; // Límite defensivo para prevenir scans ilimitados
         Long idBodega = tenantService.getCurrentBodegaId();
 
+        // 1. Comprobar caché en memoria antes de consultar Bodega en PostgreSQL
+        // (solo se almacenan respuestas de tenants ya validados como PRO; validar plan vía SecurityContext si está presente)
+        boolean proValidadoEnSesion = verificarPlanProDesdeContexto(idBodega);
+        String cacheKey = idBodega + "_" + dias;
+        if (proValidadoEnSesion) {
+            CachedBiEntry cached = biCache.get(cacheKey);
+            if (cached != null && cached.isValid()) {
+                return cached.data;
+            }
+        }
+
         // Control de suscripción SaaS: Exclusivo Plan PRO
         Bodega bodegaActual = null;
         try {
@@ -79,14 +93,13 @@ public class AnalyticsService {
             String plan = (bodegaActual.getPlan() != null) ? bodegaActual.getPlan().trim().toUpperCase() : "BASICO";
             boolean esPro = "PRO".equals(plan) || "CORPORATIVO".equals(plan);
             if (!esPro) {
+                biCache.remove(cacheKey);
                 throw new org.springframework.security.access.AccessDeniedException(
                         "El módulo de Business Intelligence (BI) y analítica avanzada es exclusivo del Plan Minimarket PRO."
                 );
             }
         }
 
-        // 1. Comprobar caché en memoria
-        String cacheKey = idBodega + "_" + dias;
         CachedBiEntry cached = biCache.get(cacheKey);
         if (cached != null && cached.isValid()) {
             return cached.data;
@@ -298,13 +311,31 @@ public class AnalyticsService {
     private void guardarEnCacheBi(String cacheKey, DashboardBiDTO dto) {
         if (biCache.size() >= MAX_BI_CACHE_SIZE) {
             biCache.entrySet().removeIf(entry -> !entry.getValue().isValid());
-            while (biCache.size() >= MAX_BI_CACHE_SIZE) {
-                biCache.entrySet().stream()
-                        .min(Comparator.comparing(entry -> entry.getValue().timestamp))
-                        .map(Map.Entry::getKey)
-                        .ifPresent(biCache::remove);
+            if (biCache.size() >= MAX_BI_CACHE_SIZE) {
+                biCache.clear();
             }
         }
         biCache.put(cacheKey, new CachedBiEntry(dto));
+    }
+
+    private boolean verificarPlanProDesdeContexto(Long idBodega) {
+        if (userSecurityCacheService == null || idBodega == null) {
+            return false;
+        }
+        try {
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+                return false;
+            }
+            return userSecurityCacheService.getSecurityProfile(auth.getName())
+                    .filter(p -> idBodega.equals(p.getIdBodega()))
+                    .map(p -> {
+                        String plan = p.getPlan() != null ? p.getPlan().trim().toUpperCase() : "BASICO";
+                        return "PRO".equals(plan) || "CORPORATIVO".equals(plan);
+                    })
+                    .orElse(false);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

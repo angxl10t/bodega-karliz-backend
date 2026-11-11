@@ -25,6 +25,18 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     List<Venta> findByCliente_IdClienteOrderByFechaVentaDesc(Long idCliente);
 
+    List<Venta> findTop50ByCliente_IdClienteAndBodega_IdBodegaOrderByFechaVentaDesc(Long idCliente, Long idBodega);
+
+    @Query("SELECT v FROM Venta v WHERE v.cliente.idCliente = :idCliente AND v.bodega.idBodega = :idBodega " +
+           "AND (LOWER(COALESCE(v.metodoPago, '')) LIKE '%credito%' OR LOWER(COALESCE(v.metodoPago, '')) LIKE '%crédito%' OR LOWER(COALESCE(v.metodoPago, '')) LIKE '%fiado%') " +
+           "ORDER BY v.fechaVenta DESC")
+    List<Venta> findVentasCreditoRecientesByClienteAndBodega(@Param("idCliente") Long idCliente, @Param("idBodega") Long idBodega, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(v.total), 0) FROM Venta v WHERE v.cliente.idCliente = :idCliente AND v.bodega.idBodega = :idBodega " +
+           "AND UPPER(COALESCE(v.estado, '')) <> 'ANULADA' " +
+           "AND (LOWER(COALESCE(v.metodoPago, '')) LIKE '%credito%' OR LOWER(COALESCE(v.metodoPago, '')) LIKE '%crédito%' OR LOWER(COALESCE(v.metodoPago, '')) LIKE '%fiado%')")
+    java.math.BigDecimal sumTotalCreditoByClienteAndBodega(@Param("idCliente") Long idCliente, @Param("idBodega") Long idBodega);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT v FROM Venta v WHERE v.idVenta = :id")
     Optional<Venta> findByIdForUpdate(@Param("id") Long id);

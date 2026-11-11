@@ -95,13 +95,13 @@ public class ReclamacionService {
     public List<ReclamacionDTO> listarReclamaciones() {
         boolean esSuperadmin = esUsuarioSuperAdmin();
         if (esSuperadmin) {
-            return reclamacionRepository.findAllByOrderByFechaReclamoDesc().stream()
+            return reclamacionRepository.findTop200ByOrderByFechaReclamoDesc().stream()
                     .map(this::toDTO)
                     .collect(Collectors.toList());
         }
 
         Long currentBodegaId = tenantService.getCurrentBodegaId();
-        return reclamacionRepository.findByBodega_IdBodegaOrderByFechaReclamoDesc(currentBodegaId).stream()
+        return reclamacionRepository.findTop200ByBodega_IdBodegaOrderByFechaReclamoDesc(currentBodegaId).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

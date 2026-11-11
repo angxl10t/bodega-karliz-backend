@@ -8,9 +8,11 @@ import com.bodega.backend.security.LoginRateLimiterService;
 import com.bodega.backend.security.UserSecurityCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 @Service
 public class RecuperacionClaveService {
@@ -33,6 +36,7 @@ public class RecuperacionClaveService {
     private final PasswordEncoder passwordEncoder;
     private final LoginRateLimiterService loginRateLimiterService;
     private final UserSecurityCacheService userSecurityCacheService;
+    private TransactionTemplate transactionTemplate;
 
     public RecuperacionClaveService(UsuarioRepository usuarioRepository,
                                     RecuperacionClaveRepository recuperacionClaveRepository,
@@ -48,7 +52,20 @@ public class RecuperacionClaveService {
         this.userSecurityCacheService = userSecurityCacheService;
     }
 
-    @Transactional
+    @Autowired(required = false)
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        if (transactionManager != null) {
+            this.transactionTemplate = new TransactionTemplate(transactionManager);
+        }
+    }
+
+    private <T> T executeInTransaction(Supplier<T> action) {
+        if (transactionTemplate != null) {
+            return transactionTemplate.execute(status -> action.get());
+        }
+        return action.get();
+    }
+
     public Map<String, String> solicitarCodigo(String identificador, String clientIp) {
         String cleanId = (identificador != null) ? identificador.trim().toLowerCase() : "";
         if (cleanId.isBlank()) {
@@ -60,65 +77,75 @@ public class RecuperacionClaveService {
             throw new RuntimeException("Demasiados intentos. Operación bloqueada temporalmente por " + remaining + " minuto(s).");
         }
 
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsernameOrEmailIgnoreCase(cleanId);
-
         Map<String, String> response = new HashMap<>();
         String mensajeGenerico = "Si la cuenta existe y tiene un correo asociado, hemos enviado un código de verificación de 6 dígitos.";
 
-        if (usuarioOpt.isEmpty()) {
+        String[] envioPendiente = executeInTransaction(() -> {
+            Optional<Usuario> usuarioOpt = usuarioRepository.findByUsernameOrEmailIgnoreCase(cleanId);
+            if (usuarioOpt.isEmpty()) {
+                return new String[]{"NOT_FOUND"};
+            }
+
+            Usuario usuario = usuarioOpt.get();
+            if (usuario.getEmail() == null || usuario.getEmail().isBlank()) {
+                log.warn("Usuario {} solicitó recuperación pero no tiene correo registrado.", usuario.getUsername());
+                response.put("mensaje", "La cuenta @" + usuario.getUsername() + " no tiene un correo electrónico configurado para recuperación. Por favor contacta al administrador de tu bodega o al soporte.");
+                response.put("emailEnmascarado", "");
+                response.put("sinEmail", "true");
+                return new String[]{"NO_EMAIL"};
+            }
+
+            // Tasa máxima: hasta 3 códigos por usuario cada 15 minutos
+            long recientes = recuperacionClaveRepository.countByUsuarioAndFechaCreacionAfter(
+                    usuario, OffsetDateTime.now().minusMinutes(15));
+            if (recientes >= 3) {
+                throw new RuntimeException("Has solicitado varios códigos recientemente. Por favor espera 15 minutos antes de solicitar uno nuevo.");
+            }
+
+            // Invalidar códigos anteriores aún no usados
+            List<RecuperacionClave> previos = recuperacionClaveRepository.findByUsuarioAndUsadoFalse(usuario);
+            for (RecuperacionClave r : previos) {
+                r.setUsado(true);
+            }
+            recuperacionClaveRepository.saveAll(previos);
+
+            // Generar código numérico criptográfico de 6 dígitos (100000 - 999999)
+            int randomCode = ThreadLocalRandom.current().nextInt(100000, 1000000);
+            String codigoStr = String.valueOf(randomCode);
+            String hash = calcularSha256(codigoStr);
+
+            RecuperacionClave nuevoRegistro = new RecuperacionClave();
+            nuevoRegistro.setUsuario(usuario);
+            nuevoRegistro.setCodigoHash(hash);
+            nuevoRegistro.setEmailDestino(usuario.getEmail());
+            nuevoRegistro.setExpiracion(OffsetDateTime.now().plusMinutes(15));
+            nuevoRegistro.setUsado(false);
+            nuevoRegistro.setIntentosFallidos(0);
+            recuperacionClaveRepository.save(nuevoRegistro);
+
+            return new String[]{"SEND", usuario.getEmail(), usuario.getUsername(), codigoStr};
+        });
+
+        if ("NOT_FOUND".equals(envioPendiente[0])) {
             loginRateLimiterService.registerFailedAttempt(clientIp, cleanId);
             response.put("mensaje", mensajeGenerico);
             response.put("emailEnmascarado", "");
             return response;
         }
-
-        Usuario usuario = usuarioOpt.get();
-        if (usuario.getEmail() == null || usuario.getEmail().isBlank()) {
-            log.warn("Usuario {} solicitó recuperación pero no tiene correo registrado.", usuario.getUsername());
-            response.put("mensaje", "La cuenta @" + usuario.getUsername() + " no tiene un correo electrónico configurado para recuperación. Por favor contacta al administrador de tu bodega o al soporte.");
-            response.put("emailEnmascarado", "");
-            response.put("sinEmail", "true");
+        if ("NO_EMAIL".equals(envioPendiente[0])) {
             return response;
         }
 
-        // Tasa máxima: hasta 3 códigos por usuario cada 15 minutos
-        long recientes = recuperacionClaveRepository.countByUsuarioAndFechaCreacionAfter(
-                usuario, OffsetDateTime.now().minusMinutes(15));
-        if (recientes >= 3) {
-            throw new RuntimeException("Has solicitado varios códigos recientemente. Por favor espera 15 minutos antes de solicitar uno nuevo.");
-        }
-
-        // Invalidar códigos anteriores aún no usados
-        List<RecuperacionClave> previos = recuperacionClaveRepository.findByUsuarioAndUsadoFalse(usuario);
-        for (RecuperacionClave r : previos) {
-            r.setUsado(true);
-        }
-        recuperacionClaveRepository.saveAll(previos);
-
-        // Generar código numérico criptográfico de 6 dígitos (100000 - 999999)
-        int randomCode = ThreadLocalRandom.current().nextInt(100000, 1000000);
-        String codigoStr = String.valueOf(randomCode);
-        String hash = calcularSha256(codigoStr);
-
-        RecuperacionClave nuevoRegistro = new RecuperacionClave();
-        nuevoRegistro.setUsuario(usuario);
-        nuevoRegistro.setCodigoHash(hash);
-        nuevoRegistro.setEmailDestino(usuario.getEmail());
-        nuevoRegistro.setExpiracion(OffsetDateTime.now().plusMinutes(15));
-        nuevoRegistro.setUsado(false);
-        nuevoRegistro.setIntentosFallidos(0);
-        recuperacionClaveRepository.save(nuevoRegistro);
-
-        // Enviar correo transaccional
-        emailService.enviarCodigoRecuperacion(usuario.getEmail(), usuario.getUsername(), codigoStr);
+        // Enviar correo transaccional fuera de la transacción DB para no retener conexiones HikariCP
+        String emailDestino = envioPendiente[1];
+        emailService.enviarCodigoRecuperacion(emailDestino, envioPendiente[2], envioPendiente[3]);
 
         response.put("mensaje", mensajeGenerico);
-        response.put("emailEnmascarado", EmailService.enmascararEmail(usuario.getEmail()));
+        response.put("emailEnmascarado", EmailService.enmascararEmail(emailDestino));
         response.put("expiraMinutos", "15");
         return response;
     }
 
-    @Transactional
     public Map<String, String> verificarCodigo(String identificador, String codigo, String clientIp) {
         String cleanId = (identificador != null) ? identificador.trim().toLowerCase() : "";
         String cleanCode = (codigo != null) ? codigo.trim() : "";
@@ -132,29 +159,41 @@ public class RecuperacionClaveService {
             throw new RuntimeException("Demasiados intentos. Operación bloqueada por " + remaining + " minuto(s).");
         }
 
-        Usuario usuario = usuarioRepository.findByUsernameOrEmailIgnoreCase(cleanId)
-                .orElseThrow(() -> new RuntimeException("Código de verificación incorrecto o expirado."));
+        String hashIngresado = calcularSha256(cleanCode);
 
-        List<RecuperacionClave> activos = recuperacionClaveRepository
-                .findByUsuarioAndUsadoFalseAndExpiracionAfterOrderByFechaCreacionDesc(usuario, OffsetDateTime.now());
+        int[] resultado = executeInTransaction(() -> {
+            Usuario usuario = usuarioRepository.findByUsernameOrEmailIgnoreCase(cleanId)
+                    .orElseThrow(() -> new RuntimeException("Código de verificación incorrecto o expirado."));
 
-        if (activos.isEmpty()) {
+            List<RecuperacionClave> activos = recuperacionClaveRepository
+                    .findByUsuarioAndUsadoFalseAndExpiracionAfterOrderByFechaCreacionDesc(usuario, OffsetDateTime.now());
+
+            if (activos.isEmpty()) {
+                return new int[]{-1, 0};
+            }
+
+            RecuperacionClave token = activos.get(0);
+            if (!token.getCodigoHash().equals(hashIngresado)) {
+                token.setIntentosFallidos(token.getIntentosFallidos() + 1);
+                if (token.getIntentosFallidos() >= 5) {
+                    token.setUsado(true);
+                }
+                recuperacionClaveRepository.save(token);
+                int restantes = Math.max(0, 5 - token.getIntentosFallidos());
+                return new int[]{0, restantes};
+            }
+
+            return new int[]{1, 0};
+        });
+
+        if (resultado[0] == -1) {
             loginRateLimiterService.registerFailedAttempt(clientIp, cleanId);
             throw new RuntimeException("El código ha expirado o ya fue utilizado. Por favor solicita uno nuevo.");
         }
 
-        RecuperacionClave token = activos.get(0);
-        String hashIngresado = calcularSha256(cleanCode);
-
-        if (!token.getCodigoHash().equals(hashIngresado)) {
-            token.setIntentosFallidos(token.getIntentosFallidos() + 1);
-            if (token.getIntentosFallidos() >= 5) {
-                token.setUsado(true);
-            }
-            recuperacionClaveRepository.save(token);
+        if (resultado[0] == 0) {
             loginRateLimiterService.registerFailedAttempt(clientIp, cleanId);
-
-            int restantes = Math.max(0, 5 - token.getIntentosFallidos());
+            int restantes = resultado[1];
             if (restantes == 0) {
                 throw new RuntimeException("Has agotado los 5 intentos para este código. Por favor solicita uno nuevo.");
             }
@@ -167,7 +206,6 @@ public class RecuperacionClaveService {
         return res;
     }
 
-    @Transactional
     public Map<String, String> restablecerPassword(String identificador, String codigo, String nuevaPassword, String clientIp) {
         String cleanId = (identificador != null) ? identificador.trim().toLowerCase() : "";
         String cleanCode = (codigo != null) ? codigo.trim() : "";
@@ -176,47 +214,53 @@ public class RecuperacionClaveService {
             throw new RuntimeException("La nueva contraseña debe tener entre 4 y 72 caracteres.");
         }
 
-        // Valida el código
-        Usuario usuario = usuarioRepository.findByUsernameOrEmailIgnoreCase(cleanId)
-                .orElseThrow(() -> new RuntimeException("Código de verificación incorrecto o expirado."));
-
-        List<RecuperacionClave> activos = recuperacionClaveRepository
-                .findByUsuarioAndUsadoFalseAndExpiracionAfterOrderByFechaCreacionDesc(usuario, OffsetDateTime.now());
-
-        if (activos.isEmpty()) {
-            throw new RuntimeException("El código ha expirado o ya no es válido. Solicita uno nuevo.");
-        }
-
-        RecuperacionClave token = activos.get(0);
+        String encodedPassword = passwordEncoder.encode(nuevaPassword.trim());
         String hashIngresado = calcularSha256(cleanCode);
 
-        if (!token.getCodigoHash().equals(hashIngresado)) {
-            token.setIntentosFallidos(token.getIntentosFallidos() + 1);
-            if (token.getIntentosFallidos() >= 5) {
-                token.setUsado(true);
+        String username = executeInTransaction(() -> {
+            Usuario usuario = usuarioRepository.findByUsernameOrEmailIgnoreCase(cleanId)
+                    .orElseThrow(() -> new RuntimeException("Código de verificación incorrecto o expirado."));
+
+            List<RecuperacionClave> activos = recuperacionClaveRepository
+                    .findByUsuarioAndUsadoFalseAndExpiracionAfterOrderByFechaCreacionDesc(usuario, OffsetDateTime.now());
+
+            if (activos.isEmpty()) {
+                throw new RuntimeException("El código ha expirado o ya no es válido. Solicita uno nuevo.");
             }
+
+            RecuperacionClave token = activos.get(0);
+            if (!token.getCodigoHash().equals(hashIngresado)) {
+                token.setIntentosFallidos(token.getIntentosFallidos() + 1);
+                if (token.getIntentosFallidos() >= 5) {
+                    token.setUsado(true);
+                }
+                recuperacionClaveRepository.save(token);
+                return null;
+            }
+
+            usuario.setPassword(encodedPassword);
+            usuario.setFechaCambioClave(OffsetDateTime.now());
+            usuarioRepository.save(usuario);
+
+            token.setUsado(true);
             recuperacionClaveRepository.save(token);
+
+            return usuario.getUsername();
+        });
+
+        if (username == null) {
             throw new RuntimeException("Código de verificación incorrecto.");
         }
 
-        // Cambiar contraseña
-        usuario.setPassword(passwordEncoder.encode(nuevaPassword.trim()));
-        usuario.setFechaCambioClave(OffsetDateTime.now());
-        usuarioRepository.save(usuario);
-
-        // Marcar token como utilizado
-        token.setUsado(true);
-        recuperacionClaveRepository.save(token);
-
         // Limpiar intentos de rate limit y desalojar caché de seguridad
-        loginRateLimiterService.resetAttempts(clientIp, usuario.getUsername());
-        userSecurityCacheService.evict(usuario.getUsername());
+        loginRateLimiterService.resetAttempts(clientIp, username);
+        userSecurityCacheService.evict(username);
 
-        log.info("Contraseña restablecida con éxito para el usuario: {}", usuario.getUsername());
+        log.info("Contraseña restablecida con éxito para el usuario: {}", username);
 
         Map<String, String> res = new HashMap<>();
         res.put("mensaje", "¡Tu contraseña ha sido restablecida con éxito! Ya puedes iniciar sesión en CajaYa.");
-        res.put("username", usuario.getUsername());
+        res.put("username", username);
         return res;
     }
 

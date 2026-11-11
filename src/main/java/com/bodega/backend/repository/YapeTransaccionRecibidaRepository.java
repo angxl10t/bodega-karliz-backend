@@ -25,8 +25,10 @@ public interface YapeTransaccionRecibidaRepository extends JpaRepository<YapeTra
      * condiciones de carrera (doble canje del mismo código de operación).
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT y FROM YapeTransaccionRecibida y WHERE y.codigoOperacion = :codigoOperacion")
+    @Query("SELECT y FROM YapeTransaccionRecibida y WHERE y.codigoOperacion = :codigoOperacion AND y.usado = false")
     Optional<YapeTransaccionRecibida> findByCodigoOperacionForUpdate(@Param("codigoOperacion") String codigoOperacion);
 
     List<YapeTransaccionRecibida> findAllByOrderByFechaRecepcionDesc();
+
+    List<YapeTransaccionRecibida> findTop200ByOrderByFechaRecepcionDesc();
 }
