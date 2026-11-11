@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -96,6 +97,7 @@ class _VentasScreenState extends State<VentasScreen> {
   final _pagoConController = TextEditingController();
   final _tabletSearchCtrl = TextEditingController();
   String _tabletSearchQuery = '';
+  Timer? _tabletSearchDebounce;
   String? _tabletSelectedCategoria = 'Frecuentes';
 
   final FocusNode _screenFocusNode = FocusNode();
@@ -183,6 +185,8 @@ class _VentasScreenState extends State<VentasScreen> {
   Map<String, int> _tabletCategoryCounts = {'Frecuentes': 0, 'Todos': 0};
   List<Producto> _frecuentesProductos = [];
 
+  List<Producto> _cachedFilteredTabletProductos = [];
+
   void _recalcularTabletCatalogCache() {
     final copy = List<Producto>.from(_safeDisponibles);
     copy.sort((a, b) => b.stockActual.compareTo(a.stockActual));
@@ -210,56 +214,72 @@ class _VentasScreenState extends State<VentasScreen> {
       ...(uniqueCats.toList()..sort()),
     ];
     _tabletCategoryCounts = counts;
+    _recomputeFilteredTabletProductos();
   }
 
-  List<Producto> get _filteredTabletProductos {
+  void _recomputeFilteredTabletProductos() {
+    final q = _tabletSearchQuery.toLowerCase().trim();
+    final bool hasDigits = q.codeUnits.any((c) => c >= 48 && c <= 57);
+
     if (_tabletSelectedCategoria == 'Promociones') {
-      return _safeDisponibles.where((p) {
+      _cachedFilteredTabletProductos = _safeDisponibles.where((p) {
         if (_obtenerPromocionActivaParaProducto(p) == null) return false;
-        if (_tabletSearchQuery.isNotEmpty) {
-          final q = _tabletSearchQuery.toLowerCase().trim();
+        if (q.isNotEmpty) {
           return p.nombre.toLowerCase().contains(q) ||
-              _coincideCodigo(p, q) ||
-              (p.codigoBarras ?? '').toLowerCase().contains(q) ||
-              (p.marca ?? '').toLowerCase().contains(q);
+              (hasDigits && _coincideCodigo(p, q)) ||
+              (p.codigoBarras != null &&
+                  p.codigoBarras!.toLowerCase().contains(q)) ||
+              (p.marca != null && p.marca!.toLowerCase().contains(q));
         }
         return true;
       }).toList();
+      return;
     }
 
     if (_tabletSelectedCategoria == 'Frecuentes') {
-      if (_tabletSearchQuery.isNotEmpty) {
-        final q = _tabletSearchQuery.toLowerCase().trim();
-        return _frecuentesProductos
+      if (q.isNotEmpty) {
+        _cachedFilteredTabletProductos = _frecuentesProductos
             .where(
               (p) =>
                   p.nombre.toLowerCase().contains(q) ||
-                  _coincideCodigo(p, q) ||
-                  (p.codigoBarras ?? '').toLowerCase().contains(q) ||
-                  (p.marca ?? '').toLowerCase().contains(q),
+                  (hasDigits && _coincideCodigo(p, q)) ||
+                  (p.codigoBarras != null &&
+                      p.codigoBarras!.toLowerCase().contains(q)) ||
+                  (p.marca != null && p.marca!.toLowerCase().contains(q)),
             )
             .toList();
+        return;
       }
-      return _frecuentesProductos;
+      _cachedFilteredTabletProductos = List<Producto>.from(_frecuentesProductos);
+      return;
     }
 
-    return _safeDisponibles.where((p) {
+    _cachedFilteredTabletProductos = _safeDisponibles.where((p) {
       if (_tabletSelectedCategoria != null &&
           _tabletSelectedCategoria != 'Todos') {
         final cat = CategoryHelper.normalize(p.nombreCategoria);
         if (cat != _tabletSelectedCategoria) return false;
       }
-      if (_tabletSearchQuery.isNotEmpty) {
-        final q = _tabletSearchQuery.toLowerCase().trim();
+      if (q.isNotEmpty) {
         final matches =
             p.nombre.toLowerCase().contains(q) ||
-            _coincideCodigo(p, q) ||
-            (p.codigoBarras ?? '').toLowerCase().contains(q) ||
-            (p.marca ?? '').toLowerCase().contains(q);
+            (hasDigits && _coincideCodigo(p, q)) ||
+            (p.codigoBarras != null &&
+                p.codigoBarras!.toLowerCase().contains(q)) ||
+            (p.marca != null && p.marca!.toLowerCase().contains(q));
         if (!matches) return false;
       }
       return true;
     }).toList();
+  }
+
+  List<Producto> get _filteredTabletProductos {
+    if (_cachedFilteredTabletProductos.isEmpty &&
+        _safeDisponibles.isNotEmpty &&
+        _tabletSearchQuery.isEmpty) {
+      _recomputeFilteredTabletProductos();
+    }
+    return _cachedFilteredTabletProductos;
   }
 
   int _getCountForCategoria(String cat) {
@@ -319,8 +339,12 @@ class _VentasScreenState extends State<VentasScreen> {
     if (event.logicalKey == LogicalKeyboardKey.escape) {
       if (_tabletSearchFocusNode.hasFocus ||
           _tabletSearchCtrl.text.isNotEmpty) {
+        _tabletSearchDebounce?.cancel();
         _tabletSearchCtrl.clear();
-        setState(() => _tabletSearchQuery = '');
+        setState(() {
+          _tabletSearchQuery = '';
+          _recomputeFilteredTabletProductos();
+        });
         _tabletSearchFocusNode.unfocus();
         _screenFocusNode.requestFocus();
       } else if (_carrito.isNotEmpty) {
@@ -350,8 +374,12 @@ class _VentasScreenState extends State<VentasScreen> {
       _hwScanBuffer.clear();
       if (code.isNotEmpty) {
         if (_tabletSearchCtrl.text.trim() == code) {
+          _tabletSearchDebounce?.cancel();
           _tabletSearchCtrl.clear();
-          setState(() => _tabletSearchQuery = '');
+          setState(() {
+            _tabletSearchQuery = '';
+            _recomputeFilteredTabletProductos();
+          });
         }
         _procesarCodigoEscaneado(code);
       }
@@ -473,6 +501,7 @@ class _VentasScreenState extends State<VentasScreen> {
     _clienteDocController.dispose();
     _clienteDocFocusNode.dispose();
     _pagoConController.dispose();
+    _tabletSearchDebounce?.cancel();
     _tabletSearchCtrl.dispose();
     _tabletSearchFocusNode.dispose();
     _screenFocusNode.dispose();
@@ -3318,10 +3347,12 @@ class _VentasScreenState extends State<VentasScreen> {
     );
   }
 
+  static final RegExp _digitsOnlyRegex = RegExp(r'\D');
+
   bool _coincideCodigo(Producto p, String rawCode) {
     if (rawCode.trim().isEmpty) return false;
     final codeClean = rawCode.trim().toLowerCase();
-    final codeDigits = codeClean.replaceAll(RegExp(r'\D'), '');
+    final codeDigits = codeClean.replaceAll(_digitsOnlyRegex, '');
 
     final bc = (p.codigoBarras ?? '').trim().toLowerCase();
     final cod = p.codigo.trim().toLowerCase();
@@ -3901,6 +3932,7 @@ class _VentasScreenState extends State<VentasScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         String query = '';
+        Timer? modalDebounce;
         bool soloPromociones = false;
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -3908,16 +3940,19 @@ class _VentasScreenState extends State<VentasScreen> {
                 .where((p) => _obtenerPromocionActivaParaProducto(p) != null)
                 .length;
 
+            final q = query.toLowerCase().trim();
+            final bool hasDigits = q.codeUnits.any((c) => c >= 48 && c <= 57);
             final filtrados = _safeDisponibles.where((p) {
               if (soloPromociones &&
                   _obtenerPromocionActivaParaProducto(p) == null) {
                 return false;
               }
-              final q = query.toLowerCase().trim();
               if (q.isEmpty) return true;
               return p.nombre.toLowerCase().contains(q) ||
-                  _coincideCodigo(p, q) ||
-                  (p.codigoBarras ?? '').toLowerCase().contains(q);
+                  (hasDigits && _coincideCodigo(p, q)) ||
+                  (p.codigoBarras != null &&
+                      p.codigoBarras!.toLowerCase().contains(q)) ||
+                  (p.marca != null && p.marca!.toLowerCase().contains(q));
             }).toList();
 
             return Align(
@@ -4079,6 +4114,20 @@ class _VentasScreenState extends State<VentasScreen> {
                             ),
                           ),
                           onChanged: (val) {
+                            modalDebounce?.cancel();
+                            if (val.isEmpty) {
+                              setModalState(() => query = '');
+                              return;
+                            }
+                            modalDebounce = Timer(
+                              const Duration(milliseconds: 180),
+                              () {
+                                setModalState(() => query = val);
+                              },
+                            );
+                          },
+                          onSubmitted: (val) {
+                            modalDebounce?.cancel();
                             setModalState(() => query = val);
                           },
                         ),
@@ -7295,7 +7344,31 @@ class _VentasScreenState extends State<VentasScreen> {
                     controller: _tabletSearchCtrl,
                     focusNode: _tabletSearchFocusNode,
                     onChanged: (val) {
-                      setState(() => _tabletSearchQuery = val);
+                      _tabletSearchDebounce?.cancel();
+                      if (val.isEmpty) {
+                        setState(() {
+                          _tabletSearchQuery = '';
+                          _recomputeFilteredTabletProductos();
+                        });
+                        return;
+                      }
+                      _tabletSearchDebounce = Timer(
+                        const Duration(milliseconds: 180),
+                        () {
+                          if (!mounted) return;
+                          setState(() {
+                            _tabletSearchQuery = val;
+                            _recomputeFilteredTabletProductos();
+                          });
+                        },
+                      );
+                    },
+                    onSubmitted: (val) {
+                      _tabletSearchDebounce?.cancel();
+                      setState(() {
+                        _tabletSearchQuery = val;
+                        _recomputeFilteredTabletProductos();
+                      });
                     },
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5,
@@ -7320,8 +7393,12 @@ class _VentasScreenState extends State<VentasScreen> {
                           ? IconButton(
                               icon: const Icon(LucideIcons.x, size: 16),
                               onPressed: () {
+                                _tabletSearchDebounce?.cancel();
                                 _tabletSearchCtrl.clear();
-                                setState(() => _tabletSearchQuery = '');
+                                setState(() {
+                                  _tabletSearchQuery = '';
+                                  _recomputeFilteredTabletProductos();
+                                });
                               },
                             )
                           : null,
@@ -7437,7 +7514,10 @@ class _VentasScreenState extends State<VentasScreen> {
                       borderRadius: BorderRadius.circular(14),
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        setState(() => _tabletSelectedCategoria = cat);
+                        setState(() {
+                          _tabletSelectedCategoria = cat;
+                          _recomputeFilteredTabletProductos();
+                        });
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
@@ -7615,9 +7695,11 @@ class _VentasScreenState extends State<VentasScreen> {
                               ),
                               onPressed: () {
                                 setState(() {
+                                  _tabletSearchDebounce?.cancel();
                                   _tabletSearchCtrl.clear();
                                   _tabletSearchQuery = '';
                                   _tabletSelectedCategoria = 'Todos';
+                                  _recomputeFilteredTabletProductos();
                                 });
                               },
                             ),

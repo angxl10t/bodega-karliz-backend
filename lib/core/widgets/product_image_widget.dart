@@ -39,41 +39,60 @@ class ProductImageWidget extends StatelessWidget {
     this.onTap,
   });
 
+  static final Map<String, String> _resolvedUrlCache = {};
+
   String _resolverUrl(String rawUrl) {
-    final clean = rawUrl.trim();
+    final cached = _resolvedUrlCache[rawUrl];
+    if (cached != null) return cached;
+
+    String clean = rawUrl.trim();
+
+    // Optimizacion Unsplash: forzar tamano adecuado para miniaturas POS (10KB en vez de 1.8MB)
+    if (clean.contains('images.unsplash.com')) {
+      final uri = Uri.tryParse(clean);
+      if (uri != null) {
+        final qp = Map<String, String>.from(uri.queryParameters);
+        qp['w'] = '260';
+        qp['q'] = '80';
+        qp['auto'] = 'format';
+        clean = uri.replace(queryParameters: qp).toString();
+      }
+    }
+
     final isPackshot = clean.contains('packshots/');
+    String resolved;
 
     if (kIsWeb) {
-      // 1. Packshots estáticos alojados en la propia aplicación web (Same-Origin)
+      // 1. Packshots estaticos alojados en la propia aplicacion web (Same-Origin)
       if (isPackshot) {
         if (clean.startsWith('http://') || clean.startsWith('https://')) {
-          return clean;
+          resolved = clean;
+        } else {
+          // Ruta relativa para servir desde el mismo origen
+          resolved = clean.startsWith('/') ? clean.substring(1) : clean;
         }
-        // Ruta relativa para servir desde cajaya-pos.onrender.com
-        return clean.startsWith('/') ? clean.substring(1) : clean;
-      }
-
-      // 2. Si ya pertenece al dominio oficial o ya tiene proxy
-      if (clean.contains('cajaya-pos.onrender.com') ||
+      } else if (clean.contains('cajaya-pos.onrender.com') ||
           clean.contains('proxy-image')) {
-        return clean;
-      }
-
-      // 3. URLs externas (Unsplash, Cloudinary, etc.): canalizar por el proxy oficial con CORS abierto
-      if (clean.startsWith('http://') || clean.startsWith('https://')) {
+        resolved = clean;
+      } else if (clean.startsWith('http://') || clean.startsWith('https://')) {
+        // URLs externas: canalizar por el proxy oficial con CORS abierto
         final encoded = Uri.encodeComponent(clean);
-        return '${ApiConstants.baseUrl}/productos/proxy-image?url=$encoded';
+        resolved = '${ApiConstants.baseUrl}/productos/proxy-image?url=$encoded';
+      } else {
+        resolved = clean;
       }
-
-      return clean;
     } else {
-      // En dispositivos móviles (Android / iOS):
+      // En dispositivos moviles (Android / iOS):
       if (isPackshot && !clean.startsWith('http')) {
         final path = clean.startsWith('/') ? clean.substring(1) : clean;
-        return 'https://cajaya-pos.onrender.com/$path';
+        resolved = 'https://cajaya-pos.onrender.com/$path';
+      } else {
+        resolved = clean;
       }
-      return clean;
     }
+
+    _resolvedUrlCache[rawUrl] = resolved;
+    return resolved;
   }
 
   @override
@@ -81,7 +100,7 @@ class ProductImageWidget extends StatelessWidget {
     final catColor = CategoryHelper.getColor(categoria, isDark);
     final catIcon = CategoryHelper.getIcon(categoria);
 
-    // 1. Determinar URL efectiva: si la URL viene vacía o genérica, intentar auto-match inteligente por nombre/código
+    // 1. Determinar URL efectiva: si la URL viene vacia o generica, intentar auto-match inteligente por nombre/codigo
     String? rawUrl =
         (imagenUrl != null &&
             imagenUrl!.trim().isNotEmpty &&
@@ -89,6 +108,7 @@ class ProductImageWidget extends StatelessWidget {
         ? imagenUrl!.trim()
         : null;
 
+    bool fromCatalogSuggestion = false;
     if (rawUrl == null && (nombre != null || codigoBarras != null)) {
       final sug = CatalogoImagenesService.buscarSugerencia(
         codigoBarras: codigoBarras,
@@ -96,6 +116,7 @@ class ProductImageWidget extends StatelessWidget {
       );
       if (sug != null && sug.imagenUrl.isNotEmpty) {
         rawUrl = sug.imagenUrl;
+        fromCatalogSuggestion = true;
       }
     }
 
@@ -104,6 +125,7 @@ class ProductImageWidget extends StatelessWidget {
     Widget content;
     if (hasUrl) {
       final effectiveUrl = _resolverUrl(rawUrl);
+      final cacheDim = (size * 2).round().clamp(80, 260);
 
       content = Container(
         width: size,
@@ -132,8 +154,9 @@ class ProductImageWidget extends StatelessWidget {
           child: Image.network(
             effectiveUrl,
             fit: BoxFit.contain,
-            cacheWidth: (size * 2.5).round().clamp(100, 600),
-            cacheHeight: (size * 2.5).round().clamp(100, 600),
+            gaplessPlayback: true,
+            cacheWidth: cacheDim,
+            cacheHeight: cacheDim,
             filterQuality: FilterQuality.medium,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
@@ -153,11 +176,13 @@ class ProductImageWidget extends StatelessWidget {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              debugPrint(
-                '⚠️ Error al cargar imagen de producto ($effectiveUrl): $error',
-              );
-              // Si falló y tenemos nombre, intentar sugerencia oficial de catálogo
-              if (nombre != null || codigoBarras != null) {
+              if (kDebugMode) {
+                debugPrint(
+                  'Error al cargar imagen de producto (): ',
+                );
+              }
+              // Si fallo y no provino ya de la sugerencia oficial, intentar sugerencia
+              if (!fromCatalogSuggestion && (nombre != null || codigoBarras != null)) {
                 final fallbackSug = CatalogoImagenesService.buscarSugerencia(
                   codigoBarras: codigoBarras,
                   nombre: nombre,
@@ -166,8 +191,9 @@ class ProductImageWidget extends StatelessWidget {
                   return Image.network(
                     _resolverUrl(fallbackSug.imagenUrl),
                     fit: BoxFit.contain,
-                    cacheWidth: (size * 2.5).round().clamp(100, 600),
-                    cacheHeight: (size * 2.5).round().clamp(100, 600),
+                    gaplessPlayback: true,
+                    cacheWidth: cacheDim,
+                    cacheHeight: cacheDim,
                     errorBuilder: (_, _, _) =>
                         _buildCategoryFallback(catIcon, catColor),
                   );

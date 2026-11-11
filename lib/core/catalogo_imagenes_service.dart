@@ -2046,6 +2046,43 @@ class CatalogoImagenesService {
     'o',
   };
 
+  /// Caché en memoria para sugerencias ya resueltas (O(1) instantáneo)
+  static final Map<String, ProductoStudioFoto?> _sugerenciasCache = {};
+
+  /// Índice inverso O(1) de Código de Barras (EAN-13 / UPC) -> Foto de Estudio
+  static Map<String, ProductoStudioFoto>? _barcodeIndex;
+
+  /// Lista indexada con metadatos precalculados para evitar recalcular regex y normalizaciones en cada frame
+  static List<_IndexedFotoItem>? _indexedCatalogo;
+
+  static Map<String, ProductoStudioFoto> get _barcodeMap {
+    if (_barcodeIndex != null) return _barcodeIndex!;
+    final map = <String, ProductoStudioFoto>{};
+    for (final item in _catalogoMaestro) {
+      for (final code in item.codigosBarras) {
+        final clean = code.trim();
+        if (clean.isNotEmpty) {
+          map[clean] = item;
+        }
+      }
+    }
+    _barcodeIndex = map;
+    return map;
+  }
+
+  static List<_IndexedFotoItem> get _indexedList {
+    if (_indexedCatalogo != null) return _indexedCatalogo!;
+    _indexedCatalogo = _catalogoMaestro
+        .map((it) => _IndexedFotoItem(it))
+        .toList(growable: false);
+    return _indexedCatalogo!;
+  }
+
+  /// Limpia la caché en memoria si fuera necesario
+  static void limpiarCache() {
+    _sugerenciasCache.clear();
+  }
+
   /// Extrae unidades de volumen o peso normalizadas (ej: "500ml", "3l", "140g")
   static Set<String> _extraerTamanos(String texto) {
     var norm = _normalizar(texto);
@@ -2080,24 +2117,35 @@ class CatalogoImagenesService {
     return results;
   }
 
-  /// Busca una foto oficial de estudio por código de barras o por nombre del producto
+  /// Busca una foto oficial de estudio por código de barras o por nombre del producto con aceleración O(1) y caché en memoria
   static ProductoStudioFoto? buscarSugerencia({
     String? codigoBarras,
     String? nombre,
   }) {
-    // 1. Prioridad: Coincidencia exacta por Código de Barras (EAN-13)
-    if (codigoBarras != null && codigoBarras.trim().isNotEmpty) {
-      final code = codigoBarras.trim();
-      for (final item in _catalogoMaestro) {
-        if (item.codigosBarras.contains(code)) {
-          return item;
-        }
+    final cleanCode = codigoBarras?.trim();
+    final cleanNombre = nombre?.trim();
+    if ((cleanCode == null || cleanCode.isEmpty) &&
+        (cleanNombre == null || cleanNombre.isEmpty)) {
+      return null;
+    }
+
+    final cacheKey = '${cleanCode ?? ""}_#_${cleanNombre ?? ""}';
+    if (_sugerenciasCache.containsKey(cacheKey)) {
+      return _sugerenciasCache[cacheKey];
+    }
+
+    // 1. Prioridad: Coincidencia exacta por Código de Barras (EAN-13 / UPC) O(1)
+    if (cleanCode != null && cleanCode.isNotEmpty) {
+      final match = _barcodeMap[cleanCode];
+      if (match != null) {
+        _sugerenciasCache[cacheKey] = match;
+        return match;
       }
     }
 
     // 2. Coincidencia inteligente ponderada por Nombre / Keywords / Tamaño
-    if (nombre != null && nombre.trim().isNotEmpty) {
-      final normNombre = _normalizar(nombre);
+    if (cleanNombre != null && cleanNombre.isNotEmpty) {
+      final normNombre = _normalizar(cleanNombre);
       if (normNombre.length >= 3) {
         final querySizes = _extraerTamanos(normNombre);
 
@@ -2109,11 +2157,11 @@ class CatalogoImagenesService {
         ProductoStudioFoto? mejorItem;
         int mejorScore = 0;
 
-        for (final item in _catalogoMaestro) {
+        for (final indexed in _indexedList) {
           int score = 0;
-          final normItemNombre = _normalizar(item.nombre);
-          final normMarca = _normalizar(item.marca);
-          final itemSizes = _extraerTamanos(normItemNombre);
+          final normItemNombre = indexed.normNombre;
+          final normMarca = indexed.normMarca;
+          final itemSizes = indexed.sizes;
 
           // Ponderación por Marca
           if (normMarca.length >= 3 &&
@@ -2129,8 +2177,6 @@ class CatalogoImagenesService {
           }
 
           // Ponderación discriminatoria por TAMAÑO (ml, L, g, kg)
-          // Si el usuario especificó tamaño y coincide con el producto: +6 puntos
-          // Si especificó tamaño y difiere diametralmente (ej: 500ml vs 3L): penalización de -8 puntos
           if (querySizes.isNotEmpty && itemSizes.isNotEmpty) {
             final coinciden = querySizes.intersection(itemSizes);
             if (coinciden.isNotEmpty) {
@@ -2140,10 +2186,8 @@ class CatalogoImagenesService {
             }
           }
 
-          // Ponderación por tokens y keywords
-          for (final kw in item.keywords) {
-            final normKw = _normalizar(kw);
-            if (_stopwords.contains(normKw) || normKw.length < 2) continue;
+          // Ponderación por tokens y keywords prenormalizadas
+          for (final normKw in indexed.normKeywords) {
             if (tokens.contains(normKw)) {
               score += 2;
             } else if (normKw.length >= 4 && normNombre.contains(normKw)) {
@@ -2153,16 +2197,18 @@ class CatalogoImagenesService {
 
           if (score > mejorScore) {
             mejorScore = score;
-            mejorItem = item;
+            mejorItem = indexed.item;
           }
         }
 
         if (mejorScore >= 4) {
+          _sugerenciasCache[cacheKey] = mejorItem;
           return mejorItem;
         }
       }
     }
 
+    _sugerenciasCache[cacheKey] = null;
     return null;
   }
 
@@ -2171,18 +2217,45 @@ class CatalogoImagenesService {
     return List.unmodifiable(_catalogoMaestro);
   }
 
-  /// Busca en el catálogo maestro por texto
+  /// Busca en el catálogo maestro por texto acelerado por lista indexada
   static List<ProductoStudioFoto> buscarEnCatalogo(String query) {
     if (query.trim().isEmpty) return getCatalogoMaestro();
     final norm = _normalizar(query);
-    return _catalogoMaestro.where((item) {
-      if (_normalizar(item.nombre).contains(norm)) return true;
-      if (_normalizar(item.marca).contains(norm)) return true;
-      if (_normalizar(item.categoria).contains(norm)) return true;
-      for (final kw in item.keywords) {
-        if (_normalizar(kw).contains(norm)) return true;
+    final results = <ProductoStudioFoto>[];
+    for (final indexed in _indexedList) {
+      if (indexed.normNombre.contains(norm) ||
+          indexed.normMarca.contains(norm) ||
+          _normalizar(indexed.item.categoria).contains(norm)) {
+        results.add(indexed.item);
+        continue;
       }
-      return false;
-    }).toList();
+      for (final kw in indexed.normKeywords) {
+        if (kw.contains(norm)) {
+          results.add(indexed.item);
+          break;
+        }
+      }
+    }
+    return results;
   }
+}
+
+/// Estructura interna indexada con datos precalculados para búsqueda ultrarrápida
+class _IndexedFotoItem {
+  final ProductoStudioFoto item;
+  final String normNombre;
+  final String normMarca;
+  final Set<String> sizes;
+  final List<String> normKeywords;
+
+  _IndexedFotoItem(this.item)
+      : normNombre = CatalogoImagenesService._normalizar(item.nombre),
+        normMarca = CatalogoImagenesService._normalizar(item.marca),
+        sizes = CatalogoImagenesService._extraerTamanos(item.nombre),
+        normKeywords = item.keywords
+            .map(CatalogoImagenesService._normalizar)
+            .where((k) =>
+                !CatalogoImagenesService._stopwords.contains(k) &&
+                k.length >= 2)
+            .toList(growable: false);
 }
