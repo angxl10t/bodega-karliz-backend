@@ -178,7 +178,9 @@ public class SecurityConfig {
 
                 new org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler();
 
-        handler.setRoleHierarchy(roleHierarchy);
+        org.springframework.security.authorization.DefaultAuthorizationManagerFactory<org.aopalliance.intercept.MethodInvocation> factory = new org.springframework.security.authorization.DefaultAuthorizationManagerFactory<>();
+        factory.setRoleHierarchy(roleHierarchy);
+        handler.setAuthorizationManagerFactory(factory);
 
         return handler;
 
