@@ -9,10 +9,15 @@ import '../../core/offline/offline_sync_manager.dart';
 import 'producto_model.dart';
 
 class ProductoService {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+
+  ProductoService({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient();
 
   static List<Producto>? _cachedProductos;
   static DateTime? _cacheTimestamp;
+  static Future<List<Producto>>? _inFlightProductos;
+  static int _cacheEpoch = 0;
   static const Duration _cacheDuration = Duration(seconds: 45);
 
   /// Notificador reactivo para que todas las pantallas (Ventas, Compras, Dashboard, Catálogo)
@@ -23,6 +28,8 @@ class ProductoService {
   static void invalidateCache() {
     _cachedProductos = null;
     _cacheTimestamp = null;
+    _inFlightProductos = null;
+    _cacheEpoch++;
     productosRevision.value++;
   }
 
@@ -31,10 +38,13 @@ class ProductoService {
   static void setMockProductos(List<Producto> productos) {
     _cachedProductos = List<Producto>.from(productos);
     _cacheTimestamp = DateTime.now();
+    _inFlightProductos = null;
+    _cacheEpoch++;
   }
 
   /// Lista los productos disponibles. Si hay una copia en memoria reciente (< 45s) y no se
   /// solicita forceRefresh, la retorna de forma instantánea sin demora de red.
+  /// Coalesce llamadas concurrentes cuando la caché está fría para evitar peticiones HTTP duplicadas.
   /// Si el backend no responde o no hay internet, recurre automáticamente al catálogo
   /// persistente local de contingencia (Local-First).
   Future<List<Producto>> getProductos({bool forceRefresh = false}) async {
@@ -44,6 +54,24 @@ class ProductoService {
       }
     }
 
+    if (!forceRefresh && _inFlightProductos != null) {
+      return List<Producto>.from(await _inFlightProductos!);
+    }
+
+    final epoch = _cacheEpoch;
+    final future = _fetchProductosFromNetwork(epoch);
+    _inFlightProductos = future;
+    try {
+      final result = await future;
+      return List<Producto>.from(result);
+    } finally {
+      if (identical(_inFlightProductos, future)) {
+        _inFlightProductos = null;
+      }
+    }
+  }
+
+  Future<List<Producto>> _fetchProductosFromNetwork(int epoch) async {
     try {
       final response = await _apiClient.get('/productos');
       if (response.statusCode == 200) {
@@ -51,22 +79,26 @@ class ProductoService {
           utf8.decode(response.bodyBytes),
         );
         final prods = jsonList.map((json) => Producto.fromJson(json)).toList();
-        _cachedProductos = prods;
-        _cacheTimestamp = DateTime.now();
+        if (epoch == _cacheEpoch) {
+          _cachedProductos = prods;
+          _cacheTimestamp = DateTime.now();
 
-        // Almacenar en caché local persistente para contingencias offline
-        OfflineCatalogService().saveCatalog(prods);
-        OfflineSyncManager.instance.isOfflineNotifier.value = false;
+          // Almacenar en caché local persistente para contingencias offline
+          OfflineCatalogService().saveCatalog(prods);
+          OfflineSyncManager.instance.isOfflineNotifier.value = false;
+        }
 
-        return List<Producto>.from(prods);
+        return prods;
       }
 
       // Fallback resiliente al catálogo local
       final localProds = await OfflineCatalogService().getCachedCatalog();
       if (localProds.isNotEmpty) {
-        _cachedProductos = localProds;
-        OfflineSyncManager.instance.isOfflineNotifier.value = true;
-        return List<Producto>.from(localProds);
+        if (epoch == _cacheEpoch) {
+          _cachedProductos = localProds;
+          OfflineSyncManager.instance.isOfflineNotifier.value = true;
+        }
+        return localProds;
       }
       return _cachedProductos != null
           ? List<Producto>.from(_cachedProductos!)
@@ -75,9 +107,11 @@ class ProductoService {
       // Fallback resiliente ante cortes de red o caídas de servidor
       final localProds = await OfflineCatalogService().getCachedCatalog();
       if (localProds.isNotEmpty) {
-        _cachedProductos = localProds;
-        OfflineSyncManager.instance.isOfflineNotifier.value = true;
-        return List<Producto>.from(localProds);
+        if (epoch == _cacheEpoch) {
+          _cachedProductos = localProds;
+          OfflineSyncManager.instance.isOfflineNotifier.value = true;
+        }
+        return localProds;
       }
       return _cachedProductos != null
           ? List<Producto>.from(_cachedProductos!)

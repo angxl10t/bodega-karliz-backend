@@ -39,6 +39,7 @@ class ProductImageWidget extends StatelessWidget {
     this.onTap,
   });
 
+  static const int _maxResolvedUrlCacheSize = 1000;
   static final Map<String, String> _resolvedUrlCache = {};
 
   String _resolverUrl(String rawUrl) {
@@ -91,6 +92,9 @@ class ProductImageWidget extends StatelessWidget {
       }
     }
 
+    if (!_resolvedUrlCache.containsKey(rawUrl) && _resolvedUrlCache.length >= _maxResolvedUrlCacheSize) {
+      _resolvedUrlCache.remove(_resolvedUrlCache.keys.first);
+    }
     _resolvedUrlCache[rawUrl] = resolved;
     return resolved;
   }
@@ -178,7 +182,7 @@ class ProductImageWidget extends StatelessWidget {
             errorBuilder: (context, error, stackTrace) {
               if (kDebugMode) {
                 debugPrint(
-                  'Error al cargar imagen de producto (): ',
+                  'Error al cargar imagen de producto (${nombre ?? rawUrl}): $error',
                 );
               }
               // Si fallo y no provino ya de la sugerencia oficial, intentar sugerencia

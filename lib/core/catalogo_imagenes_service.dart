@@ -2013,16 +2013,50 @@ class CatalogoImagenesService {
     ),
   ];
 
+  static final RegExp _reLitros = RegExp(
+    r'(\d+(?:\.\d+)?)\s*(?:l|lt|litro|litros)\b',
+  );
+  static final RegExp _reMililitros = RegExp(
+    r'(\d+(?:\.\d+)?)\s*(?:ml|mililitros)\b',
+  );
+  static final RegExp _reGramos = RegExp(
+    r'(\d+(?:\.\d+)?)\s*(?:g|gr|gramos)\b',
+  );
+  static final RegExp _reKilos = RegExp(
+    r'(\d+(?:\.\d+)?)\s*(?:kg|kilos)\b',
+  );
+  static final RegExp _reUnitToken = RegExp(r'\b\d+(?:\.\d+)?[a-z]+\b');
+  static final RegExp _reTokenSplit = RegExp(r'[^a-zA-Z0-9]+');
+
   static String _normalizar(String input) {
-    var out = input.toLowerCase().trim();
-    out = out
-        .replaceAll('á', 'a')
-        .replaceAll('é', 'e')
-        .replaceAll('í', 'i')
-        .replaceAll('ó', 'o')
-        .replaceAll('ú', 'u')
-        .replaceAll('ñ', 'n');
-    return out;
+    final trimmed = input.toLowerCase().trim();
+    if (trimmed.isEmpty) return trimmed;
+    StringBuffer? sb;
+    for (int i = 0; i < trimmed.length; i++) {
+      final code = trimmed.codeUnitAt(i);
+      String? rep;
+      switch (code) {
+        case 0xE1:
+          rep = 'a';
+        case 0xE9:
+          rep = 'e';
+        case 0xED:
+          rep = 'i';
+        case 0xF3:
+          rep = 'o';
+        case 0xFA:
+          rep = 'u';
+        case 0xF1:
+          rep = 'n';
+      }
+      if (rep != null) {
+        sb ??= StringBuffer()..write(trimmed.substring(0, i));
+        sb.write(rep);
+      } else if (sb != null) {
+        sb.writeCharCode(code);
+      }
+    }
+    return sb == null ? trimmed : sb.toString();
   }
 
   /// Stopwords puramente gramaticales. Los tamaños, unidades y formatos
@@ -2046,8 +2080,17 @@ class CatalogoImagenesService {
     'o',
   };
 
-  /// Caché en memoria para sugerencias ya resueltas (O(1) instantáneo)
+  /// Caché en memoria acotada para sugerencias ya resueltas (O(1) instantáneo)
+  static const int _maxSugerenciasCacheSize = 1000;
   static final Map<String, ProductoStudioFoto?> _sugerenciasCache = {};
+
+  static void _putSugerenciaCache(String key, ProductoStudioFoto? value) {
+    if (!_sugerenciasCache.containsKey(key) &&
+        _sugerenciasCache.length >= _maxSugerenciasCacheSize) {
+      _sugerenciasCache.remove(_sugerenciasCache.keys.first);
+    }
+    _sugerenciasCache[key] = value;
+  }
 
   /// Índice inverso O(1) de Código de Barras (EAN-13 / UPC) -> Foto de Estudio
   static Map<String, ProductoStudioFoto>? _barcodeIndex;
@@ -2086,24 +2129,12 @@ class CatalogoImagenesService {
   /// Extrae unidades de volumen o peso normalizadas (ej: "500ml", "3l", "140g")
   static Set<String> _extraerTamanos(String texto) {
     var norm = _normalizar(texto);
-    norm = norm.replaceAllMapped(
-      RegExp(r'(\d+(?:\.\d+)?)\s*(?:l|lt|litro|litros)\b'),
-      (m) => '${m[1]}l',
-    );
-    norm = norm.replaceAllMapped(
-      RegExp(r'(\d+(?:\.\d+)?)\s*(?:ml|mililitros)\b'),
-      (m) => '${m[1]}ml',
-    );
-    norm = norm.replaceAllMapped(
-      RegExp(r'(\d+(?:\.\d+)?)\s*(?:g|gr|gramos)\b'),
-      (m) => '${m[1]}g',
-    );
-    norm = norm.replaceAllMapped(
-      RegExp(r'(\d+(?:\.\d+)?)\s*(?:kg|kilos)\b'),
-      (m) => '${m[1]}kg',
-    );
+    norm = norm.replaceAllMapped(_reLitros, (m) => '${m[1]}l');
+    norm = norm.replaceAllMapped(_reMililitros, (m) => '${m[1]}ml');
+    norm = norm.replaceAllMapped(_reGramos, (m) => '${m[1]}g');
+    norm = norm.replaceAllMapped(_reKilos, (m) => '${m[1]}kg');
 
-    final matches = RegExp(r'\b\d+(?:\.\d+)?[a-z]+\b').allMatches(norm);
+    final matches = _reUnitToken.allMatches(norm);
     final results = <String>{};
     for (final m in matches) {
       final val = m.group(0)!;
@@ -2138,7 +2169,7 @@ class CatalogoImagenesService {
     if (cleanCode != null && cleanCode.isNotEmpty) {
       final match = _barcodeMap[cleanCode];
       if (match != null) {
-        _sugerenciasCache[cacheKey] = match;
+        _putSugerenciaCache(cacheKey, match);
         return match;
       }
     }
@@ -2150,7 +2181,7 @@ class CatalogoImagenesService {
         final querySizes = _extraerTamanos(normNombre);
 
         final tokens = normNombre
-            .split(RegExp(r'[^a-zA-Z0-9]+'))
+            .split(_reTokenSplit)
             .where((t) => t.isNotEmpty && !_stopwords.contains(t))
             .toSet();
 
@@ -2202,13 +2233,13 @@ class CatalogoImagenesService {
         }
 
         if (mejorScore >= 4) {
-          _sugerenciasCache[cacheKey] = mejorItem;
+          _putSugerenciaCache(cacheKey, mejorItem);
           return mejorItem;
         }
       }
     }
 
-    _sugerenciasCache[cacheKey] = null;
+    _putSugerenciaCache(cacheKey, null);
     return null;
   }
 
@@ -2225,7 +2256,7 @@ class CatalogoImagenesService {
     for (final indexed in _indexedList) {
       if (indexed.normNombre.contains(norm) ||
           indexed.normMarca.contains(norm) ||
-          _normalizar(indexed.item.categoria).contains(norm)) {
+          indexed.normCategoria.contains(norm)) {
         results.add(indexed.item);
         continue;
       }
@@ -2245,12 +2276,14 @@ class _IndexedFotoItem {
   final ProductoStudioFoto item;
   final String normNombre;
   final String normMarca;
+  final String normCategoria;
   final Set<String> sizes;
   final List<String> normKeywords;
 
   _IndexedFotoItem(this.item)
       : normNombre = CatalogoImagenesService._normalizar(item.nombre),
         normMarca = CatalogoImagenesService._normalizar(item.marca),
+        normCategoria = CatalogoImagenesService._normalizar(item.categoria),
         sizes = CatalogoImagenesService._extraerTamanos(item.nombre),
         normKeywords = item.keywords
             .map(CatalogoImagenesService._normalizar)

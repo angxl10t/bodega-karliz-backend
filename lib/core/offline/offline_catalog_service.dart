@@ -20,6 +20,57 @@ class OfflineCatalogService {
 
   List<Producto>? _inMemoryCatalog;
   DateTime? _lastSyncDate;
+  String? _lastSavedTenant;
+  int? _lastSavedFingerprint;
+
+  static int _computeFingerprint(List<Producto> productos) {
+    var hash = productos.length;
+    for (final p in productos) {
+      hash = Object.hash(
+        hash,
+        p.idProducto,
+        p.idCategoria,
+        p.nombreCategoria,
+        p.codigo,
+        p.codigoBarras,
+        p.nombre,
+        p.marca,
+        p.precioVenta,
+        p.stockActual,
+        p.stockMinimo,
+        p.controlaVencimiento,
+        p.fechaVencimiento,
+        p.precioCosto,
+        p.imagenUrl,
+      );
+    }
+    return hash;
+  }
+
+  static bool _sameCatalogContent(List<Producto> a, List<Producto> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      final pa = a[i];
+      final pb = b[i];
+      if (pa.idProducto != pb.idProducto ||
+          pa.idCategoria != pb.idCategoria ||
+          pa.nombreCategoria != pb.nombreCategoria ||
+          pa.codigo != pb.codigo ||
+          pa.codigoBarras != pb.codigoBarras ||
+          pa.nombre != pb.nombre ||
+          pa.marca != pb.marca ||
+          pa.precioVenta != pb.precioVenta ||
+          pa.stockActual != pb.stockActual ||
+          pa.stockMinimo != pb.stockMinimo ||
+          pa.controlaVencimiento != pb.controlaVencimiento ||
+          pa.fechaVencimiento != pb.fechaVencimiento ||
+          pa.precioCosto != pb.precioCosto ||
+          pa.imagenUrl != pb.imagenUrl) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /// Obtiene el identificador de bodega activo para aislar el catálogo multi-inquilino
   Future<String> _getTenantId(String? overrideId) async {
@@ -28,11 +79,20 @@ class OfflineCatalogService {
     return id ?? 'default_tenant';
   }
 
-  /// Guarda el catálogo completo de productos en el almacenamiento local persistente (SharedPreferences / IndexedDB)
+  /// Guarda el catálogo completo de productos en el almacenamiento local persistente (SharedPreferences / IndexedDB),
+  /// omitiendo serializaciones y escrituras redundantes cuando el catálogo no ha cambiado.
   Future<void> saveCatalog(List<Producto> productos, {String? idBodega}) async {
     if (productos.isEmpty) return;
     try {
       final tenant = await _getTenantId(idBodega);
+      final fingerprint = _computeFingerprint(productos);
+      if (_lastSavedTenant == tenant &&
+          _lastSavedFingerprint == fingerprint &&
+          _inMemoryCatalog != null &&
+          _sameCatalogContent(_inMemoryCatalog!, productos)) {
+        return;
+      }
+
       final prefs = await SharedPreferences.getInstance();
 
       final jsonList = productos.map((p) => p.toJson()).toList();
@@ -44,6 +104,8 @@ class OfflineCatalogService {
 
       _inMemoryCatalog = List<Producto>.from(productos);
       _lastSyncDate = now;
+      _lastSavedTenant = tenant;
+      _lastSavedFingerprint = fingerprint;
       debugPrint(
         '[OfflineCatalog] Catálogo guardado en caché local: ${productos.length} productos (Bodega $tenant)',
       );
@@ -81,6 +143,8 @@ class OfflineCatalogService {
           .toList();
 
       _inMemoryCatalog = productos;
+      _lastSavedTenant = tenant;
+      _lastSavedFingerprint = _computeFingerprint(productos);
 
       final tsString = prefs.getString('$_keyPrefixTs$tenant');
       if (tsString != null) {
@@ -121,6 +185,7 @@ class OfflineCatalogService {
     }).toList();
 
     if (modificado) {
+      _lastSavedFingerprint = null;
       _inMemoryCatalog = updatedList;
       await saveCatalog(updatedList, idBodega: idBodega);
       // Notifica a las pantallas para que actualicen sus vistas al instante
@@ -144,5 +209,7 @@ class OfflineCatalogService {
   void clearMemoryCache() {
     _inMemoryCatalog = null;
     _lastSyncDate = null;
+    _lastSavedTenant = null;
+    _lastSavedFingerprint = null;
   }
 }

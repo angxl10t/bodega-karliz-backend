@@ -1245,17 +1245,65 @@ class CategoriaSuggesterService {
         ),
       };
 
-  /// Normaliza texto removiendo diacríticos y caracteres no alfanuméricos redundantes
+  static const int _maxCanonicaCacheSize = 500;
+  static final Map<String, CategoriaCanonica?> _canonicaCache = {};
+  static final RegExp _nonAlnumRegex = RegExp(r'[^a-zA-Z0-9]');
+  static final RegExp _reAtunConservas = RegExp(
+    r'\b(atun|filete|grated|lomito|caballa|sardina|conserva)\b',
+  );
+  static final RegExp _reHelado = RegExp(
+    r'\b(helado|helados|peziduri|frio rico|sin parar|artika)\b',
+  );
+  static final RegExp _rePapaSnack = RegExp(
+    r'\b(lays|pringles|chips|ondas|al hilo|hilo)\b',
+  );
+  static final RegExp _rePapaFresca = RegExp(
+    r'\b(amarilla|canchan|huayro|blanca|kilo|kg)\b',
+  );
+
+  static final List<_CompiledCategoryEntry> _compiledCatalogo = _catalogoCanonico
+      .entries
+      .map((e) => _CompiledCategoryEntry(e.key, e.value))
+      .toList(growable: false);
+
+  static void _putCanonicaCache(String key, CategoriaCanonica? value) {
+    if (!_canonicaCache.containsKey(key) &&
+        _canonicaCache.length >= _maxCanonicaCacheSize) {
+      _canonicaCache.remove(_canonicaCache.keys.first);
+    }
+    _canonicaCache[key] = value;
+  }
+
+  /// Normaliza texto en una sola pasada removiendo tildes y ñ sin múltiples copias de String
   static String normalizar(String texto) {
-    var out = texto.toLowerCase().trim();
-    out = out
-        .replaceAll('á', 'a')
-        .replaceAll('é', 'e')
-        .replaceAll('í', 'i')
-        .replaceAll('ó', 'o')
-        .replaceAll('ú', 'u')
-        .replaceAll('ñ', 'n');
-    return out;
+    final trimmed = texto.toLowerCase().trim();
+    if (trimmed.isEmpty) return trimmed;
+    StringBuffer? sb;
+    for (int i = 0; i < trimmed.length; i++) {
+      final code = trimmed.codeUnitAt(i);
+      String? rep;
+      switch (code) {
+        case 0xE1:
+          rep = 'a';
+        case 0xE9:
+          rep = 'e';
+        case 0xED:
+          rep = 'i';
+        case 0xF3:
+          rep = 'o';
+        case 0xFA:
+          rep = 'u';
+        case 0xF1:
+          rep = 'n';
+      }
+      if (rep != null) {
+        sb ??= StringBuffer()..write(trimmed.substring(0, i));
+        sb.write(rep);
+      } else if (sb != null) {
+        sb.writeCharCode(code);
+      }
+    }
+    return sb == null ? trimmed : sb.toString();
   }
 
   /// Retorna el prefijo SKU recomendado (ej. GSE, ALC, LAC, ABA, etc.)
@@ -1267,7 +1315,7 @@ class CategoriaSuggesterService {
     }
 
     final norm = normalizar(nombreCategoria)
-        .replaceAll(RegExp(r'[^a-zA-Z0-9]'), '')
+        .replaceAll(_nonAlnumRegex, '')
         .toUpperCase();
     if (norm.length >= 3) {
       return norm.substring(0, 3);
@@ -1280,79 +1328,80 @@ class CategoriaSuggesterService {
     String? nombre,
     String? codigoBarras,
   }) {
+    final cleanCode = codigoBarras?.trim();
+    final cleanNombre = nombre?.trim();
+    if ((cleanCode == null || cleanCode.isEmpty) &&
+        (cleanNombre == null || cleanNombre.isEmpty)) {
+      return null;
+    }
+
+    final cacheKey = '${cleanCode ?? ""}_#_${cleanNombre ?? ""}';
+    if (_canonicaCache.containsKey(cacheKey)) {
+      return _canonicaCache[cacheKey];
+    }
+
     // 1. Intenta por Código de Barras oficial verificado (máxima certeza 100%)
-    if (codigoBarras != null && codigoBarras.trim().isNotEmpty) {
+    if (cleanCode != null && cleanCode.isNotEmpty) {
       final sugerencia = CatalogoImagenesService.buscarSugerencia(
-        codigoBarras: codigoBarras,
+        codigoBarras: cleanCode,
       );
       if (sugerencia != null) {
         final catFromCatalog = _mapearTextoACanonica(sugerencia.categoria);
         if (catFromCatalog != null) {
+          _putCanonicaCache(cacheKey, catFromCatalog);
           return catFromCatalog;
         }
       }
     }
 
-    if (nombre == null || nombre.trim().isEmpty) return null;
-    final normNombre = normalizar(nombre);
-    if (normNombre.length < 2) return null;
+    if (cleanNombre == null || cleanNombre.isEmpty) {
+      _putCanonicaCache(cacheKey, null);
+      return null;
+    }
+    final normNombre = normalizar(cleanNombre);
+    if (normNombre.length < 2) {
+      _putCanonicaCache(cacheKey, null);
+      return null;
+    }
 
     // Reglas semánticas contextuales de desambiguación para productos peruanos:
-    final tieneAtunConservas = RegExp(
-      r'\b(atun|filete|grated|lomito|caballa|sardina|conserva)\b',
-    ).hasMatch(normNombre);
+    final tieneAtunConservas = _reAtunConservas.hasMatch(normNombre);
     final tieneMermelada = normNombre.contains('mermelada');
-    final tieneHelado = RegExp(
-      r'\b(helado|helados|peziduri|frio rico|sin parar|artika)\b',
-    ).hasMatch(normNombre);
+    final tieneHelado = _reHelado.hasMatch(normNombre);
     final tieneAceite = normNombre.contains('aceite');
-    final tienePapaSnack = RegExp(
-      r'\b(lays|pringles|chips|ondas|al hilo|hilo)\b',
-    ).hasMatch(normNombre);
-    final tienePapaFresca = RegExp(
-      r'\b(amarilla|canchan|huayro|blanca|kilo|kg)\b',
-    ).hasMatch(normNombre);
+    final tienePapaSnack = _rePapaSnack.hasMatch(normNombre);
+    final tienePapaFresca = _rePapaFresca.hasMatch(normNombre);
     final tieneDetergente = normNombre.contains('detergente');
 
-    Map<CategoriaCanonica, double> puntuaciones = {};
+    CategoriaCanonica? bestCanonica;
+    double bestScore = 0.0;
 
-    for (final entry in _catalogoCanonico.entries) {
-      final canonica = entry.key;
-      final info = entry.value;
+    for (final entry in _compiledCatalogo) {
+      final canonica = entry.canonica;
       double score = 0.0;
 
       // Evaluar frases compuestas (peso alto: 25 pts)
-      for (final frase in info.frasesClave) {
-        final normFrase = normalizar(frase);
+      for (final normFrase in entry.frasesClave) {
         if (normNombre.contains(normFrase)) {
           score += 25.0;
         }
       }
 
-      // Evaluar palabras clave (peso medio: 10 pts)
-      for (final palabra in info.palabrasClave) {
-        final normPalabra = normalizar(palabra);
-        if (normPalabra.length <= 3) {
-          if (RegExp('\\b${RegExp.escape(normPalabra)}\\b')
-              .hasMatch(normNombre)) {
-            score += 10.0;
-          }
-        } else {
-          if (RegExp('\\b${RegExp.escape(normPalabra)}').hasMatch(normNombre)) {
-            score += 10.0;
-          }
+      // Evaluar palabras clave precompiladas (peso medio: 10 pts)
+      for (final regex in entry.palabrasRegex) {
+        if (regex.hasMatch(normNombre)) {
+          score += 10.0;
         }
       }
 
-      // Evaluar aliases directos de categoría
-      for (final alias in info.aliases) {
-        final normAlias = normalizar(alias);
-        if (normAlias.length <= 3) {
-          if (RegExp('\\b${RegExp.escape(normAlias)}\\b')
-              .hasMatch(normNombre)) {
-            score += 8.0;
-          }
-        } else if (normNombre.contains(normAlias)) {
+      // Evaluar aliases directos de categoría (peso: 8 pts)
+      for (final regex in entry.aliasesCortosRegex) {
+        if (regex.hasMatch(normNombre)) {
+          score += 8.0;
+        }
+      }
+      for (final normAlias in entry.aliasesLargos) {
+        if (normNombre.contains(normAlias)) {
           score += 8.0;
         }
       }
@@ -1386,23 +1435,16 @@ class CategoriaSuggesterService {
         if (tienePapaFresca) score += 25.0;
       }
 
-      if (score > 0) {
-        puntuaciones[canonica] = score;
+      if (score > bestScore) {
+        bestScore = score;
+        bestCanonica = canonica;
       }
     }
 
-    if (puntuaciones.isEmpty) return null;
-
-    final sorted = puntuaciones.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    final best = sorted.first;
     // Umbral mínimo de confianza semántica para evitar falsos positivos
-    if (best.value >= 8.0) {
-      return best.key;
-    }
-
-    return null;
+    final result = bestScore >= 8.0 ? bestCanonica : null;
+    _putCanonicaCache(cacheKey, result);
+    return result;
   }
 
   /// Mapea un texto (ej. proveniente de catálogo o nombre libre) a una CategoriaCanonica
@@ -1633,4 +1675,36 @@ class CategoriaSuggesterService {
 
     return null;
   }
+}
+
+/// Entrada precompilada e inmutable para acelerar la clasificación semántica de categorías.
+class _CompiledCategoryEntry {
+  final CategoriaCanonica canonica;
+  final List<String> frasesClave;
+  final List<RegExp> palabrasRegex;
+  final List<RegExp> aliasesCortosRegex;
+  final List<String> aliasesLargos;
+
+  _CompiledCategoryEntry(this.canonica, InfoCategoriaCanonica info)
+    : frasesClave = info.frasesClave
+          .map(CategoriaSuggesterService.normalizar)
+          .toList(growable: false),
+      palabrasRegex = info.palabrasClave
+          .map((palabra) {
+            final normPalabra = CategoriaSuggesterService.normalizar(palabra);
+            final escaped = RegExp.escape(normPalabra);
+            return normPalabra.length <= 3
+                ? RegExp('\\b$escaped\\b')
+                : RegExp('\\b$escaped');
+          })
+          .toList(growable: false),
+      aliasesCortosRegex = info.aliases
+          .map(CategoriaSuggesterService.normalizar)
+          .where((a) => a.length <= 3)
+          .map((a) => RegExp('\\b${RegExp.escape(a)}\\b'))
+          .toList(growable: false),
+      aliasesLargos = info.aliases
+          .map(CategoriaSuggesterService.normalizar)
+          .where((a) => a.length > 3)
+          .toList(growable: false);
 }

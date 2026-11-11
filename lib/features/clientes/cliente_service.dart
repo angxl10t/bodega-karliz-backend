@@ -7,10 +7,15 @@ import '../../core/api_client.dart';
 import 'cliente_model.dart';
 
 class ClienteService {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+
+  ClienteService({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient();
 
   static List<Cliente>? _cachedClientes;
   static DateTime? _cacheTimestamp;
+  static Future<List<Cliente>>? _inFlightClientes;
+  static int _cacheEpoch = 0;
   static const Duration _cacheDuration = Duration(seconds: 45);
 
   static final ValueNotifier<int> clientesRevision = ValueNotifier<int>(0);
@@ -18,6 +23,8 @@ class ClienteService {
   static void invalidateCache() {
     _cachedClientes = null;
     _cacheTimestamp = null;
+    _inFlightClientes = null;
+    _cacheEpoch++;
     clientesRevision.value++;
   }
 
@@ -38,6 +45,44 @@ class ClienteService {
       }
     }
 
+    if (!hasFilter && !forceRefresh && _inFlightClientes != null) {
+      return List<Cliente>.from(await _inFlightClientes!);
+    }
+
+    if (!hasFilter) {
+      final epoch = _cacheEpoch;
+      final future = _fetchClientesFromNetwork(
+        query: query,
+        soloDeudores: soloDeudores,
+        updateCache: true,
+        epoch: epoch,
+      );
+      _inFlightClientes = future;
+      try {
+        return List<Cliente>.from(await future);
+      } finally {
+        if (identical(_inFlightClientes, future)) {
+          _inFlightClientes = null;
+        }
+      }
+    }
+
+    return List<Cliente>.from(
+      await _fetchClientesFromNetwork(
+        query: query,
+        soloDeudores: soloDeudores,
+        updateCache: false,
+        epoch: _cacheEpoch,
+      ),
+    );
+  }
+
+  Future<List<Cliente>> _fetchClientesFromNetwork({
+    String? query,
+    required bool soloDeudores,
+    required bool updateCache,
+    required int epoch,
+  }) async {
     try {
       final queryParams = <String>[];
       if (query != null && query.trim().isNotEmpty) {
@@ -58,11 +103,11 @@ class ClienteService {
             .map((j) => Cliente.fromJson(j as Map<String, dynamic>))
             .toList();
 
-        if (!hasFilter) {
+        if (updateCache && epoch == _cacheEpoch) {
           _cachedClientes = clientes;
           _cacheTimestamp = DateTime.now();
         }
-        return List<Cliente>.from(clientes);
+        return clientes;
       }
       return _cachedClientes != null
           ? List<Cliente>.from(_cachedClientes!)
