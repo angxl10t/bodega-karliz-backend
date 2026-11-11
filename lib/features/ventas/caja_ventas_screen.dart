@@ -16,18 +16,37 @@ import '../../core/csv_exporter.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
 import '../../core/widgets/solicitar_pin_dialog.dart';
+import '../../core/widgets/tab_deferred_refresh.dart';
 
 class CajaVentasScreen extends StatefulWidget {
-  const CajaVentasScreen({super.key});
+  final ValueListenable<int>? activeTabNotifier;
+  final int? tabIndex;
+
+  const CajaVentasScreen({
+    super.key,
+    this.activeTabNotifier,
+    this.tabIndex,
+  });
 
   @override
   State<CajaVentasScreen> createState() => _CajaVentasScreenState();
 }
 
 class _CajaVentasScreenState extends State<CajaVentasScreen>
-    with SingleTickerProviderStateMixin {
+    with
+        SingleTickerProviderStateMixin,
+        TabDeferredRefreshMixin<CajaVentasScreen> {
   late TabController _tabController;
   final VentaService _ventaService = VentaService();
+
+  @override
+  ValueListenable<int>? get tabVisibilityNotifier => widget.activeTabNotifier;
+
+  @override
+  int? get assignedTabIndex => widget.tabIndex;
+
+  @override
+  void onDeferredTabRefresh() => _cargarDatos();
 
   CierreCaja? _cierreCaja;
   CierreCaja? _cierreHoy;
@@ -57,6 +76,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   @override
   void initState() {
     super.initState();
+    initTabVisibilityListener();
     _tabController = TabController(length: 2, vsync: this);
     VentaService.ventasRevision.addListener(_onVentasRevisionChanged);
     _cargarDatos();
@@ -64,6 +84,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
 
   @override
   void dispose() {
+    disposeTabVisibilityListener();
     VentaService.ventasRevision.removeListener(_onVentasRevisionChanged);
     _tabController.dispose();
     _busquedaController.dispose();
@@ -72,9 +93,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   }
 
   void _onVentasRevisionChanged() {
-    if (mounted) {
-      _cargarDatos();
-    }
+    runWhenTabVisible(_cargarDatos);
   }
 
   bool _esMismoDia(DateTime a, DateTime b) {

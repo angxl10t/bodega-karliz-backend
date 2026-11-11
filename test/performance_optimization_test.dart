@@ -10,10 +10,12 @@ import 'package:bodega_mobile/features/auth/auth_service.dart';
 import 'package:bodega_mobile/features/catalogo/pedido_web_service.dart';
 import 'package:bodega_mobile/features/categorias/categoria_service.dart';
 import 'package:bodega_mobile/features/clientes/cliente_service.dart';
+import 'package:bodega_mobile/features/home/bodega_service.dart';
 import 'package:bodega_mobile/features/clientes/garantia_botella_service.dart';
 import 'package:bodega_mobile/features/productos/producto_model.dart';
 import 'package:bodega_mobile/features/productos/producto_service.dart';
 import 'package:bodega_mobile/features/proveedores/proveedor_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -627,6 +629,124 @@ void main() {
         expect(PedidoWebService.pedidos, isEmpty);
         expect(PedidoWebService.pedidosPendientesCountNotifier.value, equals(0));
         expect(PedidoWebService.estaSincronizandoNotifier.value, isFalse);
+      },
+    );
+  });
+
+  group('BodegaService, OfflineBatch & SecureStorage JWT Cache Tests', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({});
+      SecureStorageService.clearMemoryCache();
+      BodegaService.clearCache();
+      OfflineCatalogService().clearMemoryCache();
+    });
+
+    test(
+      'BodegaService.obtenerMiBodega coalesce concurrentes, respeta TTL y limpia con clearCache',
+      () async {
+        int calls = 0;
+        final started = Completer<void>();
+        final gate = Completer<void>();
+
+        final mockHttp = MockClient((request) async {
+          calls++;
+          if (!started.isCompleted) started.complete();
+          await gate.future;
+          return http.Response(
+            jsonEncode({
+              'idBodega': 10,
+              'nombreComercial': 'Bodega Call $calls',
+              'colorPrimario': '#2563EB',
+              'plan': 'PRO',
+              'estado': true,
+              'regimenTributario': 'NUEVO_RUS',
+            }),
+            200,
+          );
+        });
+
+        final service = BodegaService(client: ApiClient(client: mockHttp));
+        final futures = List.generate(4, (_) => service.obtenerMiBodega());
+
+        await started.future;
+        expect(calls, equals(1));
+
+        gate.complete();
+        final infos = await Future.wait(futures);
+        expect(calls, equals(1));
+        for (final info in infos) {
+          expect(info?.nombreComercial, equals('Bodega Call 1'));
+        }
+
+        final cached = await service.obtenerMiBodega();
+        expect(cached?.nombreComercial, equals('Bodega Call 1'));
+        expect(calls, equals(1));
+
+        BodegaService.clearCache();
+        final refreshed = await service.obtenerMiBodega();
+        expect(refreshed?.nombreComercial, equals('Bodega Call 2'));
+        expect(calls, equals(2));
+      },
+    );
+
+    test(
+      'OfflineCatalogService.deductBatchLocally descuenta varios SKUs en una pasada y emite 1 revision',
+      () async {
+        final catalog = OfflineCatalogService();
+        await catalog.saveCatalog([
+          Producto(
+            idProducto: 101,
+            codigo: 'P101',
+            nombre: 'Arroz 1kg',
+            precioVenta: 4.5,
+            stockActual: 10.0,
+          ),
+          Producto(
+            idProducto: 102,
+            codigo: 'P102',
+            nombre: 'Azucar 1kg',
+            precioVenta: 4.0,
+            stockActual: 8.0,
+          ),
+        ], idBodega: '10');
+
+        int revisionBumps = 0;
+        void onRev() => revisionBumps++;
+        ProductoService.productosRevision.addListener(onRev);
+        try {
+          await catalog.deductBatchLocally(
+            {101: 3.0, 102: 2.5},
+            idBodega: '10',
+          );
+        } finally {
+          ProductoService.productosRevision.removeListener(onRev);
+        }
+
+        expect(revisionBumps, equals(1));
+        final updated = await catalog.getCachedCatalog(idBodega: '10');
+        expect(
+          updated.firstWhere((p) => p.idProducto == 101).stockActual,
+          closeTo(7.0, 0.001),
+        );
+        expect(
+          updated.firstWhere((p) => p.idProducto == 102).stockActual,
+          closeTo(5.5, 0.001),
+        );
+      },
+    );
+
+    test(
+      'SecureStorageService cachea jwt_token en memoria y lo invalida en clearAuth',
+      () async {
+        await SecureStorageService.write('jwt_token', 'jwt-en-memoria');
+        // Mutar storage mock subyacente: read debe devolver el valor cacheado en memoria
+        FlutterSecureStorage.setMockInitialValues({'jwt_token': 'jwt-disco-viejo'});
+        expect(await SecureStorageService.read('jwt_token'), equals('jwt-en-memoria'));
+
+        await SecureStorageService.clearAuth();
+        FlutterSecureStorage.setMockInitialValues({'jwt_token': 'jwt-nuevo'});
+        expect(await SecureStorageService.read('jwt_token'), equals('jwt-nuevo'));
       },
     );
   });

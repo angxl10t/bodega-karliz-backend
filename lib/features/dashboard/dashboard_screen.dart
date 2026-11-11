@@ -1,9 +1,11 @@
 import '../marketing/kit_marketing_barrio_modal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme.dart';
+import '../../core/widgets/tab_deferred_refresh.dart';
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
 import '../productos/nuevo_producto_sheet.dart';
@@ -33,17 +35,42 @@ import '../promociones/promociones_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
+  final ValueListenable<int>? activeTabNotifier;
+  final int? tabIndex;
 
-  const DashboardScreen({super.key, required this.onNavigateTab});
+  const DashboardScreen({
+    super.key,
+    required this.onNavigateTab,
+    this.activeTabNotifier,
+    this.tabIndex,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with TabDeferredRefreshMixin<DashboardScreen> {
   final ProductoService _productoService = ProductoService();
   final VentaService _ventaService = VentaService();
   final ClienteService _clienteService = ClienteService();
+  bool _pendingProductosRefresh = false;
+
+  @override
+  ValueListenable<int>? get tabVisibilityNotifier => widget.activeTabNotifier;
+
+  @override
+  int? get assignedTabIndex => widget.tabIndex;
+
+  @override
+  void onDeferredTabRefresh() {
+    if (_pendingProductosRefresh) {
+      _pendingProductosRefresh = false;
+      _cargarDatos(forceRefresh: true);
+    } else {
+      _cargarCierreHoy();
+    }
+  }
   List<Producto> _productos = [];
   CierreCaja? _cierreHoy;
   ResumenCreditos? _resumenCreditos;
@@ -60,6 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    initTabVisibilityListener();
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
     VentaService.ventasRevision.addListener(_onVentasRevisionChanged);
     _cargarMetaDiaria();
@@ -68,6 +96,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void dispose() {
+    disposeTabVisibilityListener();
     ProductoService.productosRevision.removeListener(
       _onProductosRevisionChanged,
     );
@@ -76,15 +105,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _onProductosRevisionChanged() {
-    if (mounted) {
-      _cargarDatos(forceRefresh: true);
+    if (!isTabCurrentlyVisible) {
+      _pendingProductosRefresh = true;
     }
+    runWhenTabVisible(() {
+      _pendingProductosRefresh = false;
+      _cargarDatos(forceRefresh: true);
+    });
   }
 
   void _onVentasRevisionChanged() {
-    if (mounted) {
-      _cargarCierreHoy();
-    }
+    runWhenTabVisible(() => _cargarCierreHoy());
   }
 
   Future<void> _cargarMetaDiaria() async {

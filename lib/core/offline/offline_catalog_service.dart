@@ -169,13 +169,27 @@ class OfflineCatalogService {
     int idProducto,
     double cantidadVendida, {
     String? idBodega,
+  }) {
+    return deductBatchLocally(
+      {idProducto: cantidadVendida},
+      idBodega: idBodega,
+    );
+  }
+
+  /// Descuenta en una sola pasada todo el lote de items vendidos offline,
+  /// evitando m?ltiples serializaciones JSON y notificaciones duplicadas a la UI.
+  Future<void> deductBatchLocally(
+    Map<int, double> quantitiesByProductId, {
+    String? idBodega,
   }) async {
+    if (quantitiesByProductId.isEmpty) return;
     final catalog = await getCachedCatalog(idBodega: idBodega);
     if (catalog.isEmpty) return;
 
     bool modificado = false;
     final updatedList = catalog.map((p) {
-      if (p.idProducto == idProducto) {
+      final cantidadVendida = quantitiesByProductId[p.idProducto];
+      if (cantidadVendida != null && cantidadVendida > 0) {
         modificado = true;
         final nuevoStock = (p.stockActual - cantidadVendida).clamp(
           0.0,
@@ -190,7 +204,6 @@ class OfflineCatalogService {
       _lastSavedFingerprint = null;
       _inMemoryCatalog = updatedList;
       await saveCatalog(updatedList, idBodega: idBodega);
-      // Notifica a las pantallas para que actualicen sus vistas al instante
       ProductoService.productosRevision.value++;
     }
   }

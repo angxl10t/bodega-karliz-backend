@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,6 +7,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SecureStorageService {
   static final Set<void Function()> _sessionCleanupCallbacks =
       <void Function()>{};
+  static String? _cachedJwtToken;
+
+  /// Limpia únicamente la caché en memoria del JWT (útil en tests).
+  @visibleForTesting
+  static void clearMemoryCache() {
+    _cachedJwtToken = null;
+  }
 
   /// Registra una rutina síncrona para limpiar cachés en memoria o temporizadores
   /// al cerrar sesión, expirar el token o cambiar de bodega.
@@ -27,6 +35,9 @@ class SecureStorageService {
 
   /// Escribe un valor de forma cifrada con respaldo resiliente
   static Future<void> write(String key, String value) async {
+    if (key == 'jwt_token') {
+      _cachedJwtToken = value;
+    }
     try {
       await _storage.write(key: key, value: value);
     } catch (_) {
@@ -39,9 +50,15 @@ class SecureStorageService {
 
   /// Lee un valor descifrado, con migración transparente y fallback resiliente
   static Future<String?> read(String key) async {
+    if (key == 'jwt_token' && _cachedJwtToken != null) {
+      return _cachedJwtToken;
+    }
     try {
       String? val = await _storage.read(key: key);
-      if (val != null) return val;
+      if (val != null) {
+        if (key == 'jwt_token') _cachedJwtToken = val;
+        return val;
+      }
     } catch (_) {}
 
     try {
@@ -49,6 +66,7 @@ class SecureStorageService {
       if (prefs.containsKey(key)) {
         final val = prefs.getString(key);
         if (val != null) {
+          if (key == 'jwt_token') _cachedJwtToken = val;
           try {
             await _storage.write(key: key, value: val);
             await prefs.remove(key);
@@ -62,6 +80,9 @@ class SecureStorageService {
 
   /// Elimina una clave de ambos almacenamientos de forma segura
   static Future<void> delete(String key) async {
+    if (key == 'jwt_token') {
+      _cachedJwtToken = null;
+    }
     try {
       await _storage.delete(key: key);
     } catch (_) {}
@@ -87,6 +108,7 @@ class SecureStorageService {
 
   /// Limpia todas las credenciales cifradas y resetea cachés en memoria de la sesión
   static Future<void> clearAuth() async {
+    _cachedJwtToken = null;
     runSessionCleanupCallbacks();
     await Future.wait([
       delete('jwt_token'),

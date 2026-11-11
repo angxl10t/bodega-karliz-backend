@@ -43,6 +43,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final Set<int> _loadedTabs = {0};
+  final ValueNotifier<int> _activeTabNotifier = ValueNotifier<int>(0);
   late final List<Widget> _screens;
   String _username = 'admin';
   String _userRol = 'ADMIN';
@@ -53,8 +54,22 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic> _anuncioGlobal = {};
   bool _anuncioDismissed = false;
   Timer? _inactivityTimer;
+  DateTime? _lastInactivityResetAt;
   bool _orientationConfigured = false;
   bool _railCollapsed = false;
+
+  void _selectTab(int index) {
+    final safeIndex = index.clamp(0, _screens.length - 1);
+    if (!mounted) return;
+    if (_selectedIndex == safeIndex && _loadedTabs.contains(safeIndex)) {
+      return;
+    }
+    setState(() {
+      _selectedIndex = safeIndex;
+      _loadedTabs.add(safeIndex);
+    });
+    _activeTabNotifier.value = safeIndex;
+  }
 
   @override
   void didChangeDependencies() {
@@ -68,7 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> get _builtScreens {
     return List.generate(_screens.length, (index) {
       if (_loadedTabs.contains(index)) {
-        return _screens[index];
+        return TickerMode(
+          enabled: _selectedIndex == index,
+          child: _screens[index],
+        );
       }
       return const SizedBox.shrink();
     });
@@ -82,29 +100,45 @@ class _HomeScreenState extends State<HomeScreen> {
     _resetInactivityTimer();
     _screens = [
       DashboardScreen(
-        onNavigateTab: (index) {
-          if (mounted) {
-            setState(() {
-              _selectedIndex = index;
-              _loadedTabs.add(index);
-            });
-          }
-        },
+        onNavigateTab: _selectTab,
+        activeTabNotifier: _activeTabNotifier,
+        tabIndex: 0,
       ),
-      const VentasScreen(),
-      const CajaVentasScreen(),
-      const ProductosScreen(),
-      const ClientesScreen(),
+      VentasScreen(
+        activeTabNotifier: _activeTabNotifier,
+        tabIndex: 1,
+      ),
+      CajaVentasScreen(
+        activeTabNotifier: _activeTabNotifier,
+        tabIndex: 2,
+      ),
+      ProductosScreen(
+        activeTabNotifier: _activeTabNotifier,
+        tabIndex: 3,
+      ),
+      ClientesScreen(
+        activeTabNotifier: _activeTabNotifier,
+        tabIndex: 4,
+      ),
     ];
   }
 
   @override
   void dispose() {
     _inactivityTimer?.cancel();
+    _activeTabNotifier.dispose();
     super.dispose();
   }
 
-  void _resetInactivityTimer() {
+  void _resetInactivityTimer({bool throttle = false}) {
+    final now = DateTime.now();
+    if (throttle &&
+        _inactivityTimer != null &&
+        _lastInactivityResetAt != null &&
+        now.difference(_lastInactivityResetAt!) < const Duration(seconds: 2)) {
+      return;
+    }
+    _lastInactivityResetAt = now;
     _inactivityTimer?.cancel();
     if (!mounted || LockService().isLocked) return;
 
@@ -200,14 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
               username: _username,
               userRol: _userRol,
               nombreBodega: _nombreBodega,
-              onNavigateTab: (index) {
-                if (mounted) {
-                  setState(() {
-                    _selectedIndex = index;
-                    _loadedTabs.add(index);
-                  });
-                }
-              },
+              onNavigateTab: _selectTab,
             );
           }
         });
@@ -1488,16 +1515,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Listener(
       behavior: HitTestBehavior.translucent,
       onPointerDown: (_) => _resetInactivityTimer(),
-      onPointerMove: (_) => _resetInactivityTimer(),
+      onPointerMove: (_) => _resetInactivityTimer(throttle: true),
       child: PopScope(
         canPop: _selectedIndex == 0,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
           if (_selectedIndex != 0) {
-            setState(() {
-              _selectedIndex = 0;
-              _loadedTabs.add(0);
-            });
+            _selectTab(0);
           }
         },
         child: Scaffold(
@@ -1935,10 +1959,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         onDestinationSelected: (index) {
                           HapticFeedback.selectionClick();
-                          setState(() {
-                            _selectedIndex = index;
-                            _loadedTabs.add(index);
-                          });
+                          _selectTab(index);
                         },
                         leading: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -2038,12 +2059,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? null
               : KarlizPixelPerfectNavBar(
                   selectedIndex: _selectedIndex.clamp(0, _screens.length - 1),
-                  onItemSelected: (index) {
-                    setState(() {
-                      _selectedIndex = index;
-                      _loadedTabs.add(index);
-                    });
-                  },
+                  onItemSelected: _selectTab,
                   isDark: isDark,
                 ),
         ),

@@ -17,10 +17,19 @@ import 'garantia_botella_model.dart';
 import 'garantia_botella_service.dart';
 import 'nueva_garantia_sheet.dart';
 import 'devolver_botella_dialog.dart';
+import '../../core/widgets/tab_deferred_refresh.dart';
 
 class ClientesScreen extends StatefulWidget {
   final int initialTabIndex;
-  const ClientesScreen({super.key, this.initialTabIndex = 0});
+  final ValueListenable<int>? activeTabNotifier;
+  final int? tabIndex;
+
+  const ClientesScreen({
+    super.key,
+    this.initialTabIndex = 0,
+    this.activeTabNotifier,
+    this.tabIndex,
+  });
 
   /// Notificador reactivo para permitir que otras pantallas (como DashboardScreen o POS)
   /// cambien suavemente de pestaña entre Libreta de Fiados (0) y Garantía de Botellas (1).
@@ -35,11 +44,22 @@ class ClientesScreen extends StatefulWidget {
 }
 
 class _ClientesScreenState extends State<ClientesScreen>
-    with SingleTickerProviderStateMixin {
+    with
+        SingleTickerProviderStateMixin,
+        TabDeferredRefreshMixin<ClientesScreen> {
   late TabController _tabController;
   final ClienteService _clienteService = ClienteService();
   final GarantiaBotellaService _garantiaService = GarantiaBotellaService();
   final BodegaService _bodegaService = BodegaService();
+
+  @override
+  ValueListenable<int>? get tabVisibilityNotifier => widget.activeTabNotifier;
+
+  @override
+  int? get assignedTabIndex => widget.tabIndex;
+
+  @override
+  void onDeferredTabRefresh() => _cargarDatos(forceRefresh: true);
 
   List<Cliente> _clientes = [];
   ResumenCreditos? _resumen;
@@ -64,6 +84,7 @@ class _ClientesScreenState extends State<ClientesScreen>
   @override
   void initState() {
     super.initState();
+    initTabVisibilityListener();
     _tabController = TabController(
       length: 2,
       vsync: this,
@@ -90,6 +111,7 @@ class _ClientesScreenState extends State<ClientesScreen>
 
   @override
   void dispose() {
+    disposeTabVisibilityListener();
     ClientesScreen.tabRequestNotifier.removeListener(_onTabRequest);
     _tabController.dispose();
     ClienteService.clientesRevision.removeListener(_onRevisionChanged);
@@ -102,7 +124,7 @@ class _ClientesScreenState extends State<ClientesScreen>
   }
 
   void _onRevisionChanged() {
-    if (mounted) _cargarDatos(forceRefresh: true);
+    runWhenTabVisible(() => _cargarDatos(forceRefresh: true));
   }
 
   Future<void> _cargarDatos({bool forceRefresh = false}) async {
@@ -859,6 +881,7 @@ class _ClientesScreenState extends State<ClientesScreen>
     required int vecinosAlDia,
     required double creditoTotal,
   }) {
+    final clientesFiltrados = _clientesFiltrados;
     return Column(
       children: [
         _buildKpisSection(
@@ -873,7 +896,7 @@ class _ClientesScreenState extends State<ClientesScreen>
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : _clientesFiltrados.isEmpty
+              : clientesFiltrados.isEmpty
               ? _buildEmptyState(isDark)
               : LayoutBuilder(
                   builder: (context, constraints) {
@@ -888,9 +911,9 @@ class _ClientesScreenState extends State<ClientesScreen>
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
                             ),
-                        itemCount: _clientesFiltrados.length,
+                        itemCount: clientesFiltrados.length,
                         itemBuilder: (context, idx) {
-                          final c = _clientesFiltrados[idx];
+                          final c = clientesFiltrados[idx];
                           return _buildClienteCard(c, isDark);
                         },
                       );
@@ -898,9 +921,9 @@ class _ClientesScreenState extends State<ClientesScreen>
                       return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                        itemCount: _clientesFiltrados.length,
+                        itemCount: clientesFiltrados.length,
                         itemBuilder: (context, idx) {
-                          final c = _clientesFiltrados[idx];
+                          final c = clientesFiltrados[idx];
                           return _buildClienteCard(c, isDark);
                         },
                       );
@@ -917,6 +940,7 @@ class _ClientesScreenState extends State<ClientesScreen>
     required Color cardBg,
     required bool isWide,
   }) {
+    final garantiasFiltradas = _garantiasFiltradas;
     return Column(
       children: [
         _buildKpisGarantias(isDark),
@@ -924,7 +948,7 @@ class _ClientesScreenState extends State<ClientesScreen>
         Expanded(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : _garantiasFiltradas.isEmpty
+              : garantiasFiltradas.isEmpty
               ? _buildEmptyStateGarantias(isDark)
               : LayoutBuilder(
                   builder: (context, constraints) {
@@ -939,9 +963,9 @@ class _ClientesScreenState extends State<ClientesScreen>
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
                             ),
-                        itemCount: _garantiasFiltradas.length,
+                        itemCount: garantiasFiltradas.length,
                         itemBuilder: (context, idx) {
-                          final g = _garantiasFiltradas[idx];
+                          final g = garantiasFiltradas[idx];
                           return _buildGarantiaCard(g, isDark);
                         },
                       );
@@ -949,9 +973,9 @@ class _ClientesScreenState extends State<ClientesScreen>
                       return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                        itemCount: _garantiasFiltradas.length,
+                        itemCount: garantiasFiltradas.length,
                         itemBuilder: (context, idx) {
-                          final g = _garantiasFiltradas[idx];
+                          final g = garantiasFiltradas[idx];
                           return _buildGarantiaCard(g, isDark);
                         },
                       );

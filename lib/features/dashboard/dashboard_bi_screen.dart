@@ -449,6 +449,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
           final bool activo = _diasSeleccionados == dias;
 
           return Expanded(
+            key: ValueKey('bi_dias_$dias'),
             child: InkWell(
               onTap: () {
                 if (_diasSeleccionados != dias) {
@@ -963,6 +964,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 }
 
                 return Expanded(
+                  key: ValueKey('bi_hora_${hp.hora}'),
                   child: InkWell(
                     onTap: () {
                       setState(() {
@@ -1457,6 +1459,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
         final rank = index + 1;
 
         return Row(
+          key: ValueKey(item.idProducto ?? item.nombre),
           children: [
             // Medalla de ranking
             Container(
@@ -1641,6 +1644,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
         final item = huesos[index];
 
         return Container(
+          key: ValueKey(item.idProducto ?? item.nombre),
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

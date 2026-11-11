@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -43,6 +44,7 @@ import '../../core/widgets/solicitar_pin_dialog.dart';
 import '../movimientos/movimiento_service.dart';
 import '../auth/auth_service.dart';
 import 'hardware_mostrador_modal.dart';
+import '../../core/widgets/tab_deferred_refresh.dart';
 
 class PromoAplicada {
   final Promocion promocion;
@@ -57,13 +59,30 @@ class PromoAplicada {
 }
 
 class VentasScreen extends StatefulWidget {
-  const VentasScreen({super.key});
+  final ValueListenable<int>? activeTabNotifier;
+  final int? tabIndex;
+
+  const VentasScreen({
+    super.key,
+    this.activeTabNotifier,
+    this.tabIndex,
+  });
 
   @override
   State<VentasScreen> createState() => _VentasScreenState();
 }
 
-class _VentasScreenState extends State<VentasScreen> {
+class _VentasScreenState extends State<VentasScreen>
+    with TabDeferredRefreshMixin<VentasScreen> {
+  @override
+  ValueListenable<int>? get tabVisibilityNotifier => widget.activeTabNotifier;
+
+  @override
+  int? get assignedTabIndex => widget.tabIndex;
+
+  @override
+  void onDeferredTabRefresh() => _cargarProductos(forceRefresh: true);
+
   final ProductoService _productoService = ProductoService();
   final VentaService _ventaService = VentaService();
   final DocumentoService _documentoService = DocumentoService();
@@ -391,6 +410,7 @@ class _VentasScreenState extends State<VentasScreen> {
   @override
   void initState() {
     super.initState();
+    initTabVisibilityListener();
     PedidoWebService.inicializar();
     PedidoWebService.iniciarPollingRevision();
     PedidoWebService.onNuevoPedidoRecibido = _onNuevoPedidoWebRecibido;
@@ -492,6 +512,7 @@ class _VentasScreenState extends State<VentasScreen> {
 
   @override
   void dispose() {
+    disposeTabVisibilityListener();
     PedidoWebService.detenerPollingRevision();
     PedidoWebService.onNuevoPedidoRecibido = null;
     ProductoService.productosRevision.removeListener(
@@ -509,9 +530,7 @@ class _VentasScreenState extends State<VentasScreen> {
   }
 
   void _onProductosRevisionChanged() {
-    if (mounted) {
-      _cargarProductos(forceRefresh: true);
-    }
+    runWhenTabVisible(() => _cargarProductos(forceRefresh: true));
   }
 
   Future<void> _cargarProductos({bool forceRefresh = false}) async {
@@ -544,6 +563,7 @@ class _VentasScreenState extends State<VentasScreen> {
       if (mounted) {
         setState(() {
           _promocionesActivas = promos.where((p) => p.activo).toList();
+          _promosRevision++;
           _recalcularTabletCatalogCache();
         });
       }
@@ -552,8 +572,29 @@ class _VentasScreenState extends State<VentasScreen> {
     }
   }
 
+  int _promosRevision = 0;
+  int _cachedPromosRevision = -1;
+  int _cachedCarritoPromosSig = -1;
+  List<PromoAplicada> _cachedPromocionesAplicadas = const [];
+
   List<PromoAplicada> get _promocionesAplicadas {
-    if (_promocionesActivas.isEmpty || _carrito.isEmpty) return [];
+    if (_promocionesActivas.isEmpty || _carrito.isEmpty) return const [];
+    int sig = _carrito.length;
+    for (final it in _carrito) {
+      sig = Object.hash(sig, it.producto.idProducto, it.cantidad, it.subtotal);
+    }
+    if (_cachedPromosRevision == _promosRevision &&
+        _cachedCarritoPromosSig == sig) {
+      return _cachedPromocionesAplicadas;
+    }
+    final result = _calcularPromocionesAplicadas();
+    _cachedPromosRevision = _promosRevision;
+    _cachedCarritoPromosSig = sig;
+    _cachedPromocionesAplicadas = result;
+    return result;
+  }
+
+  List<PromoAplicada> _calcularPromocionesAplicadas() {
     final List<PromoAplicada> aplicadas = [];
 
     for (final promo in _promocionesActivas) {
@@ -752,9 +793,7 @@ class _VentasScreenState extends State<VentasScreen> {
   void _ejecutarCobroRapido() {
     if (_carrito.isEmpty || _isProcesando) return;
     if (_metodoPago == 'Efectivo' && _montoRecibido < _totalVenta) {
-      setState(() {
-        _pagoConController.text = _totalVenta.toStringAsFixed(2);
-      });
+      _pagoConController.text = _totalVenta.toStringAsFixed(2);
     }
     _procesarVenta();
   }
@@ -9051,9 +9090,7 @@ class _VentasScreenState extends State<VentasScreen> {
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onPressed: () {
-        setState(() {
-          _pagoConController.text = amount.toStringAsFixed(2);
-        });
+        _pagoConController.text = amount.toStringAsFixed(2);
         HapticFeedback.selectionClick();
         KarlizSoundService.instance.playBarcodeBeep();
       },
@@ -9210,9 +9247,7 @@ class _VentasScreenState extends State<VentasScreen> {
             InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: () {
-                setState(() {
-                  _pagoConController.text = _totalVenta.toStringAsFixed(2);
-                });
+                _pagoConController.text = _totalVenta.toStringAsFixed(2);
                 HapticFeedback.selectionClick();
                 KarlizSoundService.instance.playBarcodeBeep();
               },
@@ -9506,23 +9541,26 @@ class _VentasScreenState extends State<VentasScreen> {
 
         if (_metodoPago == 'Efectivo') ...[
           // Denominaciones sugeridas rápidas
-          Wrap(
-            spacing: isTablet ? 5 : 7,
-            runSpacing: isTablet ? 4 : 6,
-            children: [
-              _buildDenomChip(
-                label: 'Exacto (S/ ${_totalVenta.toStringAsFixed(2)})',
-                amount: _totalVenta,
-                isDark: isDark,
-                isExacto: true,
-              ),
-              for (final b in billetes)
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _pagoConController,
+            builder: (context, _, _) => Wrap(
+              spacing: isTablet ? 5 : 7,
+              runSpacing: isTablet ? 4 : 6,
+              children: [
                 _buildDenomChip(
-                  label: 'S/ ${b % 1 == 0 ? b.toInt() : b.toStringAsFixed(2)}',
-                  amount: b,
+                  label: 'Exacto (S/ ${_totalVenta.toStringAsFixed(2)})',
+                  amount: _totalVenta,
                   isDark: isDark,
+                  isExacto: true,
                 ),
-            ],
+                for (final b in billetes)
+                  _buildDenomChip(
+                    label: 'S/ ${b % 1 == 0 ? b.toInt() : b.toStringAsFixed(2)}',
+                    amount: b,
+                    isDark: isDark,
+                  ),
+              ],
+            ),
           ),
           SizedBox(height: isTablet ? 8 : 10),
 
@@ -9565,16 +9603,20 @@ class _VentasScreenState extends State<VentasScreen> {
                         horizontal: 12,
                         vertical: isTablet ? 8 : 12,
                       ),
-                      suffixIcon: _pagoConController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(LucideIcons.x, size: 14),
-                              onPressed: () {
-                                setState(() => _pagoConController.clear());
-                              },
-                            )
-                          : null,
+                      suffixIconConstraints: const BoxConstraints(
+                        minWidth: 0,
+                        minHeight: 0,
+                      ),
+                      suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _pagoConController,
+                        builder: (_, value, _) => value.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(LucideIcons.x, size: 14),
+                                onPressed: _pagoConController.clear,
+                              )
+                            : const SizedBox.shrink(),
+                      ),
                     ),
-                    onChanged: (_) => setState(() {}),
                   ),
                 ),
               ),
@@ -9583,7 +9625,11 @@ class _VentasScreenState extends State<VentasScreen> {
           SizedBox(height: isTablet ? 8 : 10),
 
           // Tarjeta Inteligente de Vuelto
-          _buildVueltoCard(isDark, isTablet: isTablet),
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _pagoConController,
+            builder: (context, _, _) =>
+                _buildVueltoCard(isDark, isTablet: isTablet),
+          ),
         ] else if (_metodoPago == 'Crédito') ...[
           _buildCreditCustomerCard(isDark, isTablet: isTablet),
         ] else ...[
@@ -10016,6 +10062,8 @@ class _VentasScreenState extends State<VentasScreen> {
     HapticFeedback.lightImpact();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final searchCtrl = TextEditingController();
+    Timer? searchDebounce;
+    Future<List<Cliente>> clientesFuture = _clienteService.buscarClientes('');
 
     showModalBottomSheet(
       context: context,
@@ -10145,7 +10193,19 @@ class _VentasScreenState extends State<VentasScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 18),
                         child: TextField(
                           controller: searchCtrl,
-                          onChanged: (_) => setModalState(() {}),
+                          onChanged: (value) {
+                            searchDebounce?.cancel();
+                            searchDebounce = Timer(
+                              const Duration(milliseconds: 220),
+                              () {
+                                if (!bottomCtx.mounted) return;
+                                setModalState(() {
+                                  clientesFuture = _clienteService
+                                      .buscarClientes(value);
+                                });
+                              },
+                            );
+                          },
                           decoration: InputDecoration(
                             hintText: 'Buscar por nombre, DNI o teléfono...',
                             prefixIcon: const Icon(
@@ -10167,9 +10227,7 @@ class _VentasScreenState extends State<VentasScreen> {
                       const SizedBox(height: 10),
                       Expanded(
                         child: FutureBuilder<List<Cliente>>(
-                          future: _clienteService.buscarClientes(
-                            searchCtrl.text,
-                          ),
+                          future: clientesFuture,
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -10449,7 +10507,10 @@ class _VentasScreenState extends State<VentasScreen> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      searchDebounce?.cancel();
+      searchCtrl.dispose();
+    });
   }
 
   Widget _buildCobrarButton({
@@ -10520,100 +10581,103 @@ class _VentasScreenState extends State<VentasScreen> {
     }
 
     if (_metodoPago == 'Efectivo') {
-      if (_montoRecibido <= 0) {
-        return SizedBox(
-          width: double.infinity,
-          height: height,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              setState(() {
-                _pagoConController.text = _totalVenta.toStringAsFixed(2);
-              });
-              HapticFeedback.mediumImpact();
-              KarlizSoundService.instance.playBarcodeBeep();
-            },
-            icon: const Icon(LucideIcons.zap, size: 18),
-            label: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                'COBRAR EXACTO • S/ ${_totalVenta.toStringAsFixed(2)}',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: isTablet ? 12.5 : 13.5,
-                  fontWeight: FontWeight.w800,
+      return ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _pagoConController,
+        builder: (context, _, _) {
+          if (_montoRecibido <= 0) {
+            return SizedBox(
+              width: double.infinity,
+              height: height,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  _pagoConController.text = _totalVenta.toStringAsFixed(2);
+                  HapticFeedback.mediumImpact();
+                  KarlizSoundService.instance.playBarcodeBeep();
+                },
+                icon: const Icon(LucideIcons.zap, size: 18),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'COBRAR EXACTO • S/ ${_totalVenta.toStringAsFixed(2)}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isTablet ? 12.5 : 13.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D9488),
+                  foregroundColor: Colors.white,
+                  elevation: 3,
+                  shadowColor: const Color(0xFF0D9488).withValues(alpha: 0.35),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(height / 2),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          if (_montoRecibido < _totalVenta) {
+            final faltante = _totalVenta - _montoRecibido;
+            return SizedBox(
+              width: double.infinity,
+              height: height,
+              child: ElevatedButton.icon(
+                onPressed: null,
+                icon: const Icon(LucideIcons.alertTriangle, size: 18),
+                label: Text(
+                  'FALTA DINERO: S/ ${faltante.toStringAsFixed(2)}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: isTablet ? 12 : 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.alertRed.withValues(alpha: 0.15),
+                  foregroundColor: AppTheme.alertRed,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(height / 2),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          // Efectivo cubierto
+          final String labelText = _vuelto > 0
+              ? 'COBRAR S/ ${_totalVenta.toStringAsFixed(2)} • VUELTO: S/ ${_vuelto.toStringAsFixed(2)}'
+              : 'COBRAR S/ ${_totalVenta.toStringAsFixed(2)} • PAGO EXACTO';
+
+          return SizedBox(
+            width: double.infinity,
+            height: height,
+            child: ElevatedButton.icon(
+              onPressed: _procesarVenta,
+              icon: const Icon(LucideIcons.checkCheck, size: 18),
+              label: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  labelText,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: isTablet ? 12.5 : 13.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF059669),
+                foregroundColor: Colors.white,
+                elevation: 4,
+                shadowColor: const Color(0xFF059669).withValues(alpha: 0.35),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(height / 2),
                 ),
               ),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D9488),
-              foregroundColor: Colors.white,
-              elevation: 3,
-              shadowColor: const Color(0xFF0D9488).withValues(alpha: 0.35),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(height / 2),
-              ),
-            ),
-          ),
-        );
-      }
-
-      if (_montoRecibido < _totalVenta) {
-        final faltante = _totalVenta - _montoRecibido;
-        return SizedBox(
-          width: double.infinity,
-          height: height,
-          child: ElevatedButton.icon(
-            onPressed: null,
-            icon: const Icon(LucideIcons.alertTriangle, size: 18),
-            label: Text(
-              'FALTA DINERO: S/ ${faltante.toStringAsFixed(2)}',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: isTablet ? 12 : 13,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.alertRed.withValues(alpha: 0.15),
-              foregroundColor: AppTheme.alertRed,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(height / 2),
-              ),
-            ),
-          ),
-        );
-      }
-
-      // Efectivo cubierto
-      final String labelText = _vuelto > 0
-          ? 'COBRAR S/ ${_totalVenta.toStringAsFixed(2)} • VUELTO: S/ ${_vuelto.toStringAsFixed(2)}'
-          : 'COBRAR S/ ${_totalVenta.toStringAsFixed(2)} • PAGO EXACTO';
-
-      return SizedBox(
-        width: double.infinity,
-        height: height,
-        child: ElevatedButton.icon(
-          onPressed: _procesarVenta,
-          icon: const Icon(LucideIcons.checkCheck, size: 18),
-          label: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              labelText,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: isTablet ? 12.5 : 13.5,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF059669),
-            foregroundColor: Colors.white,
-            elevation: 4,
-            shadowColor: const Color(0xFF059669).withValues(alpha: 0.35),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(height / 2),
-            ),
-          ),
-        ),
+          );
+        },
       );
     }
 

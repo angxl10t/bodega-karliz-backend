@@ -129,9 +129,11 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
 
   Future<void> _cargarCatalogos() async {
     try {
-      final cats = await CategoriaService().getCategorias();
-      final prods = await ProductoService().getProductos();
-      final marcas = await ProductoService().getMarcas();
+      final (cats, prods, marcas) = await (
+        CategoriaService().getCategorias(),
+        ProductoService().getProductos(),
+        ProductoService().getMarcas(),
+      ).wait;
       if (mounted) {
         setState(() {
           _categorias = cats;
@@ -550,14 +552,14 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               controller.text.isEmpty) {
                             controller.text = _marcaCtrl.text;
                           }
-                          controller.addListener(() {
-                            if (_marcaCtrl.text != controller.text) {
-                              _marcaCtrl.text = controller.text;
-                            }
-                          });
                           return TextFormField(
                             controller: controller,
                             focusNode: focusNode,
+                            onChanged: (value) {
+                              if (_marcaCtrl.text != value) {
+                                _marcaCtrl.text = value;
+                              }
+                            },
                             decoration: InputDecoration(
                               hintText: 'Selecciona o escribe una marca (Ej. Pepsi, Bimbo...)',
                               prefixIcon: const Icon(
@@ -571,16 +573,22 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              suffixIcon: _marcaCtrl.text.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear, size: 16),
-                                      onPressed: () {
-                                        controller.clear();
-                                        _marcaCtrl.clear();
-                                        setState(() {});
-                                      },
-                                    )
-                                  : null,
+                              suffixIconConstraints: const BoxConstraints(
+                                minWidth: 0,
+                                minHeight: 0,
+                              ),
+                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: controller,
+                                builder: (_, value, _) => value.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, size: 16),
+                                        onPressed: () {
+                                          controller.clear();
+                                          _marcaCtrl.clear();
+                                        },
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
                             ),
                             validator: (v) => v == null || v.trim().isEmpty
                                 ? 'Ingresa o selecciona la marca'

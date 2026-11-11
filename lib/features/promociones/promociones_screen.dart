@@ -61,8 +61,10 @@ class _PromocionesScreenState extends State<PromocionesScreen>
   Future<void> _cargarDatos() async {
     setState(() => _cargando = true);
     try {
-      final promos = await _service.obtenerPromociones();
-      final sugs = await _service.obtenerSugerenciasHuesos();
+      final (promos, sugs) = await (
+        _service.obtenerPromociones(),
+        _service.obtenerSugerenciasHuesos(),
+      ).wait;
       if (mounted) {
         setState(() {
           _promociones = promos;

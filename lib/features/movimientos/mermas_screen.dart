@@ -47,8 +47,10 @@ class _MermasScreenState extends State<MermasScreen> {
 
   Future<void> _cargarDatos() async {
     setState(() => _isLoading = true);
-    final lista = await _mermasService.obtenerMermas();
-    final kpis = await _mermasService.calcularKpisMes();
+    final (lista, kpis) = await (
+      _mermasService.obtenerMermas(),
+      _mermasService.calcularKpisMes(),
+    ).wait;
     if (mounted) {
       setState(() {
         _mermas = lista;

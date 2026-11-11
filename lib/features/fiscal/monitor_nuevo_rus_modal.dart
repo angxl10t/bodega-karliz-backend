@@ -54,13 +54,14 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
     });
 
     try {
-      final bodega = await _bodegaService.obtenerMiBodega();
-      final resumen = await _bodegaService.obtenerMonitorNuevoRus();
-
-      ResumenVentasMenores? resumenBoleta;
-      try {
-        resumenBoleta = await _boletaService.obtenerSugerencia();
-      } catch (_) {}
+      final (bodega, resumen, resumenBoleta) = await (
+        _bodegaService.obtenerMiBodega(),
+        _bodegaService.obtenerMonitorNuevoRus(),
+        _boletaService
+            .obtenerSugerencia()
+            .then<ResumenVentasMenores?>((v) => v)
+            .catchError((_) => null),
+      ).wait;
 
       if (mounted) {
         setState(() {

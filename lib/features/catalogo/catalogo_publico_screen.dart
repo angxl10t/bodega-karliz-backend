@@ -41,6 +41,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   Map<String, dynamic> _bodega = {};
   List<Map<String, dynamic>> _productos = [];
+  Map<String, Map<String, dynamic>> _productosPorId = const {};
+  int _ofertasCount = 0;
   List<String> _categorias = [];
   List<Map<String, dynamic>> _promociones = [];
   String _categoriaSeleccionada = 'TODAS';
@@ -101,12 +103,26 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
 
+        final prodsById = <String, Map<String, dynamic>>{};
+        int ofertas = 0;
+        for (final p in prodsList) {
+          final idStr = p['idProducto']?.toString();
+          if (idStr != null && idStr.isNotEmpty) {
+            prodsById[idStr] = p;
+          }
+          if (p['tienePromocion'] == true) {
+            ofertas++;
+          }
+        }
+
         if (mounted) {
           setState(() {
             _bodega = bodegaMap;
             _esPro = esPro;
             _mensajeNoPro = msg;
             _productos = prodsList;
+            _productosPorId = prodsById;
+            _ofertasCount = ofertas;
             _categorias = catsList;
             _promociones = promosList;
             _recomputeProductosFiltrados();
@@ -166,10 +182,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   double get _totalAhorroCarrito {
     double ahorro = 0.0;
     _carrito.forEach((id, cant) {
-      final prod = _productos.firstWhere(
-        (p) => p['idProducto']?.toString() == id.toString(),
-        orElse: () => <String, dynamic>{},
-      );
+      final prod = _productosPorId[id.toString()] ?? const <String, dynamic>{};
       if (prod['tienePromocion'] == true) {
         final double regular = (prod['precioVenta'] is num)
             ? (prod['precioVenta'] as num).toDouble()
@@ -192,10 +205,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   double get _totalMontoCarrito {
     double total = 0.0;
     _carrito.forEach((id, cant) {
-      final prod = _productos.firstWhere(
-        (p) => p['idProducto']?.toString() == id.toString(),
-        orElse: () => <String, dynamic>{},
-      );
+      final prod = _productosPorId[id.toString()] ?? const <String, dynamic>{};
       final double regular = (prod['precioVenta'] is num)
           ? (prod['precioVenta'] as num).toDouble()
           : 0.0;
@@ -257,10 +267,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final List<PedidoWebItem> itemsParaBandeja = [];
 
     _carrito.forEach((id, cant) {
-      final prod = _productos.firstWhere(
-        (p) => p['idProducto']?.toString() == id.toString(),
-        orElse: () => <String, dynamic>{},
-      );
+      final prod = _productosPorId[id.toString()] ?? const <String, dynamic>{};
       final nombre = prod['nombre']?.toString() ?? 'Producto';
       final double regular = (prod['precioVenta'] is num)
           ? (prod['precioVenta'] as num).toDouble()
@@ -295,10 +302,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       buffer.writeln('Descuento web aplicado: -S/ ${_totalAhorroCarrito.toStringAsFixed(2)}');
     }
     final bool incluyeRetornables = _carrito.keys.any((id) {
-      final p = _productos.firstWhere(
-        (prod) => prod['idProducto']?.toString() == id.toString(),
-        orElse: () => <String, dynamic>{},
-      );
+      final p = _productosPorId[id.toString()] ?? const <String, dynamic>{};
       return _esProductoRetornable(p);
     });
     if (incluyeRetornables) {
@@ -1215,10 +1219,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       isDark,
                       isTablet,
                     ),
-                    if (_productos.any((p) => p['tienePromocion'] == true))
+                    if (_ofertasCount > 0)
                       _buildCategoriaChip(
                         'OFERTAS',
-                        '🔥 Ofertas (${_productos.where((p) => p['tienePromocion'] == true).length})',
+                        '🔥 Ofertas ($_ofertasCount)',
                         isDark,
                         isTablet,
                         esOferta: true,
@@ -2903,11 +2907,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           itemBuilder: (context, idx) {
                             final id = cartItemIds[idx];
                             final cant = _carrito[id] ?? 0;
-                            final prod = _productos.firstWhere(
-                              (p) =>
-                                  p['idProducto']?.toString() == id.toString(),
-                              orElse: () => <String, dynamic>{},
-                            );
+                            final prod =
+                                _productosPorId[id.toString()] ??
+                                const <String, dynamic>{};
 
                             final String nombre =
                                 prod['nombre']?.toString() ?? 'Producto';

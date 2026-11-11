@@ -74,11 +74,18 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
   }
 
   Future<void> _cargarDatosBodega() async {
-    final nombre = await SecureStorageService.read('nombre_bodega');
-    final ruc = await SecureStorageService.read('ruc_bodega');
-    final dir = await SecureStorageService.read('direccion_bodega');
-    final tel = await SecureStorageService.read('telefono_bodega');
-    final lema = await SecureStorageService.read('lema_comercial');
+    final results = await Future.wait([
+      SecureStorageService.read('nombre_bodega'),
+      SecureStorageService.read('ruc_bodega'),
+      SecureStorageService.read('direccion_bodega'),
+      SecureStorageService.read('telefono_bodega'),
+      SecureStorageService.read('lema_comercial'),
+    ]);
+    final nombre = results[0];
+    final ruc = results[1];
+    final dir = results[2];
+    final tel = results[3];
+    final lema = results[4];
 
     if (mounted) {
       setState(() {
@@ -98,9 +105,10 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
     });
 
     try {
-      final resumen =
-          await _service.obtenerSugerencia(fecha: _fechaSeleccionada);
-      final historial = await _service.listarHistorial(limit: 20);
+      final (resumen, historial) = await (
+        _service.obtenerSugerencia(fecha: _fechaSeleccionada),
+        _service.listarHistorial(limit: 20),
+      ).wait;
 
       if (mounted) {
         setState(() {

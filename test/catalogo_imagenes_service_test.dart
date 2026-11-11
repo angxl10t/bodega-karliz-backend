@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bodega_mobile/core/catalogo_imagenes_service.dart';
 
@@ -98,6 +100,37 @@ void main() {
       );
       expect(inka, isNotNull);
       expect(inka!.id, equals('inka_kola_500ml'));
+    });
+
+    test('Todos los packshots locales existen en disco y barcodes Rexona/Dove coinciden', () {
+      final catalogo = CatalogoImagenesService.getCatalogoMaestro();
+      expect(catalogo, isNotEmpty);
+      for (final item in catalogo) {
+        if (item.imagenUrl.startsWith('packshots/')) {
+          expect(
+            File('assets/${item.imagenUrl}').existsSync(),
+            isTrue,
+            reason: 'Falta archivo en assets/: ${item.imagenUrl}',
+          );
+          expect(
+            File('web/${item.imagenUrl}').existsSync(),
+            isTrue,
+            reason: 'Falta archivo en web/: ${item.imagenUrl}',
+          );
+        }
+      }
+
+      final dove = CatalogoImagenesService.buscarSugerencia(codigoBarras: '7750113008056');
+      expect(dove?.id, equals('jabon_dove'));
+      expect(dove?.imagenUrl, endsWith('jabon_dove.png'));
+
+      final rexonaMen = CatalogoImagenesService.buscarSugerencia(codigoBarras: '7750113008094');
+      expect(rexonaMen?.id, equals('desodorante_rexona'));
+      expect(rexonaMen?.imagenUrl, endsWith('rexona_men.png'));
+
+      final rexonaWomen = CatalogoImagenesService.buscarSugerencia(codigoBarras: '7750113008100');
+      expect(rexonaWomen?.id, equals('desodorante_rexona_women'));
+      expect(rexonaWomen?.imagenUrl, endsWith('rexona_women.png'));
     });
   });
 }

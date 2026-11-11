@@ -25,17 +25,35 @@ import '../../core/category_helper.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/solicitar_pin_dialog.dart';
+import '../../core/widgets/tab_deferred_refresh.dart';
 
 class ProductosScreen extends StatefulWidget {
-  const ProductosScreen({super.key});
+  final ValueListenable<int>? activeTabNotifier;
+  final int? tabIndex;
+
+  const ProductosScreen({
+    super.key,
+    this.activeTabNotifier,
+    this.tabIndex,
+  });
 
   @override
   State<ProductosScreen> createState() => _ProductosScreenState();
 }
 
-class _ProductosScreenState extends State<ProductosScreen> {
+class _ProductosScreenState extends State<ProductosScreen>
+    with TabDeferredRefreshMixin<ProductosScreen> {
   final ProductoService _productoService = ProductoService();
   final BodegaService _bodegaService = BodegaService();
+
+  @override
+  ValueListenable<int>? get tabVisibilityNotifier => widget.activeTabNotifier;
+
+  @override
+  int? get assignedTabIndex => widget.tabIndex;
+
+  @override
+  void onDeferredTabRefresh() => _cargarProductos(forceRefresh: true);
   BodegaInfo? _bodegaInfo;
   List<Producto> _todosProductos = [];
   List<Producto> _productosFiltrados = [];
@@ -77,6 +95,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   @override
   void initState() {
     super.initState();
+    initTabVisibilityListener();
     _todosProductos = [];
     _productosFiltrados = [];
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
@@ -85,6 +104,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   @override
   void dispose() {
+    disposeTabVisibilityListener();
     _searchDebounce?.cancel();
     ProductoService.productosRevision.removeListener(
       _onProductosRevisionChanged,
@@ -94,9 +114,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
   }
 
   void _onProductosRevisionChanged() {
-    if (mounted) {
-      _cargarProductos(forceRefresh: true);
-    }
+    runWhenTabVisible(() => _cargarProductos(forceRefresh: true));
   }
 
   Future<void> _inicializarDatos() async {

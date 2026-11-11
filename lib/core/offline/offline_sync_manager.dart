@@ -127,14 +127,16 @@ class OfflineSyncManager {
     _queue.add(venta);
     await _saveQueue();
 
-    // Descuenta el stock localmente de inmediato para mantener consistencia en mostrador
+    // Descuenta el stock localmente en un ?nico lote para evitar serializaciones N+1
+    final cantidadesPorProducto = <int, double>{};
     for (final det in venta.detalles) {
-      await _catalogService.deductStockLocally(
-        det.idProducto,
-        det.cantidad,
-        idBodega: venta.idBodega > 0 ? venta.idBodega.toString() : null,
-      );
+      cantidadesPorProducto[det.idProducto] =
+          (cantidadesPorProducto[det.idProducto] ?? 0.0) + det.cantidad;
     }
+    await _catalogService.deductBatchLocally(
+      cantidadesPorProducto,
+      idBodega: venta.idBodega > 0 ? venta.idBodega.toString() : null,
+    );
 
     isOfflineNotifier.value = true;
     debugPrint(

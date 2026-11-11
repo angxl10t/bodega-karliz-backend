@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+
 import '../../core/api_client.dart';
 import '../../core/secure_storage_service.dart';
 
@@ -85,41 +86,97 @@ class BodegaInfo {
 }
 
 class BodegaService {
-  final ApiClient _client = ApiClient();
+  static const Duration _cacheTtl = Duration(seconds: 30);
+  static bool _cleanupRegistered = false;
+  static BodegaInfo? _cachedMiBodega;
+  static DateTime? _cachedAt;
+  static Future<BodegaInfo?>? _inFlightMiBodega;
 
-  Future<BodegaInfo?> obtenerMiBodega() async {
+  final ApiClient _client;
+
+  BodegaService({ApiClient? client}) : _client = client ?? ApiClient() {
+    _ensureCleanupRegistered();
+  }
+
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(clearCache);
+  }
+
+  /// Limpia caché en memoria de la bodega activa (ej. al cerrar sesión o en tests).
+  static void clearCache() {
+    _cachedMiBodega = null;
+    _cachedAt = null;
+    _inFlightMiBodega = null;
+  }
+
+  static void _actualizarCacheLocal(BodegaInfo info) {
+    _cachedMiBodega = info;
+    _cachedAt = DateTime.now();
+  }
+
+  static Future<void> _persistirBodegaEnStorage(BodegaInfo info) async {
+    final writes = <Future<void>>[
+      SecureStorageService.write('nombre_bodega', info.nombreComercial),
+      SecureStorageService.write('plan_bodega', info.plan),
+      SecureStorageService.write('regimen_tributario', info.regimenTributario),
+      SecureStorageService.write(
+        'facturacion_sunat_activa',
+        info.facturacionSunatActiva.toString(),
+      ),
+      SecureStorageService.write('color_primario', info.colorPrimario),
+    ];
+    if (info.rucDni != null) {
+      writes.add(SecureStorageService.write('ruc_bodega', info.rucDni!));
+    }
+    if (info.direccion != null) {
+      writes.add(SecureStorageService.write('direccion_bodega', info.direccion!));
+    }
+    if (info.telefono != null) {
+      writes.add(SecureStorageService.write('telefono_bodega', info.telefono!));
+    }
+    if (info.lemaComercial != null) {
+      writes.add(
+        SecureStorageService.write('lema_comercial', info.lemaComercial!),
+      );
+    }
+    if (info.logoUrl != null) {
+      writes.add(SecureStorageService.write('logo_url', info.logoUrl!));
+    }
+    await Future.wait(writes);
+  }
+
+  Future<BodegaInfo?> obtenerMiBodega({bool forceRefresh = false}) async {
+    if (!forceRefresh &&
+        _cachedMiBodega != null &&
+        _cachedAt != null &&
+        DateTime.now().difference(_cachedAt!) < _cacheTtl) {
+      return _cachedMiBodega;
+    }
+
+    if (!forceRefresh && _inFlightMiBodega != null) {
+      return _inFlightMiBodega!;
+    }
+
+    late final Future<BodegaInfo?> requestFuture;
+    requestFuture = _fetchAndCacheMiBodega().whenComplete(() {
+      if (identical(_inFlightMiBodega, requestFuture)) {
+        _inFlightMiBodega = null;
+      }
+    });
+    _inFlightMiBodega = requestFuture;
+    return requestFuture;
+  }
+
+  Future<BodegaInfo?> _fetchAndCacheMiBodega() async {
     try {
       final response = await _client.get('/bodegas/mi-bodega');
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final info = BodegaInfo.fromJson(data);
-
-        // Actualizar caché seguro local
-        await SecureStorageService.write('nombre_bodega', info.nombreComercial);
-        await SecureStorageService.write('plan_bodega', info.plan);
-        await SecureStorageService.write(
-          'regimen_tributario',
-          info.regimenTributario,
-        );
-        await SecureStorageService.write(
-          'facturacion_sunat_activa',
-          info.facturacionSunatActiva.toString(),
-        );
-        if (info.rucDni != null)
-          await SecureStorageService.write('ruc_bodega', info.rucDni!);
-        if (info.direccion != null)
-          await SecureStorageService.write('direccion_bodega', info.direccion!);
-        if (info.telefono != null)
-          await SecureStorageService.write('telefono_bodega', info.telefono!);
-        await SecureStorageService.write('color_primario', info.colorPrimario);
-        if (info.lemaComercial != null)
-          await SecureStorageService.write(
-            'lema_comercial',
-            info.lemaComercial!,
-          );
-        if (info.logoUrl != null)
-          await SecureStorageService.write('logo_url', info.logoUrl!);
-
+        _actualizarCacheLocal(info);
+        await _persistirBodegaEnStorage(info);
         return info;
       }
     } catch (_) {}
@@ -160,20 +217,8 @@ class BodegaService {
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       final info = BodegaInfo.fromJson(data);
-
-      await SecureStorageService.write('nombre_bodega', info.nombreComercial);
-      if (info.rucDni != null)
-        await SecureStorageService.write('ruc_bodega', info.rucDni!);
-      if (info.direccion != null)
-        await SecureStorageService.write('direccion_bodega', info.direccion!);
-      if (info.telefono != null)
-        await SecureStorageService.write('telefono_bodega', info.telefono!);
-      await SecureStorageService.write('color_primario', info.colorPrimario);
-      if (info.lemaComercial != null)
-        await SecureStorageService.write('lema_comercial', info.lemaComercial!);
-      if (info.logoUrl != null)
-        await SecureStorageService.write('logo_url', info.logoUrl!);
-
+      _actualizarCacheLocal(info);
+      await _persistirBodegaEnStorage(info);
       return info;
     }
 
@@ -202,6 +247,7 @@ class BodegaService {
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       final info = BodegaInfo.fromJson(data);
+      _actualizarCacheLocal(info);
       await SecureStorageService.write('plan_bodega', info.plan);
       return info;
     }
@@ -265,16 +311,14 @@ class BodegaService {
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       final info = BodegaInfo.fromJson(data);
-
-      await SecureStorageService.write(
-        'regimen_tributario',
-        info.regimenTributario,
-      );
-      await SecureStorageService.write(
-        'facturacion_sunat_activa',
-        info.facturacionSunatActiva.toString(),
-      );
-
+      _actualizarCacheLocal(info);
+      await Future.wait([
+        SecureStorageService.write('regimen_tributario', info.regimenTributario),
+        SecureStorageService.write(
+          'facturacion_sunat_activa',
+          info.facturacionSunatActiva.toString(),
+        ),
+      ]);
       return info;
     }
 
@@ -480,6 +524,7 @@ class BodegaService {
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       final info = BodegaInfo.fromJson(data);
+      _actualizarCacheLocal(info);
       await SecureStorageService.write(
         'regimen_tributario',
         info.regimenTributario,
