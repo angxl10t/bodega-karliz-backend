@@ -63,6 +63,7 @@ public class ProductoService {
     public void liberarCodigosInactivos() {
         try {
             List<Producto> inactivos = productoRepository.findByEstadoFalse();
+            List<Producto> porActualizar = new ArrayList<>();
             for (Producto p : inactivos) {
                 boolean modificado = false;
                 if (p.getCodigoBarras() != null && !p.getCodigoBarras().isBlank()) {
@@ -76,8 +77,11 @@ public class ProductoService {
                     modificado = true;
                 }
                 if (modificado) {
-                    productoRepository.save(p);
+                    porActualizar.add(p);
                 }
+            }
+            if (!porActualizar.isEmpty()) {
+                productoRepository.saveAll(porActualizar);
             }
         } catch (Exception ignored) {}
     }
@@ -451,9 +455,11 @@ public class ProductoService {
 
         // Desactivación en cascada de presentaciones activas del producto
         List<Presentacion> presentaciones = presentacionRepository.findByProducto_IdProductoAndEstadoTrue(id);
-        for (Presentacion p : presentaciones) {
-            p.setEstado(false);
-            presentacionRepository.save(p);
+        if (!presentaciones.isEmpty()) {
+            for (Presentacion p : presentaciones) {
+                p.setEstado(false);
+            }
+            presentacionRepository.saveAll(presentaciones);
         }
 
         // Invalidar caché de métricas BI para reflejar producto dado de baja

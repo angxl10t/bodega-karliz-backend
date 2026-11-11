@@ -2306,6 +2306,15 @@ public class BodegaService {
     @Transactional(readOnly = true)
     public java.util.List<java.util.Map<String, Object>> obtenerResumenSuscripcionesParaMacro() {
         java.util.List<Bodega> bodegas = bodegaRepository.findAll();
+        java.util.Map<Long, com.bodega.backend.entity.PagoSuscripcion> ultimoPagoPorBodega = new java.util.HashMap<>();
+        var todosLosPagos = pagoSuscripcionRepository.findAllByOrderByFechaPagoDesc();
+        if (todosLosPagos != null) {
+            for (var pago : todosLosPagos) {
+                if (pago != null && pago.getBodega() != null && pago.getBodega().getIdBodega() != null) {
+                    ultimoPagoPorBodega.putIfAbsent(pago.getBodega().getIdBodega(), pago);
+                }
+            }
+        }
         java.util.List<java.util.Map<String, Object>> lista = new java.util.ArrayList<>();
         java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
 
@@ -2333,9 +2342,8 @@ public class BodegaService {
             map.put("diasRestantes", diasRestantes);
             map.put("estadoSuscripcion", estadoSuscripcion);
 
-            var pagos = pagoSuscripcionRepository.findByBodega_IdBodegaOrderByFechaPagoDesc(b.getIdBodega());
-            if (pagos != null && !pagos.isEmpty()) {
-                var ultimo = pagos.get(0);
+            var ultimo = ultimoPagoPorBodega.get(b.getIdBodega());
+            if (ultimo != null) {
                 map.put("ultimoPagoCodigo", ultimo.getCodigoOperacion());
                 map.put("ultimoPagoMonto", ultimo.getMonto());
                 map.put("ultimoPagoEstado", ultimo.getEstado());

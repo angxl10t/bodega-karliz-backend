@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -73,6 +74,7 @@ public class PedidoWeb {
     private OffsetDateTime fechaActualizacion;
 
     @Builder.Default
+    @BatchSize(size = 50)
     @OneToMany(mappedBy = "pedidoWeb", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoWebDetalle> detalles = new ArrayList<>();
 

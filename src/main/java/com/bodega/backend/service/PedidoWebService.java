@@ -102,11 +102,23 @@ public class PedidoWebService {
                 .build();
 
         if (dto.getItems() != null) {
-            for (PedidoWebDetalleCreacionDTO itemDto : dto.getItems()) {
-                Producto prod = null;
-                if (itemDto.getIdProducto() != null && itemDto.getIdProducto() > 0) {
-                    prod = productoRepository.findById(itemDto.getIdProducto()).orElse(null);
+            Set<Long> productIds = dto.getItems().stream()
+                    .map(PedidoWebDetalleCreacionDTO::getIdProducto)
+                    .filter(id -> id != null && id > 0)
+                    .collect(Collectors.toSet());
+            Map<Long, Producto> productosPorId = new HashMap<>();
+            if (!productIds.isEmpty()) {
+                for (Producto p : productoRepository.findAllById(productIds)) {
+                    if (p.getIdProducto() != null) {
+                        productosPorId.put(p.getIdProducto(), p);
+                    }
                 }
+            }
+
+            for (PedidoWebDetalleCreacionDTO itemDto : dto.getItems()) {
+                Producto prod = (itemDto.getIdProducto() != null && itemDto.getIdProducto() > 0)
+                        ? productosPorId.get(itemDto.getIdProducto())
+                        : null;
 
                 PedidoWebDetalle det = PedidoWebDetalle.builder()
                         .producto(prod)

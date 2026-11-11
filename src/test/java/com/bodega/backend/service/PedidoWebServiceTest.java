@@ -90,7 +90,7 @@ class PedidoWebServiceTest {
                 ))
                 .build();
 
-        when(productoRepository.findById(100L)).thenReturn(Optional.of(producto));
+        when(productoRepository.findAllById(anyIterable())).thenReturn(List.of(producto));
         when(pedidoWebRepository.save(any(PedidoWeb.class))).thenAnswer(inv -> {
             PedidoWeb p = inv.getArgument(0);
             p.setIdPedidoWeb(50L);

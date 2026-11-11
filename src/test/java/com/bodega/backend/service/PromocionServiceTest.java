@@ -169,15 +169,18 @@ class PromocionServiceTest {
         prodHueso.setIdProducto(101L);
         prodHueso.setNombre("Piqueo Especial");
         prodHueso.setPrecioVenta(new BigDecimal("4.50"));
-        when(productoRepository.findById(101L)).thenReturn(Optional.of(prodHueso));
 
         Producto prodEstrella = new Producto();
         prodEstrella.setIdProducto(202L);
         prodEstrella.setNombre("Coca-Cola 500ml");
         prodEstrella.setPrecioVenta(new BigDecimal("3.50"));
-        when(productoRepository.findById(202L)).thenReturn(Optional.of(prodEstrella));
+        when(productoRepository.findAllById(anyIterable())).thenReturn(List.of(prodHueso, prodEstrella));
 
         List<SugerenciaComboHuesoDTO> sugerencias = promocionService.obtenerSugerenciasCombosHueso();
+
+        verify(productoRepository, times(1)).findAllById(anyIterable());
+        verify(productoRepository, never()).findById(anyLong());
+        verify(productoRepository, never()).findByBodega_IdBodegaAndEstadoTrue(anyLong());
 
         assertThat(sugerencias).isNotEmpty();
         SugerenciaComboHuesoDTO combo = sugerencias.get(0);

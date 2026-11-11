@@ -161,11 +161,44 @@ public class PromocionService {
 
         // 1. Obtener los productos hueso principales (sin ventas o muy baja rotación con capital inmovilizado)
         List<Object[]> rawHuesos = productoRepository.findProductosHuesoByPeriodo(idBodega, start30Dias, PageRequest.of(0, 8));
+        if (rawHuesos == null || rawHuesos.isEmpty()) {
+            return Collections.emptyList();
+        }
         // 2. Obtener productos estrella (los más vendidos del período)
         List<Object[]> rawEstrellas = ventaDetalleRepository.findTopEstrellasByPeriodo(idBodega, start30Dias, PageRequest.of(0, 8));
+        if (rawEstrellas == null) {
+            rawEstrellas = Collections.emptyList();
+        }
 
-        // Si no hay suficientes productos estrella por ventas, buscar productos activos populares con stock
-        List<Producto> productosBodega = productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega);
+        // Cargar catálogo activo solo si no hay productos estrella por ventas para usar como fallback
+        List<Producto> productosBodega = rawEstrellas.isEmpty()
+                ? productoRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega)
+                : Collections.emptyList();
+
+        // Batch load de productos referenciados para evitar consultas N+1 por cada fila
+        Set<Long> productIds = new HashSet<>();
+        for (Object[] rowH : rawHuesos) {
+            productIds.add(((Number) rowH[0]).longValue());
+        }
+        for (Object[] rowE : rawEstrellas) {
+            productIds.add(((Number) rowE[0]).longValue());
+        }
+        Map<Long, Producto> productosPorId = new HashMap<>();
+        if (productosBodega != null) {
+            for (Producto p : productosBodega) {
+                if (p.getIdProducto() != null) {
+                    productosPorId.put(p.getIdProducto(), p);
+                }
+            }
+        }
+        productIds.removeAll(productosPorId.keySet());
+        if (!productIds.isEmpty()) {
+            for (Producto p : productoRepository.findAllById(productIds)) {
+                if (p.getIdProducto() != null) {
+                    productosPorId.put(p.getIdProducto(), p);
+                }
+            }
+        }
 
         List<SugerenciaComboHuesoDTO> sugerencias = new ArrayList<>();
 
@@ -179,8 +212,10 @@ public class PromocionService {
             BigDecimal costoHueso = rowH[6] != null ? new BigDecimal(rowH[6].toString()) : BigDecimal.ZERO;
             BigDecimal capInmov = rowH[7] != null ? new BigDecimal(rowH[7].toString()) : BigDecimal.ZERO;
 
-            Optional<Producto> prodHuesoOpt = productoRepository.findById(idHueso);
-            BigDecimal precioRegHueso = prodHuesoOpt.map(Producto::getPrecioVenta).orElse(costoHueso.multiply(new BigDecimal("1.25")));
+            Producto prodHueso = productosPorId.get(idHueso);
+            BigDecimal precioRegHueso = prodHueso != null && prodHueso.getPrecioVenta() != null
+                    ? prodHueso.getPrecioVenta()
+                    : costoHueso.multiply(new BigDecimal("1.25"));
 
             // Buscar un producto estrella para emparejar
             Long idEstrella = null;
@@ -195,10 +230,12 @@ public class PromocionService {
                 nombreEstrella = (String) rowE[1];
                 catEstrella = (String) rowE[3];
                 imgEstrella = (String) rowE[4];
-                Optional<Producto> prodEstrellaOpt = productoRepository.findById(idEstrella);
-                precioRegEstrella = prodEstrellaOpt.map(Producto::getPrecioVenta).orElse(new BigDecimal("4.00"));
+                Producto prodEstrella = productosPorId.get(idEstrella);
+                precioRegEstrella = prodEstrella != null && prodEstrella.getPrecioVenta() != null
+                        ? prodEstrella.getPrecioVenta()
+                        : new BigDecimal("4.00");
                 estrellaIdx++;
-            } else {
+            } else if (productosBodega != null) {
                 // Fallback: Tomar otro producto activo de la bodega diferente al hueso
                 Optional<Producto> fallback = productosBodega.stream()
                         .filter(p -> !p.getIdProducto().equals(idHueso) && p.getPrecioVenta() != null)
