@@ -257,6 +257,11 @@ class MarcaDetectorService {
     _BrandRule('La Llama', RegExp(r'\bla\s*llama\b', caseSensitive: false)),
   ];
 
+  static final RegExp _spacesRegex = RegExp(r'\s+');
+  static final Map<String, String?> _nombreMarcaCache = {};
+  static final Map<String, _BrandRule?> _targetRuleCache = {};
+  static const int _maxCacheEntries = 800;
+
   /// Detecta automáticamente la marca a partir del nombre o código de barras
   static String? detectarMarca({String? nombre, String? codigoBarras}) {
     // 1. Intento por código de barras exacto (EAN13 sin ambigüedades)
@@ -272,17 +277,31 @@ class MarcaDetectorService {
     // 2. Intento por Reglas Semánticas en el Nombre (detección directa de marca)
     if (nombre != null && nombre.trim().isNotEmpty) {
       final clean = nombre.trim();
+      if (_nombreMarcaCache.containsKey(clean)) {
+        return _nombreMarcaCache[clean];
+      }
+
+      String? detected;
       for (final rule in _rules) {
         if (rule.pattern.hasMatch(clean)) {
-          return rule.canonicalName;
+          detected = rule.canonicalName;
+          break;
         }
       }
 
       // 3. Fallback: búsqueda por catálogo de packshots si no hubo coincidencia regex
-      final sug = CatalogoImagenesService.buscarSugerencia(nombre: nombre);
-      if (sug != null && sug.marca.trim().isNotEmpty) {
-        return normalizarMarca(sug.marca);
+      if (detected == null) {
+        final sug = CatalogoImagenesService.buscarSugerencia(nombre: clean);
+        if (sug != null && sug.marca.trim().isNotEmpty) {
+          detected = normalizarMarca(sug.marca);
+        }
       }
+
+      if (_nombreMarcaCache.length >= _maxCacheEntries) {
+        _nombreMarcaCache.remove(_nombreMarcaCache.keys.first);
+      }
+      _nombreMarcaCache[clean] = detected;
+      return detected;
     }
 
     return null;
@@ -294,16 +313,17 @@ class MarcaDetectorService {
     if (clean.isEmpty) return clean;
 
     // Verificar si coincide con alguna regla canónica
+    final lowerClean = clean.toLowerCase();
     for (final rule in _rules) {
-      if (rule.pattern.hasMatch(clean) ||
-          rule.canonicalName.toLowerCase() == clean.toLowerCase()) {
+      if (rule.lowerCanonicalName == lowerClean ||
+          rule.pattern.hasMatch(clean)) {
         return rule.canonicalName;
       }
     }
 
     // Fallback: mayúscula inicial por palabra
     return clean
-        .split(RegExp(r'\s+'))
+        .split(_spacesRegex)
         .map((palabra) {
           if (palabra.isEmpty) return '';
           return palabra[0].toUpperCase() +
@@ -315,14 +335,101 @@ class MarcaDetectorService {
   /// Simplifica un texto para comparación tolerante a variantes:
   /// convierte a minúsculas, remueve acentos/diacríticos y elimina puntuación, guiones y espacios.
   static String simplificar(String? s) {
-    if (s == null || s.trim().isEmpty) return '';
-    var str = s.toLowerCase();
-    const withDiacritics = 'áàäâãéèëêíìïîóòöôõúùüûñ';
-    const withoutDiacritics = 'aaaaaeeeeiiiiooooouuuun';
-    for (int i = 0; i < withDiacritics.length; i++) {
-      str = str.replaceAll(withDiacritics[i], withoutDiacritics[i]);
+    if (s == null || s.isEmpty) return '';
+    final sb = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      int c = s.codeUnitAt(i);
+      if (c >= 65 && c <= 90) c += 32; // A-Z -> a-z
+      if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57)) {
+        sb.writeCharCode(c);
+      } else {
+        switch (c) {
+          case 0xE1:
+          case 0xE0:
+          case 0xE4:
+          case 0xE2:
+          case 0xE3:
+          case 0xC1:
+          case 0xC0:
+          case 0xC4:
+          case 0xC2:
+          case 0xC3:
+            sb.writeCharCode(97); // a
+            break;
+          case 0xE9:
+          case 0xE8:
+          case 0xEB:
+          case 0xEA:
+          case 0xC9:
+          case 0xC8:
+          case 0xCB:
+          case 0xCA:
+            sb.writeCharCode(101); // e
+            break;
+          case 0xED:
+          case 0xEC:
+          case 0xEF:
+          case 0xEE:
+          case 0xCD:
+          case 0xCC:
+          case 0xCF:
+          case 0xCE:
+            sb.writeCharCode(105); // i
+            break;
+          case 0xF3:
+          case 0xF2:
+          case 0xF6:
+          case 0xF4:
+          case 0xF5:
+          case 0xD3:
+          case 0xD2:
+          case 0xD6:
+          case 0xD4:
+          case 0xD5:
+            sb.writeCharCode(111); // o
+            break;
+          case 0xFA:
+          case 0xF9:
+          case 0xFC:
+          case 0xFB:
+          case 0xDA:
+          case 0xD9:
+          case 0xDC:
+          case 0xDB:
+            sb.writeCharCode(117); // u
+            break;
+          case 0xF1:
+          case 0xD1:
+            sb.writeCharCode(110); // n
+            break;
+        }
+      }
     }
-    return str.replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return sb.toString();
+  }
+
+  static _BrandRule? _findTargetRule(
+    String targetTrim,
+    String lowerCanonicalTarget,
+    String simpCanonical,
+  ) {
+    if (_targetRuleCache.containsKey(targetTrim)) {
+      return _targetRuleCache[targetTrim];
+    }
+    _BrandRule? found;
+    for (final rule in _rules) {
+      if (rule.lowerCanonicalName == lowerCanonicalTarget ||
+          rule.simplifiedName == simpCanonical ||
+          rule.pattern.hasMatch(targetTrim)) {
+        found = rule;
+        break;
+      }
+    }
+    if (_targetRuleCache.length >= _maxCacheEntries) {
+      _targetRuleCache.remove(_targetRuleCache.keys.first);
+    }
+    _targetRuleCache[targetTrim] = found;
+    return found;
   }
 
   /// Evalúa con tolerancia exhaustiva a variantes (guiones, espacios, acentos, mayúsculas)
@@ -336,19 +443,16 @@ class MarcaDetectorService {
 
     final targetTrim = marcaObjetivo.trim();
     final canonicalTarget = normalizarMarca(targetTrim);
+    final lowerCanonicalTarget = canonicalTarget.toLowerCase();
     final simpTarget = simplificar(targetTrim);
     final simpCanonical = simplificar(canonicalTarget);
 
-    // 1. Reglas Regex Canónicas
-    _BrandRule? targetRule;
-    for (final rule in _rules) {
-      if (rule.canonicalName.toLowerCase() == canonicalTarget.toLowerCase() ||
-          simplificar(rule.canonicalName) == simpCanonical ||
-          rule.pattern.hasMatch(targetTrim)) {
-        targetRule = rule;
-        break;
-      }
-    }
+    // 1. Reglas Regex Canónicas (cacheado en O(1) por targetTrim)
+    final targetRule = _findTargetRule(
+      targetTrim,
+      lowerCanonicalTarget,
+      simpCanonical,
+    );
     if (targetRule != null) {
       if (marcaProducto != null &&
           marcaProducto.trim().isNotEmpty &&
@@ -365,30 +469,32 @@ class MarcaDetectorService {
     // 2. Coincidencia directa contra marcaProducto
     if (marcaProducto != null && marcaProducto.trim().isNotEmpty) {
       final prodTrim = marcaProducto.trim();
-      if (prodTrim.toLowerCase() == targetTrim.toLowerCase()) return true;
+      final lowerProd = prodTrim.toLowerCase();
+      if (lowerProd == targetTrim.toLowerCase()) return true;
       final canonicalProd = normalizarMarca(prodTrim);
-      if (canonicalTarget.toLowerCase() == canonicalProd.toLowerCase())
-        return true;
+      if (lowerCanonicalTarget == canonicalProd.toLowerCase()) return true;
 
       final simpProd = simplificar(prodTrim);
       if (simpTarget == simpProd || simpCanonical == simpProd) return true;
-      if (simpProd.contains(simpTarget) ||
-          (simpTarget.length >= 4 && simpTarget.contains(simpProd)))
+      if (simpProd.isNotEmpty &&
+          (simpProd.contains(simpTarget) ||
+              (simpTarget.length >= 4 && simpTarget.contains(simpProd)))) {
         return true;
+      }
     }
 
-    // 3. Coincidencia contra nombreProducto
+    // 3. Coincidencia contra nombreProducto (con caché O(1) para evitar re-escaneo)
     if (nombreProducto != null && nombreProducto.trim().isNotEmpty) {
       final detected = detectarMarca(nombre: nombreProducto);
       if (detected != null) {
-        if (detected.toLowerCase() == canonicalTarget.toLowerCase())
-          return true;
+        if (detected.toLowerCase() == lowerCanonicalTarget) return true;
         if (simplificar(detected) == simpCanonical) return true;
       }
       final simpName = simplificar(nombreProducto);
       if (simpTarget.length >= 3 && simpName.contains(simpTarget)) return true;
-      if (simpCanonical.length >= 3 && simpName.contains(simpCanonical))
+      if (simpCanonical.length >= 3 && simpName.contains(simpCanonical)) {
         return true;
+      }
     }
 
     return false;
@@ -397,7 +503,11 @@ class MarcaDetectorService {
 
 class _BrandRule {
   final String canonicalName;
+  final String lowerCanonicalName;
+  final String simplifiedName;
   final RegExp pattern;
 
-  _BrandRule(this.canonicalName, this.pattern);
+  _BrandRule(this.canonicalName, this.pattern)
+      : lowerCanonicalName = canonicalName.toLowerCase(),
+        simplifiedName = MarcaDetectorService.simplificar(canonicalName);
 }

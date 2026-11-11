@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -44,6 +45,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   List<Map<String, dynamic>> _promociones = [];
   String _categoriaSeleccionada = 'TODAS';
   String _filtroBusqueda = '';
+  List<Map<String, dynamic>> _cachedProductosFiltrados = [];
+  Timer? _searchDebounce;
 
   // Carrito de compras: {idProducto: cantidad}
   final Map<int, int> _carrito = {};
@@ -58,6 +61,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchCtrl.dispose();
     _notasPedidoCtrl.dispose();
     if (widget.httpClient == null) {
@@ -105,6 +109,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             _productos = prodsList;
             _categorias = catsList;
             _promociones = promosList;
+            _recomputeProductosFiltrados();
             _isLoading = false;
           });
         }
@@ -127,33 +132,34 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     }
   }
 
-  List<Map<String, dynamic>> get _productosFiltrados {
-    return _productos.where((p) {
+  List<Map<String, dynamic>> get _productosFiltrados =>
+      _cachedProductosFiltrados;
+
+  void _recomputeProductosFiltrados() {
+    final catUpper = _categoriaSeleccionada.toUpperCase();
+    final query = _filtroBusqueda.trim();
+    final queryLower = query.toLowerCase();
+
+    _cachedProductosFiltrados = _productos.where((p) {
       bool matchesCat = false;
       if (_categoriaSeleccionada == 'TODAS') {
         matchesCat = true;
       } else if (_categoriaSeleccionada == 'OFERTAS') {
         matchesCat = p['tienePromocion'] == true;
       } else {
-        matchesCat =
-            (p['categoria']?.toString().toUpperCase() ==
-            _categoriaSeleccionada.toUpperCase());
+        matchesCat = (p['categoria']?.toString().toUpperCase() == catUpper);
       }
-      final query = _filtroBusqueda.trim();
-      final queryLower = query.toLowerCase();
-      final matchesQuery =
-          query.isEmpty ||
-          MarcaDetectorService.coincideMarca(
-            query,
-            p['marca']?.toString(),
-            p['nombre']?.toString(),
-          ) ||
-          (p['nombre']?.toString().toLowerCase().contains(queryLower) ??
-              false) ||
-          (p['codigo']?.toString().toLowerCase().contains(queryLower) ??
-              false) ||
-          (p['marca']?.toString().toLowerCase().contains(queryLower) ?? false);
-      return matchesCat && matchesQuery;
+      if (!matchesCat) return false;
+      if (query.isEmpty) return true;
+
+      final nombre = p['nombre']?.toString() ?? '';
+      final codigo = p['codigo']?.toString() ?? '';
+      final marca = p['marca']?.toString() ?? '';
+
+      return nombre.toLowerCase().contains(queryLower) ||
+          codigo.toLowerCase().contains(queryLower) ||
+          marca.toLowerCase().contains(queryLower) ||
+          MarcaDetectorService.coincideMarca(query, marca, nombre);
     }).toList();
   }
 
@@ -732,20 +738,27 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
                 return InkWell(
                   onTap: () {
+                    _searchDebounce?.cancel();
                     if (cat != null && cat.isNotEmpty) {
                       setState(() {
                         _categoriaSeleccionada = cat;
                         _filtroBusqueda = '';
+                        _searchCtrl.clear();
+                        _recomputeProductosFiltrados();
                       });
                     } else if (marca != null && marca.isNotEmpty) {
                       setState(() {
                         _categoriaSeleccionada = 'TODAS';
                         _filtroBusqueda = marca;
+                        _searchCtrl.text = marca;
+                        _recomputeProductosFiltrados();
                       });
                     } else {
                       setState(() {
                         _categoriaSeleccionada = 'OFERTAS';
                         _filtroBusqueda = '';
+                        _searchCtrl.clear();
+                        _recomputeProductosFiltrados();
                       });
                     }
                   },
@@ -1085,7 +1098,33 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     // Buscador
                     TextField(
                       controller: _searchCtrl,
-                      onChanged: (val) => setState(() => _filtroBusqueda = val),
+                      onChanged: (val) {
+                        _searchDebounce?.cancel();
+                        if (val.isEmpty) {
+                          setState(() {
+                            _filtroBusqueda = '';
+                            _recomputeProductosFiltrados();
+                          });
+                          return;
+                        }
+                        _searchDebounce = Timer(
+                          const Duration(milliseconds: 180),
+                          () {
+                            if (!mounted) return;
+                            setState(() {
+                              _filtroBusqueda = val;
+                              _recomputeProductosFiltrados();
+                            });
+                          },
+                        );
+                      },
+                      onSubmitted: (val) {
+                        _searchDebounce?.cancel();
+                        setState(() {
+                          _filtroBusqueda = val;
+                          _recomputeProductosFiltrados();
+                        });
+                      },
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: isTablet ? 15 : 13.5,
                         color: isDark ? Colors.white : AppTheme.textDark,
@@ -1110,8 +1149,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   size: isTablet ? 18 : 16,
                                 ),
                                 onPressed: () {
+                                  _searchDebounce?.cancel();
                                   _searchCtrl.clear();
-                                  setState(() => _filtroBusqueda = '');
+                                  setState(() {
+                                    _filtroBusqueda = '';
+                                    _recomputeProductosFiltrados();
+                                  });
                                 },
                               )
                             : null,
@@ -1585,7 +1628,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         ),
         onSelected: (_) {
           HapticFeedback.selectionClick();
-          setState(() => _categoriaSeleccionada = key);
+          setState(() {
+            _categoriaSeleccionada = key;
+            _recomputeProductosFiltrados();
+          });
         },
       ),
     );

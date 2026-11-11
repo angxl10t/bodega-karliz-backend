@@ -1,4 +1,5 @@
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -499,6 +500,7 @@ class _ComprasScreenState extends State<ComprasScreen>
   void _abrirModalAgregarProductos() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final searchCtrl = TextEditingController();
+    Timer? modalDebounce;
 
     showModalBottomSheet(
       context: context,
@@ -655,7 +657,21 @@ class _ComprasScreenState extends State<ComprasScreen>
                               vertical: 12,
                             ),
                           ),
-                          onChanged: (val) => setModalState(() => filtro = val),
+                          onChanged: (val) {
+                            modalDebounce?.cancel();
+                            if (val.isEmpty) {
+                              setModalState(() => filtro = '');
+                              return;
+                            }
+                            modalDebounce = Timer(
+                              const Duration(milliseconds: 180),
+                              () => setModalState(() => filtro = val),
+                            );
+                          },
+                          onSubmitted: (val) {
+                            modalDebounce?.cancel();
+                            setModalState(() => filtro = val);
+                          },
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -854,7 +870,10 @@ class _ComprasScreenState extends State<ComprasScreen>
           },
         );
       },
-    ).then((_) => searchCtrl.dispose());
+    ).then((_) {
+      modalDebounce?.cancel();
+      searchCtrl.dispose();
+    });
   }
 
   void _mostrarDialogoDetalleIngreso(Producto p, [StateSetter? setModalState]) {

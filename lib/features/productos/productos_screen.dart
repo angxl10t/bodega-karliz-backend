@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -48,6 +49,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
       _userRol.toUpperCase() == 'SUPERADMIN';
 
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   List<Producto> get _safeTodos => _todosProductos;
   List<Producto> get _safeFiltrados => _productosFiltrados;
@@ -83,6 +85,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     ProductoService.productosRevision.removeListener(
       _onProductosRevisionChanged,
     );
@@ -1018,6 +1021,7 @@ class _ProductosScreenState extends State<ProductosScreen> {
                                     IconButton(
                                       icon: const Icon(LucideIcons.x, size: 15),
                                       onPressed: () {
+                                        _searchDebounce?.cancel();
                                         _searchController.clear();
                                         _filtroTexto = '';
                                         _aplicarFiltros();
@@ -1041,6 +1045,23 @@ class _ProductosScreenState extends State<ProductosScreen> {
                               ),
                             ),
                             onChanged: (val) {
+                              _searchDebounce?.cancel();
+                              if (val.isEmpty) {
+                                _filtroTexto = '';
+                                _aplicarFiltros();
+                                return;
+                              }
+                              _searchDebounce = Timer(
+                                const Duration(milliseconds: 180),
+                                () {
+                                  if (!mounted) return;
+                                  _filtroTexto = val;
+                                  _aplicarFiltros();
+                                },
+                              );
+                            },
+                            onSubmitted: (val) {
+                              _searchDebounce?.cancel();
                               _filtroTexto = val;
                               _aplicarFiltros();
                             },

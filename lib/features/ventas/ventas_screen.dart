@@ -3362,7 +3362,7 @@ class _VentasScreenState extends State<VentasScreen> {
 
     // Comparación numérica sin caracteres de puntuación/espacios
     if (codeDigits.isNotEmpty) {
-      final bcDigits = bc.replaceAll(RegExp(r'\D'), '');
+      final bcDigits = bc.replaceAll(_digitsOnlyRegex, '');
       if (bcDigits.isNotEmpty) {
         if (bcDigits == codeDigits) return true;
         // Variaciones UPC-A / EAN-13 (con/sin ceros a la izquierda)
@@ -3925,6 +3925,7 @@ class _VentasScreenState extends State<VentasScreen> {
   void _abrirSelectorProductos() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final searchCtrl = TextEditingController();
+    Timer? modalDebounce;
 
     showModalBottomSheet(
       context: context,
@@ -3932,7 +3933,6 @@ class _VentasScreenState extends State<VentasScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         String query = '';
-        Timer? modalDebounce;
         bool soloPromociones = false;
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -4498,7 +4498,10 @@ class _VentasScreenState extends State<VentasScreen> {
           },
         );
       },
-    ).then((_) => searchCtrl.dispose());
+    ).then((_) {
+      modalDebounce?.cancel();
+      searchCtrl.dispose();
+    });
   }
 
   bool _esErrorDeRed(String? error) {
