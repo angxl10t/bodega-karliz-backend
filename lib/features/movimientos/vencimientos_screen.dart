@@ -9,6 +9,7 @@ import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
 import 'ajuste_stock_sheet.dart';
+import '../../core/debouncer.dart';
 
 class VencimientosScreen extends StatefulWidget {
   const VencimientosScreen({super.key});
@@ -20,6 +21,7 @@ class VencimientosScreen extends StatefulWidget {
 class _VencimientosScreenState extends State<VencimientosScreen> {
   final ProductoService _productoService = ProductoService();
   final TextEditingController _searchCtrl = TextEditingController();
+  final Debouncer _searchDebouncer = Debouncer();
 
   List<Producto> _todosProductos = [];
   bool _isLoading = true;
@@ -36,6 +38,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
   @override
   void dispose() {
     ProductoService.productosRevision.removeListener(_onRevisionChanged);
+    _searchDebouncer.dispose();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -90,6 +93,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     final codigo = await KarlizBarcodeScannerModal.scan(context);
     if (codigo != null && codigo.isNotEmpty) {
       setState(() {
+        _searchDebouncer.cancel();
         _searchCtrl.text = codigo;
         _filtroTexto = codigo;
       });
@@ -311,6 +315,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                       icon: const Icon(LucideIcons.x, size: 14),
                                       onPressed: () {
                                         _searchCtrl.clear();
+                                        _searchDebouncer.cancel();
                                         setState(() => _filtroTexto = '');
                                       },
                                     )
@@ -321,7 +326,15 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                               ),
                             ),
                             onChanged: (val) =>
-                                setState(() => _filtroTexto = val),
+                                _searchDebouncer.run(() {
+                                  if (mounted) {
+                                    setState(() => _filtroTexto = val);
+                                  }
+                                }),
+                            onSubmitted: (val) {
+                              _searchDebouncer.cancel();
+                              setState(() => _filtroTexto = val);
+                            },
                           ),
                         ),
                       ),
@@ -476,6 +489,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                     ),
                                     onPressed: () {
                                       setState(() {
+                                        _searchDebouncer.cancel();
                                         _filtroSemaforo = 'TODOS';
                                         _filtroTexto = '';
                                         _searchCtrl.clear();

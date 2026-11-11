@@ -6,6 +6,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/csv_exporter.dart';
 import '../../core/theme.dart';
+import '../../core/debouncer.dart';
 import '../home/bodega_service.dart';
 import 'cliente_model.dart';
 import 'cliente_service.dart';
@@ -57,6 +58,8 @@ class _ClientesScreenState extends State<ClientesScreen>
 
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _searchCtrlGarantias = TextEditingController();
+  final Debouncer _clientesDebouncer = Debouncer();
+  final Debouncer _garantiasDebouncer = Debouncer();
 
   @override
   void initState() {
@@ -91,6 +94,8 @@ class _ClientesScreenState extends State<ClientesScreen>
     _tabController.dispose();
     ClienteService.clientesRevision.removeListener(_onRevisionChanged);
     GarantiaBotellaService.garantiasRevision.removeListener(_onRevisionChanged);
+    _clientesDebouncer.dispose();
+    _garantiasDebouncer.dispose();
     _searchCtrl.dispose();
     _searchCtrlGarantias.dispose();
     super.dispose();
@@ -1110,7 +1115,13 @@ class _ClientesScreenState extends State<ClientesScreen>
               ),
               child: TextField(
                 controller: _searchCtrlGarantias,
-                onChanged: (val) => setState(() => _filtroTextoGarantias = val),
+                onChanged: (val) => _garantiasDebouncer.run(() {
+                  if (mounted) setState(() => _filtroTextoGarantias = val);
+                }),
+                onSubmitted: (val) {
+                  _garantiasDebouncer.cancel();
+                  setState(() => _filtroTextoGarantias = val);
+                },
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -1133,6 +1144,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                       ? IconButton(
                           icon: const Icon(LucideIcons.x, size: 15),
                           onPressed: () {
+                            _garantiasDebouncer.cancel();
                             _searchCtrlGarantias.clear();
                             setState(() => _filtroTextoGarantias = '');
                           },
@@ -1969,7 +1981,13 @@ class _ClientesScreenState extends State<ClientesScreen>
       ),
       child: TextField(
         controller: _searchCtrl,
-        onChanged: (val) => setState(() => _filtroTexto = val),
+        onChanged: (val) => _clientesDebouncer.run(() {
+          if (mounted) setState(() => _filtroTexto = val);
+        }),
+        onSubmitted: (val) {
+          _clientesDebouncer.cancel();
+          setState(() => _filtroTexto = val);
+        },
         style: GoogleFonts.plusJakartaSans(
           fontSize: 13,
           fontWeight: FontWeight.w600,
@@ -1991,6 +2009,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                   icon: const Icon(LucideIcons.x, size: 15),
                   onPressed: () {
                     _searchCtrl.clear();
+                    _clientesDebouncer.cancel();
                     setState(() => _filtroTexto = '');
                   },
                 )
@@ -2181,6 +2200,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                   ),
                   onPressed: () {
                     _searchCtrl.clear();
+                    _clientesDebouncer.cancel();
                     setState(() => _filtroTexto = '');
                   },
                 )

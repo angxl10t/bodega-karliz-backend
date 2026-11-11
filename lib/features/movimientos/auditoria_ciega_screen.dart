@@ -13,6 +13,7 @@ import 'auditoria_ciega_model.dart';
 import 'movimiento_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
+import '../../core/debouncer.dart';
 
 class AuditoriaCiegaScreen extends StatefulWidget {
   const AuditoriaCiegaScreen({super.key});
@@ -25,6 +26,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
   final ProductoService _productoService = ProductoService();
   final MovimientoService _movimientoService = MovimientoService();
   final TextEditingController _searchCtrl = TextEditingController();
+  final Debouncer _searchDebouncer = Debouncer();
 
   AuditoriaSesion? _sesion;
   bool _isLoading = true;
@@ -70,6 +72,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
 
   @override
   void dispose() {
+    _searchDebouncer.dispose();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -847,6 +850,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                             ? IconButton(
                                 icon: const Icon(LucideIcons.x, size: 14),
                                 onPressed: () {
+                                  _searchDebouncer.cancel();
                                   _searchCtrl.clear();
                                   setState(() => _filtroTexto = '');
                                 },
@@ -857,7 +861,13 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                           vertical: 10,
                         ),
                       ),
-                      onChanged: (val) => setState(() => _filtroTexto = val),
+                      onChanged: (val) => _searchDebouncer.run(() {
+                        if (mounted) setState(() => _filtroTexto = val);
+                      }),
+                      onSubmitted: (val) {
+                        _searchDebouncer.cancel();
+                        setState(() => _filtroTexto = val);
+                      },
                     ),
                   ),
                 ),
@@ -1000,6 +1010,8 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                               ),
                               onPressed: () {
                                 setState(() {
+                                  _searchDebouncer.cancel();
+                                  _searchCtrl.clear();
                                   _filtroDiscrepancia = 'TODOS';
                                   _filtroTexto = '';
                                 });

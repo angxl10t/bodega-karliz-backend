@@ -8,6 +8,7 @@ import '../productos/producto_service.dart';
 import '../ventas/venta_service.dart';
 import '../compras/compra_service.dart';
 import '../../core/theme.dart';
+import '../../core/debouncer.dart';
 
 class KardexScreen extends StatefulWidget {
   const KardexScreen({super.key});
@@ -19,6 +20,7 @@ class KardexScreen extends StatefulWidget {
 class _KardexScreenState extends State<KardexScreen> {
   final MovimientoService _movimientoService = MovimientoService();
   final TextEditingController _searchController = TextEditingController();
+  final Debouncer _searchDebouncer = Debouncer();
   List<MovimientoInventario> _movimientos = [];
   bool _isLoading = true;
   String _filtroTexto = '';
@@ -38,6 +40,7 @@ class _KardexScreenState extends State<KardexScreen> {
     ProductoService.productosRevision.removeListener(_onRevisionChanged);
     VentaService.ventasRevision.removeListener(_onRevisionChanged);
     CompraService.comprasRevision.removeListener(_onRevisionChanged);
+    _searchDebouncer.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -279,6 +282,7 @@ class _KardexScreenState extends State<KardexScreen> {
                                   ? IconButton(
                                       icon: const Icon(LucideIcons.x, size: 16),
                                       onPressed: () {
+                                        _searchDebouncer.cancel();
                                         _searchController.clear();
                                         setState(() => _filtroTexto = '');
                                       },
@@ -291,7 +295,15 @@ class _KardexScreenState extends State<KardexScreen> {
                               ),
                             ),
                             onChanged: (val) =>
-                                setState(() => _filtroTexto = val),
+                                _searchDebouncer.run(() {
+                                  if (mounted) {
+                                    setState(() => _filtroTexto = val);
+                                  }
+                                }),
+                            onSubmitted: (val) {
+                              _searchDebouncer.cancel();
+                              setState(() => _filtroTexto = val);
+                            },
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -496,6 +508,7 @@ class _KardexScreenState extends State<KardexScreen> {
                     setState(() {
                       _filtroTipo = 'TODOS';
                       _filtroTexto = '';
+                      _searchDebouncer.cancel();
                       _searchController.clear();
                     });
                   },

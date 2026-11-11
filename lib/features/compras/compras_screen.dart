@@ -13,6 +13,7 @@ import '../proveedores/nuevo_proveedor_sheet.dart';
 import 'compra_model.dart';
 import 'compra_service.dart';
 import '../../core/theme.dart';
+import '../../core/debouncer.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../auth/auth_service.dart';
 
@@ -44,6 +45,7 @@ class _ComprasScreenState extends State<ComprasScreen>
   bool _isLoading = true;
   bool _isProcesando = false;
   String _busquedaHistorial = '';
+  final Debouncer _historialDebouncer = Debouncer();
   String _userRol = 'ADMIN';
   bool get _esAdmin =>
       _userRol.toUpperCase() == 'ADMIN' ||
@@ -74,6 +76,7 @@ class _ComprasScreenState extends State<ComprasScreen>
     );
     CompraService.comprasRevision.removeListener(_onComprasRevisionChanged);
     _tabController.dispose();
+    _historialDebouncer.dispose();
     _comprobanteController.dispose();
     super.dispose();
   }
@@ -2656,7 +2659,13 @@ class _ComprasScreenState extends State<ComprasScreen>
                   vertical: 12,
                 ),
               ),
-              onChanged: (val) => setState(() => _busquedaHistorial = val),
+              onChanged: (val) => _historialDebouncer.run(() {
+                if (mounted) setState(() => _busquedaHistorial = val);
+              }),
+              onSubmitted: (val) {
+                _historialDebouncer.cancel();
+                setState(() => _busquedaHistorial = val);
+              },
             ),
           ),
         ),
