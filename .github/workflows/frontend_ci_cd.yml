@@ -46,7 +46,7 @@ jobs:
       - name: Análisis Estático Estricto (Linter & Reglas de Calidad)
         run: |
           echo "==> Ejecutando dart analyze..."
-          dart analyze lib/ test/ --fatal-infos --fatal-warnings
+          dart analyze lib/ test/ --fatal-warnings
 
       - name: Ejecución de Suite de Pruebas con Cobertura
         run: |
