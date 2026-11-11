@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_client.dart';
 import '../../core/api_constants.dart';
 import '../../core/karliz_sound_service.dart';
+import '../../core/secure_storage_service.dart';
 
 class PedidoWebItem {
   final int? idDetallePedidoWeb;
@@ -117,15 +118,45 @@ class PedidoWeb {
 }
 
 class PedidoWebService {
-  static const String _storageKey = 'cajaya_pedidos_web_guardados_v1';
+  static const String _storageKeyPrefix = 'cajaya_pedidos_web_guardados_v1';
   static final List<PedidoWeb> _pedidos = [];
   static final ValueNotifier<int> pedidosPendientesCountNotifier = ValueNotifier<int>(0);
   static final ValueNotifier<bool> estaSincronizandoNotifier = ValueNotifier<bool>(false);
 
   static int _ultimaRevision = 0;
   static Timer? _pollingTimer;
-  static final ApiClient _apiClient = ApiClient();
+  static ApiClient _apiClient = ApiClient();
   static void Function(PedidoWeb)? onNuevoPedidoRecibido;
+  static bool _cleanupRegistered = false;
+
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(resetSession);
+  }
+
+  @visibleForTesting
+  static void setApiClientForTest(ApiClient client) {
+    _apiClient = client;
+  }
+
+  static Future<String> _getStorageKey() async {
+    final idBodega = await SecureStorageService.read('id_bodega');
+    final tenant = (idBodega != null && idBodega.trim().isNotEmpty)
+        ? idBodega.trim()
+        : 'default';
+    return '${_storageKeyPrefix}_$tenant';
+  }
+
+  /// Limpia pedidos en memoria, contadores y detiene cualquier sondeo activo al cambiar de cuenta/bodega.
+  static void resetSession() {
+    detenerPollingRevision();
+    _pedidos.clear();
+    _ultimaRevision = 0;
+    pedidosPendientesCountNotifier.value = 0;
+    estaSincronizandoNotifier.value = false;
+    onNuevoPedidoRecibido = null;
+  }
 
   static List<PedidoWeb> get pedidos => List.unmodifiable(_pedidos);
 
@@ -133,9 +164,11 @@ class PedidoWebService {
       _pedidos.where((p) => p.estado == 'PENDIENTE').toList();
 
   static Future<void> inicializar() async {
+    _ensureCleanupRegistered();
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_storageKey);
+      final key = await _getStorageKey();
+      final raw = prefs.getString(key) ?? prefs.getString(_storageKeyPrefix);
       if (raw != null && raw.isNotEmpty) {
         final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
         _pedidos.clear();
@@ -149,6 +182,7 @@ class PedidoWebService {
 
   /// Inicia el sondeo inteligente cada 30 segundos (Zero-DB Hit cuando no hay cambios).
   static void iniciarPollingRevision() {
+    _ensureCleanupRegistered();
     _pollingTimer?.cancel();
     // Verificación inicial inmediata
     unawaited(sincronizarConNube());
@@ -166,6 +200,7 @@ class PedidoWebService {
 
   /// Consulta la revisión en memoria del backend. Si cambió, descarga los pedidos.
   static Future<void> sincronizarConNube({bool forzar = false}) async {
+    _ensureCleanupRegistered();
     if (estaSincronizandoNotifier.value) return;
 
     try {
@@ -174,7 +209,7 @@ class PedidoWebService {
       if (!forzar) {
         final resRev = await _apiClient.get('/pedidos-web/revision?ultimaRevision=$_ultimaRevision');
         if (resRev.statusCode == 200) {
-          final data = jsonDecode(resRev.body) as Map<String, dynamic>;
+          final data = jsonDecode(utf8.decode(resRev.bodyBytes)) as Map<String, dynamic>;
           final bool hayCambio = data['hayCambio'] == true;
           final int revServidor = (data['revision'] as num?)?.toInt() ?? 0;
           final int conteoServidor = (data['conteoPendientes'] as num?)?.toInt() ?? 0;
@@ -196,7 +231,7 @@ class PedidoWebService {
       // Descargar pedidos recientes de la nube
       final resPedidos = await _apiClient.get('/pedidos-web?estado=TODOS&limite=50');
       if (resPedidos.statusCode == 200) {
-        final List<dynamic> listaJson = jsonDecode(resPedidos.body) as List<dynamic>;
+        final List<dynamic> listaJson = jsonDecode(utf8.decode(resPedidos.bodyBytes)) as List<dynamic>;
         final Set<String> codigosExistentes = _pedidos.map((p) => p.codigoDisplay).toSet();
         PedidoWeb? nuevoPedidoDetectado;
 
@@ -272,7 +307,7 @@ class PedidoWebService {
       ).timeout(const Duration(seconds: 15));
 
       if (res.statusCode == 200 || res.statusCode == 201) {
-        final data = jsonDecode(res.body) as Map<String, dynamic>;
+        final data = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
         final idRemoto = (data['idPedidoWeb'] as num?)?.toInt();
         if (idRemoto != null) {
           final idx = _pedidos.indexWhere((p) => p.codigoDisplay == pedido.codigoDisplay);
@@ -335,6 +370,7 @@ class PedidoWebService {
   }
 
   static Future<List<PedidoWeb>> buscarPedidos(String query) async {
+    _ensureCleanupRegistered();
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return pedidos;
 
@@ -351,7 +387,7 @@ class PedidoWebService {
     try {
       final res = await _apiClient.get('/pedidos-web/buscar?query=${Uri.encodeComponent(query)}&limite=20');
       if (res.statusCode == 200) {
-        final List<dynamic> listaJson = jsonDecode(res.body) as List<dynamic>;
+        final List<dynamic> listaJson = jsonDecode(utf8.decode(res.bodyBytes)) as List<dynamic>;
         return listaJson.map((e) => PedidoWeb.fromJson(Map<String, dynamic>.from(e as Map))).toList();
       }
     } catch (_) {}
@@ -367,8 +403,9 @@ class PedidoWebService {
   static Future<void> _persistir() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final key = await _getStorageKey();
       final data = jsonEncode(_pedidos.map((p) => p.toJson()).toList());
-      await prefs.setString(_storageKey, data);
+      await prefs.setString(key, data);
     } catch (_) {}
   }
 }

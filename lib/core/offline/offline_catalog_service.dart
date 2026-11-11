@@ -13,7 +13,9 @@ class OfflineCatalogService {
   static final OfflineCatalogService _instance =
       OfflineCatalogService._internal();
   factory OfflineCatalogService() => _instance;
-  OfflineCatalogService._internal();
+  OfflineCatalogService._internal() {
+    SecureStorageService.registerSessionCleanup(clearMemoryCache);
+  }
 
   static const String _keyPrefixCatalog = 'cajaya_offline_catalog_';
   static const String _keyPrefixTs = 'cajaya_offline_catalog_ts_';

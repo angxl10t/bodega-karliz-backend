@@ -4,6 +4,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Almacenamiento seguro respaldado por el Hardware de Android (Android Keystore
 /// y EncryptedSharedPreferences con cifrado AES-256-GCM).
 class SecureStorageService {
+  static final Set<void Function()> _sessionCleanupCallbacks =
+      <void Function()>{};
+
+  /// Registra una rutina síncrona para limpiar cachés en memoria o temporizadores
+  /// al cerrar sesión, expirar el token o cambiar de bodega.
+  static void registerSessionCleanup(void Function() callback) {
+    _sessionCleanupCallbacks.add(callback);
+  }
+
+  /// Ejecuta de forma segura todos los callbacks de limpieza registrados.
+  static void runSessionCleanupCallbacks() {
+    for (final cb in List<void Function()>.from(_sessionCleanupCallbacks)) {
+      try {
+        cb();
+      } catch (_) {}
+    }
+  }
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(resetOnError: true),
   );
@@ -68,13 +85,25 @@ class SecureStorageService {
     }
   }
 
-  /// Limpia todas las credenciales cifradas
+  /// Limpia todas las credenciales cifradas y resetea cachés en memoria de la sesión
   static Future<void> clearAuth() async {
-    await delete('jwt_token');
-    await delete('user_rol');
-    await delete('username');
-    await delete('id_bodega');
-    await delete('nombre_bodega');
-    await delete('plan_bodega');
+    runSessionCleanupCallbacks();
+    await Future.wait([
+      delete('jwt_token'),
+      delete('user_rol'),
+      delete('username'),
+      delete('user_email'),
+      delete('id_bodega'),
+      delete('nombre_bodega'),
+      delete('plan_bodega'),
+      delete('ruc_bodega'),
+      delete('direccion_bodega'),
+      delete('telefono_bodega'),
+      delete('color_primario'),
+      delete('lema_comercial'),
+      delete('logo_url'),
+      delete('regimen_tributario'),
+      delete('facturacion_sunat_activa'),
+    ]);
   }
 }

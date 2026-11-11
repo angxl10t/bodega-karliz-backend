@@ -3,13 +3,28 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../../core/api_client.dart';
+import '../../core/secure_storage_service.dart';
 import 'proveedor_model.dart';
 
 class ProveedorService {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+
+  ProveedorService({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient() {
+    _ensureCleanupRegistered();
+  }
+
+  static bool _cleanupRegistered = false;
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(invalidateCache);
+  }
 
   static List<Proveedor>? _cachedProveedores;
   static DateTime? _cacheTimestamp;
+  static Future<List<Proveedor>>? _inFlightProveedores;
+  static int _cacheEpoch = 0;
   static const Duration _cacheDuration = Duration(seconds: 60);
 
   /// Notificador reactivo para que la pantalla de Compras y selección de proveedores
@@ -19,6 +34,8 @@ class ProveedorService {
   static void invalidateCache() {
     _cachedProveedores = null;
     _cacheTimestamp = null;
+    _inFlightProveedores = null;
+    _cacheEpoch++;
     proveedoresRevision.value++;
   }
 
@@ -31,6 +48,24 @@ class ProveedorService {
       }
     }
 
+    if (!forceRefresh && _inFlightProveedores != null) {
+      return List<Proveedor>.from(await _inFlightProveedores!);
+    }
+
+    final epoch = _cacheEpoch;
+    final future = _fetchProveedoresFromNetwork(epoch);
+    _inFlightProveedores = future;
+    try {
+      final result = await future;
+      return List<Proveedor>.from(result);
+    } finally {
+      if (identical(_inFlightProveedores, future)) {
+        _inFlightProveedores = null;
+      }
+    }
+  }
+
+  Future<List<Proveedor>> _fetchProveedoresFromNetwork(int epoch) async {
     try {
       final response = await _apiClient.get('/proveedores');
       if (response.statusCode == 200) {
@@ -38,9 +73,11 @@ class ProveedorService {
           utf8.decode(response.bodyBytes),
         );
         final provs = jsonList.map((json) => Proveedor.fromJson(json)).toList();
-        _cachedProveedores = provs;
-        _cacheTimestamp = DateTime.now();
-        return List<Proveedor>.from(provs);
+        if (epoch == _cacheEpoch) {
+          _cachedProveedores = provs;
+          _cacheTimestamp = DateTime.now();
+        }
+        return provs;
       }
       return _cachedProveedores != null
           ? List<Proveedor>.from(_cachedProveedores!)

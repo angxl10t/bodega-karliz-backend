@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:bodega_mobile/core/api_client.dart';
 import 'package:bodega_mobile/core/marca_detector_service.dart';
 import 'package:bodega_mobile/features/productos/producto_model.dart';
 import 'package:bodega_mobile/features/productos/producto_service.dart';
@@ -335,7 +338,12 @@ void main() {
         ];
 
         ProductoService.setMockProductos(mockProductos);
-        final marcas = await ProductoService().getMarcas();
+        final mockClient = MockClient(
+          (_) async => http.Response('Service Unavailable', 503),
+        );
+        final marcas = await ProductoService(
+          apiClient: ApiClient(client: mockClient),
+        ).getMarcas();
 
         expect(marcas.isNotEmpty, isTrue);
         // Pepsi tiene 2 productos, Bimbo tiene 1
@@ -343,6 +351,7 @@ void main() {
         expect(marcas.first.cantidadProductos, 2);
         expect(marcas[1].nombre, 'Bimbo');
         expect(marcas[1].cantidadProductos, 1);
+        ProductoService.invalidateCache();
       },
     );
   });

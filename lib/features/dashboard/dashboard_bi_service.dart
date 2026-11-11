@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/api_client.dart';
 import '../../core/csv_exporter.dart';
+import '../../core/secure_storage_service.dart';
 import 'dashboard_bi_model.dart';
 
 class DashboardBiService {
@@ -22,7 +23,8 @@ class DashboardBiService {
   /// Obtiene los datos consolidados de rentabilidad real, productos estrella/hueso
   /// y mapa de calor de horarios pico desde el servidor con fallback resiliente offline en cache.
   Future<DashboardBiData> obtenerDashboardBi({int dias = 30}) async {
-    final cacheKey = 'cajaya_cache_dashboard_bi_$dias';
+    final idBodega = await SecureStorageService.read('id_bodega') ?? 'default';
+    final cacheKey = 'cajaya_cache_dashboard_bi_${idBodega}_$dias';
     try {
       final response = await _apiClient.get(
         '/analytics/dashboard-bi?dias=$dias',

@@ -4,13 +4,23 @@ import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api_client.dart';
+import '../../core/secure_storage_service.dart';
 import 'cliente_model.dart';
 
 class ClienteService {
   final ApiClient _apiClient;
 
   ClienteService({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient() {
+    _ensureCleanupRegistered();
+  }
+
+  static bool _cleanupRegistered = false;
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(invalidateCache);
+  }
 
   static List<Cliente>? _cachedClientes;
   static DateTime? _cacheTimestamp;

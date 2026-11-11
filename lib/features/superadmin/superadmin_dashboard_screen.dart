@@ -56,6 +56,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   String _filtroBilleteraPago = 'TODOS';
 
   int _latencyMs = 0;
+  bool _isRefreshingMetrics = false;
   Timer? _refreshTimer;
 
   @override
@@ -130,19 +131,26 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   }
 
   Future<void> _cargarMetricasYHealth() async {
+    if (_isRefreshingMetrics) return;
+    _isRefreshingMetrics = true;
     try {
       final stopwatch = Stopwatch()..start();
-      final m = await _bodegaService.obtenerMetricasSistema();
-      final h = await _bodegaService.obtenerHealthServidor();
+      final results = await Future.wait<Map<String, dynamic>>([
+        _bodegaService.obtenerMetricasSistema(),
+        _bodegaService.obtenerHealthServidor(),
+      ]);
       stopwatch.stop();
       if (mounted) {
         setState(() {
-          _metricasSistema = m;
-          _healthInfo = h;
+          _metricasSistema = results[0];
+          _healthInfo = results[1];
           _latencyMs = stopwatch.elapsedMilliseconds;
         });
       }
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      _isRefreshingMetrics = false;
+    }
   }
 
   // ===========================================================================
@@ -1083,6 +1091,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
   // Inspeccionar Bodega (Audit / Support Mode)
   Future<void> _inspeccionarBodega(BodegaInfo b) async {
+    AuthService.clearTenantCaches();
     // Guarda el ID y nombre temporal en almacenamiento para inspección
     await SecureStorageService.write('id_bodega', b.idBodega.toString());
     await SecureStorageService.write('nombre_bodega', b.nombreComercial);

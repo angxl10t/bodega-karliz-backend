@@ -5,9 +5,15 @@ import 'package:bodega_mobile/core/api_client.dart';
 import 'package:bodega_mobile/core/catalogo_imagenes_service.dart';
 import 'package:bodega_mobile/core/categoria_suggester_service.dart';
 import 'package:bodega_mobile/core/offline/offline_catalog_service.dart';
+import 'package:bodega_mobile/core/secure_storage_service.dart';
+import 'package:bodega_mobile/features/auth/auth_service.dart';
+import 'package:bodega_mobile/features/catalogo/pedido_web_service.dart';
+import 'package:bodega_mobile/features/categorias/categoria_service.dart';
 import 'package:bodega_mobile/features/clientes/cliente_service.dart';
+import 'package:bodega_mobile/features/clientes/garantia_botella_service.dart';
 import 'package:bodega_mobile/features/productos/producto_model.dart';
 import 'package:bodega_mobile/features/productos/producto_service.dart';
+import 'package:bodega_mobile/features/proveedores/proveedor_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -318,6 +324,309 @@ void main() {
           nombre: 'Coca Cola 500ml',
         );
         expect(cachedRepeat?.imagenUrl, equals(small.imagenUrl));
+      },
+    );
+  });
+
+  group('Coalesced Services & Multi-Tenant Session Cache Isolation', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      AuthService.clearAllSessionState();
+      PedidoWebService.setApiClientForTest(ApiClient());
+    });
+
+    tearDown(() {
+      AuthService.clearAllSessionState();
+      PedidoWebService.setApiClientForTest(ApiClient());
+    });
+
+    test(
+      'CategoriaService coalesce llamadas concurrentes en una sola petición HTTP y limpia cache con epoch',
+      () async {
+        int calls = 0;
+        final started = Completer<void>();
+        final release = Completer<void>();
+
+        final mockHttp = MockClient((request) async {
+          calls++;
+          if (!started.isCompleted) started.complete();
+          await release.future;
+          return http.Response(
+            jsonEncode([
+              {'idCategoria': 1, 'nombre': 'Bebidas', 'estado': true},
+              {'idCategoria': 2, 'nombre': 'Lácteos', 'estado': true},
+            ]),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        });
+
+        final service = CategoriaService(apiClient: ApiClient(client: mockHttp));
+        final futures = List.generate(5, (_) => service.getCategorias());
+
+        await started.future;
+        expect(calls, equals(1));
+
+        release.complete();
+        final res = await Future.wait(futures);
+        expect(calls, equals(1));
+        expect(res, hasLength(5));
+        for (final list in res) {
+          expect(list, hasLength(2));
+        }
+
+        // Segunda lectura dentro del TTL reutiliza caché
+        await service.getCategorias();
+        expect(calls, equals(1));
+
+        // Invalidación fuerza recarga
+        CategoriaService.invalidateCache();
+        await service.getCategorias();
+        expect(calls, equals(2));
+      },
+    );
+
+    test(
+      'ProveedorService coalesce llamadas concurrentes en una sola petición HTTP',
+      () async {
+        int calls = 0;
+        final started = Completer<void>();
+        final release = Completer<void>();
+
+        final mockHttp = MockClient((request) async {
+          calls++;
+          if (!started.isCompleted) started.complete();
+          await release.future;
+          return http.Response(
+            jsonEncode([
+              {
+                'idProveedor': 10,
+                'ruc': '20100047218',
+                'razonSocial': 'Alicorp S.A.A.',
+                'estado': true,
+              },
+            ]),
+            200,
+          );
+        });
+
+        final service = ProveedorService(apiClient: ApiClient(client: mockHttp));
+        final futures = List.generate(4, (_) => service.getProveedores());
+
+        await started.future;
+        expect(calls, equals(1));
+
+        release.complete();
+        final res = await Future.wait(futures);
+        expect(calls, equals(1));
+        expect(res, hasLength(4));
+        expect(res.first.first.razonSocial, equals('Alicorp S.A.A.'));
+      },
+    );
+
+    test(
+      'GarantiaBotellaService coalesce consultas sin filtro y respeta invalidación',
+      () async {
+        int calls = 0;
+        final started = Completer<void>();
+        final release = Completer<void>();
+
+        final mockHttp = MockClient((request) async {
+          calls++;
+          if (!started.isCompleted) started.complete();
+          await release.future;
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode([
+                {
+                  'idGarantia': 7,
+                  'nombrePersona': 'Carlos Ñahui',
+                  'cantidadBotellas': 2,
+                  'montoGarantia': 4.0,
+                  'estado': 'PENDIENTE',
+                },
+              ]),
+            ),
+            200,
+          );
+        });
+
+        final service = GarantiaBotellaService(
+          apiClient: ApiClient(client: mockHttp),
+        );
+        final futures = List.generate(4, (_) => service.getGarantias());
+
+        await started.future;
+        expect(calls, equals(1));
+
+        release.complete();
+        final res = await Future.wait(futures);
+        expect(calls, equals(1));
+        expect(res, hasLength(4));
+        expect(res.first.first.nombrePersona, equals('Carlos Ñahui'));
+      },
+    );
+
+    test(
+      'SecureStorageService.clearAuth resetea todos los cachés multi-tenant y rol en memoria',
+      () async {
+        int catCalls = 0;
+        int provCalls = 0;
+        int garCalls = 0;
+        int prodCalls = 0;
+
+        final catMock = MockClient((_) async {
+          catCalls++;
+          return http.Response(
+            jsonEncode([
+              {
+                'idCategoria': catCalls,
+                'nombre': 'Cat $catCalls',
+                'estado': true,
+              },
+            ]),
+            200,
+          );
+        });
+        final provMock = MockClient((_) async {
+          provCalls++;
+          return http.Response(
+            jsonEncode([
+              {
+                'idProveedor': provCalls,
+                'ruc': '20123456789',
+                'razonSocial': 'Prov $provCalls',
+                'estado': true,
+              },
+            ]),
+            200,
+          );
+        });
+        final garMock = MockClient((_) async {
+          garCalls++;
+          return http.Response(
+            jsonEncode([
+              {
+                'idGarantia': garCalls,
+                'nombrePersona': 'Gar $garCalls',
+                'cantidadBotellas': 1,
+                'montoGarantia': 2.0,
+                'estado': 'PENDIENTE',
+              },
+            ]),
+            200,
+          );
+        });
+        final prodMock = MockClient((_) async {
+          prodCalls++;
+          return http.Response(
+            jsonEncode([
+              {
+                'idProducto': prodCalls,
+                'idCategoria': 1,
+                'codigo': 'P-$prodCalls',
+                'nombre': 'Prod $prodCalls',
+                'precioVenta': 5.0,
+                'stockActual': 10.0,
+              },
+            ]),
+            200,
+          );
+        });
+
+        final catSvc = CategoriaService(apiClient: ApiClient(client: catMock));
+        final provSvc = ProveedorService(
+          apiClient: ApiClient(client: provMock),
+        );
+        final garSvc = GarantiaBotellaService(
+          apiClient: ApiClient(client: garMock),
+        );
+        final prodSvc = ProductoService(apiClient: ApiClient(client: prodMock));
+        // Garantiza que AuthService registre su callback de sesión en este test
+        AuthService();
+        AuthService.setCachedRol('ADMIN');
+
+        await catSvc.getCategorias();
+        await provSvc.getProveedores();
+        await garSvc.getGarantias();
+        await prodSvc.getProductos();
+
+        expect((await catSvc.getCategorias()).first.nombre, equals('Cat 1'));
+        expect(catCalls, equals(1));
+        expect(provCalls, equals(1));
+        expect(garCalls, equals(1));
+        expect(prodCalls, equals(1));
+
+        await SecureStorageService.clearAuth();
+
+        expect(AuthService.cachedUserRole, equals('CAJERO'));
+        expect((await catSvc.getCategorias()).first.nombre, equals('Cat 2'));
+        expect(
+          (await provSvc.getProveedores()).first.razonSocial,
+          equals('Prov 2'),
+        );
+        expect(
+          (await garSvc.getGarantias()).first.nombrePersona,
+          equals('Gar 2'),
+        );
+        expect((await prodSvc.getProductos()).first.nombre, equals('Prod 2'));
+        expect(catCalls, equals(2));
+        expect(provCalls, equals(2));
+        expect(garCalls, equals(2));
+        expect(prodCalls, equals(2));
+      },
+    );
+
+    test(
+      'PedidoWebService decodifica UTF-8 correctamente y resetSession limpia estado y pedidos',
+      () async {
+        final mockHttp = MockClient((request) async {
+          if (request.url.path.contains('/revision')) {
+            return http.Response.bytes(
+              utf8.encode(
+                jsonEncode({
+                  'hayCambio': true,
+                  'revision': 5,
+                  'conteoPendientes': 1,
+                }),
+              ),
+              200,
+            );
+          }
+          return http.Response.bytes(
+            utf8.encode(
+              jsonEncode([
+                {
+                  'idPedidoWeb': 99,
+                  'codigoPedido': '#W-1099',
+                  'nombreCliente': 'María Peña Ñahui',
+                  'notas': 'Con piña y ají',
+                  'total': 15.5,
+                  'estado': 'PENDIENTE',
+                  'items': [],
+                },
+              ]),
+            ),
+            200,
+          );
+        });
+
+        PedidoWebService.setApiClientForTest(ApiClient(client: mockHttp));
+        await PedidoWebService.sincronizarConNube();
+
+        expect(PedidoWebService.pedidos, hasLength(1));
+        expect(
+          PedidoWebService.pedidos.first.nombreCliente,
+          equals('María Peña Ñahui'),
+        );
+        expect(PedidoWebService.pedidos.first.notas, equals('Con piña y ají'));
+        expect(PedidoWebService.pedidosPendientesCountNotifier.value, equals(1));
+
+        await SecureStorageService.clearAuth();
+
+        expect(PedidoWebService.pedidos, isEmpty);
+        expect(PedidoWebService.pedidosPendientesCountNotifier.value, equals(0));
+        expect(PedidoWebService.estaSincronizandoNotifier.value, isFalse);
       },
     );
   });

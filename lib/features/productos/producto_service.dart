@@ -6,13 +6,23 @@ import '../../core/api_client.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/offline/offline_catalog_service.dart';
 import '../../core/offline/offline_sync_manager.dart';
+import '../../core/secure_storage_service.dart';
 import 'producto_model.dart';
 
 class ProductoService {
   final ApiClient _apiClient;
 
   ProductoService({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient();
+    : _apiClient = apiClient ?? ApiClient() {
+    _ensureCleanupRegistered();
+  }
+
+  static bool _cleanupRegistered = false;
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(invalidateCache);
+  }
 
   static List<Producto>? _cachedProductos;
   static DateTime? _cacheTimestamp;

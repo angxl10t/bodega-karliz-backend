@@ -3,13 +3,28 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../../core/api_client.dart';
+import '../../core/secure_storage_service.dart';
 import 'garantia_botella_model.dart';
 
 class GarantiaBotellaService {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+
+  GarantiaBotellaService({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient() {
+    _ensureCleanupRegistered();
+  }
+
+  static bool _cleanupRegistered = false;
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(invalidateCache);
+  }
 
   static List<GarantiaBotella>? _cachedGarantias;
   static DateTime? _cacheTimestamp;
+  static Future<List<GarantiaBotella>>? _inFlightGarantias;
+  static int _cacheEpoch = 0;
   static const Duration _cacheDuration = Duration(seconds: 45);
 
   static final ValueNotifier<int> garantiasRevision = ValueNotifier<int>(0);
@@ -17,6 +32,8 @@ class GarantiaBotellaService {
   static void invalidateCache() {
     _cachedGarantias = null;
     _cacheTimestamp = null;
+    _inFlightGarantias = null;
+    _cacheEpoch++;
     garantiasRevision.value++;
   }
 
@@ -38,19 +55,43 @@ class GarantiaBotellaService {
       }
     }
 
+    if (!forceRefresh && !hasFilter && _inFlightGarantias != null) {
+      return List<GarantiaBotella>.from(await _inFlightGarantias!);
+    }
+
+    final queryParams = <String>[];
+    if (estado != null && estado.trim().isNotEmpty && estado != 'TODAS') {
+      queryParams.add('estado=${Uri.encodeComponent(estado.trim())}');
+    }
+    if (query != null && query.trim().isNotEmpty) {
+      queryParams.add('query=${Uri.encodeComponent(query.trim())}');
+    }
+
+    final endpoint = queryParams.isEmpty
+        ? '/garantias-botellas'
+        : '/garantias-botellas?${queryParams.join('&')}';
+
+    final epoch = _cacheEpoch;
+    final future = _fetchGarantiasFromNetwork(endpoint, hasFilter, epoch);
+    if (!hasFilter) {
+      _inFlightGarantias = future;
+    }
     try {
-      final queryParams = <String>[];
-      if (estado != null && estado.trim().isNotEmpty && estado != 'TODAS') {
-        queryParams.add('estado=${Uri.encodeComponent(estado.trim())}');
+      final result = await future;
+      return List<GarantiaBotella>.from(result);
+    } finally {
+      if (!hasFilter && identical(_inFlightGarantias, future)) {
+        _inFlightGarantias = null;
       }
-      if (query != null && query.trim().isNotEmpty) {
-        queryParams.add('query=${Uri.encodeComponent(query.trim())}');
-      }
+    }
+  }
 
-      final endpoint = queryParams.isEmpty
-          ? '/garantias-botellas'
-          : '/garantias-botellas?${queryParams.join('&')}';
-
+  Future<List<GarantiaBotella>> _fetchGarantiasFromNetwork(
+    String endpoint,
+    bool hasFilter,
+    int epoch,
+  ) async {
+    try {
       final response = await _apiClient.get(endpoint);
 
       if (response.statusCode == 200) {
@@ -59,18 +100,18 @@ class GarantiaBotellaService {
             .map((j) => GarantiaBotella.fromJson(j as Map<String, dynamic>))
             .toList();
 
-        if (!hasFilter) {
+        if (!hasFilter && epoch == _cacheEpoch) {
           _cachedGarantias = items;
           _cacheTimestamp = DateTime.now();
         }
-        return List<GarantiaBotella>.from(items);
+        return items;
       }
-      return _cachedGarantias != null
+      return (!hasFilter && _cachedGarantias != null)
           ? List<GarantiaBotella>.from(_cachedGarantias!)
           : [];
     } catch (e) {
       debugPrint('Error en getGarantias: $e');
-      return _cachedGarantias != null
+      return (!hasFilter && _cachedGarantias != null)
           ? List<GarantiaBotella>.from(_cachedGarantias!)
           : [];
     }

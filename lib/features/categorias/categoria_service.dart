@@ -3,13 +3,28 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../../core/api_client.dart';
+import '../../core/secure_storage_service.dart';
 import 'categoria_model.dart';
 
 class CategoriaService {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient;
+
+  CategoriaService({ApiClient? apiClient})
+    : _apiClient = apiClient ?? ApiClient() {
+    _ensureCleanupRegistered();
+  }
+
+  static bool _cleanupRegistered = false;
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(invalidateCache);
+  }
 
   static List<Categoria>? _cachedCategorias;
   static DateTime? _cacheTimestamp;
+  static Future<List<Categoria>>? _inFlightCategorias;
+  static int _cacheEpoch = 0;
   static const Duration _cacheDuration = Duration(seconds: 60);
 
   /// Notificador reactivo para que todas las vistas (Catálogo, POS, Filtros)
@@ -19,6 +34,8 @@ class CategoriaService {
   static void invalidateCache() {
     _cachedCategorias = null;
     _cacheTimestamp = null;
+    _inFlightCategorias = null;
+    _cacheEpoch++;
     categoriasRevision.value++;
   }
 
@@ -27,6 +44,8 @@ class CategoriaService {
   static void setMockCategorias(List<Categoria> categorias) {
     _cachedCategorias = List<Categoria>.from(categorias);
     _cacheTimestamp = DateTime.now();
+    _inFlightCategorias = null;
+    _cacheEpoch++;
   }
 
   Future<List<Categoria>> getCategorias({bool forceRefresh = false}) async {
@@ -36,6 +55,24 @@ class CategoriaService {
       }
     }
 
+    if (!forceRefresh && _inFlightCategorias != null) {
+      return List<Categoria>.from(await _inFlightCategorias!);
+    }
+
+    final epoch = _cacheEpoch;
+    final future = _fetchCategoriasFromNetwork(epoch);
+    _inFlightCategorias = future;
+    try {
+      final result = await future;
+      return List<Categoria>.from(result);
+    } finally {
+      if (identical(_inFlightCategorias, future)) {
+        _inFlightCategorias = null;
+      }
+    }
+  }
+
+  Future<List<Categoria>> _fetchCategoriasFromNetwork(int epoch) async {
     try {
       final response = await _apiClient.get('/categorias');
       if (response.statusCode == 200) {
@@ -43,9 +80,11 @@ class CategoriaService {
           utf8.decode(response.bodyBytes),
         );
         final cats = jsonList.map((json) => Categoria.fromJson(json)).toList();
-        _cachedCategorias = cats;
-        _cacheTimestamp = DateTime.now();
-        return List<Categoria>.from(cats);
+        if (epoch == _cacheEpoch) {
+          _cachedCategorias = cats;
+          _cacheTimestamp = DateTime.now();
+        }
+        return cats;
       }
       return _cachedCategorias != null
           ? List<Categoria>.from(_cachedCategorias!)

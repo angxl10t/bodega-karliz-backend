@@ -5,7 +5,14 @@ import 'package:http/http.dart' as http;
 
 import '../../core/api_client.dart';
 import '../../core/api_constants.dart';
+import '../../core/offline/offline_catalog_service.dart';
 import '../../core/secure_storage_service.dart';
+import '../catalogo/pedido_web_service.dart';
+import '../categorias/categoria_service.dart';
+import '../clientes/cliente_service.dart';
+import '../clientes/garantia_botella_service.dart';
+import '../productos/producto_service.dart';
+import '../proveedores/proveedor_service.dart';
 
 class AuthResult {
   final bool success;
@@ -15,6 +22,17 @@ class AuthResult {
 }
 
 class AuthService {
+  AuthService() {
+    _ensureCleanupRegistered();
+  }
+
+  static bool _cleanupRegistered = false;
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(clearAllSessionState);
+  }
+
   static String _cachedRol = 'CAJERO';
   static String get cachedUserRole => _cachedRol;
   static bool get esCajero => _cachedRol == 'CAJERO';
@@ -24,6 +42,23 @@ class AuthService {
       _cachedRol == 'SUPERADMIN';
   static void setCachedRol(String rol) {
     _cachedRol = rol;
+  }
+
+  /// Limpia todas las cachés en memoria y sondeos propios de una bodega (ej. al cambiar de tenant).
+  static void clearTenantCaches() {
+    ProductoService.invalidateCache();
+    ClienteService.invalidateCache();
+    CategoriaService.invalidateCache();
+    ProveedorService.invalidateCache();
+    GarantiaBotellaService.invalidateCache();
+    OfflineCatalogService().clearMemoryCache();
+    PedidoWebService.resetSession();
+  }
+
+  /// Limpia por completo el estado de sesión en memoria (cachés de tenant + rol).
+  static void clearAllSessionState() {
+    _cachedRol = 'CAJERO';
+    clearTenantCaches();
   }
 
   Future<AuthResult> login(String username, String password) async {
@@ -37,9 +72,11 @@ class AuthService {
           .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
+        clearAllSessionState();
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final String token = data['token'];
         final String rol = data['rol'];
+        _cachedRol = rol;
 
         // Almacenamiento seguro cifrado en hardware (AES-256 / Android Keystore)
         await SecureStorageService.write('jwt_token', token);
@@ -278,9 +315,11 @@ class AuthService {
           .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        clearAllSessionState();
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final String token = data['token'];
         final String rol = data['rol'] ?? 'ADMIN';
+        _cachedRol = rol;
 
         await SecureStorageService.write('jwt_token', token);
         await SecureStorageService.write('user_rol', rol);
