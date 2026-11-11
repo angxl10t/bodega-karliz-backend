@@ -37,7 +37,8 @@ public class DocumentoConsultaService {
     // Caché en memoria para evitar consultas duplicadas y ahorrar cuotas de peticiones
     private final Map<String, CacheEntry<DniConsultaDTO>> cacheDni = new ConcurrentHashMap<>();
     private final Map<String, CacheEntry<RucConsultaDTO>> cacheRuc = new ConcurrentHashMap<>();
-    private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000L; // 24 horas
+    private static final long CACHE_TTL_MS = 24 * 60 * 60 * 1000L; // 24 horas\r
+    private static final int MAX_CACHE_SIZE = 1000;
 
     public DocumentoConsultaService() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -227,19 +228,30 @@ public class DocumentoConsultaService {
     }
 
     private void guardarEnCacheDni(String dni, DniConsultaDTO dto) {
-        if (cacheDni.size() >= 5000) {
-            cacheDni.entrySet().removeIf(e -> e.getValue().isExpired(CACHE_TTL_MS));
-            if (cacheDni.size() >= 5000) cacheDni.clear();
-        }
-        cacheDni.put(dni, new CacheEntry<>(dto));
+        guardarEnCache(cacheDni, dni, dto);
     }
 
     private void guardarEnCacheRuc(String ruc, RucConsultaDTO dto) {
-        if (cacheRuc.size() >= 5000) {
-            cacheRuc.entrySet().removeIf(e -> e.getValue().isExpired(CACHE_TTL_MS));
-            if (cacheRuc.size() >= 5000) cacheRuc.clear();
+        guardarEnCache(cacheRuc, ruc, dto);
+    }
+
+    private <T> void guardarEnCache(Map<String, CacheEntry<T>> cache, String key, T dto) {
+        if (cache.size() >= MAX_CACHE_SIZE) {
+            cache.entrySet().removeIf(e -> e.getValue().isExpired(CACHE_TTL_MS));
+            while (cache.size() >= MAX_CACHE_SIZE) {
+                String oldestKey = null;
+                long oldestTs = Long.MAX_VALUE;
+                for (Map.Entry<String, CacheEntry<T>> entry : cache.entrySet()) {
+                    if (entry.getValue().timestamp < oldestTs) {
+                        oldestTs = entry.getValue().timestamp;
+                        oldestKey = entry.getKey();
+                    }
+                }
+                if (oldestKey == null) break;
+                cache.remove(oldestKey);
+            }
         }
-        cacheRuc.put(ruc, new CacheEntry<>(dto));
+        cache.put(key, new CacheEntry<>(dto));
     }
 
     /**

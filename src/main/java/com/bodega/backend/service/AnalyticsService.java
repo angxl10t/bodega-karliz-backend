@@ -28,8 +28,9 @@ public class AnalyticsService {
     private final ProductoRepository productoRepository;
     private final TenantService tenantService;
 
-    // Caché en memoria de 120 segundos para evitar saturación de la BD y del pool de conexiones
+    // Caché en memoria de 120 segundos y capacidad acotada para proteger RAM en instancias de 512MB
     private static final long CACHE_TTL_SECONDS = 120;
+    private static final int MAX_BI_CACHE_SIZE = 300;
     private final ConcurrentHashMap<String, CachedBiEntry> biCache = new ConcurrentHashMap<>();
 
     private static class CachedBiEntry {
@@ -289,8 +290,21 @@ public class AnalyticsService {
                 .recomendacionTurnos(recomendacion)
                 .build();
 
-        // Almacenar en caché en memoria
-        biCache.put(cacheKey, new CachedBiEntry(dto));
+        // Almacenar en caché en memoria acotado
+        guardarEnCacheBi(cacheKey, dto);
         return dto;
+    }
+
+    private void guardarEnCacheBi(String cacheKey, DashboardBiDTO dto) {
+        if (biCache.size() >= MAX_BI_CACHE_SIZE) {
+            biCache.entrySet().removeIf(entry -> !entry.getValue().isValid());
+            while (biCache.size() >= MAX_BI_CACHE_SIZE) {
+                biCache.entrySet().stream()
+                        .min(Comparator.comparing(entry -> entry.getValue().timestamp))
+                        .map(Map.Entry::getKey)
+                        .ifPresent(biCache::remove);
+            }
+        }
+        biCache.put(cacheKey, new CachedBiEntry(dto));
     }
 }

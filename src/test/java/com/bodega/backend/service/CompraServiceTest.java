@@ -145,7 +145,7 @@ public class CompraServiceTest {
         when(tenantService.getCurrentBodega()).thenReturn(bodega);
         when(compraRepository.existsByBodega_IdBodegaAndProveedor_IdProveedorAndComprobanteIgnoreCase(1L, 10L, "F001-009988"))
                 .thenReturn(false);
-        when(productoRepository.findByIdForUpdateAndBodega(20L, 1L)).thenReturn(Optional.of(prod));
+        when(productoRepository.findAllByIdForUpdateAndBodega(List.of(20L), 1L)).thenReturn(List.of(prod));
 
         when(compraRepository.save(any(Compra.class))).thenAnswer(invocation -> {
             Compra c = invocation.getArgument(0);
@@ -162,10 +162,10 @@ public class CompraServiceTest {
 
         // 1. Verifica incremento del stock: 10 + 24 = 34
         assertEquals(new BigDecimal("34.000"), prod.getStockActual());
-        verify(productoRepository, times(1)).save(prod);
+        verify(productoRepository, times(1)).saveAll(List.of(prod));
 
-        // 2. Verifica movimiento ENTRADA en Kardex
-        verify(movimientoInventarioRepository, times(1)).save(any(MovimientoInventario.class));
+        // 2. Verifica movimiento ENTRADA en Kardex en lote
+        verify(movimientoInventarioRepository, times(1)).saveAll(anyList());
 
         // 3. Verifica guardado por lote de detalles
         verify(compraDetalleRepository, times(1)).saveAll(anyList());
@@ -203,7 +203,7 @@ public class CompraServiceTest {
         when(tenantService.getCurrentBodega()).thenReturn(bodega);
         when(compraRepository.existsByBodega_IdBodegaAndProveedor_IdProveedorAndComprobanteIgnoreCase(1L, 10L, "F001-123456"))
                 .thenReturn(false);
-        when(productoRepository.findByIdForUpdateAndBodega(20L, 1L)).thenReturn(Optional.of(prod));
+        when(productoRepository.findAllByIdForUpdateAndBodega(List.of(20L), 1L)).thenReturn(List.of(prod));
         when(compraRepository.save(any(Compra.class))).thenAnswer(i -> {
             Compra c = i.getArgument(0);
             c.setIdCompra(101L);
@@ -245,5 +245,75 @@ public class CompraServiceTest {
         assertEquals(1, lista.size());
         assertEquals(1L, lista.get(0).getIdCompra());
         assertEquals("Gloria", lista.get(0).getRazonSocialProveedor());
+    }
+
+    @Test
+    void testRegistrarCompra_MultiProducto_BloqueaYSalvaEnLoteUnico() {
+        Bodega bodega = new Bodega();
+        bodega.setIdBodega(1L);
+
+        Proveedor prov = new Proveedor();
+        prov.setIdProveedor(10L);
+        prov.setRazonSocial("Distribuidora Sur");
+        prov.setEstado(true);
+
+        Producto p10 = new Producto();
+        p10.setIdProducto(10L);
+        p10.setNombre("Item A");
+        p10.setStockActual(new BigDecimal("5.000"));
+        p10.setEstado(true);
+        p10.setBodega(bodega);
+
+        Producto p20 = new Producto();
+        p20.setIdProducto(20L);
+        p20.setNombre("Item B");
+        p20.setStockActual(new BigDecimal("2.000"));
+        p20.setEstado(true);
+        p20.setBodega(bodega);
+
+        CompraDetalleDTO item20 = new CompraDetalleDTO();
+        item20.setIdProducto(20L);
+        item20.setCantidad(new BigDecimal("3.000"));
+        item20.setPrecioUnitario(new BigDecimal("4.00"));
+
+        CompraDetalleDTO item10 = new CompraDetalleDTO();
+        item10.setIdProducto(10L);
+        item10.setCantidad(new BigDecimal("2.000"));
+        item10.setPrecioUnitario(new BigDecimal("10.00"));
+
+        CompraDTO dto = new CompraDTO();
+        dto.setIdProveedor(10L);
+        dto.setComprobante("F002-777");
+        dto.setDetalles(List.of(item20, item10));
+
+        when(proveedorRepository.findByIdProveedorAndBodega_IdBodega(10L, 1L)).thenReturn(Optional.of(prov));
+        when(tenantService.getCurrentBodega()).thenReturn(bodega);
+        when(compraRepository.existsByBodega_IdBodegaAndProveedor_IdProveedorAndComprobanteIgnoreCase(1L, 10L, "F002-777"))
+                .thenReturn(false);
+        when(productoRepository.findAllByIdForUpdateAndBodega(List.of(10L, 20L), 1L))
+                .thenReturn(List.of(p10, p20));
+        when(compraRepository.save(any(Compra.class))).thenAnswer(i -> {
+            Compra c = i.getArgument(0);
+            c.setIdCompra(102L);
+            return c;
+        });
+
+        CompraDTO resultado = compraService.registrarCompra(dto);
+
+        assertEquals(new BigDecimal("32.00"), resultado.getTotal());
+        verify(productoRepository, never()).findByIdForUpdateAndBodega(any(), any());
+        verify(productoRepository, times(1)).findAllByIdForUpdateAndBodega(List.of(10L, 20L), 1L);
+        verify(productoRepository, never()).save(any());
+        verify(productoRepository, times(1)).saveAll(argThat(iterable -> {
+            int count = 0;
+            for (Producto ignored : iterable) count++;
+            return count == 2;
+        }));
+        verify(movimientoInventarioRepository, never()).save(any());
+        verify(movimientoInventarioRepository, times(1)).saveAll(argThat(iterable -> {
+            int count = 0;
+            for (MovimientoInventario ignored : iterable) count++;
+            return count == 2;
+        }));
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,8 +99,19 @@ public class CompraService {
         List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesConsolidadas.keySet());
         Collections.sort(idsProductosOrdenados);
 
-        List<CompraDetalle> detallesGuardados = new ArrayList<>();
-        
+        List<CompraDetalle> detallesGuardados = new ArrayList<>(idsProductosOrdenados.size());
+        Map<Long, Producto> productosBloqueados = new HashMap<>();
+        for (Producto p : productoRepository.findAllByIdForUpdateAndBodega(idsProductosOrdenados, idBodega)) {
+            productosBloqueados.put(p.getIdProducto(), p);
+        }
+
+        List<Producto> productosAActualizar = new ArrayList<>(idsProductosOrdenados.size());
+        List<MovimientoInventario> movimientosAGuardar = new ArrayList<>(idsProductosOrdenados.size());
+        String motivoCompra = "Compra a proveedor: " + proveedor.getRazonSocial() + (comprobanteTrim != null ? " (" + comprobanteTrim + ")" : "");
+        if (motivoCompra.length() > 255) {
+            motivoCompra = motivoCompra.substring(0, 255);
+        }
+
         for (Long idProd : idsProductosOrdenados) {
             BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
             BigDecimal precioUnitario = preciosPorProducto.get(idProd).setScale(2, java.math.RoundingMode.HALF_UP);
@@ -109,8 +121,10 @@ public class CompraService {
             }
 
             // Bloqueo pesimista exclusivo restringido al tenant actual
-            Producto producto = productoRepository.findByIdForUpdateAndBodega(idProd, idBodega)
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado en esta bodega: " + idProd));
+            Producto producto = productosBloqueados.get(idProd);
+            if (producto == null) {
+                throw new RuntimeException("Producto no encontrado en esta bodega: " + idProd);
+            }
 
             // Validación de Integridad de Negocio: No permitir ingreso de inventario para productos inactivos o descontinuados
             if (Boolean.FALSE.equals(producto.getEstado())) {
@@ -148,7 +162,7 @@ public class CompraService {
                 nuevoCostoPromedio = precioUnitario;
             }
             producto.setPrecioCosto(nuevoCostoPromedio);
-            productoRepository.save(producto);
+            productosAActualizar.add(producto);
 
             // 4. Registrar en el Kardex (Movimiento Inventario) con protección de longitud VARCHAR(255)
             MovimientoInventario mov = new MovimientoInventario();
@@ -156,13 +170,14 @@ public class CompraService {
             mov.setTipoMovimiento("ENTRADA");
             mov.setCantidad(cantidadTotal);
             mov.setBodega(producto.getBodega() != null ? producto.getBodega() : tenantService.getCurrentBodega());
-            String motivoCompra = "Compra a proveedor: " + proveedor.getRazonSocial() + (comprobanteTrim != null ? " (" + comprobanteTrim + ")" : "");
-            if (motivoCompra.length() > 255) {
-                motivoCompra = motivoCompra.substring(0, 255);
-            }
             mov.setMotivo(motivoCompra);
             mov.setUsuarioResponsable(usuarioActual);
-            movimientoInventarioRepository.save(mov);
+            movimientosAGuardar.add(mov);
+        }
+
+        if (!productosAActualizar.isEmpty()) {
+            productoRepository.saveAll(productosAActualizar);
+            movimientoInventarioRepository.saveAll(movimientosAGuardar);
         }
 
         if (totalCompra.compareTo(BigDecimal.ZERO) <= 0) {

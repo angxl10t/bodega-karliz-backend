@@ -98,6 +98,7 @@ public class VentaServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> ventaService.anularVenta(1L, "Intento doble"));
         assertTrue(ex.getMessage().contains("ya se encuentra anulada"));
         verify(productoRepository, never()).findByIdForUpdateAndBodega(any(), any());
+        verify(productoRepository, never()).findAllByIdForUpdateAndBodega(any(), any());
     }
 
     @Test
@@ -119,16 +120,16 @@ public class VentaServiceTest {
 
         when(ventaRepository.findByIdForUpdateAndBodega(1L, 1L)).thenReturn(Optional.of(venta));
         when(ventaDetalleRepository.findByVenta(venta)).thenReturn(List.of(det));
-        when(productoRepository.findByIdForUpdateAndBodega(10L, 1L)).thenReturn(Optional.of(prod));
+        when(productoRepository.findAllByIdForUpdateAndBodega(List.of(10L), 1L)).thenReturn(List.of(prod));
 
         ventaService.anularVenta(1L, "Cliente canceló pedido");
 
         // 1. Verifica que el stock se restauró de 5 a 8
         assertEquals(new BigDecimal("8.000"), prod.getStockActual());
-        verify(productoRepository, times(1)).save(prod);
+        verify(productoRepository, times(1)).saveAll(List.of(prod));
 
-        // 2. Verifica que se registró movimiento ENTRADA en Kardex
-        verify(movimientoInventarioRepository, times(1)).save(any(MovimientoInventario.class));
+        // 2. Verifica que se registró movimiento ENTRADA en Kardex en lote
+        verify(movimientoInventarioRepository, times(1)).saveAll(anyList());
 
         // 3. Verifica que la venta quedó marcada como ANULADA
         assertEquals("ANULADA", venta.getEstado());
@@ -163,6 +164,7 @@ public class VentaServiceTest {
 
         // Blindaje contra doble cobro: No busca productos ni descuenta stock
         verify(productoRepository, never()).findByIdForUpdateAndBodega(any(), any());
+        verify(productoRepository, never()).findAllByIdForUpdateAndBodega(any(), any());
         verify(ventaRepository, never()).save(any(Venta.class));
     }
 
@@ -184,7 +186,7 @@ public class VentaServiceTest {
         prod.setStockActual(new BigDecimal("50.000"));
         prod.setEstado(true);
 
-        when(productoRepository.findByIdForUpdateAndBodega(10L, 1L)).thenReturn(Optional.of(prod));
+        when(productoRepository.findAllByIdForUpdateAndBodega(List.of(10L), 1L)).thenReturn(List.of(prod));
         when(ventaRepository.save(any(Venta.class))).thenAnswer(invocation -> {
             Venta v = invocation.getArgument(0);
             v.setIdVenta(88L);
@@ -208,5 +210,76 @@ public class VentaServiceTest {
         // Verifica que se ejecutó con bloqueo pesimista en la Bodega
         verify(bodegaRepository, times(1)).findByIdForUpdate(1L);
         verify(bodegaRepository, times(1)).save(bodega);
+    }
+
+    @Test
+    void testRegistrarVenta_MultiProducto_BloqueaYSalvaEnLoteUnico() {
+        com.bodega.backend.entity.Bodega bodega = new com.bodega.backend.entity.Bodega();
+        bodega.setIdBodega(1L);
+
+        Producto p10 = new Producto();
+        p10.setIdProducto(10L);
+        p10.setNombre("Producto 10");
+        p10.setPrecioVenta(new BigDecimal("2.00"));
+        p10.setStockActual(new BigDecimal("10.000"));
+        p10.setEstado(true);
+        p10.setBodega(bodega);
+
+        Producto p20 = new Producto();
+        p20.setIdProducto(20L);
+        p20.setNombre("Producto 20");
+        p20.setPrecioVenta(new BigDecimal("5.00"));
+        p20.setStockActual(new BigDecimal("10.000"));
+        p20.setEstado(true);
+        p20.setBodega(bodega);
+
+        Producto p30 = new Producto();
+        p30.setIdProducto(30L);
+        p30.setNombre("Producto 30");
+        p30.setPrecioVenta(new BigDecimal("3.00"));
+        p30.setStockActual(new BigDecimal("10.000"));
+        p30.setEstado(true);
+        p30.setBodega(bodega);
+
+        when(tenantService.getCurrentBodega()).thenReturn(bodega);
+        when(productoRepository.findAllByIdForUpdateAndBodega(List.of(10L, 20L, 30L), 1L))
+                .thenReturn(List.of(p10, p20, p30));
+        when(ventaRepository.save(any(Venta.class))).thenAnswer(inv -> {
+            Venta v = inv.getArgument(0);
+            v.setIdVenta(99L);
+            return v;
+        });
+
+        com.bodega.backend.dto.VentaDetalleDTO d30 = new com.bodega.backend.dto.VentaDetalleDTO();
+        d30.setIdProducto(30L);
+        d30.setCantidad(new BigDecimal("1.000"));
+        com.bodega.backend.dto.VentaDetalleDTO d10 = new com.bodega.backend.dto.VentaDetalleDTO();
+        d10.setIdProducto(10L);
+        d10.setCantidad(new BigDecimal("2.000"));
+        com.bodega.backend.dto.VentaDetalleDTO d20 = new com.bodega.backend.dto.VentaDetalleDTO();
+        d20.setIdProducto(20L);
+        d20.setCantidad(new BigDecimal("1.000"));
+
+        com.bodega.backend.dto.VentaDTO dto = new com.bodega.backend.dto.VentaDTO();
+        dto.setMetodoPago("Efectivo");
+        dto.setDetalles(List.of(d30, d10, d20));
+
+        com.bodega.backend.dto.VentaDTO res = ventaService.registrarVenta(dto);
+
+        assertEquals(new BigDecimal("12.00"), res.getTotal());
+        verify(productoRepository, never()).findByIdForUpdateAndBodega(any(), any());
+        verify(productoRepository, times(1)).findAllByIdForUpdateAndBodega(List.of(10L, 20L, 30L), 1L);
+        verify(productoRepository, never()).save(any());
+        verify(productoRepository, times(1)).saveAll(argThat(iterable -> {
+            int count = 0;
+            for (Producto ignored : iterable) count++;
+            return count == 3;
+        }));
+        verify(movimientoInventarioRepository, never()).save(any());
+        verify(movimientoInventarioRepository, times(1)).saveAll(argThat(iterable -> {
+            int count = 0;
+            for (com.bodega.backend.entity.MovimientoInventario ignored : iterable) count++;
+            return count == 3;
+        }));
     }
 }

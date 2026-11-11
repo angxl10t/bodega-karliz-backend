@@ -18,6 +18,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,12 +137,26 @@ public class VentaService {
         List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesConsolidadas.keySet());
         Collections.sort(idsProductosOrdenados);
 
+        // Bloqueo pesimista exclusivo en lote ordenado por ID ascendente para evitar N queries y deadlocks
+        Map<Long, Producto> productosBloqueados = new HashMap<>();
+        for (Producto p : productoRepository.findAllByIdForUpdateAndBodega(idsProductosOrdenados, idBodega)) {
+            productosBloqueados.put(p.getIdProducto(), p);
+        }
+
+        List<Producto> productosAActualizar = new ArrayList<>(idsProductosOrdenados.size());
+        List<MovimientoInventario> movimientosAGuardar = new ArrayList<>(idsProductosOrdenados.size());
+        String motivoVenta = "Venta al cliente: " + nomCliente;
+        if (motivoVenta.length() > 255) {
+            motivoVenta = motivoVenta.substring(0, 255);
+        }
+
         for (Long idProd : idsProductosOrdenados) {
             BigDecimal cantidadTotal = cantidadesConsolidadas.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
 
-            // Bloqueo pesimista exclusivo restringido al tenant actual para evitar sobreventas simultáneas
-            Producto producto = productoRepository.findByIdForUpdateAndBodega(idProd, idBodega)
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado en esta bodega: " + idProd));
+            Producto producto = productosBloqueados.get(idProd);
+            if (producto == null) {
+                throw new RuntimeException("Producto no encontrado en esta bodega: " + idProd);
+            }
 
             // Validación de Integridad de Catálogo: No vender productos dados de baja o inactivos
             if (Boolean.FALSE.equals(producto.getEstado())) {
@@ -170,7 +185,7 @@ public class VentaService {
 
             // Restar Stock de forma segura frente a nulos
             producto.setStockActual(stockDisponible.subtract(cantidadTotal));
-            productoRepository.save(producto);
+            productosAActualizar.add(producto);
 
             // Registrar en Kardex con protección de longitud VARCHAR(255)
             MovimientoInventario mov = new MovimientoInventario();
@@ -178,13 +193,14 @@ public class VentaService {
             mov.setTipoMovimiento("SALIDA");
             mov.setCantidad(cantidadTotal);
             mov.setBodega(bodega != null ? bodega : producto.getBodega());
-            String motivoVenta = "Venta al cliente: " + nomCliente;
-            if (motivoVenta.length() > 255) {
-                motivoVenta = motivoVenta.substring(0, 255);
-            }
             mov.setMotivo(motivoVenta);
             mov.setUsuarioResponsable(usuarioActual);
-            movimientoInventarioRepository.save(mov);
+            movimientosAGuardar.add(mov);
+        }
+
+        if (!productosAActualizar.isEmpty()) {
+            productoRepository.saveAll(productosAActualizar);
+            movimientoInventarioRepository.saveAll(movimientosAGuardar);
         }
 
         if (totalVenta.compareTo(BigDecimal.ZERO) <= 0) {
@@ -507,24 +523,39 @@ public class VentaService {
         List<Long> idsProductosOrdenados = new ArrayList<>(cantidadesARestaurar.keySet());
         Collections.sort(idsProductosOrdenados);
 
-        // 2. Restaurar stock en inventario con bloqueo pesimista exclusivo (PESSIMISTIC_WRITE) y registrar en Kardex
-        for (Long idProd : idsProductosOrdenados) {
-            BigDecimal cantidadRestaurar = cantidadesARestaurar.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
-            Producto prod = productoRepository.findByIdForUpdateAndBodega(idProd, idBodega)
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado para reponer stock: " + idProd));
+        // 2. Restaurar stock en inventario con bloqueo pesimista exclusivo en lote y registrar en Kardex
+        if (!idsProductosOrdenados.isEmpty()) {
+            Map<Long, Producto> productosBloqueados = new HashMap<>();
+            for (Producto p : productoRepository.findAllByIdForUpdateAndBodega(idsProductosOrdenados, idBodega)) {
+                productosBloqueados.put(p.getIdProducto(), p);
+            }
 
-            BigDecimal stockPrevio = (prod.getStockActual() != null ? prod.getStockActual() : BigDecimal.ZERO);
-            prod.setStockActual(stockPrevio.add(cantidadRestaurar));
-            productoRepository.save(prod);
+            List<Producto> productosARestaurar = new ArrayList<>(idsProductosOrdenados.size());
+            List<MovimientoInventario> movimientosEntrada = new ArrayList<>(idsProductosOrdenados.size());
 
-            MovimientoInventario mov = new MovimientoInventario();
-            mov.setProducto(prod);
-            mov.setTipoMovimiento("ENTRADA");
-            mov.setCantidad(cantidadRestaurar);
-            mov.setMotivo(motivoKardex);
-            mov.setUsuarioResponsable(usuarioActual);
-            mov.setBodega(venta.getBodega() != null ? venta.getBodega() : prod.getBodega());
-            movimientoInventarioRepository.save(mov);
+            for (Long idProd : idsProductosOrdenados) {
+                BigDecimal cantidadRestaurar = cantidadesARestaurar.get(idProd).setScale(3, java.math.RoundingMode.HALF_UP);
+                Producto prod = productosBloqueados.get(idProd);
+                if (prod == null) {
+                    throw new RuntimeException("Producto no encontrado para reponer stock: " + idProd);
+                }
+
+                BigDecimal stockPrevio = (prod.getStockActual() != null ? prod.getStockActual() : BigDecimal.ZERO);
+                prod.setStockActual(stockPrevio.add(cantidadRestaurar));
+                productosARestaurar.add(prod);
+
+                MovimientoInventario mov = new MovimientoInventario();
+                mov.setProducto(prod);
+                mov.setTipoMovimiento("ENTRADA");
+                mov.setCantidad(cantidadRestaurar);
+                mov.setMotivo(motivoKardex);
+                mov.setUsuarioResponsable(usuarioActual);
+                mov.setBodega(venta.getBodega() != null ? venta.getBodega() : prod.getBodega());
+                movimientosEntrada.add(mov);
+            }
+
+            productoRepository.saveAll(productosARestaurar);
+            movimientoInventarioRepository.saveAll(movimientosEntrada);
         }
 
         // 3. Soft-delete contable: Marcar como ANULADA conservando el comprobante para auditoría

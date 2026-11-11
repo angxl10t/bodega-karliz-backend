@@ -65,6 +65,11 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT p FROM Producto p WHERE p.idProducto = :id AND p.bodega.idBodega = :idBodega")
     Optional<Producto> findByIdForUpdateAndBodega(@Param("id") Long id, @Param("idBodega") Long idBodega);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "jakarta.persistence.lock.timeout", value = "4000")})
+    @Query("SELECT p FROM Producto p WHERE p.idProducto IN :ids AND p.bodega.idBodega = :idBodega ORDER BY p.idProducto ASC")
+    List<Producto> findAllByIdForUpdateAndBodega(@Param("ids") List<Long> ids, @Param("idBodega") Long idBodega);
+
     // =========================================================================
     // CONSULTAS DE INVENTARIO INMOVILIZADO / HUESOS (ANTI-JOIN EN BD)
     // =========================================================================
