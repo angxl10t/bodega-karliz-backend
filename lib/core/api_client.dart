@@ -94,11 +94,13 @@ class ApiClient {
   @visibleForTesting
   Uri resolveUri(String endpoint) => _resolveUri(endpoint);
 
+  static const Duration defaultTimeout = Duration(seconds: 50);
+
   Future<http.Response> get(String endpoint) async {
     final uri = _resolveUri(endpoint);
     final res = await _client
         .get(uri, headers: await _getHeaders())
-        .timeout(const Duration(seconds: 30));
+        .timeout(defaultTimeout);
     _checkAuthStatus(res, endpoint);
     return res;
   }
@@ -107,7 +109,7 @@ class ApiClient {
     final uri = _resolveUri(endpoint);
     final res = await _client
         .post(uri, headers: await _getHeaders(), body: jsonEncode(body))
-        .timeout(const Duration(seconds: 30));
+        .timeout(defaultTimeout);
     _checkAuthStatus(res, endpoint);
     return res;
   }
@@ -116,7 +118,7 @@ class ApiClient {
     final uri = _resolveUri(endpoint);
     final res = await _client
         .put(uri, headers: await _getHeaders(), body: jsonEncode(body))
-        .timeout(const Duration(seconds: 30));
+        .timeout(defaultTimeout);
     _checkAuthStatus(res, endpoint);
     return res;
   }
@@ -128,7 +130,7 @@ class ApiClient {
     final uri = _resolveUri(endpoint);
     final res = await _client
         .patch(uri, headers: await _getHeaders(), body: jsonEncode(body))
-        .timeout(const Duration(seconds: 30));
+        .timeout(defaultTimeout);
     _checkAuthStatus(res, endpoint);
     return res;
   }
@@ -137,7 +139,7 @@ class ApiClient {
     final uri = _resolveUri(endpoint);
     final res = await _client
         .delete(uri, headers: await _getHeaders())
-        .timeout(const Duration(seconds: 30));
+        .timeout(defaultTimeout);
     _checkAuthStatus(res, endpoint);
     return res;
   }
