@@ -39,6 +39,9 @@ public class DataInitializer implements ApplicationRunner {
     @org.springframework.beans.factory.annotation.Value("${cajaya.security.superadmin-password:${SUPERADMIN_PASSWORD:}}")
     private String configuredSuperadminPassword;
 
+    @org.springframework.beans.factory.annotation.Value("${spring.profiles.active:default}")
+    private String activeProfile = "default";
+
     @org.springframework.beans.factory.annotation.Value("${cajaya.seed.demo-accounts:false}")
     private String seedDemoAccountsRaw;
 
@@ -235,9 +238,13 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void inicializarUsuarios(Bodega bodegaKarliz) {
-        String superadminPass = (configuredSuperadminPassword != null && !configuredSuperadminPassword.isBlank())
-                ? configuredSuperadminPassword.trim()
-                : "123456";
+        boolean isProduction = com.bodega.backend.security.EnvironmentSecurityHelper.isProduction(activeProfile);
+        String trimmedSuperadminPass = (configuredSuperadminPassword != null) ? configuredSuperadminPassword.trim() : "";
+        boolean hasCustomSuperadminPass = !trimmedSuperadminPass.isEmpty();
+        if (isProduction && hasCustomSuperadminPass && ("123456".equals(trimmedSuperadminPass) || trimmedSuperadminPass.length() < 8)) {
+            throw new IllegalStateException("CRITICAL SECURITY CONFIGURATION ERROR: SUPERADMIN_PASSWORD en producción debe tener al menos 8 caracteres y no puede ser '123456'.");
+        }
+        String superadminPass = hasCustomSuperadminPass ? trimmedSuperadminPass : "123456";
 
         // A. Configurar SUPERADMIN ('admin') desvinculado de Karliz
         Optional<Usuario> adminOpt = usuarioRepository.findByUsernameIgnoreCase("admin");
@@ -245,13 +252,42 @@ public class DataInitializer implements ApplicationRunner {
             Usuario superadmin = adminOpt.get();
             superadmin.setRol("SUPERADMIN");
             superadmin.setBodega(null);
-            superadmin.setEmail("cajayapos@gmail.com");
-            if (superadmin.getPassword() == null || superadmin.getPassword().isBlank()) {
-                superadmin.setPassword(passwordEncoder.encode(superadminPass));
+            if (superadmin.getEstado() == null) {
+                superadmin.setEstado(true);
+            }
+            if (superadmin.getEmail() == null || superadmin.getEmail().isBlank()) {
+                superadmin.setEmail("cajayapos@gmail.com");
+            }
+            boolean passwordVacia = superadmin.getPassword() == null || superadmin.getPassword().isBlank();
+            boolean usandoClaveDefault = !passwordVacia && passwordEncoder.matches("123456", superadmin.getPassword());
+            if (passwordVacia || usandoClaveDefault) {
+                if (hasCustomSuperadminPass) {
+                    superadmin.setPassword(passwordEncoder.encode(trimmedSuperadminPass));
+                    superadmin.setFechaCambioClave(OffsetDateTime.now());
+                    log.info("[DataInitializer] Contraseña de 'admin' actualizada de forma segura mediante SUPERADMIN_PASSWORD.");
+                } else if (isProduction) {
+                    if (passwordVacia) {
+                        throw new IllegalStateException(
+                                "CRITICAL SECURITY CONFIGURATION ERROR: El usuario 'admin' no tiene contraseña configurada y falta SUPERADMIN_PASSWORD en producción."
+                        );
+                    }
+                    log.error("[CRITICAL SECURITY ADVISORY] El usuario 'admin' en producción sigue usando la contraseña por defecto '123456'. Configura SUPERADMIN_PASSWORD o cámbiala de inmediato.");
+                } else if (passwordVacia) {
+                    superadmin.setPassword(passwordEncoder.encode(superadminPass));
+                    log.warn("[SECURITY ADVISORY] Usuario 'admin' sin contraseña inicializado con clave por defecto de desarrollo.");
+                }
             }
             usuarioRepository.save(superadmin);
             log.info("[DataInitializer] Usuario 'admin' configurado como SUPERADMIN global.");
         } else {
+            if (isProduction && !hasCustomSuperadminPass) {
+                throw new IllegalStateException(
+                        "CRITICAL SECURITY CONFIGURATION ERROR: SUPERADMIN_PASSWORD es obligatorio para inicializar el usuario 'admin' en producción."
+                );
+            }
+            if (!hasCustomSuperadminPass) {
+                log.warn("[SECURITY ADVISORY] Creando usuario 'admin' con contraseña por defecto de desarrollo. Configura SUPERADMIN_PASSWORD en producción.");
+            }
             Usuario superadmin = new Usuario();
             superadmin.setUsername("admin");
             superadmin.setPassword(passwordEncoder.encode(superadminPass));
@@ -264,8 +300,12 @@ public class DataInitializer implements ApplicationRunner {
             log.info("[DataInitializer] Usuario 'admin' creado como SUPERADMIN global.");
         }
 
-        // B. Cuentas de demostracion (Solo si cajaya.seed.demo-accounts=true)
+        // B. Cuentas de demostracion (Solo si cajaya.seed.demo-accounts=true y NO es producción)
         if (isSeedDemoAccountsEnabled()) {
+            if (isProduction) {
+                log.error("[SECURITY ADVISORY] Se omitió la creación de cuentas demo (cajaya.seed.demo-accounts=true) porque el entorno es de producción.");
+                return;
+            }
             Optional<Usuario> adminKarlizOpt = usuarioRepository.findByUsernameIgnoreCase("admin_karliz");
             if (adminKarlizOpt.isEmpty()) {
                 Usuario adminKarliz = new Usuario();

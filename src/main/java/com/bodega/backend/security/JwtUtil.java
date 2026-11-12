@@ -40,10 +40,7 @@ public class JwtUtil {
             );
         }
 
-        boolean isProduction = "prod".equalsIgnoreCase(activeProfile)
-                || "production".equalsIgnoreCase(activeProfile)
-                || "true".equalsIgnoreCase(System.getenv("RENDER"))
-                || "production".equalsIgnoreCase(System.getenv("ENVIRONMENT"));
+        boolean isProduction = EnvironmentSecurityHelper.isProduction(activeProfile);
 
         if (isProduction && DEFAULT_DEV_SECRET.equals(secretKey.trim())) {
             throw new IllegalStateException(

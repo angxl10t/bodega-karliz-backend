@@ -84,6 +84,25 @@ public class RecuperacionClaveServiceTest {
     }
 
     @Test
+    void solicitarCodigo_cuandoFallaEmail_limpiaTokenYLanzaErrorHonesto() {
+        when(loginRateLimiterService.isBlocked(anyString(), anyString())).thenReturn(false);
+        when(usuarioRepository.findByUsernameOrEmailIgnoreCase("bodega-karliz")).thenReturn(Optional.of(testUser));
+        when(recuperacionClaveRepository.countByUsuarioAndFechaCreacionAfter(eq(testUser), any())).thenReturn(0L);
+        when(recuperacionClaveRepository.findByUsuarioAndUsadoFalse(testUser)).thenReturn(Collections.emptyList());
+
+        RecuperacionClave savedToken = new RecuperacionClave();
+        savedToken.setId(99L);
+        when(recuperacionClaveRepository.save(any(RecuperacionClave.class))).thenReturn(savedToken);
+        when(emailService.enviarCodigoRecuperacion(anyString(), anyString(), anyString())).thenReturn(false);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+                recuperacionClaveService.solicitarCodigo("bodega-karliz", "192.168.1.1"));
+
+        assertTrue(ex.getMessage().contains("No se pudo enviar el código de recuperación"));
+        verify(recuperacionClaveRepository).deleteById(99L);
+    }
+
+    @Test
     void solicitarCodigo_conUsuarioInexistente_noFugaExistenciaYRetornaMensajeGenerico() {
         when(loginRateLimiterService.isBlocked(anyString(), anyString())).thenReturn(false);
         when(usuarioRepository.findByUsernameOrEmailIgnoreCase("fantasma")).thenReturn(Optional.empty());

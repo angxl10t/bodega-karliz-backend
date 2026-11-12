@@ -3,6 +3,8 @@ package com.bodega.backend.service;
 import com.bodega.backend.dto.WebhookYapeDTO;
 import com.bodega.backend.entity.YapeTransaccionRecibida;
 import com.bodega.backend.repository.YapeTransaccionRecibidaRepository;
+import com.bodega.backend.security.EnvironmentSecurityHelper;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,8 @@ public class YapeWebhookService {
 
     private static final Logger log = LoggerFactory.getLogger(YapeWebhookService.class);
 
+    public static final String DEFAULT_DEV_SECRET = "CajayaYapeSecretKey2026Secure";
+
     // Patrones regex para parsing resiliente de notificaciones oficiales de Yape y Plin
     private static final Pattern PATTERN_MONTO = Pattern.compile("(?:S/\\.?|S/|PEN|monto:?\\s*S/?)\\s*([0-9]+(?:\\.[0-9]{1,2})?)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_COD_OP = Pattern.compile("(?:operaci[oó]n|op|nro|c[oó]digo|cod|ref)[\\s.:#]*([0-9]{4,15})", Pattern.CASE_INSENSITIVE);
@@ -28,17 +32,43 @@ public class YapeWebhookService {
 
     private final YapeTransaccionRecibidaRepository yapeTransaccionRecibidaRepository;
 
-    @Value("${cajaya.yape.webhook-secret:CajayaYapeSecretKey2026Secure}")
+    @Value("${cajaya.yape.webhook-secret:" + DEFAULT_DEV_SECRET + "}")
     private String configuredSecret;
+
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile = "default";
 
     public YapeWebhookService(YapeTransaccionRecibidaRepository yapeTransaccionRecibidaRepository) {
         this.yapeTransaccionRecibidaRepository = yapeTransaccionRecibidaRepository;
     }
 
+    @PostConstruct
+    public void validateSecret() {
+        String trimmedSecret = configuredSecret != null ? configuredSecret.trim() : "";
+        if (trimmedSecret.length() < 16) {
+            throw new IllegalStateException(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: La variable de entorno YAPE_WEBHOOK_SECRET no está configurada o tiene menos de 16 caracteres."
+            );
+        }
+
+        boolean isProduction = EnvironmentSecurityHelper.isProduction(activeProfile);
+        if (isProduction && DEFAULT_DEV_SECRET.equals(trimmedSecret)) {
+            throw new IllegalStateException(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: Se detectó el uso de YAPE_WEBHOOK_SECRET por defecto en entorno de producción. " +
+                    "Configura una clave única en Render (YAPE_WEBHOOK_SECRET) y actualízala en el cliente MacroDroid."
+            );
+        } else if (DEFAULT_DEV_SECRET.equals(trimmedSecret)) {
+            log.warn(
+                    "[SECURITY ADVISORY] YapeWebhookService está ejecutándose con el secreto por defecto de desarrollo. " +
+                    "Configure YAPE_WEBHOOK_SECRET antes de desplegar en producción."
+            );
+        }
+    }
+
     @Transactional
     public YapeTransaccionRecibida procesarNotificacionYape(String secretHeader, WebhookYapeDTO dto) {
         // Blindaje contra ataques de tiempo (Timing Attack) y validación de autenticidad en tiempo constante
-        if (secretHeader == null || configuredSecret == null) {
+        if (secretHeader == null || secretHeader.isBlank() || configuredSecret == null || configuredSecret.isBlank()) {
             log.warn("[YapeWebhook] Intento de acceso no autorizado con secret ausente.");
             throw new org.springframework.security.access.AccessDeniedException("Acceso no autorizado: Token secreto X-Yape-Secret inválido o ausente.");
         }

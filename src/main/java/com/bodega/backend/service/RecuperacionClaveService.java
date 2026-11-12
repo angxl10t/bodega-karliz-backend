@@ -121,9 +121,15 @@ public class RecuperacionClaveService {
             nuevoRegistro.setExpiracion(OffsetDateTime.now().plusMinutes(15));
             nuevoRegistro.setUsado(false);
             nuevoRegistro.setIntentosFallidos(0);
-            recuperacionClaveRepository.save(nuevoRegistro);
+            RecuperacionClave guardado = recuperacionClaveRepository.save(nuevoRegistro);
 
-            return new String[]{"SEND", usuario.getEmail(), usuario.getUsername(), codigoStr};
+            return new String[]{
+                    "SEND",
+                    usuario.getEmail(),
+                    usuario.getUsername(),
+                    codigoStr,
+                    guardado != null && guardado.getId() != null ? String.valueOf(guardado.getId()) : ""
+            };
         });
 
         if ("NOT_FOUND".equals(envioPendiente[0])) {
@@ -138,7 +144,18 @@ public class RecuperacionClaveService {
 
         // Enviar correo transaccional fuera de la transacción DB para no retener conexiones HikariCP
         String emailDestino = envioPendiente[1];
-        emailService.enviarCodigoRecuperacion(emailDestino, envioPendiente[2], envioPendiente[3]);
+        boolean enviado = emailService.enviarCodigoRecuperacion(emailDestino, envioPendiente[2], envioPendiente[3]);
+        if (!enviado) {
+            String tokenIdStr = envioPendiente.length > 4 ? envioPendiente[4] : "";
+            if (tokenIdStr != null && !tokenIdStr.isBlank()) {
+                Long tokenId = Long.valueOf(tokenIdStr);
+                executeInTransaction(() -> {
+                    recuperacionClaveRepository.deleteById(tokenId);
+                    return null;
+                });
+            }
+            throw new RuntimeException("No se pudo enviar el código de recuperación por correo electrónico en este momento. Intenta nuevamente más tarde.");
+        }
 
         response.put("mensaje", mensajeGenerico);
         response.put("emailEnmascarado", EmailService.enmascararEmail(emailDestino));

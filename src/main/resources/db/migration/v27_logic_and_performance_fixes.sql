@@ -16,7 +16,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_yape_transaccion_codigo_op
 
 -- Índice único parcial global por código de operación en pagos de suscripción
 CREATE UNIQUE INDEX IF NOT EXISTS uq_pagos_suscripcion_codigo_op
-    ON pagos_suscripcion (UPPER(TRIM(codigo_operacion)))
+    ON pagos_suscripciones (UPPER(TRIM(codigo_operacion)))
     WHERE codigo_operacion IS NOT NULL AND TRIM(codigo_operacion) <> '';
 
 -- 2. Boletas consolidadas Nuevo RUS: única boleta diaria por bodega
@@ -45,7 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_reclamaciones_bodega_fecha
     ON reclamaciones (id_bodega, fecha_reclamo DESC);
 
 CREATE INDEX IF NOT EXISTS idx_pagos_suscripcion_bodega_fecha
-    ON pagos_suscripcion (id_bodega, fecha_pago DESC);
+    ON pagos_suscripciones (id_bodega, fecha_pago DESC);
 
 CREATE INDEX IF NOT EXISTS idx_productos_bodega_estado_codigo
     ON productos (id_bodega, estado, codigo);

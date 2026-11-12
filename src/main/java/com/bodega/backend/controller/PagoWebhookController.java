@@ -48,7 +48,7 @@ public class PagoWebhookController {
     /**
      * Endpoint GET receptor de notificaciones (ideal para automatizaciones móviles rápidas,
      * "Abrir sitio web / HTTP GET" en MacroDroid, Tasker o navegadores).
-     * Ejemplo: /api/pagos/webhook-yape-listener?secret=CajayaYapeSecretKey2026Secure&texto=[not_body]
+     * Ejemplo: /api/pagos/webhook-yape-listener?secret=<YAPE_WEBHOOK_SECRET>&texto=[not_body]
      */
     @GetMapping("/webhook-yape-listener")
     public ResponseEntity<Map<String, Object>> recibirNotificacionYapeGet(

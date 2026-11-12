@@ -1,9 +1,12 @@
 package com.bodega.backend.service;
 
+import com.bodega.backend.security.EnvironmentSecurityHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,17 +31,26 @@ public class EmailService {
     @Value("${email.from:${EMAIL_FROM:CajaYa POS <onboarding@resend.dev>}}")
     private String emailFrom;
 
+    @Value("${spring.profiles.active:default}")
+    private String activeProfile = "default";
+
     private final HttpClient httpClient;
 
+    @Autowired
     public EmailService() {
-        this.httpClient = HttpClient.newBuilder()
+        this(HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
-                .build();
+                .build());
+    }
+
+    EmailService(HttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 
     /**
      * Envía el código de recuperación de contraseña de 6 dígitos al correo del bodeguero.
-     * Si no hay API key configurada (ambiente de desarrollo/test), simula el envío registrándolo en consola.
+     * En desarrollo/test local sin API key simula el envío en consola; en producción nunca
+     * expone el código OTP en logs ni simula éxito si ningún proveedor pudo enviar el correo.
      */
     public boolean enviarCodigoRecuperacion(String emailDestino, String username, String codigoOtp) {
         if (emailDestino == null || emailDestino.isBlank()) {
@@ -46,12 +58,16 @@ public class EmailService {
             return false;
         }
 
-        String asunto = "Tu código de recuperación en CajaYa: " + codigoOtp;
-        String htmlBody = construirPlantillaHtmlRecuperacion(username, codigoOtp);
+        String safeOtp = codigoOtp != null ? codigoOtp.replaceAll("[\\r\\n]", "").trim() : "";
+        String safeUsername = username != null ? username.replaceAll("[\\r\\n]", "").trim() : "";
+        String safeEmail = emailDestino.replaceAll("[\\r\\n]", "").trim();
+
+        String asunto = "Tu código de recuperación en CajaYa: " + safeOtp;
+        String htmlBody = construirPlantillaHtmlRecuperacion(safeUsername, safeOtp);
 
         // 1. Si existe clave de Brevo API, enviar vía HTTPS REST (envíos universales a cualquier destinatario)
         if (brevoApiKey != null && !brevoApiKey.isBlank()) {
-            boolean enviado = enviarViaBrevo(emailDestino, asunto, htmlBody);
+            boolean enviado = enviarViaBrevo(safeEmail, asunto, htmlBody);
             if (enviado) {
                 return true;
             }
@@ -59,27 +75,36 @@ public class EmailService {
 
         // 2. Si existe clave de Resend API, intentar vía HTTPS REST (requiere dominio o envío al propietario de la cuenta)
         if (resendApiKey != null && !resendApiKey.isBlank()) {
-            boolean enviado = enviarViaResend(emailDestino, asunto, htmlBody, username, codigoOtp);
+            boolean enviado = enviarViaResend(safeEmail, asunto, htmlBody);
             if (enviado) {
                 return true;
             }
         }
 
-        // 3. Modo Simulación / Desarrollo (sin costos ni bloqueos de red)
+        if (EnvironmentSecurityHelper.isProduction(activeProfile)) {
+            log.error("[EmailService] No se pudo enviar el código de recuperación en producción a {}. Verifica BREVO_API_KEY / RESEND_API_KEY.",
+                    enmascararEmail(safeEmail));
+            return false;
+        }
+
+        // 3. Modo Simulación / Desarrollo local (sin exponer nunca en producción)
         log.info("================================================================================");
         log.info(" [CAJAYA - SERVICIO DE EMAIL (MODO SIMULACIÓN / DEV)]");
-        log.info(" Destinatario: {}", emailDestino);
-        log.info(" Usuario:      {}", username);
-        log.info(" Asunto:       {}", asunto);
-        log.info(" CÓDIGO OTP:   >>> {} <<< (Válido por 15 minutos)", codigoOtp);
+        log.info(" Destinatario: {}", enmascararEmail(safeEmail));
+        log.info(" Usuario:      {}", safeUsername);
+        log.info(" CÓDIGO OTP:   >>> {} <<< (Válido por 15 minutos)", safeOtp);
         log.info("================================================================================");
         return true;
     }
 
-    private boolean enviarViaResend(String emailDestino, String asunto, String htmlContent, String username, String codigoOtp) {
+    private boolean enviarViaResend(String emailDestino, String asunto, String htmlContent) {
         try {
+            String remitente = (emailFrom != null && !emailFrom.isBlank())
+                    ? emailFrom.trim()
+                    : "CajaYa POS <onboarding@resend.dev>";
+
             String payloadJson = "{"
-                    + "\"from\":\"" + escaparJson(emailFrom) + "\","
+                    + "\"from\":\"" + escaparJson(remitente) + "\","
                     + "\"to\":[\"" + escaparJson(emailDestino) + "\"],"
                     + "\"subject\":\"" + escaparJson(asunto) + "\","
                     + "\"html\":\"" + escaparJson(htmlContent) + "\""
@@ -99,8 +124,8 @@ public class EmailService {
                 log.info("Correo de recuperación enviado con éxito vía Resend a: {}", enmascararEmail(emailDestino));
                 return true;
             } else {
-                log.error("Error al enviar correo vía Resend. HTTP Status: {} - Body: {}", response.statusCode(), response.body());
-                log.warn("[AVISO RESEND] Si aún no has verificado un dominio propio en resend.com/domains, Resend solo enviará al correo asociado a tu cuenta de Resend o a delivered@resend.dev. Código OTP para {}: >>> {} <<<", username, codigoOtp);
+                log.error("Error al enviar correo vía Resend a {}. HTTP Status: {}", enmascararEmail(emailDestino), response.statusCode());
+                log.warn("[AVISO RESEND] Verifica que tu dominio esté validado en resend.com/domains.");
                 return false;
             }
         } catch (Exception e) {
@@ -171,6 +196,8 @@ public class EmailService {
     }
 
     private String construirPlantillaHtmlRecuperacion(String username, String codigoOtp) {
+        String safeUsernameHtml = HtmlUtils.htmlEscape(username != null ? username : "");
+        String safeOtpHtml = HtmlUtils.htmlEscape(codigoOtp != null ? codigoOtp : "");
         return "<!DOCTYPE html>"
                 + "<html>"
                 + "<head><meta charset='UTF-8'></head>"
@@ -181,11 +208,11 @@ public class EmailService {
                 + "        CajaYa POS"
                 + "      </div>"
                 + "      <h2 style='margin:16px 0 6px 0; color:#0F172A; font-size:22px; font-weight:800;'>Restablecimiento de Contraseña</h2>"
-                + "      <p style='margin:0; color:#64748B; font-size:14px;'>Hola @" + username + ", recibimos una solicitud para acceder a tu cuenta.</p>"
+                + "      <p style='margin:0; color:#64748B; font-size:14px;'>Hola @" + safeUsernameHtml + ", recibimos una solicitud para acceder a tu cuenta.</p>"
                 + "    </div>"
                 + "    <div style='background:#F0FDF4; border:1.5px dashed #16A34A; border-radius:16px; padding:20px; text-align:center; margin:24px 0;'>"
                 + "      <span style='display:block; font-size:12px; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;'>Tu Código de Verificación</span>"
-                + "      <span style='font-family:monospace,Consolas; font-size:36px; font-weight:900; color:#15803D; letter-spacing:8px;'>" + codigoOtp + "</span>"
+                + "      <span style='font-family:monospace,Consolas; font-size:36px; font-weight:900; color:#15803D; letter-spacing:8px;'>" + safeOtpHtml + "</span>"
                 + "      <span style='display:block; font-size:12px; color:#166534; margin-top:8px;'>⏳ Válido únicamente durante los próximos <b>15 minutos</b></span>"
                 + "    </div>"
                 + "    <p style='font-size:13.5px; line-height:1.6; color:#475569; margin:16px 0;'>"
