@@ -1,15 +1,19 @@
 package com.bodega.backend;
 
-import org.junit.jupiter.api.Disabled;
+import com.bodega.backend.integration.AbstractPostgresIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
-@Disabled("Requiere instancia de PostgreSQL en vivo")
-@SpringBootTest
-class BodegaBackendApplicationTests {
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-	@Test
-	void contextLoads() {
-	}
+class BodegaBackendApplicationTests extends AbstractPostgresIntegrationTest {
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Test
+    void contextLoadsAgainstRealPostgreSQL() {
+        assertNotNull(applicationContext);
+    }
 }

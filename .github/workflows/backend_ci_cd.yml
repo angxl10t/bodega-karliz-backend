@@ -16,6 +16,21 @@ jobs:
     name: Compilación, Detección de Código Muerto y Pruebas
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cajaya_test
+          POSTGRES_USER: cajaya_test
+          POSTGRES_PASSWORD: cajaya_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U cajaya_test -d cajaya_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
       - name: Checkout de Código
         uses: actions/checkout@v4
@@ -42,9 +57,13 @@ jobs:
           echo "==> Compilando código fuente del backend..."
           mvn clean compile -Dmaven.compiler.showWarnings=true -Dmaven.compiler.showDeprecation=true
 
-      - name: Ejecución de Suite de Pruebas Automatizadas
+      - name: Ejecución de Suite de Pruebas Automatizadas e Integración PostgreSQL
+        env:
+          POSTGRES_TEST_URL: jdbc:postgresql://localhost:5432/cajaya_test
+          POSTGRES_TEST_USER: cajaya_test
+          POSTGRES_TEST_PASSWORD: cajaya_test_password
         run: |
-          echo "==> Ejecutando 216 pruebas unitarias y de servicios..."
+          echo "==> Ejecutando pruebas unitarias e integración real contra PostgreSQL..."
           mvn test -Dmaven.test.skip=false
 
       - name: Empaquetado de Artefacto Ejecutable (JAR)
