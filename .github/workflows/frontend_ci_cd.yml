@@ -144,3 +144,39 @@ jobs:
           name: cajaya-pos-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+
+  build-windows-desktop:
+    name: Compilación Windows Desktop (.exe) para PC de Mostrador
+    needs: quality-and-tests
+    if: (github.ref == 'refs/heads/flutter-app' || github.ref == 'refs/heads/master') && github.event_name == 'push'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout de Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Descargar Dependencias
+        run: flutter pub get
+
+      - name: Habilitar Soporte Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Compilar Release Windows x64
+        run: flutter build windows --release
+
+      - name: Empaquetar Ejecutable Windows en ZIP
+        run: |
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath build\cajaya-pos-windows-x64.zip
+
+      - name: Guardar ZIP Windows como Artefacto en GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: cajaya-pos-windows-x64
+          path: build/cajaya-pos-windows-x64.zip
+          retention-days: 14
