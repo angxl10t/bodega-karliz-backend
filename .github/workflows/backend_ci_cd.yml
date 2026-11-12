@@ -66,6 +66,18 @@ jobs:
           echo "==> Ejecutando pruebas unitarias e integración real contra PostgreSQL..."
           mvn test -Dmaven.test.skip=false
 
+      - name: Diagnóstico de Fallos Surefire (si aplica)
+        if: failure()
+        run: |
+          for f in target/surefire-reports/*.txt; do
+            if [ -f "$f" ] && grep -qE "FAILURE|ERROR" "$f"; then
+              echo "=== $f ==="
+              cat "$f"
+              SUMMARY=$(grep -m1 -E "FAILURE|ERROR" "$f" | tr '\r\n' ' ')
+              echo "::error file=$f::$SUMMARY"
+            fi
+          done
+
       - name: Empaquetado de Artefacto Ejecutable (JAR)
         run: |
           echo "==> Generando JAR de producción para Render / Cloud..."

@@ -17,20 +17,49 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 /**
  * Ejecuta las migraciones PostgreSQL declaradas en {@code cajaya.migrations.locations}
- * después de Hibernate {@code ddl-auto} y antes de {@link DataInitializer}, respetando
- * bloques PL/pgSQL con dollar-quoting ({@code $$ ... $$}) que {@code ScriptUtils} de Spring
- * fragmentaría erróneamente.
+ * (o {@link #DEFAULT_MIGRATION_LOCATIONS} por defecto) después de Hibernate {@code ddl-auto}
+ * y antes de {@link DataInitializer}, respetando bloques PL/pgSQL con dollar-quoting
+ * ({@code $$ ... $$}) que {@code ScriptUtils} de Spring fragmentaría erróneamente.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class PostgresMigrationRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(PostgresMigrationRunner.class);
+
+    // Nota: v23_update_real_bodega_street_prices.sql se excluye del arranque para no sobrescribir tarifas personalizadas de cada bodega.
+    public static final List<String> DEFAULT_MIGRATION_LOCATIONS = List.of(
+            "classpath:db/migration/v1_multitenant_schema.sql",
+            "classpath:db/migration/v2_rls_and_refinement.sql",
+            "classpath:db/migration/v3_scalability_and_performance.sql",
+            "classpath:db/migration/v4_enterprise_subscriptions_and_integrity.sql",
+            "classpath:db/migration/v5_sunat_regimen_and_documents.sql",
+            "classpath:db/migration/v6_sunat_emission_fields.sql",
+            "classpath:db/migration/v7_nuevo_rus_and_integrity_alignment.sql",
+            "classpath:db/migration/v8_multitenant_indexes.sql",
+            "classpath:db/migration/v9_caja_chica_and_arqueo.sql",
+            "classpath:db/migration/v10_performance_optimizations.sql",
+            "classpath:db/migration/v11_producto_imagen_url.sql",
+            "classpath:db/migration/v12_control_inventario_y_mermas.sql",
+            "classpath:db/migration/v13_resilience_and_performance_tuning.sql",
+            "classpath:db/migration/v14_enable_rls_all_tables.sql",
+            "classpath:db/migration/v18_sanitize_categories_and_starter_pack.sql",
+            "classpath:db/migration/v19_drop_legacy_single_tenant_constraints.sql",
+            "classpath:db/migration/v20_garantias_botellas.sql",
+            "classpath:db/migration/v21_promociones_and_discounts.sql",
+            "classpath:db/migration/v22_pedidos_web.sql",
+            "classpath:db/migration/v24_boletas_consolidadas_nuevo_rus.sql",
+            "classpath:db/migration/v24_libro_reclamaciones_and_viralidad.sql",
+            "classpath:db/migration/v25_usuario_email_and_password_recovery.sql",
+            "classpath:db/migration/v26_admin_cajayapos_email.sql",
+            "classpath:db/migration/v27_logic_and_performance_fixes.sql"
+    );
 
     private final DataSource dataSource;
     private final ResourceLoader resourceLoader;
@@ -43,12 +72,27 @@ public class PostgresMigrationRunner implements ApplicationRunner {
             ResourceLoader resourceLoader,
             @Value("${cajaya.migrations.enabled:true}") boolean enabled,
             @Value("${cajaya.migrations.continue-on-error:true}") boolean continueOnError,
-            @Value("${cajaya.migrations.locations:}") List<String> locations) {
+            @Value("${cajaya.migrations.locations:}") String rawLocations) {
         this.dataSource = dataSource;
         this.resourceLoader = resourceLoader;
         this.enabled = enabled;
         this.continueOnError = continueOnError;
-        this.locations = locations != null ? locations : List.of();
+        List<String> parsed = parseLocations(rawLocations);
+        this.locations = parsed.isEmpty() ? DEFAULT_MIGRATION_LOCATIONS : parsed;
+    }
+
+    static List<String> parseLocations(String rawLocations) {
+        if (rawLocations == null || rawLocations.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(rawLocations.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
+    List<String> getLocations() {
+        return locations;
     }
 
     @Override
@@ -73,12 +117,7 @@ public class PostgresMigrationRunner implements ApplicationRunner {
             int statementsExecuted = 0;
             int warnings = 0;
 
-            for (String rawLocation : locations) {
-                String location = rawLocation == null ? "" : rawLocation.trim();
-                if (location.isEmpty()) {
-                    continue;
-                }
-
+            for (String location : locations) {
                 Resource resource = resourceLoader.getResource(location);
                 if (!resource.exists()) {
                     String msg = "Script de migración no encontrado: " + location;
