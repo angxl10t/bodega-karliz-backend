@@ -5,6 +5,7 @@ import com.bodega.backend.service.ClienteService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class ClienteController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<List<ClienteDTO>> listar(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Boolean soloDeudores) {
@@ -27,32 +29,38 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<ClienteDTO> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.obtenerPorId(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<ClienteDTO> crear(@Valid @RequestBody ClienteDTO dto) {
         return new ResponseEntity<>(clienteService.crear(dto), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<ClienteDTO> actualizar(@PathVariable Long id, @Valid @RequestBody ClienteDTO dto) {
         return ResponseEntity.ok(clienteService.actualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         clienteService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/estado-cuenta")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<EstadoCuentaClienteDTO> obtenerEstadoCuenta(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.obtenerEstadoCuenta(id));
     }
 
     @PostMapping("/{id}/abonos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<AbonoCreditoDTO> registrarAbono(
             @PathVariable Long id,
             @Valid @RequestBody RegistrarAbonoDTO dto) {
@@ -60,6 +68,7 @@ public class ClienteController {
     }
 
     @GetMapping("/resumen-creditos")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<ResumenCreditosDTO> obtenerResumenCreditos() {
         return ResponseEntity.ok(clienteService.obtenerResumenCreditos());
     }

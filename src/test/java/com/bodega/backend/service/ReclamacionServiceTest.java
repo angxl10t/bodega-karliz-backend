@@ -115,6 +115,16 @@ class ReclamacionServiceTest {
         assertNotNull(res);
         assertEquals("REC-2026-00001", res.getCodigoReclamacion());
         assertEquals("QUEJA", res.getTipo());
+        // Consulta anónima pública enmascara datos sensibles PII
+        assertEquals("45****01", res.getNumeroDocumento());
+        assertEquals("m***a@gmail.com", res.getEmail());
+        assertEquals("Maria G.", res.getNombreReclamante());
+
+        // Consulta acreditando documento de identidad retorna datos completos
+        ReclamacionDTO unmasked = reclamacionService.consultarPorCodigo("REC-2026-00001", "45678901");
+        assertEquals("45678901", unmasked.getNumeroDocumento());
+        assertEquals("maria@gmail.com", unmasked.getEmail());
+        assertEquals("Maria Gomez", unmasked.getNombreReclamante());
     }
 
     @Test

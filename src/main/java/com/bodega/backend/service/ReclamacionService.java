@@ -83,12 +83,103 @@ public class ReclamacionService {
 
     @Transactional(readOnly = true)
     public ReclamacionDTO consultarPorCodigo(String codigo) {
+        return consultarPorCodigo(codigo, null);
+    }
+
+    @Transactional(readOnly = true)
+    public ReclamacionDTO consultarPorCodigo(String codigo, String documento) {
         if (codigo == null || codigo.isBlank()) {
             throw new IllegalArgumentException("El código de reclamación no puede estar vacío");
         }
         Reclamacion r = reclamacionRepository.findByCodigoReclamacion(codigo.trim().toUpperCase())
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró ninguna reclamación con el código: " + codigo));
-        return toDTO(r);
+
+        boolean esAdmin = esUsuarioAdminOSuperAdmin();
+        boolean docValido = documento != null && !documento.isBlank()
+                && r.getNumeroDocumento() != null
+                && r.getNumeroDocumento().trim().equalsIgnoreCase(documento.trim());
+
+        if (esAdmin || docValido) {
+            return toDTO(r);
+        }
+
+        return toMaskedDTO(r);
+    }
+
+    private boolean esUsuarioAdminOSuperAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities() == null) return false;
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase("ROLE_ADMIN")
+                        || a.getAuthority().equalsIgnoreCase("ADMIN")
+                        || a.getAuthority().equalsIgnoreCase("ROLE_SUPERADMIN")
+                        || a.getAuthority().equalsIgnoreCase("SUPERADMIN"));
+    }
+
+    private ReclamacionDTO toMaskedDTO(Reclamacion r) {
+        ReclamacionDTO dto = toDTO(r);
+        return ReclamacionDTO.builder()
+                .idReclamacion(dto.getIdReclamacion())
+                .codigoReclamacion(dto.getCodigoReclamacion())
+                .idBodega(dto.getIdBodega())
+                .nombreBodega(dto.getNombreBodega())
+                .nombreReclamante(maskNombre(dto.getNombreReclamante()))
+                .tipoDocumento(dto.getTipoDocumento())
+                .numeroDocumento(maskDocumento(dto.getNumeroDocumento()))
+                .telefono(maskTelefono(dto.getTelefono()))
+                .email(maskEmail(dto.getEmail()))
+                .direccion("Protegido por confidencialidad (Ley N° 29733)")
+                .tipo(dto.getTipo())
+                .tipoBien(dto.getTipoBien())
+                .montoReclamado(dto.getMontoReclamado())
+                .descripcionBien(dto.getDescripcionBien())
+                .detalleReclamacion(maskDetalle(dto.getDetalleReclamacion()))
+                .pedidoReclamante("Protegido por confidencialidad (Ley N° 29733)")
+                .estado(dto.getEstado())
+                .respuestaProveedor(dto.getRespuestaProveedor())
+                .fechaReclamo(dto.getFechaReclamo())
+                .fechaRespuesta(dto.getFechaRespuesta())
+                .diasHabilesRestantes(dto.getDiasHabilesRestantes())
+                .build();
+    }
+
+    private String maskNombre(String nombre) {
+        if (nombre == null || nombre.isBlank()) return "";
+        String[] partes = nombre.trim().split("\\s+");
+        if (partes.length == 1) {
+            return partes[0].substring(0, Math.min(2, partes[0].length())) + "***";
+        }
+        return partes[0] + " " + partes[1].substring(0, 1) + ".";
+    }
+
+    private String maskDocumento(String doc) {
+        if (doc == null || doc.isBlank()) return "";
+        String trimmed = doc.trim();
+        if (trimmed.length() <= 4) return "****";
+        return trimmed.substring(0, 2) + "****" + trimmed.substring(trimmed.length() - 2);
+    }
+
+    private String maskTelefono(String tel) {
+        if (tel == null || tel.isBlank()) return "";
+        String trimmed = tel.trim();
+        if (trimmed.length() <= 4) return "****";
+        return trimmed.substring(0, 3) + "***" + trimmed.substring(trimmed.length() - 2);
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || email.isBlank() || !email.contains("@")) return "";
+        int atIdx = email.indexOf('@');
+        String user = email.substring(0, atIdx);
+        String domain = email.substring(atIdx);
+        if (user.length() <= 2) return user.substring(0, 1) + "***" + domain;
+        return user.substring(0, 1) + "***" + user.substring(user.length() - 1) + domain;
+    }
+
+    private String maskDetalle(String detalle) {
+        if (detalle == null || detalle.isBlank()) return "";
+        String trimmed = detalle.trim();
+        if (trimmed.length() <= 25) return "Reclamación registrada (" + trimmed.length() + " caracteres)";
+        return trimmed.substring(0, 25) + "... [Contenido reservado por privacidad]";
     }
 
     @Transactional(readOnly = true)

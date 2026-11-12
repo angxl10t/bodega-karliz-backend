@@ -263,12 +263,14 @@ public class DataInitializer implements ApplicationRunner {
             }
             boolean passwordVacia = superadmin.getPassword() == null || superadmin.getPassword().isBlank();
             boolean usandoClaveDefault = !passwordVacia && passwordEncoder.matches("123456", superadmin.getPassword());
-            if (passwordVacia || usandoClaveDefault) {
-                if (hasCustomSuperadminPass) {
+            if (hasCustomSuperadminPass) {
+                if (passwordVacia || !passwordEncoder.matches(trimmedSuperadminPass, superadmin.getPassword())) {
                     superadmin.setPassword(passwordEncoder.encode(trimmedSuperadminPass));
                     superadmin.setFechaCambioClave(OffsetDateTime.now());
                     log.info("[DataInitializer] Contraseña de 'admin' actualizada de forma segura mediante SUPERADMIN_PASSWORD.");
-                } else if (isProduction) {
+                }
+            } else if (passwordVacia || usandoClaveDefault) {
+                if (isProduction) {
                     if (passwordVacia) {
                         throw new IllegalStateException(
                                 "CRITICAL SECURITY CONFIGURATION ERROR: El usuario 'admin' no tiene contraseña configurada y falta SUPERADMIN_PASSWORD en producción."

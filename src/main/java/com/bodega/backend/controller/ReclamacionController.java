@@ -28,8 +28,10 @@ public class ReclamacionController {
     }
 
     @GetMapping("/api/public/reclamaciones/{codigo}")
-    public ResponseEntity<ReclamacionDTO> consultarReclamacionPublica(@PathVariable String codigo) {
-        ReclamacionDTO resultado = reclamacionService.consultarPorCodigo(codigo);
+    public ResponseEntity<ReclamacionDTO> consultarReclamacionPublica(
+            @PathVariable String codigo,
+            @RequestParam(required = false) String documento) {
+        ReclamacionDTO resultado = reclamacionService.consultarPorCodigo(codigo, documento);
         return ResponseEntity.ok(resultado);
     }
 

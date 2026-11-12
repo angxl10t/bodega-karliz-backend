@@ -8,6 +8,7 @@ import com.bodega.backend.service.GarantiaBotellaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class GarantiaBotellaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<List<GarantiaBotellaDTO>> listar(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) String query
@@ -31,21 +33,25 @@ public class GarantiaBotellaController {
     }
 
     @GetMapping("/resumen")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<ResumenGarantiasDTO> obtenerResumen() {
         return ResponseEntity.ok(garantiaService.obtenerResumen());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<GarantiaBotellaDTO> obtenerPorId(@PathVariable Long id) {
         return ResponseEntity.ok(garantiaService.obtenerPorId(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<GarantiaBotellaDTO> crear(@Valid @RequestBody RegistrarGarantiaDTO dto) {
         return new ResponseEntity<>(garantiaService.crear(dto), HttpStatus.CREATED);
     }
 
     @PostMapping("/{id}/devolver")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAJERO', 'SUPERADMIN')")
     public ResponseEntity<GarantiaBotellaDTO> devolver(
             @PathVariable Long id,
             @RequestBody(required = false) DevolverGarantiaDTO dto
@@ -54,6 +60,7 @@ public class GarantiaBotellaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         garantiaService.eliminar(id);
         return ResponseEntity.noContent().build();
