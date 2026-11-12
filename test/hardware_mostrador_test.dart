@@ -58,78 +58,90 @@ void main() {
       expect(res.exito, isTrue);
     });
 
-    testWidgets('HardwareMostradorModal renders 4 counter diagnostic tabs and widgets', (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1280, 800);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+    testWidgets(
+      'HardwareMostradorModal renders 4 counter diagnostic tabs and widgets',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-      final testProducts = [
-        Producto(
-          idProducto: 1,
-          codigo: 'P001',
-          codigoBarras: '7750182001011',
-          nombre: 'Gaseosa Inka Kola 500ml',
-          precioVenta: 3.50,
-          stockActual: 24,
-          stockMinimo: 6,
-          controlaVencimiento: false,
-        ),
-      ];
+        final testProducts = [
+          Producto(
+            idProducto: 1,
+            codigo: 'P001',
+            codigoBarras: '7750182001011',
+            nombre: 'Gaseosa Inka Kola 500ml',
+            precioVenta: 3.50,
+            stockActual: 24,
+            stockMinimo: 6,
+            controlaVencimiento: false,
+          ),
+        ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (ctx) => Center(
-                child: ElevatedButton(
-                  onPressed: () => HardwareMostradorModal.show(ctx, productos: testProducts),
-                  child: const Text('Abrir Hardware'),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (ctx) => Center(
+                  child: ElevatedButton(
+                    onPressed: () => HardwareMostradorModal.show(
+                      ctx,
+                      productos: testProducts,
+                    ),
+                    child: const Text('Abrir Hardware'),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Abrir Hardware'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.text('Abrir Hardware'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
 
-      // Verificar encabezado
-      expect(find.text('Hardware & Mostrador POS'), findsOneWidget);
-      expect(find.text('Ticketera Térmica'), findsOneWidget);
-      expect(find.text('Lector de Barras'), findsOneWidget);
-      expect(find.text('Gaveta de Dinero'), findsOneWidget);
-      expect(find.text('Atajos & Kiosco'), findsOneWidget);
+        // Verificar encabezado
+        expect(find.text('Hardware & Mostrador POS'), findsOneWidget);
+        expect(find.text('Ticketera Térmica'), findsOneWidget);
+        expect(find.text('Lector de Barras'), findsOneWidget);
+        expect(find.text('Gaveta de Dinero'), findsOneWidget);
+        expect(find.text('Atajos & Kiosco'), findsOneWidget);
 
-      // En pestaña Ticketera
-      expect(find.text('ANCHO DE PAPEL DE LA TICKETERA'), findsOneWidget);
-      expect(find.textContaining('58 mm'), findsOneWidget);
-      expect(find.textContaining('Imprimir Ticket de Diagnóstico'), findsOneWidget);
+        // En pestaña Ticketera
+        expect(find.text('ANCHO DE PAPEL DE LA TICKETERA'), findsOneWidget);
+        expect(find.textContaining('58 mm'), findsOneWidget);
+        expect(
+          find.textContaining('Imprimir Ticket de Diagnóstico'),
+          findsOneWidget,
+        );
 
-      // Deslizar a pestaña Lector de Barras
-      await tester.drag(find.byType(TabBarView), const Offset(-500, 0));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(find.textContaining('ZONA DE DISPARO INTERACTIVA'), findsOneWidget);
+        // Deslizar a pestaña Lector de Barras
+        await tester.drag(find.byType(TabBarView), const Offset(-500, 0));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(
+          find.textContaining('ZONA DE DISPARO INTERACTIVA'),
+          findsOneWidget,
+        );
 
-      // Deslizar a pestaña Gaveta de Dinero
-      await tester.drag(find.byType(TabBarView), const Offset(-500, 0));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(find.textContaining('ABRIR GAVETA AHORA'), findsOneWidget);
-      expect(find.textContaining('Atajo de teclado F7'), findsOneWidget);
+        // Deslizar a pestaña Gaveta de Dinero
+        await tester.drag(find.byType(TabBarView), const Offset(-500, 0));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.textContaining('ABRIR GAVETA AHORA'), findsOneWidget);
+        expect(find.textContaining('Atajo de teclado F7'), findsOneWidget);
 
-      // Deslizar a pestaña Atajos & Kiosco
-      await tester.drag(find.byType(TabBarView), const Offset(-500, 0));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(find.text('F2'), findsOneWidget);
-      expect(find.text('F4 / F12'), findsOneWidget);
-      expect(find.text('F7'), findsOneWidget);
-      expect(find.text('F8'), findsOneWidget);
-      expect(find.text('F9'), findsOneWidget);
-      expect(find.text('Esc'), findsOneWidget);
-    });
+        // Deslizar a pestaña Atajos & Kiosco
+        await tester.drag(find.byType(TabBarView), const Offset(-500, 0));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('F2'), findsOneWidget);
+        expect(find.text('F4 / F12'), findsOneWidget);
+        expect(find.text('F7'), findsOneWidget);
+        expect(find.text('F8'), findsOneWidget);
+        expect(find.text('F9'), findsOneWidget);
+        expect(find.text('Esc'), findsOneWidget);
+      },
+    );
   });
 }

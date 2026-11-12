@@ -62,23 +62,27 @@ class CartItem {
   double get subtotalBruto =>
       double.parse((producto.precioVenta * cantidad).toStringAsFixed(2));
   double get subtotal => double.parse(
-      ((subtotalBruto - descuentoManual).clamp(0.0, double.infinity))
-          .toStringAsFixed(2));
+    ((subtotalBruto - descuentoManual).clamp(
+      0.0,
+      double.infinity,
+    )).toStringAsFixed(2),
+  );
 
   Map<String, dynamic> toJson() => {
-        'producto': producto.toJson(),
-        'cantidad': cantidad,
-        'descuentoManual': descuentoManual,
-        if (descuentoMotivo != null) 'descuentoMotivo': descuentoMotivo,
-      };
+    'producto': producto.toJson(),
+    'cantidad': cantidad,
+    'descuentoManual': descuentoManual,
+    if (descuentoMotivo != null) 'descuentoMotivo': descuentoMotivo,
+  };
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
-        producto: Producto.fromJson(
-            Map<String, dynamic>.from(json['producto'] as Map)),
-        cantidad: (json['cantidad'] as num?)?.toDouble() ?? 1.0,
-        descuentoManual: (json['descuentoManual'] as num?)?.toDouble() ?? 0.0,
-        descuentoMotivo: json['descuentoMotivo']?.toString(),
-      );
+    producto: Producto.fromJson(
+      Map<String, dynamic>.from(json['producto'] as Map),
+    ),
+    cantidad: (json['cantidad'] as num?)?.toDouble() ?? 1.0,
+    descuentoManual: (json['descuentoManual'] as num?)?.toDouble() ?? 0.0,
+    descuentoMotivo: json['descuentoMotivo']?.toString(),
+  );
 }
 
 /// Detalle de venta retornado por la API

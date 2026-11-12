@@ -577,18 +577,23 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                                 minWidth: 0,
                                 minHeight: 0,
                               ),
-                              suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                                valueListenable: controller,
-                                builder: (_, value, _) => value.text.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear, size: 16),
-                                        onPressed: () {
-                                          controller.clear();
-                                          _marcaCtrl.clear();
-                                        },
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
+                              suffixIcon:
+                                  ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable: controller,
+                                    builder: (_, value, _) =>
+                                        value.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(
+                                              Icons.clear,
+                                              size: 16,
+                                            ),
+                                            onPressed: () {
+                                              controller.clear();
+                                              _marcaCtrl.clear();
+                                            },
+                                          )
+                                        : const SizedBox.shrink(),
+                                  ),
                             ),
                             validator: (v) => v == null || v.trim().isEmpty
                                 ? 'Ingresa o selecciona la marca'

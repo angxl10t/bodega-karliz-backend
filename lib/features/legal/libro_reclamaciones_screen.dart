@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,11 +15,7 @@ class LibroReclamacionesScreen extends StatefulWidget {
   final String? tiendaNombre;
   final int? idBodega;
 
-  const LibroReclamacionesScreen({
-    super.key,
-    this.tiendaNombre,
-    this.idBodega,
-  });
+  const LibroReclamacionesScreen({super.key, this.tiendaNombre, this.idBodega});
 
   @override
   State<LibroReclamacionesScreen> createState() =>
@@ -298,8 +295,8 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final String proveedorNombre = widget.tiendaNombre != null &&
-            widget.tiendaNombre!.isNotEmpty
+    final String proveedorNombre =
+        widget.tiendaNombre != null && widget.tiendaNombre!.isNotEmpty
         ? widget.tiendaNombre!
         : 'CajaYa Cloud POS (Plataforma)';
 
@@ -324,8 +321,14 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
           labelColor: AppTheme.brandPrimary,
           indicatorColor: AppTheme.brandPrimary,
           tabs: const [
-            Tab(icon: Icon(LucideIcons.fileText, size: 18), text: 'Registrar Reclamo'),
-            Tab(icon: Icon(LucideIcons.search, size: 18), text: 'Consultar Estado'),
+            Tab(
+              icon: Icon(LucideIcons.fileText, size: 18),
+              text: 'Registrar Reclamo',
+            ),
+            Tab(
+              icon: Icon(LucideIcons.search, size: 18),
+              text: 'Consultar Estado',
+            ),
           ],
         ),
       ),
@@ -391,7 +394,9 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : AppTheme.textDark,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -422,7 +427,9 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                 const SizedBox(height: 18),
 
                 // 1. Datos del Consumidor
-                _buildSeccionHeader('1. IDENTIFICACIÓN DEL CONSUMIDOR RECLAMANTE'),
+                _buildSeccionHeader(
+                  '1. IDENTIFICACIÓN DEL CONSUMIDOR RECLAMANTE',
+                ),
                 const SizedBox(height: 10),
 
                 TextFormField(
@@ -443,14 +450,15 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                       width: 120,
                       child: DropdownButtonFormField<String>(
                         initialValue: _tipoDoc,
-                        decoration: const InputDecoration(
-                          labelText: 'Doc.',
-                        ),
+                        decoration: const InputDecoration(labelText: 'Doc.'),
                         items: const [
                           DropdownMenuItem(value: 'DNI', child: Text('DNI')),
                           DropdownMenuItem(value: 'CE', child: Text('C.E.')),
                           DropdownMenuItem(value: 'RUC', child: Text('RUC')),
-                          DropdownMenuItem(value: 'PASAPORTE', child: Text('Pasaporte')),
+                          DropdownMenuItem(
+                            value: 'PASAPORTE',
+                            child: Text('Pasaporte'),
+                          ),
                         ],
                         onChanged: (v) {
                           if (v != null) setState(() => _tipoDoc = v);
@@ -484,12 +492,13 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                         decoration: const InputDecoration(
                           labelText: 'Correo Electrónico *',
                           prefixIcon: Icon(LucideIcons.mail, size: 18),
-                          helperText: 'Enviaremos copia de la hoja de reclamación',
+                          helperText:
+                              'Enviaremos copia de la hoja de reclamación',
                         ),
                         validator: (v) =>
                             (v == null || !v.contains('@') || !v.contains('.'))
-                                ? 'Ingresa un correo válido'
-                                : null,
+                            ? 'Ingresa un correo válido'
+                            : null,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -559,10 +568,15 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                       flex: 1,
                       child: TextFormField(
                         controller: _montoCtrl,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: const InputDecoration(
                           labelText: 'Monto Reclamado (S/)',
-                          prefixIcon: Icon(LucideIcons.circleDollarSign, size: 18),
+                          prefixIcon: Icon(
+                            LucideIcons.circleDollarSign,
+                            size: 18,
+                          ),
                         ),
                       ),
                     ),
@@ -577,7 +591,9 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Column(
@@ -585,7 +601,9 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                       RadioListTile<String>(
                         title: Text(
                           'RECLAMO',
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         subtitle: const Text(
                           'Disconformidad relacionada a los bienes o servicios adquiridos.',
@@ -597,7 +615,9 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                       RadioListTile<String>(
                         title: Text(
                           'QUEJA',
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         subtitle: const Text(
                           'Malestar o descontento respecto a la atención al público.',
@@ -641,7 +661,8 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
 
                 CheckboxListTile(
                   value: _aceptaTerminos,
-                  onChanged: (v) => setState(() => _aceptaTerminos = v ?? false),
+                  onChanged: (v) =>
+                      setState(() => _aceptaTerminos = v ?? false),
                   title: Text(
                     'Declaro ser el titular del reclamo y que la información brindada es veraz conforme a la Ley N° 29571.',
                     style: GoogleFonts.plusJakartaSans(fontSize: 12),
@@ -809,7 +830,8 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
     final String estado = reclamo['estado'] ?? 'PENDIENTE';
     final String tipo = reclamo['tipo'] ?? 'RECLAMO';
     final String reclamante = reclamo['nombreReclamante'] ?? '';
-    final String fecha = reclamo['fechaReclamo']?.toString().substring(0, 10) ?? '';
+    final String fecha =
+        reclamo['fechaReclamo']?.toString().substring(0, 10) ?? '';
     final String respuesta = reclamo['respuestaProveedor'] ?? '';
     final int diasRestantes = reclamo['diasHabilesRestantes'] ?? 0;
 
@@ -841,7 +863,10 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: badgeColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -906,13 +931,13 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
               ),
             ),
             child: Text(
-              respuesta.isNotEmpty
-                  ? respuesta
-                  : 'Tu reclamación se encuentra en etapa de evaluación. El proveedor responderá dentro del plazo legal.',
+              respuesta.isNotEmpty ? respuesta : 'Tu reclamación se encuentra en etapa de evaluación. El proveedor responderá dentro del plazo legal.',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
                 color: isDark ? Colors.white70 : const Color(0xFF334155),
-                fontStyle: respuesta.isEmpty ? FontStyle.italic : FontStyle.normal,
+                fontStyle: respuesta.isEmpty
+                    ? FontStyle.italic
+                    : FontStyle.normal,
               ),
             ),
           ),

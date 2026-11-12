@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'configuracion_ticket_service.dart';
+import 'native_bluetooth_printer_service.dart';
 
 /// Resultado del intento de impresión térmica
 class PrintResult {
@@ -197,8 +199,10 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '='));
 
     // Datos del Comprobante (Boleta de Venta en Nuevo RUS o Ticket de Mostrador en modo Informal)
-    final bool esBoleta = !esInformal &&
-        (tipoComprobante == 'BOLETA_ELECTRONICA' || tipoComprobante == 'BOLETA');
+    final bool esBoleta =
+        !esInformal &&
+        (tipoComprobante == 'BOLETA_ELECTRONICA' ||
+            tipoComprobante == 'BOLETA');
 
     if (esBoleta) {
       buffer.writeln(center('BOLETA DE VENTA', width));
@@ -672,7 +676,9 @@ class ThermalTicketService {
       buffer.writeln(center(urlCatalogo, width));
     } else {
       for (int i = 0; i < urlCatalogo.length; i += width) {
-        final end = (i + width < urlCatalogo.length) ? i + width : urlCatalogo.length;
+        final end = (i + width < urlCatalogo.length)
+            ? i + width
+            : urlCatalogo.length;
         buffer.writeln(center(urlCatalogo.substring(i, end), width));
       }
     }
@@ -714,7 +720,12 @@ class ThermalTicketService {
     final lines = text.split('\n');
     for (final line in lines) {
       if (line.contains('[qr]')) {
-        bytes.addAll(generateEscPosQrBytes(urlCatalogo, moduleSize: width == width58mm ? 5 : 7));
+        bytes.addAll(
+          generateEscPosQrBytes(
+            urlCatalogo,
+            moduleSize: width == width58mm ? 5 : 7,
+          ),
+        );
       } else {
         bytes.addAll(utf8.encode('${sanitize(line)}\n'));
       }
@@ -778,21 +789,33 @@ class ThermalTicketService {
 
     buffer.writeln(twoColumns('BOLETA N°:', serieCorrelativo, width));
     buffer.writeln(twoColumns('FECHA VENTAS:', fechaStr, width));
-    buffer.writeln(twoColumns(
-      'TIPO EMISION:',
-      tipoEmision == 'TALONARIO_FISICO' ? 'Talonario Fisico' : 'Digital CajaYa',
-      width,
-    ));
+    buffer.writeln(
+      twoColumns(
+        'TIPO EMISION:',
+        tipoEmision == 'TALONARIO_FISICO'
+            ? 'Talonario Fisico'
+            : 'Digital CajaYa',
+        width,
+      ),
+    );
     if (cajero != null && cajero.isNotEmpty) {
       buffer.writeln(twoColumns('REGISTRADO POR:', cajero, width));
     }
     buffer.writeln(twoColumns('FECHA REGISTRO:', regStr, width));
     buffer.writeln(divider(width, '-'));
 
-    buffer.writeln(twoColumns('OPERACIONES:', '$cantidadOperaciones ventas', width));
+    buffer.writeln(
+      twoColumns('OPERACIONES:', '$cantidadOperaciones ventas', width),
+    );
     buffer.writeln(twoColumns('TOPE UNITARIO:', '<= S/ 5.00 c/u', width));
     buffer.writeln(divider(width, '-'));
-    buffer.writeln(twoColumns('TOTAL CONSOLIDADO:', 'S/ ${montoTotal.toStringAsFixed(2)}', width));
+    buffer.writeln(
+      twoColumns(
+        'TOTAL CONSOLIDADO:',
+        'S/ ${montoTotal.toStringAsFixed(2)}',
+        width,
+      ),
+    );
     buffer.writeln(divider(width, '='));
 
     if (observaciones != null && observaciones.isNotEmpty) {
@@ -930,12 +953,11 @@ class ThermalTicketService {
     required List<int> escPosBytes,
     required String plainText,
     ConfiguracionTicket? configTicket,
-  }) =>
-      imprimirTicketDirecto(
-        escPosBytes: escPosBytes,
-        receiptText: plainText,
-        config: configTicket,
-      );
+  }) => imprimirTicketDirecto(
+    escPosBytes: escPosBytes,
+    receiptText: plainText,
+    config: configTicket,
+  );
 
   /// Despacha la impresión directa al hardware (vía RawBT en móvil/web, servidor local HTTP o fallback)
   static Future<PrintResult> imprimirTicketDirecto({
@@ -944,6 +966,46 @@ class ThermalTicketService {
     ConfiguracionTicket? config,
   }) async {
     final cfg = config ?? ConfiguracionTicketService.actual;
+
+    // Modo 0: Bluetooth Nativo Android directo vía RFCOMM / SPP (sin depender de RawBT)
+    if (cfg.modoConexion == 'bluetooth_nativo') {
+      if (!NativeBluetoothPrinterService.isSupportedPlatform) {
+        return const PrintResult(
+          exito: false,
+          mensaje: 'Bluetooth Nativo Directo solo funciona en la app Android. En navegador usa "Impresión Navegador" o "Servidor Local".',
+        );
+      }
+      final address = cfg.bluetoothDeviceAddress.trim();
+      if (address.isEmpty) {
+        return const PrintResult(
+          exito: false,
+          mensaje: 'Selecciona primero tu ticketera Bluetooth vinculada en Configuración > Ticketera.',
+        );
+      }
+
+      try {
+        await NativeBluetoothPrinterService.imprimirBytes(address, escPosBytes);
+        final label = cfg.bluetoothDeviceName.trim().isNotEmpty
+            ? '${cfg.bluetoothDeviceName.trim()} ($address)'
+            : address;
+        return PrintResult(
+          exito: true,
+          mensaje: 'Ticket enviado directamente por Bluetooth a $label.',
+        );
+      } on PlatformException catch (e) {
+        return PrintResult(
+          exito: false,
+          mensaje: e.message?.trim().isNotEmpty == true
+              ? e.message!.trim()
+              : 'No se pudo imprimir por Bluetooth (${e.code}).',
+        );
+      } catch (e) {
+        return PrintResult(
+          exito: false,
+          mensaje: 'Error inesperado al imprimir vía Bluetooth: $e',
+        );
+      }
+    }
 
     // Modo 1: RawBT (Bluetooth SPP/BLE, USB y Network)
     if (cfg.modoConexion == 'rawbt') {
@@ -1039,7 +1101,8 @@ class ThermalTicketService {
         if (launched) {
           return const PrintResult(
             exito: true,
-            mensaje: 'Comprobante enviado al diálogo de impresión del navegador.',
+            mensaje:
+                'Comprobante enviado al diálogo de impresión del navegador.',
           );
         }
       } catch (_) {}

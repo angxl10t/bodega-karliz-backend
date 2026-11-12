@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -31,11 +32,7 @@ class ProductosScreen extends StatefulWidget {
   final ValueListenable<int>? activeTabNotifier;
   final int? tabIndex;
 
-  const ProductosScreen({
-    super.key,
-    this.activeTabNotifier,
-    this.tabIndex,
-  });
+  const ProductosScreen({super.key, this.activeTabNotifier, this.tabIndex});
 
   @override
   State<ProductosScreen> createState() => _ProductosScreenState();

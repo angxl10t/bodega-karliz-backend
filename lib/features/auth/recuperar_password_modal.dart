@@ -21,9 +21,8 @@ class RecuperarPasswordModal extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => RecuperarPasswordModal(
-        initialIdentificador: initialIdentificador,
-      ),
+      builder: (ctx) =>
+          RecuperarPasswordModal(initialIdentificador: initialIdentificador),
     );
   }
 
@@ -104,7 +103,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
   Future<void> _enviarCodigo() async {
     final id = _identificadorController.text.trim();
     if (id.isEmpty) {
-      setState(() => _errorMessage = 'Ingresa tu usuario o correo electrónico.');
+      setState(
+        () => _errorMessage = 'Ingresa tu usuario o correo electrónico.',
+      );
       return;
     }
 
@@ -121,7 +122,8 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
     if (res['success'] == true) {
       if (res['sinEmail'] == true) {
         setState(() {
-          _errorMessage = res['mensaje'] ?? 'La cuenta no tiene un correo configurado.';
+          _errorMessage =
+              res['mensaje'] ?? 'La cuenta no tiene un correo configurado.';
         });
         return;
       }
@@ -146,7 +148,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
     final codigo = _codigoController.text.trim();
 
     if (codigo.length != 6) {
-      setState(() => _errorMessage = 'El código debe tener exactamente 6 dígitos.');
+      setState(
+        () => _errorMessage = 'El código debe tener exactamente 6 dígitos.',
+      );
       return;
     }
 
@@ -182,7 +186,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
     final confirm = _confirmarPasswordController.text.trim();
 
     if (pass.length < 4) {
-      setState(() => _errorMessage = 'La contraseña debe tener al menos 4 caracteres.');
+      setState(
+        () => _errorMessage = 'La contraseña debe tener al menos 4 caracteres.',
+      );
       return;
     }
 
@@ -213,7 +219,8 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
       });
     } else {
       setState(() {
-        _errorMessage = res['mensaje'] ?? 'No se pudo restablecer la contraseña.';
+        _errorMessage =
+            res['mensaje'] ?? 'No se pudo restablecer la contraseña.';
       });
     }
   }
@@ -224,10 +231,7 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      margin: EdgeInsets.only(
-        top: 40,
-        bottom: bottomInset,
-      ),
+      margin: EdgeInsets.only(top: 40, bottom: bottomInset),
       constraints: const BoxConstraints(maxWidth: 520),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
@@ -254,7 +258,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                   width: 44,
                   height: 4.5,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -272,11 +278,17 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                   decoration: BoxDecoration(
                     color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.red.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(LucideIcons.alertTriangle, color: Colors.red, size: 18),
+                      const Icon(
+                        LucideIcons.alertTriangle,
+                        color: Colors.red,
+                        size: 18,
+                      ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -325,7 +337,8 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
         icon = LucideIcons.lockKeyhole;
         iconColor = AppTheme.brandPrimary;
         title = 'Crea tu Nueva Contraseña';
-        subtitle = 'Escribe tu nueva clave segura para volver a entrar a tu bodega.';
+        subtitle =
+            'Escribe tu nueva clave segura para volver a entrar a tu bodega.';
         break;
       case 3:
         icon = LucideIcons.circleCheckBig;
@@ -369,7 +382,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
-            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF64748B),
             height: 1.4,
           ),
         ),
@@ -389,7 +404,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF334155),
           ),
         ),
         const SizedBox(height: 8),
@@ -405,11 +422,15 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             hintText: 'Ej. bodega-karliz o micorreo@gmail.com',
             prefixIcon: const Icon(LucideIcons.userCheck, size: 19),
             filled: true,
-            fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+            fillColor: isDark
+                ? AppTheme.cardDarkElevated
+                : const Color(0xFFF8FAFC),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
               ),
             ),
           ),
@@ -422,7 +443,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             onPressed: _isLoading ? null : _enviarCodigo,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandPrimary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
               elevation: 2,
             ),
             child: _isLoading
@@ -437,7 +460,11 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(LucideIcons.send, size: 18, color: Colors.white),
+                      const Icon(
+                        LucideIcons.send,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'ENVIAR CÓDIGO DE SEGURIDAD',
@@ -460,7 +487,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF64748B),
             ),
           ),
         ),
@@ -491,7 +520,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
               Icon(
                 LucideIcons.clock,
                 size: 16,
-                color: _secondsRemaining > 60 ? AppTheme.accentGreen : Colors.orange,
+                color: _secondsRemaining > 60
+                    ? AppTheme.accentGreen
+                    : Colors.orange,
               ),
               const SizedBox(width: 8),
               Text(
@@ -514,7 +545,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF334155),
           ),
         ),
         const SizedBox(height: 8),
@@ -541,11 +574,15 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
               color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
             ),
             filled: true,
-            fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+            fillColor: isDark
+                ? AppTheme.cardDarkElevated
+                : const Color(0xFFF8FAFC),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
               ),
             ),
           ),
@@ -563,7 +600,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             onPressed: _isLoading ? null : _verificarCodigo,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accentGreen,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
               elevation: 2,
             ),
             child: _isLoading
@@ -578,7 +617,11 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(LucideIcons.check, size: 18, color: Colors.white),
+                      const Icon(
+                        LucideIcons.check,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'VERIFICAR CÓDIGO',
@@ -614,7 +657,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
               ),
             ),
             TextButton(
-              onPressed: _resendCooldown == 0 && !_isLoading ? _enviarCodigo : null,
+              onPressed: _resendCooldown == 0 && !_isLoading
+                  ? _enviarCodigo
+                  : null,
               child: Text(
                 _resendCooldown > 0
                     ? 'Reenviar en ${_resendCooldown}s'
@@ -624,7 +669,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                   fontWeight: FontWeight.w700,
                   color: _resendCooldown == 0
                       ? AppTheme.brandPrimary
-                      : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                      : (isDark
+                            ? const Color(0xFF64748B)
+                            : const Color(0xFF94A3B8)),
                 ),
               ),
             ),
@@ -646,7 +693,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF334155),
           ),
         ),
         const SizedBox(height: 6),
@@ -667,10 +716,13 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                 _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
                 size: 18,
               ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
             filled: true,
-            fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+            fillColor: isDark
+                ? AppTheme.cardDarkElevated
+                : const Color(0xFFF8FAFC),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
         ),
@@ -681,7 +733,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF334155),
           ),
         ),
         const SizedBox(height: 6),
@@ -701,10 +755,13 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                 _obscureConfirm ? LucideIcons.eyeOff : LucideIcons.eye,
                 size: 18,
               ),
-              onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+              onPressed: () =>
+                  setState(() => _obscureConfirm = !_obscureConfirm),
             ),
             filled: true,
-            fillColor: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+            fillColor: isDark
+                ? AppTheme.cardDarkElevated
+                : const Color(0xFFF8FAFC),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
           onFieldSubmitted: (_) => _restablecerPassword(),
@@ -717,7 +774,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             onPressed: _isLoading ? null : _restablecerPassword,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.brandPrimary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
               elevation: 2,
             ),
             child: _isLoading
@@ -732,7 +791,11 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(LucideIcons.save, size: 18, color: Colors.white),
+                      const Icon(
+                        LucideIcons.save,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'RESTABLECER CONTRASEÑA',
@@ -763,7 +826,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
           decoration: BoxDecoration(
             color: AppTheme.accentGreen.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.accentGreen.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: AppTheme.accentGreen.withValues(alpha: 0.3),
+            ),
           ),
           child: Column(
             children: [
@@ -789,7 +854,9 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.accentGreen,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
               elevation: 2,
             ),
             child: Row(

@@ -508,6 +508,6 @@ class _BrandRule {
   final RegExp pattern;
 
   _BrandRule(this.canonicalName, this.pattern)
-      : lowerCanonicalName = canonicalName.toLowerCase(),
-        simplifiedName = MarcaDetectorService.simplificar(canonicalName);
+    : lowerCanonicalName = canonicalName.toLowerCase(),
+      simplifiedName = MarcaDetectorService.simplificar(canonicalName);
 }

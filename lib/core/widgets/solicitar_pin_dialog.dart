@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../lock_service.dart';
 import '../theme.dart';
 
@@ -8,7 +9,8 @@ class SolicitarPinDialog {
   static Future<bool> mostrar(
     BuildContext context, {
     String titulo = 'Autorización Requerida',
-    String mensaje = 'Ingresa el PIN de Administrador para autorizar esta operación.',
+    String mensaje =
+        'Ingresa el PIN de Administrador para autorizar esta operación.',
   }) async {
     final pinController = TextEditingController();
     bool obscureText = true;

@@ -402,11 +402,15 @@ class AuthService {
   // Flujo de Recuperación de Contraseña con Código OTP de 6 Dígitos
   // =========================================================================
 
-  Future<Map<String, dynamic>> solicitarRecuperacionPassword(String identificador) async {
+  Future<Map<String, dynamic>> solicitarRecuperacionPassword(
+    String identificador,
+  ) async {
     try {
       final response = await http
           .post(
-            Uri.parse('${ApiConstants.baseUrl}/auth/recuperar-password/solicitar'),
+            Uri.parse(
+              '${ApiConstants.baseUrl}/auth/recuperar-password/solicitar',
+            ),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'identificador': identificador.trim()}),
           )
@@ -436,11 +440,15 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> verificarCodigoRecuperacion(
-      String identificador, String codigo) async {
+    String identificador,
+    String codigo,
+  ) async {
     try {
       final response = await http
           .post(
-            Uri.parse('${ApiConstants.baseUrl}/auth/recuperar-password/verificar'),
+            Uri.parse(
+              '${ApiConstants.baseUrl}/auth/recuperar-password/verificar',
+            ),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'identificador': identificador.trim(),
@@ -478,7 +486,9 @@ class AuthService {
     try {
       final response = await http
           .post(
-            Uri.parse('${ApiConstants.baseUrl}/auth/recuperar-password/restablecer'),
+            Uri.parse(
+              '${ApiConstants.baseUrl}/auth/recuperar-password/restablecer',
+            ),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'identificador': identificador.trim(),

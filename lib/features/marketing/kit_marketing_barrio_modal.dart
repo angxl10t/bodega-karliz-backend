@@ -105,16 +105,18 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
   int? _bodegaId;
 
   String get _urlCatalogo => KitMarketingBarrioModal.buildUrlCatalogo(
-        slugOrId: widget.slugOrId,
-        nombreBodega: _nombreBodega,
-        bodegaId: _bodegaId,
-      );
+    slugOrId: widget.slugOrId,
+    nombreBodega: _nombreBodega,
+    bodegaId: _bodegaId,
+  );
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _nombreBodega = widget.nombreBodega.trim().isEmpty ? 'Bodega Karliz' : widget.nombreBodega.trim();
+    _nombreBodega = widget.nombreBodega.trim().isEmpty
+        ? 'Bodega Karliz'
+        : widget.nombreBodega.trim();
     _telefono = widget.telefono?.trim() ?? '';
     _lemaComercial = widget.lemaComercial?.trim() ?? '';
     _bodegaId = widget.bodegaId;
@@ -126,13 +128,18 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
       final info = await BodegaService().obtenerMiBodega();
       if (info != null && mounted) {
         setState(() {
-          if (info.nombreComercial.isNotEmpty && (_nombreBodega == 'CajaYa POS' || _nombreBodega.isEmpty)) {
+          if (info.nombreComercial.isNotEmpty &&
+              (_nombreBodega == 'CajaYa POS' || _nombreBodega.isEmpty)) {
             _nombreBodega = info.nombreComercial;
           }
-          if (_telefono.isEmpty && info.telefono != null && info.telefono!.trim().isNotEmpty) {
+          if (_telefono.isEmpty &&
+              info.telefono != null &&
+              info.telefono!.trim().isNotEmpty) {
             _telefono = info.telefono!.trim();
           }
-          if (_lemaComercial.isEmpty && info.lemaComercial != null && info.lemaComercial!.trim().isNotEmpty) {
+          if (_lemaComercial.isEmpty &&
+              info.lemaComercial != null &&
+              info.lemaComercial!.trim().isNotEmpty) {
             _lemaComercial = info.lemaComercial!.trim();
           }
           _bodegaId ??= info.idBodega;
@@ -152,19 +159,20 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final lema = _lemaComercial.isNotEmpty ? _lemaComercial : widget.lemaComercial;
+      final lema = _lemaComercial.isNotEmpty
+          ? _lemaComercial
+          : widget.lemaComercial;
       final tel = _telefono.isNotEmpty ? _telefono : widget.telefono;
 
       final List<int> singleVolanteBytes =
           ThermalTicketService.generateVolanteBarrioEscPosBytes(
-        nombreComercio: _nombreBodega,
-        urlCatalogo: _urlCatalogo,
-        lemaComercial: lema,
-        telefono: tel,
-      );
+            nombreComercio: _nombreBodega,
+            urlCatalogo: _urlCatalogo,
+            lemaComercial: lema,
+            telefono: tel,
+          );
 
-      final String plainText =
-          ThermalTicketService.generateVolanteBarrioText(
+      final String plainText = ThermalTicketService.generateVolanteBarrioText(
         nombreComercio: _nombreBodega,
         urlCatalogo: _urlCatalogo,
         lemaComercial: lema,
@@ -186,8 +194,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
       if (mounted) {
         messenger.showSnackBar(
           SnackBar(
-            backgroundColor:
-                result.exito ? AppTheme.accentGreen : AppTheme.alertRed,
+            backgroundColor: result.exito
+                ? AppTheme.accentGreen
+                : AppTheme.alertRed,
             content: Text(
               result.exito
                   ? '¡$_cantidadVolantes volantes de barrio enviados a la ticketera con éxito!'
@@ -265,8 +274,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
               width: 44,
               height: 4.5,
               decoration: BoxDecoration(
-                color:
-                    isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFCBD5E1),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -283,7 +293,8 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                          color: const Color(0xFFF59E0B)
+                              .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -381,7 +392,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
 
   // --- 1. PESTAÑA: VOLANTE TÉRMICO DE BOLSILLO ---
   Widget _buildTabVolanteTermico(bool isDark) {
-    final lema = _lemaComercial.isNotEmpty ? _lemaComercial : widget.lemaComercial;
+    final lema = _lemaComercial.isNotEmpty
+        ? _lemaComercial
+        : widget.lemaComercial;
     final tel = _telefono.isNotEmpty ? _telefono : widget.telefono;
 
     final previewText = ThermalTicketService.generateVolanteBarrioText(
@@ -478,8 +491,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
               color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color:
-                    isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFCBD5E1),
               ),
             ),
             child: Text(
@@ -578,10 +592,13 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                   textAlign: TextAlign.center,
                 ),
                 if (_lemaComercial.isNotEmpty ||
-                    (widget.lemaComercial != null && widget.lemaComercial!.isNotEmpty)) ...[
+                    (widget.lemaComercial != null &&
+                        widget.lemaComercial!.isNotEmpty)) ...[
                   const SizedBox(height: 2),
                   Text(
-                    _lemaComercial.isNotEmpty ? _lemaComercial : widget.lemaComercial!,
+                    _lemaComercial.isNotEmpty
+                        ? _lemaComercial
+                        : widget.lemaComercial!,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -592,8 +609,10 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                 ],
                 const SizedBox(height: 12),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF16A34A).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
@@ -650,8 +669,11 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(LucideIcons.qrCode,
-                              size: 48, color: Color(0xFF94A3B8)),
+                          const Icon(
+                            LucideIcons.qrCode,
+                            size: 48,
+                            color: Color(0xFF94A3B8),
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             _urlCatalogo,
@@ -684,8 +706,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                   children: [
                     _buildPaymentBadge('YAPE', const Color(0xFF732283)),
                     _buildPaymentBadge('PLIN', const Color(0xFF0084FF)),
-                    _buildPaymentBadge(
-                        'EFECTIVO', const Color(0xFF16A34A)),
+                    _buildPaymentBadge('EFECTIVO', const Color(0xFF16A34A)),
                     _buildPaymentBadge('DELIVERY', const Color(0xFFD97706)),
                   ],
                 ),
@@ -702,9 +723,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                     Clipboard.setData(ClipboardData(text: _urlCatalogo));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                          'Enlace copiado al portapapeles',
-                        ),
+                        content: Text('Enlace copiado al portapapeles'),
                       ),
                     );
                   },
@@ -807,8 +826,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
               color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color:
-                    isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
               ),
             ),
             child: SelectableText(
@@ -907,8 +927,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
               color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color:
-                    isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
               ),
             ),
             child: SelectableText(

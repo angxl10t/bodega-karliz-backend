@@ -1,5 +1,7 @@
 import 'package:url_launcher/url_launcher.dart';
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1051,9 +1053,13 @@ class _ComprasScreenState extends State<ComprasScreen>
                 if (cant > 0 && costo > 0) ...[
                   const SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.1),
+                      color: const Color(0xFF6366F1)
+                          .withValues(alpha: isDark ? 0.2 : 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFF6366F1).withValues(alpha: 0.3),
@@ -1061,7 +1067,11 @@ class _ComprasScreenState extends State<ComprasScreen>
                     ),
                     child: Row(
                       children: [
-                        const Icon(LucideIcons.scale, color: Color(0xFF6366F1), size: 16),
+                        const Icon(
+                          LucideIcons.scale,
+                          color: Color(0xFF6366F1),
+                          size: 16,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -1069,7 +1079,9 @@ class _ComprasScreenState extends State<ComprasScreen>
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4338CA),
+                              color: isDark
+                                  ? const Color(0xFFA5B4FC)
+                                  : const Color(0xFF4338CA),
                             ),
                           ),
                         ),

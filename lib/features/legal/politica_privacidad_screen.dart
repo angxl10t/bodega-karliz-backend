@@ -59,8 +59,7 @@ class PoliticaPrivacidadScreen extends StatelessWidget {
                 _buildSeccion(
                   isDark: isDark,
                   titulo: '1. Compromiso de Privacidad',
-                  contenido:
-                      'CajaYa Cloud POS (en adelante, "CajaYa") respeta el derecho a la privacidad de sus usuarios, clientes y vecinos consumidores. En cumplimiento de la Ley N° 29733 y su Reglamento aprobado por D.S. N° 003-2013-JUS, informamos el tratamiento que otorgamos a los datos recopilados en nuestra aplicación móvil y plataforma web.',
+                  contenido: 'CajaYa Cloud POS (en adelante, "CajaYa") respeta el derecho a la privacidad de sus usuarios, clientes y vecinos consumidores. En cumplimiento de la Ley N° 29733 y su Reglamento aprobado por D.S. N° 003-2013-JUS, informamos el tratamiento que otorgamos a los datos recopilados en nuestra aplicación móvil y plataforma web.',
                 ),
 
                 _buildSeccion(
@@ -87,22 +86,19 @@ class PoliticaPrivacidadScreen extends StatelessWidget {
                 _buildSeccion(
                   isDark: isDark,
                   titulo: '4. Seguridad y Aislamiento de Información (Multi-Tenant)',
-                  contenido:
-                      'Implementamos políticas de Row Level Security (RLS) en base de datos PostgreSQL, garantizando aislamiento estricto entre tiendas. Ningún comercio o usuario no autorizado puede acceder a la información contable, clientes o ventas de otra bodega.',
+                  contenido: 'Implementamos políticas de Row Level Security (RLS) en base de datos PostgreSQL, garantizando aislamiento estricto entre tiendas. Ningún comercio o usuario no autorizado puede acceder a la información contable, clientes o ventas de otra bodega.',
                 ),
 
                 _buildSeccion(
                   isDark: isDark,
                   titulo: '5. Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición)',
-                  contenido:
-                      'El titular de los datos personales puede ejercer en cualquier momento sus derechos de información, acceso, rectificación, cancelación y oposición comunicándose a nuestro canal de soporte legal vía correo electrónico a privacidad@cajaya-pos.onrender.com o mediante el WhatsApp oficial de la plataforma.',
+                  contenido: 'El titular de los datos personales puede ejercer en cualquier momento sus derechos de información, acceso, rectificación, cancelación y oposición comunicándose a nuestro canal de soporte legal vía correo electrónico a privacidad@cajaya-pos.onrender.com o mediante el WhatsApp oficial de la plataforma.',
                 ),
 
                 _buildSeccion(
                   isDark: isDark,
                   titulo: '6. Modificaciones a la Política',
-                  contenido:
-                      'Cualquier cambio a la presente Política de Privacidad será comunicado oportunamente mediante la aplicación y nuestro sitio web oficial.',
+                  contenido: 'Cualquier cambio a la presente Política de Privacidad será comunicado oportunamente mediante la aplicación y nuestro sitio web oficial.',
                 ),
 
                 const SizedBox(height: 20),

@@ -137,11 +137,7 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: VentasScreen(),
-            ),
-          ),
+          const MaterialApp(home: Scaffold(body: VentasScreen())),
         );
         await tester.pumpAndSettle();
 

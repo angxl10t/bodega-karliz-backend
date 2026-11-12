@@ -1261,10 +1261,10 @@ class CategoriaSuggesterService {
     r'\b(amarilla|canchan|huayro|blanca|kilo|kg)\b',
   );
 
-  static final List<_CompiledCategoryEntry> _compiledCatalogo = _catalogoCanonico
-      .entries
-      .map((e) => _CompiledCategoryEntry(e.key, e.value))
-      .toList(growable: false);
+  static final List<_CompiledCategoryEntry> _compiledCatalogo =
+      _catalogoCanonico.entries
+          .map((e) => _CompiledCategoryEntry(e.key, e.value))
+          .toList(growable: false);
 
   static void _putCanonicaCache(String key, CategoriaCanonica? value) {
     if (!_canonicaCache.containsKey(key) &&

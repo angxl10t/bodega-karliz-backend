@@ -93,7 +93,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         final rawProds = (data['productos'] as List<dynamic>?) ?? [];
         final prodsList = rawProds
             .map((e) => Map<String, dynamic>.from(e as Map))
-            .where((p) => p['stockActual'] == null || ((p['stockActual'] as num).toDouble() > 0))
+            .where(
+              (p) =>
+                  p['stockActual'] == null ||
+                  ((p['stockActual'] as num).toDouble() > 0),
+            )
             .toList();
         final rawCats = (data['categorias'] as List<dynamic>?) ?? [];
         final catsList = rawCats.map((e) => e.toString()).toList();
@@ -254,8 +258,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       telefonoFinal = limpio.startsWith('51') ? limpio : '51$limpio';
     }
 
-    final String codigoShort = '#W-${(DateTime.now().millisecondsSinceEpoch % 9000) + 1000}';
-    final String codigoPedido = 'WEB-${(DateTime.now().millisecondsSinceEpoch % 90000) + 10000}';
+    final String codigoShort =
+        '#W-${(DateTime.now().millisecondsSinceEpoch % 9000) + 1000}';
+    final String codigoPedido =
+        'WEB-${(DateTime.now().millisecondsSinceEpoch % 90000) + 10000}';
 
     final buffer = StringBuffer();
     buffer.writeln('*Pedido $codigoShort - $nombreBodega*');
@@ -278,28 +284,43 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       final bool tienePromo = prod['tienePromocion'] == true && promo > 0;
       final double precioFinal = tienePromo ? promo : regular;
       final subtotal = precioFinal * cant;
-      final badge = tienePromo ? (prod['badgePromocion']?.toString() ?? 'PROMO') : null;
+      final badge = tienePromo
+          ? (prod['badgePromocion']?.toString() ?? 'PROMO')
+          : null;
 
-      itemsParaBandeja.add(PedidoWebItem(
-        idProducto: (prod['idProducto'] as num?)?.toInt() ?? int.tryParse(id.toString()) ?? 0,
-        nombre: nombre,
-        cantidad: cant.toDouble(),
-        precioUnitario: precioFinal,
-        subtotal: subtotal,
-        badge: badge,
-      ));
+      itemsParaBandeja.add(
+        PedidoWebItem(
+          idProducto:
+              (prod['idProducto'] as num?)?.toInt() ??
+              int.tryParse(id.toString()) ??
+              0,
+          nombre: nombre,
+          cantidad: cant.toDouble(),
+          precioUnitario: precioFinal,
+          subtotal: subtotal,
+          badge: badge,
+        ),
+      );
 
       if (tienePromo) {
-        buffer.writeln('• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)} ($badge)');
+        buffer.writeln(
+          '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)} ($badge)',
+        );
       } else {
-        buffer.writeln('• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)}');
+        buffer.writeln(
+          '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)}',
+        );
       }
     });
 
     buffer.writeln('--------------------------------');
-    buffer.writeln('*Total a Pagar: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*');
+    buffer.writeln(
+      '*Total a Pagar: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*',
+    );
     if (_totalAhorroCarrito > 0) {
-      buffer.writeln('Descuento web aplicado: -S/ ${_totalAhorroCarrito.toStringAsFixed(2)}');
+      buffer.writeln(
+        'Descuento web aplicado: -S/ ${_totalAhorroCarrito.toStringAsFixed(2)}',
+      );
     }
     final bool incluyeRetornables = _carrito.keys.any((id) {
       final p = _productosPorId[id.toString()] ?? const <String, dynamic>{};
@@ -317,7 +338,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       idPedido: codigoPedido,
       codigoPedido: codigoShort,
       fecha: DateTime.now(),
-      nombreCliente: (notas != null && notas.trim().isNotEmpty) ? notas.trim() : 'Cliente Web',
+      nombreCliente: (notas != null && notas.trim().isNotEmpty)
+          ? notas.trim()
+          : 'Cliente Web',
       telefonoCliente: limpio,
       notas: notas,
       items: itemsParaBandeja,
@@ -1305,9 +1328,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   );
                 },
               ),
-            SliverToBoxAdapter(
-              child: _buildFooterLegal(context, isDark),
-            ),
+            SliverToBoxAdapter(child: _buildFooterLegal(context, isDark)),
           ],
         ),
       ),
@@ -1364,10 +1385,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           // Botón Oficial Libro de Reclamaciones INDECOPI
           InkWell(
             onTap: () {
-              final query = Uri(queryParameters: {
-                'tienda': nombreBodega,
-                if (idBodega != null) 'idBodega': idBodega.toString(),
-              }).query;
+              final query = Uri(
+                queryParameters: {
+                  'tienda': nombreBodega,
+                  if (idBodega != null) 'idBodega': idBodega.toString(),
+                },
+              ).query;
               context.push('/reclamaciones?$query');
             },
             borderRadius: BorderRadius.circular(12),
@@ -1485,9 +1508,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             'Comercio formalizado bajo la Ley del Bodeguero N° 30877 y Código del Consumidor N° 29571.\nTodos los derechos reservados © 2026 CajaYa.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 10,
-              color: isDark
-                  ? const Color(0xFF64748B)
-                  : const Color(0xFF94A3B8),
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
               height: 1.4,
             ),
             textAlign: TextAlign.center,

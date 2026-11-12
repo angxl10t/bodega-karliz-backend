@@ -1,4 +1,5 @@
 import '../marketing/kit_marketing_barrio_modal.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -71,6 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _cargarCierreHoy();
     }
   }
+
   List<Producto> _productos = [];
   CierreCaja? _cierreHoy;
   ResumenCreditos? _resumenCreditos;
@@ -1303,8 +1305,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   KitMarketingBarrioModal.show(
                                     context,
                                     nombreBodega: _nombreBodega,
-                                    telefono: _telefono.isNotEmpty ? _telefono : null,
-                                    slugOrId: KitMarketingBarrioModal.normalizarSlug(_nombreBodega),
+                                    telefono: _telefono.isNotEmpty
+                                        ? _telefono
+                                        : null,
+                                    slugOrId:
+                                        KitMarketingBarrioModal.normalizarSlug(
+                                          _nombreBodega,
+                                        ),
                                   );
                                 },
                               ),

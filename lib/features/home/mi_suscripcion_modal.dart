@@ -83,11 +83,16 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
   }
 
   Future<void> _contactarWhatsAppComercial() async {
-    final bodegaNombre = widget.nombreBodega.isNotEmpty ? widget.nombreBodega : 'Mi Bodega';
+    final bodegaNombre = widget.nombreBodega.isNotEmpty
+        ? widget.nombreBodega
+        : 'Mi Bodega';
     final plan = widget.planActual.toUpperCase();
-    final mensaje = 'Hola, soy de la bodega "$bodegaNombre" (Plan $plan). Deseo renovar o coordinar mi mensualidad de CajaYa Cloud POS.';
-    
-    final uri = Uri.parse('https://wa.me/51987654321?text=${Uri.encodeComponent(mensaje)}');
+    final mensaje =
+        'Hola, soy de la bodega "$bodegaNombre" (Plan $plan). Deseo renovar o coordinar mi mensualidad de CajaYa Cloud POS.';
+
+    final uri = Uri.parse(
+      'https://wa.me/51987654321?text=${Uri.encodeComponent(mensaje)}',
+    );
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -97,7 +102,9 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo abrir WhatsApp automáticamente.')),
+          const SnackBar(
+            content: Text('No se pudo abrir WhatsApp automáticamente.'),
+          ),
         );
       }
     }
@@ -154,7 +161,9 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
               width: 44,
               height: 4.5,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFCBD5E1),
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -174,7 +183,11 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                           color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(LucideIcons.crown, color: AppTheme.brandPrimary, size: 22),
+                        child: const Icon(
+                          LucideIcons.crown,
+                          color: AppTheme.brandPrimary,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -189,11 +202,15 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                             ),
                           ),
                           Text(
-                            widget.nombreBodega.isNotEmpty ? widget.nombreBodega : 'CajaYa Cloud POS',
+                            widget.nombreBodega.isNotEmpty
+                                ? widget.nombreBodega
+                                : 'CajaYa Cloud POS',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ],
@@ -201,7 +218,13 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                     ],
                   ),
                   IconButton(
-                    icon: Icon(LucideIcons.x, size: 20, color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B)),
+                    icon: Icon(
+                      LucideIcons.x,
+                      size: 20,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -225,49 +248,79 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: isDark
-                                    ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                                    : [const Color(0xFFF8FAFC), const Color(0xFFEEF2F6)],
+                                    ? [
+                                        const Color(0xFF1E293B),
+                                        const Color(0xFF0F172A),
+                                      ]
+                                    : [
+                                        const Color(0xFFF8FAFC),
+                                        const Color(0xFFEEF2F6),
+                                      ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
                               ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
                                         Text(
-                                          isPro ? 'Plan Minimarket PRO' : 'Plan Bodega Básico',
+                                          isPro
+                                              ? 'Plan Minimarket PRO'
+                                              : 'Plan Bodega Básico',
                                           style: GoogleFonts.outfit(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w900,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
                                           ),
                                         ),
                                         if (isPro) ...[
                                           const SizedBox(width: 6),
-                                          const Icon(LucideIcons.sparkles, color: Color(0xFFF59E0B), size: 16),
+                                          const Icon(
+                                            LucideIcons.sparkles,
+                                            color: Color(0xFFF59E0B),
+                                            size: 16,
+                                          ),
                                         ],
                                       ],
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: statusColor.withValues(alpha: 0.15),
+                                        color: statusColor.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(color: statusColor.withValues(alpha: 0.35)),
+                                        border: Border.all(
+                                          color: statusColor.withValues(
+                                            alpha: 0.35,
+                                          ),
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(statusIcon, color: statusColor, size: 13),
+                                          Icon(
+                                            statusIcon,
+                                            color: statusColor,
+                                            size: 13,
+                                          ),
                                           const SizedBox(width: 5),
                                           Text(
                                             statusText,
@@ -300,7 +353,9 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w500,
-                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
@@ -313,24 +368,37 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+                              color: AppTheme.brandPrimary.withValues(
+                                alpha: 0.08,
+                              ),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.2)),
+                              border: Border.all(
+                                color: AppTheme.brandPrimary.withValues(
+                                  alpha: 0.2,
+                                ),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(LucideIcons.shieldCheck, color: AppTheme.brandPrimary, size: 22),
+                                const Icon(
+                                  LucideIcons.shieldCheck,
+                                  color: AppTheme.brandPrimary,
+                                  size: 22,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Gestión de Cobro 100% Controlada',
                                         style: GoogleFonts.outfit(
                                           fontSize: 13.5,
                                           fontWeight: FontWeight.w800,
-                                          color: isDark ? AppTheme.brandLight : AppTheme.brandDark,
+                                          color: isDark
+                                              ? AppTheme.brandLight
+                                              : AppTheme.brandDark,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -339,7 +407,9 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w500,
-                                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF475569),
                                         ),
                                       ),
                                     ],
@@ -356,15 +426,27 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                               Expanded(
                                 child: ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF732283), // Color Yape
+                                    backgroundColor: const Color(
+                                      0xFF732283,
+                                    ), // Color Yape
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 13),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 13,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
                                   ),
-                                  icon: const Icon(LucideIcons.qrCode, size: 18),
+                                  icon: const Icon(
+                                    LucideIcons.qrCode,
+                                    size: 18,
+                                  ),
                                   label: Text(
                                     'Pagar con Yape / Plin',
-                                    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                   onPressed: () {
                                     Navigator.pop(context);
@@ -381,14 +463,27 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                                 child: OutlinedButton.icon(
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: const Color(0xFF16A34A),
-                                    side: const BorderSide(color: Color(0xFF16A34A), width: 1.5),
-                                    padding: const EdgeInsets.symmetric(vertical: 13),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    side: const BorderSide(
+                                      color: Color(0xFF16A34A),
+                                      width: 1.5,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 13,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
                                   ),
-                                  icon: const Icon(LucideIcons.messageCircle, size: 18),
+                                  icon: const Icon(
+                                    LucideIcons.messageCircle,
+                                    size: 18,
+                                  ),
                                   label: Text(
                                     'WhatsApp Oficial',
-                                    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w800),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                   onPressed: _contactarWhatsAppComercial,
                                 ),
@@ -403,7 +498,9 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF64748B),
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -492,7 +589,9 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],

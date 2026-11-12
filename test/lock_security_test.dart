@@ -80,46 +80,49 @@ void main() {
       expect(await service.hasPin(), isFalse);
     });
 
-    testWidgets('KarlizLockScreen.show without PIN prompts dialog instead of locking', (tester) async {
-      await LockService().removePin();
-      expect(await LockService().hasPin(), isFalse);
-      expect(LockService().isLocked, isFalse);
+    testWidgets(
+      'KarlizLockScreen.show without PIN prompts dialog instead of locking',
+      (tester) async {
+        await LockService().removePin();
+        expect(await LockService().hasPin(), isFalse);
+        expect(LockService().isLocked, isFalse);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: ElevatedButton(
-                onPressed: () {
-                  KarlizLockScreen.show(
-                    context,
-                    onUnlocked: () {},
-                    onLogout: () {},
-                  );
-                },
-                child: const Text('Bloquear'),
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () {
+                    KarlizLockScreen.show(
+                      context,
+                      onUnlocked: () {},
+                      onLogout: () {},
+                    );
+                  },
+                  child: const Text('Bloquear'),
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Bloquear'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Bloquear'));
+        await tester.pumpAndSettle();
 
-      // LockService should NOT be locked!
-      expect(LockService().isLocked, isFalse);
+        // LockService should NOT be locked!
+        expect(LockService().isLocked, isFalse);
 
-      // Dialog should be visible
-      expect(find.text('PIN No Configurado'), findsOneWidget);
-      expect(find.text('Crear PIN Ahora'), findsOneWidget);
-      expect(find.text('Cancelar'), findsOneWidget);
+        // Dialog should be visible
+        expect(find.text('PIN No Configurado'), findsOneWidget);
+        expect(find.text('Crear PIN Ahora'), findsOneWidget);
+        expect(find.text('Cancelar'), findsOneWidget);
 
-      // Tapping Cancelar dismisses dialog and leaves state unlocked
-      await tester.tap(find.text('Cancelar'));
-      await tester.pumpAndSettle();
-      expect(find.text('PIN No Configurado'), findsNothing);
-      expect(LockService().isLocked, isFalse);
-    });
+        // Tapping Cancelar dismisses dialog and leaves state unlocked
+        await tester.tap(find.text('Cancelar'));
+        await tester.pumpAndSettle();
+        expect(find.text('PIN No Configurado'), findsNothing);
+        expect(LockService().isLocked, isFalse);
+      },
+    );
   });
 }

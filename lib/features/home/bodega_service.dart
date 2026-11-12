@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import '../../core/api_client.dart';
 import '../../core/secure_storage_service.dart';
 
@@ -131,7 +130,9 @@ class BodegaService {
       writes.add(SecureStorageService.write('ruc_bodega', info.rucDni!));
     }
     if (info.direccion != null) {
-      writes.add(SecureStorageService.write('direccion_bodega', info.direccion!));
+      writes.add(
+        SecureStorageService.write('direccion_bodega', info.direccion!),
+      );
     }
     if (info.telefono != null) {
       writes.add(SecureStorageService.write('telefono_bodega', info.telefono!));
@@ -313,7 +314,10 @@ class BodegaService {
       final info = BodegaInfo.fromJson(data);
       _actualizarCacheLocal(info);
       await Future.wait([
-        SecureStorageService.write('regimen_tributario', info.regimenTributario),
+        SecureStorageService.write(
+          'regimen_tributario',
+          info.regimenTributario,
+        ),
         SecureStorageService.write(
           'facturacion_sunat_activa',
           info.facturacionSunatActiva.toString(),

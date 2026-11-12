@@ -325,12 +325,11 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                                 vertical: 10,
                               ),
                             ),
-                            onChanged: (val) =>
-                                _searchDebouncer.run(() {
-                                  if (mounted) {
-                                    setState(() => _filtroTexto = val);
-                                  }
-                                }),
+                            onChanged: (val) => _searchDebouncer.run(() {
+                              if (mounted) {
+                                setState(() => _filtroTexto = val);
+                              }
+                            }),
                             onSubmitted: (val) {
                               _searchDebouncer.cancel();
                               setState(() => _filtroTexto = val);

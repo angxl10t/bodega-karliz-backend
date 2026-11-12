@@ -10,19 +10,18 @@ import 'boleta_consolidada_service.dart';
 class MonitorNuevoRusModal extends StatefulWidget {
   final VoidCallback? onRegimenCambiado;
 
-  const MonitorNuevoRusModal({
-    super.key,
-    this.onRegimenCambiado,
-  });
+  const MonitorNuevoRusModal({super.key, this.onRegimenCambiado});
 
-  static Future<void> show(BuildContext context, {VoidCallback? onRegimenCambiado}) {
+  static Future<void> show(
+    BuildContext context, {
+    VoidCallback? onRegimenCambiado,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => MonitorNuevoRusModal(
-        onRegimenCambiado: onRegimenCambiado,
-      ),
+      builder: (_) =>
+          MonitorNuevoRusModal(onRegimenCambiado: onRegimenCambiado),
     );
   }
 
@@ -86,7 +85,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
 
     setState(() => _isSaving = true);
     try {
-      final infoActualizada = await _bodegaService.actualizarRegimenTributario(nuevoRegimen);
+      final infoActualizada = await _bodegaService.actualizarRegimenTributario(
+        nuevoRegimen,
+      );
       final nuevoResumen = await _bodegaService.obtenerMonitorNuevoRus();
 
       if (mounted) {
@@ -118,9 +119,13 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 ),
               ],
             ),
-            backgroundColor: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488),
+            backgroundColor: esNuevoRus
+                ? AppTheme.accentGreen
+                : const Color(0xFF0D9488),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -141,8 +146,11 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-    final esNuevoRus = _bodegaInfo?.esNuevoRus ?? (_resumenRus?.esNuevoRus ?? true);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
+    final esNuevoRus =
+        _bodegaInfo?.esNuevoRus ?? (_resumenRus?.esNuevoRus ?? true);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.88,
@@ -163,7 +171,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 width: 44,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -196,14 +206,18 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                           ),
                         ),
                         Text(
                           'Realidad del bodeguero peruano • Ley N° 30877',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],
@@ -223,89 +237,95 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+                      child: CircularProgressIndicator(
+                        color: AppTheme.brandPrimary,
+                      ),
                     )
                   : _errorMessage != null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(LucideIcons.alertTriangle, size: 40, color: AppTheme.alertRed),
-                              const SizedBox(height: 12),
-                              Text(_errorMessage!),
-                              const SizedBox(height: 12),
-                              ElevatedButton(
-                                onPressed: _cargarDatos,
-                                child: const Text('Reintentar'),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.alertTriangle,
+                            size: 40,
+                            color: AppTheme.alertRed,
                           ),
-                        )
-                      : ListView(
-                          controller: scrollCtrl,
-                          padding: const EdgeInsets.all(20),
-                          children: [
-                            // 1. Selector Maestro: ¿Comercio en el Nuevo RUS?
-                            _buildCardSwitchRegimen(
+                          const SizedBox(height: 12),
+                          Text(_errorMessage!),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: _cargarDatos,
+                            child: const Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView(
+                      controller: scrollCtrl,
+                      padding: const EdgeInsets.all(20),
+                      children: [
+                        // 1. Selector Maestro: ¿Comercio en el Nuevo RUS?
+                        _buildCardSwitchRegimen(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          esNuevoRus: esNuevoRus,
+                        ),
+                        const SizedBox(height: 18),
+
+                        // 2. Contenido según Régimen
+                        if (esNuevoRus) ...[
+                          // MONITOR DEL NUEVO RUS (SEMÁFORO Y CUOTAS)
+                          if (_resumenRus != null) ...[
+                            _buildResumenCuotaCard(
                               isDark: isDark,
                               cardBg: cardBg,
                               borderColor: borderColor,
-                              esNuevoRus: esNuevoRus,
+                              resumen: _resumenRus!,
                             ),
-                            const SizedBox(height: 18),
+                            const SizedBox(height: 16),
 
-                            // 2. Contenido según Régimen
-                            if (esNuevoRus) ...[
-                              // MONITOR DEL NUEVO RUS (SEMÁFORO Y CUOTAS)
-                              if (_resumenRus != null) ...[
-                                _buildResumenCuotaCard(
-                                  isDark: isDark,
-                                  cardBg: cardBg,
-                                  borderColor: borderColor,
-                                  resumen: _resumenRus!,
-                                ),
-                                const SizedBox(height: 16),
+                            _buildTermometroVentas(
+                              isDark: isDark,
+                              cardBg: cardBg,
+                              borderColor: borderColor,
+                              resumen: _resumenRus!,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildCardBoletaConsolidada(
+                              isDark: isDark,
+                              cardBg: cardBg,
+                              borderColor: borderColor,
+                            ),
+                            const SizedBox(height: 16),
 
-                                _buildTermometroVentas(
-                                  isDark: isDark,
-                                  cardBg: cardBg,
-                                  borderColor: borderColor,
-                                  resumen: _resumenRus!,
-                                ),
-                                const SizedBox(height: 16),
-                                _buildCardBoletaConsolidada(
-                                  isDark: isDark,
-                                  cardBg: cardBg,
-                                  borderColor: borderColor,
-                                ),
-                                const SizedBox(height: 16),
+                            _buildDesgloseMetricas(
+                              isDark: isDark,
+                              cardBg: cardBg,
+                              borderColor: borderColor,
+                              resumen: _resumenRus!,
+                            ),
+                            const SizedBox(height: 16),
 
-                                _buildDesgloseMetricas(
-                                  isDark: isDark,
-                                  cardBg: cardBg,
-                                  borderColor: borderColor,
-                                  resumen: _resumenRus!,
-                                ),
-                                const SizedBox(height: 16),
-
-                                _buildGuiaPagoSunat(
-                                  isDark: isDark,
-                                  cardBg: cardBg,
-                                  borderColor: borderColor,
-                                  resumen: _resumenRus!,
-                                ),
-                              ],
-                            ] else ...[
-                              // BODEGA INDEPENDIENTE (SIN SUNAT / SIN RUC)
-                              _buildCardBodegaInformal(
-                                isDark: isDark,
-                                cardBg: cardBg,
-                                borderColor: borderColor,
-                              ),
-                            ],
-                            const SizedBox(height: 24),
+                            _buildGuiaPagoSunat(
+                              isDark: isDark,
+                              cardBg: cardBg,
+                              borderColor: borderColor,
+                              resumen: _resumenRus!,
+                            ),
                           ],
-                        ),
+                        ] else ...[
+                          // BODEGA INDEPENDIENTE (SIN SUNAT / SIN RUC)
+                          _buildCardBodegaInformal(
+                            isDark: isDark,
+                            cardBg: cardBg,
+                            borderColor: borderColor,
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -326,7 +346,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: esNuevoRus ? AppTheme.accentGreen.withValues(alpha: 0.4) : borderColor,
+          color: esNuevoRus
+              ? AppTheme.accentGreen.withValues(alpha: 0.4)
+              : borderColor,
           width: esNuevoRus ? 1.5 : 1.0,
         ),
         boxShadow: [
@@ -345,14 +367,19 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488))
-                      .withValues(alpha: 0.12),
+                  color:
+                      (esNuevoRus
+                              ? AppTheme.accentGreen
+                              : const Color(0xFF0D9488))
+                          .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   esNuevoRus ? LucideIcons.store : LucideIcons.leaf,
                   size: 20,
-                  color: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488),
+                  color: esNuevoRus
+                      ? AppTheme.accentGreen
+                      : const Color(0xFF0D9488),
                 ),
               ),
               const SizedBox(width: 12),
@@ -374,7 +401,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                           : 'Bodega Independiente (Sin RUC / Sin SUNAT)',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -405,7 +434,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 Icon(
                   LucideIcons.info,
                   size: 16,
-                  color: esNuevoRus ? AppTheme.accentGreen : const Color(0xFF0D9488),
+                  color: esNuevoRus
+                      ? AppTheme.accentGreen
+                      : const Color(0xFF0D9488),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -415,7 +446,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                         : 'Modo Bodega Independiente: Cero obligaciones tributarias, cero cuotas y cero topes. Todos tus tickets son comprobantes de mostrador para tus clientes y tu cuadre de caja diario.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                      color: isDark
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFF475569),
                     ),
                   ),
                 ),
@@ -441,8 +474,8 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
     final Color badgeColor = esCat1
         ? AppTheme.accentGreen
         : esCat2
-            ? const Color(0xFFD97706)
-            : AppTheme.alertRed;
+        ? const Color(0xFFD97706)
+        : AppTheme.alertRed;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -459,7 +492,11 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             children: [
               Row(
                 children: [
-                  const Icon(LucideIcons.calendarDays, size: 16, color: Color(0xFF0284C7)),
+                  const Icon(
+                    LucideIcons.calendarDays,
+                    size: 16,
+                    color: Color(0xFF0284C7),
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     resumen.periodoNombre.toUpperCase(),
@@ -473,14 +510,21 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: badgeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
                 ),
                 child: Text(
-                  esCat1 ? 'CAT. 1' : esCat2 ? 'CAT. 2' : 'EXCEDIDO',
+                  esCat1
+                      ? 'CAT. 1'
+                      : esCat2
+                      ? 'CAT. 2'
+                      : 'EXCEDIDO',
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -497,11 +541,15 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                esExcedido ? 'Límite Superado' : 'S/ ${resumen.cuotaMensualEstimada.toStringAsFixed(2)}',
+                esExcedido
+                    ? 'Límite Superado'
+                    : 'S/ ${resumen.cuotaMensualEstimada.toStringAsFixed(2)}',
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
-                  color: esExcedido ? AppTheme.alertRed : (isDark ? Colors.white : const Color(0xFF0F172A)),
+                  color: esExcedido
+                      ? AppTheme.alertRed
+                      : (isDark ? Colors.white : const Color(0xFF0F172A)),
                 ),
               ),
               const SizedBox(width: 8),
@@ -510,7 +558,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -533,11 +583,17 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               decoration: BoxDecoration(
                 color: AppTheme.alertRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTheme.alertRed.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppTheme.alertRed.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.alertTriangle, size: 16, color: AppTheme.alertRed),
+                  const Icon(
+                    LucideIcons.alertTriangle,
+                    size: 16,
+                    color: AppTheme.alertRed,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -594,7 +650,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -609,7 +667,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 height: 14,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
                   borderRadius: BorderRadius.circular(7),
                 ),
               ),
@@ -640,7 +700,10 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             children: [
               Text(
                 'S/ 0',
-                style: GoogleFonts.plusJakartaSans(fontSize: 10, color: const Color(0xFF94A3B8)),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  color: const Color(0xFF94A3B8),
+                ),
               ),
               Text(
                 'S/ 5,000 (Cat. 1)',
@@ -674,7 +737,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 Icon(
                   LucideIcons.shieldCheck,
                   size: 16,
-                  color: esCat1 ? AppTheme.accentGreen : const Color(0xFFD97706),
+                  color: esCat1
+                      ? AppTheme.accentGreen
+                      : const Color(0xFFD97706),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -719,14 +784,20 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.trendingUp, size: 16, color: AppTheme.accentGreen),
+                    const Icon(
+                      LucideIcons.trendingUp,
+                      size: 16,
+                      color: AppTheme.accentGreen,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'Ventas del Mes',
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -758,14 +829,20 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.truck, size: 16, color: Color(0xFF3B82F6)),
+                    const Icon(
+                      LucideIcons.truck,
+                      size: 16,
+                      color: Color(0xFF3B82F6),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       'Compras del Mes',
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -806,7 +883,11 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.receipt, size: 18, color: Color(0xFF0284C7)),
+              const Icon(
+                LucideIcons.receipt,
+                size: 18,
+                color: Color(0xFF0284C7),
+              ),
               const SizedBox(width: 8),
               Text(
                 '¿Cómo pagar tu cuota del Nuevo RUS?',
@@ -820,8 +901,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
           ),
           const SizedBox(height: 10),
           Text(
-            resumen.sugerenciaPagoSunat ??
-                'Paga en agentes BCP, BBVA, Interbank, Banco de la Nación o App SUNAT con tu número de RUC y periodo tributario.',
+            resumen.sugerenciaPagoSunat ?? 'Paga en agentes BCP, BBVA, Interbank, Banco de la Nación o App SUNAT con tu número de RUC y periodo tributario.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -837,7 +917,11 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             ),
             child: Row(
               children: [
-                const Icon(LucideIcons.checkCircle2, size: 16, color: AppTheme.accentGreen),
+                const Icon(
+                  LucideIcons.checkCircle2,
+                  size: 16,
+                  color: AppTheme.accentGreen,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -888,14 +972,21 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade700)
-                      .withValues(alpha: 0.12),
+                  color:
+                      (yaRegistrada
+                              ? AppTheme.accentGreen
+                              : Colors.amber.shade700)
+                          .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  yaRegistrada ? LucideIcons.fileCheck2 : LucideIcons.receiptText,
+                  yaRegistrada
+                      ? LucideIcons.fileCheck2
+                      : LucideIcons.receiptText,
                   size: 20,
-                  color: yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade800,
+                  color: yaRegistrada
+                      ? AppTheme.accentGreen
+                      : Colors.amber.shade800,
                 ),
               ),
               const SizedBox(width: 10),
@@ -915,7 +1006,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                       'Ventas <= S/ 5.00 sin comprobante individual',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -924,8 +1017,11 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade700)
-                      .withValues(alpha: 0.12),
+                  color:
+                      (yaRegistrada
+                              ? AppTheme.accentGreen
+                              : Colors.amber.shade700)
+                          .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -933,7 +1029,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                   style: GoogleFonts.outfit(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: yaRegistrada ? AppTheme.accentGreen : Colors.amber.shade800,
+                    color: yaRegistrada
+                        ? AppTheme.accentGreen
+                        : Colors.amber.shade800,
                   ),
                 ),
               ),
@@ -955,16 +1053,30 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: yaRegistrada ? const Color(0xFF1E293B) : AppTheme.brandPrimary,
+                backgroundColor: yaRegistrada
+                    ? const Color(0xFF1E293B)
+                    : AppTheme.brandPrimary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 elevation: 0,
               ),
-              icon: Icon(yaRegistrada ? LucideIcons.externalLink : LucideIcons.plusCircle, size: 16),
+              icon: Icon(
+                yaRegistrada
+                    ? LucideIcons.externalLink
+                    : LucideIcons.plusCircle,
+                size: 16,
+              ),
               label: Text(
-                yaRegistrada ? 'Ver / Modificar Boleta Consolidada' : 'Registrar Boleta Consolidada de Hoy',
-                style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700),
+                yaRegistrada
+                    ? 'Ver / Modificar Boleta Consolidada'
+                    : 'Registrar Boleta Consolidada de Hoy',
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               onPressed: () {
                 BoletaConsolidadaModal.show(
@@ -1029,7 +1141,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                       'Control 100% libre de trámites, topes e impuestos',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -1071,7 +1185,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
               color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFE2E8F0),
               ),
             ),
             child: Row(
@@ -1087,7 +1203,9 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                     'Si más adelante decides inscribirte en el Nuevo RUS, obtendrás tu RUC 10 gratis en 5 min desde el celular (App Personas SUNAT) con tu DNI.',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                       height: 1.35,
                     ),
                   ),

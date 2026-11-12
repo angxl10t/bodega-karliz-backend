@@ -541,8 +541,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     ),
                   ],
 
-
-
                   const SizedBox(height: 12),
 
                   // Campo: Contraseña Inicial + Generador Aleatorio
@@ -998,7 +996,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isMe ? 'Mi Perfil y Correo' : 'Editar Datos: @${u.username}',
+                        isMe
+                            ? 'Mi Perfil y Correo'
+                            : 'Editar Datos: @${u.username}',
                         style: GoogleFonts.outfit(
                           fontSize: 16.5,
                           fontWeight: FontWeight.w800,
@@ -1010,7 +1010,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -1041,7 +1043,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.alertCircle, size: 14, color: AppTheme.alertRed),
+                          const Icon(
+                            LucideIcons.alertCircle,
+                            size: 14,
+                            color: AppTheme.alertRed,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -1059,15 +1065,24 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                   ],
                   // Badge info usuario
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      color: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       children: [
-                        const Icon(LucideIcons.shield, size: 14, color: AppTheme.brandPrimary),
+                        const Icon(
+                          LucideIcons.shield,
+                          size: 14,
+                          color: AppTheme.brandPrimary,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Cuenta: @${u.username} • Rol: ${u.rol}',
@@ -1136,52 +1151,66 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: isSubmitting ? null : () async {
-                  final emailIngresado = emailCtrl.text.trim();
-                  if (emailIngresado.isNotEmpty &&
-                      !RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(emailIngresado)) {
-                    setModalState(() => modalError = 'Por favor ingresa un correo electrónico válido (ej. usuario@gmail.com).');
-                    return;
-                  }
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final emailIngresado = emailCtrl.text.trim();
+                        if (emailIngresado.isNotEmpty &&
+                            !RegExp(
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                            ).hasMatch(emailIngresado)) {
+                          setModalState(
+                            () => modalError = 'Por favor ingresa un correo electrónico válido (ej. usuario@gmail.com).',
+                          );
+                          return;
+                        }
 
-                  setModalState(() {
-                    isSubmitting = true;
-                    modalError = '';
-                  });
+                        setModalState(() {
+                          isSubmitting = true;
+                          modalError = '';
+                        });
 
-                  final messenger = ScaffoldMessenger.of(context);
-                  try {
-                    await _usuariosService.actualizarPerfil(
-                      idUsuario: u.idUsuario,
-                      nombreCompleto: nombreCtrl.text.trim(),
-                      email: emailIngresado,
-                    );
+                        final messenger = ScaffoldMessenger.of(context);
+                        try {
+                          await _usuariosService.actualizarPerfil(
+                            idUsuario: u.idUsuario,
+                            nombreCompleto: nombreCtrl.text.trim(),
+                            email: emailIngresado,
+                          );
 
-                    if (isMe && emailIngresado.isNotEmpty) {
-                      await AuthService().setUserEmail(emailIngresado);
-                    }
+                          if (isMe && emailIngresado.isNotEmpty) {
+                            await AuthService().setUserEmail(emailIngresado);
+                          }
 
-                    if (ctx.mounted) Navigator.pop(ctx);
-                    await _cargarUsuarios();
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          await _cargarUsuarios();
 
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Datos y correo de @${u.username} actualizados con éxito.'),
-                        backgroundColor: AppTheme.accentGreen,
-                      ),
-                    );
-                  } catch (e) {
-                    setModalState(() {
-                      isSubmitting = false;
-                      modalError = e.toString().replaceAll('Exception: ', '');
-                    });
-                  }
-                },
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Datos y correo de @${u.username} actualizados con éxito.',
+                              ),
+                              backgroundColor: AppTheme.accentGreen,
+                            ),
+                          );
+                        } catch (e) {
+                          setModalState(() {
+                            isSubmitting = false;
+                            modalError = e.toString().replaceAll(
+                              'Exception: ',
+                              '',
+                            );
+                          });
+                        }
+                      },
                 icon: isSubmitting
                     ? const SizedBox(
                         width: 14,
                         height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(LucideIcons.save, size: 16),
                 label: Text(
@@ -1260,7 +1289,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.alertCircle, size: 14, color: AppTheme.alertRed),
+                          const Icon(
+                            LucideIcons.alertCircle,
+                            size: 14,
+                            color: AppTheme.alertRed,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
@@ -1281,17 +1314,23 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       height: 1.4,
-                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textDark,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : AppTheme.textDark,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      color: isDark
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        color: isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0),
                       ),
                     ),
                     child: Row(
@@ -1309,7 +1348,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               height: 1.35,
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF475569),
                             ),
                           ),
                         ),
@@ -1347,14 +1388,19 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           await _cargarUsuarios();
                           messenger.showSnackBar(
                             SnackBar(
-                              content: Text('Cajero @${u.username} eliminado correctamente.'),
+                              content: Text(
+                                'Cajero @${u.username} eliminado correctamente.',
+                              ),
                               backgroundColor: AppTheme.accentGreen,
                             ),
                           );
                         } catch (e) {
                           setModalState(() {
                             isDeleting = false;
-                            modalError = e.toString().replaceAll('Exception: ', '');
+                            modalError = e.toString().replaceAll(
+                              'Exception: ',
+                              '',
+                            );
                           });
                         }
                       },
@@ -1362,7 +1408,10 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                     ? const SizedBox(
                         width: 14,
                         height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(LucideIcons.trash2, size: 16),
                 label: Text(
@@ -3753,8 +3802,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                               u.rol == 'SUPERADMIN'
                                                   ? 'Superadministrador'
                                                   : (u.rol == 'ADMIN'
-                                                      ? 'Administrador (Dueño)'
-                                                      : 'Cajero / Operador'),
+                                                        ? 'Administrador (Dueño)'
+                                                        : 'Cajero / Operador'),
 
                                               style:
                                                   GoogleFonts.plusJakartaSans(
@@ -3765,28 +3814,39 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                             ),
 
                                             // Correo de recuperación: Exclusivo para Administrador / Dueño
-                                            if (u.rol == 'ADMIN' || u.rol == 'SUPERADMIN') ...[
+                                            if (u.rol == 'ADMIN' ||
+                                                u.rol == 'SUPERADMIN') ...[
                                               const SizedBox(height: 3),
-                                              if (u.email != null && u.email!.trim().isNotEmpty)
+                                              if (u.email != null &&
+                                                  u.email!.trim().isNotEmpty)
                                                 Row(
                                                   children: [
                                                     const Icon(
                                                       LucideIcons.mail,
                                                       size: 11,
-                                                      color: AppTheme.brandPrimary,
+                                                      color:
+                                                          AppTheme.brandPrimary,
                                                     ),
                                                     const SizedBox(width: 4),
                                                     Flexible(
                                                       child: Text(
                                                         u.email!,
-                                                        style: GoogleFonts.plusJakartaSans(
-                                                          fontSize: 11,
-                                                          fontWeight: FontWeight.w600,
-                                                          color: isDark
-                                                              ? const Color(0xFF93C5FD)
-                                                              : const Color(0xFF1D4ED8),
-                                                        ),
-                                                        overflow: TextOverflow.ellipsis,
+                                                        style:
+                                                            GoogleFonts.plusJakartaSans(
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color: isDark
+                                                                  ? const Color(
+                                                                      0xFF93C5FD,
+                                                                    )
+                                                                  : const Color(
+                                                                      0xFF1D4ED8,
+                                                                    ),
+                                                            ),
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                     ),
                                                   ],
@@ -3797,16 +3857,21 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                                     Icon(
                                                       LucideIcons.mailWarning,
                                                       size: 11,
-                                                      color: Colors.amber.shade700,
+                                                      color:
+                                                          Colors.amber.shade700,
                                                     ),
                                                     const SizedBox(width: 4),
                                                     Text(
                                                       'Sin correo de recuperación (Configurar)',
-                                                      style: GoogleFonts.plusJakartaSans(
-                                                        fontSize: 10.5,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: Colors.amber.shade800,
-                                                      ),
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 10.5,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: Colors
+                                                                .amber
+                                                                .shade800,
+                                                          ),
                                                     ),
                                                   ],
                                                 ),
@@ -3816,7 +3881,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                       ),
 
                                       // Botón editar correo de recuperación: Solo para Administradores
-                                      if (u.rol == 'ADMIN' || u.rol == 'SUPERADMIN')
+                                      if (u.rol == 'ADMIN' ||
+                                          u.rol == 'SUPERADMIN')
                                         IconButton(
                                           icon: const Icon(
                                             LucideIcons.pencil,
@@ -3841,7 +3907,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                       ),
 
                                       // Botón eliminar: Disponible para cajeros
-                                      if (!isMe && (u.rol == 'CAJERO' || widget.userRol == 'SUPERADMIN'))
+                                      if (!isMe &&
+                                          (u.rol == 'CAJERO' ||
+                                              widget.userRol == 'SUPERADMIN'))
                                         IconButton(
                                           icon: const Icon(
                                             LucideIcons.trash2,

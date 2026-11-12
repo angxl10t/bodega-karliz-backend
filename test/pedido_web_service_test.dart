@@ -88,41 +88,44 @@ void main() {
       expect(PedidoWebService.pedidosPendientesCountNotifier.value, 0);
     });
 
-    test('buscarPedidos filtra localmente por código, cliente o teléfono', () async {
-      final p1 = PedidoWeb(
-        idPedido: 'WEB-1',
-        codigoPedido: '#W-4821',
-        fecha: DateTime.now(),
-        nombreCliente: 'Juan Pérez',
-        telefonoCliente: '987111222',
-        items: [],
-        total: 15.00,
-      );
+    test(
+      'buscarPedidos filtra localmente por código, cliente o teléfono',
+      () async {
+        final p1 = PedidoWeb(
+          idPedido: 'WEB-1',
+          codigoPedido: '#W-4821',
+          fecha: DateTime.now(),
+          nombreCliente: 'Juan Pérez',
+          telefonoCliente: '987111222',
+          items: [],
+          total: 15.00,
+        );
 
-      final p2 = PedidoWeb(
-        idPedido: 'WEB-2',
-        codigoPedido: '#W-7733',
-        fecha: DateTime.now(),
-        nombreCliente: 'María Ruiz',
-        telefonoCliente: '999888777',
-        items: [],
-        total: 20.00,
-      );
+        final p2 = PedidoWeb(
+          idPedido: 'WEB-2',
+          codigoPedido: '#W-7733',
+          fecha: DateTime.now(),
+          nombreCliente: 'María Ruiz',
+          telefonoCliente: '999888777',
+          items: [],
+          total: 20.00,
+        );
 
-      await PedidoWebService.registrarPedido(p1);
-      await PedidoWebService.registrarPedido(p2);
+        await PedidoWebService.registrarPedido(p1);
+        await PedidoWebService.registrarPedido(p2);
 
-      final resCodigo = await PedidoWebService.buscarPedidos('#W-4821');
-      expect(resCodigo.length, 1);
-      expect(resCodigo.first.nombreCliente, 'Juan Pérez');
+        final resCodigo = await PedidoWebService.buscarPedidos('#W-4821');
+        expect(resCodigo.length, 1);
+        expect(resCodigo.first.nombreCliente, 'Juan Pérez');
 
-      final resNombre = await PedidoWebService.buscarPedidos('María');
-      expect(resNombre.length, 1);
-      expect(resNombre.first.codigoDisplay, '#W-7733');
+        final resNombre = await PedidoWebService.buscarPedidos('María');
+        expect(resNombre.length, 1);
+        expect(resNombre.first.codigoDisplay, '#W-7733');
 
-      final resFono = await PedidoWebService.buscarPedidos('111222');
-      expect(resFono.length, 1);
-      expect(resFono.first.nombreCliente, 'Juan Pérez');
-    });
+        final resFono = await PedidoWebService.buscarPedidos('111222');
+        expect(resFono.length, 1);
+        expect(resFono.first.nombreCliente, 'Juan Pérez');
+      },
+    );
   });
 }

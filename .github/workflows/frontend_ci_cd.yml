@@ -41,7 +41,7 @@ jobs:
       - name: Auditoría de Formato de Código
         run: |
           echo "==> Verificando formato de código Dart..."
-          dart format --output=none --set-exit-if-changed lib/ test/ || true
+          dart format --output=none --set-exit-if-changed lib/ test/
 
       - name: Análisis Estático Estricto (Linter & Reglas de Calidad)
         run: |

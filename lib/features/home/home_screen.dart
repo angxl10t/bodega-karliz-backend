@@ -104,22 +104,10 @@ class _HomeScreenState extends State<HomeScreen> {
         activeTabNotifier: _activeTabNotifier,
         tabIndex: 0,
       ),
-      VentasScreen(
-        activeTabNotifier: _activeTabNotifier,
-        tabIndex: 1,
-      ),
-      CajaVentasScreen(
-        activeTabNotifier: _activeTabNotifier,
-        tabIndex: 2,
-      ),
-      ProductosScreen(
-        activeTabNotifier: _activeTabNotifier,
-        tabIndex: 3,
-      ),
-      ClientesScreen(
-        activeTabNotifier: _activeTabNotifier,
-        tabIndex: 4,
-      ),
+      VentasScreen(activeTabNotifier: _activeTabNotifier, tabIndex: 1),
+      CajaVentasScreen(activeTabNotifier: _activeTabNotifier, tabIndex: 2),
+      ProductosScreen(activeTabNotifier: _activeTabNotifier, tabIndex: 3),
+      ClientesScreen(activeTabNotifier: _activeTabNotifier, tabIndex: 4),
     ];
   }
 
@@ -448,8 +436,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   0xFF64748B,
                                                                 )))
                                                     .withValues(alpha: 0.15),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -463,8 +452,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 style: GoogleFonts.outfit(
                                                   fontSize: 9.5,
                                                   fontWeight: FontWeight.w800,
-                                                  color: _userRol ==
-                                                          'SUPERADMIN'
+                                                  color:
+                                                      _userRol == 'SUPERADMIN'
                                                       ? const Color(0xFF8B5CF6)
                                                       : (_userRol == 'ADMIN'
                                                             ? AppTheme
@@ -534,7 +523,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isDark
-                                    ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
+                                    ? const Color(0xFF3B82F6)
+                                          .withValues(alpha: 0.3)
                                     : const Color(0xFFBFDBFE),
                               ),
                             ),
@@ -543,7 +533,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                                    color: const Color(0xFF2563EB)
+                                        .withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(
@@ -555,7 +546,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Plan ${_plan.toUpperCase()} • Mi Suscripción',
@@ -570,20 +562,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Text(
                                         _diasRestantesPlan != null
                                             ? (_diasRestantesPlan! < 0
-                                                ? 'Suscripción vencida • Renovar ahora'
-                                                : (_diasRestantesPlan! <= 5
-                                                    ? '¡Vence en $_diasRestantesPlan días! • Renovar'
-                                                    : 'Activa • Vence en $_diasRestantesPlan días'))
+                                                  ? 'Suscripción vencida • Renovar ahora'
+                                                  : (_diasRestantesPlan! <= 5
+                                                        ? '¡Vence en $_diasRestantesPlan días! • Renovar'
+                                                        : 'Activa • Vence en $_diasRestantesPlan días'))
                                             : 'Gestionar plan y comprobantes',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
-                                          color: _diasRestantesPlan != null &&
+                                          color:
+                                              _diasRestantesPlan != null &&
                                                   _diasRestantesPlan! <= 5
                                               ? const Color(0xFFD97706)
                                               : (isDark
-                                                  ? const Color(0xFF93C5FD)
-                                                  : const Color(0xFF2563EB)),
+                                                    ? const Color(0xFF93C5FD)
+                                                    : const Color(0xFF2563EB)),
                                         ),
                                       ),
                                     ],
@@ -758,7 +751,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         iconColor: const Color(0xFF0284C7),
                         iconBg: const Color(0xFF0284C7).withValues(alpha: 0.12),
                         title: 'Centro de Ayuda & Atajos',
-                        subtitle: 'Manual del sistema, atajos F2, F4, Esc y guías',
+                        subtitle:
+                            'Manual del sistema, atajos F2, F4, Esc y guías',
                         onTap: () {
                           Navigator.pop(bottomSheetContext);
                           _mostrarGuiaDidactica();
@@ -897,7 +891,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -1217,8 +1211,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _mostrarModalLegal() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final borderColor =
-        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFE2E8F0);
 
     showModalBottomSheet(
       context: context,
@@ -1240,8 +1235,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color:
-                      isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1271,7 +1267,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                       Text(
@@ -1305,9 +1303,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => LibroReclamacionesScreen(
-                      tiendaNombre: _nombreBodega,
-                    ),
+                    builder: (_) =>
+                        LibroReclamacionesScreen(tiendaNombre: _nombreBodega),
                   ),
                 );
               },
@@ -1322,8 +1319,7 @@ class _HomeScreenState extends State<HomeScreen> {
               iconColor: const Color(0xFF2563EB),
               iconBg: const Color(0xFF2563EB).withValues(alpha: 0.12),
               title: 'Términos y Condiciones del Servicio',
-              subtitle:
-                  'Ley del Bodeguero N° 30877, alcance del SaaS y responsabilidades',
+              subtitle: 'Ley del Bodeguero N° 30877, alcance del SaaS y responsabilidades',
               onTap: () {
                 Navigator.pop(ctx);
                 Navigator.push(
@@ -2232,18 +2228,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSuscripcionAlertBanner(BuildContext context, bool isDark) {
     final int dias = _diasRestantesPlan ?? 0;
     final bool vencido = dias < 0;
-    final Color barColor =
-        vencido ? AppTheme.alertRed : const Color(0xFFD97706);
+    final Color barColor = vencido
+        ? AppTheme.alertRed
+        : const Color(0xFFD97706);
     final Color bgTint = vencido
         ? (isDark ? const Color(0xFF450A0A) : const Color(0xFFFEF2F2))
         : (isDark ? const Color(0xFF451A03) : const Color(0xFFFFFBEB));
     final Color borderTint = vencido
         ? (isDark
-            ? AppTheme.alertRed.withValues(alpha: 0.4)
-            : const Color(0xFFFECACA))
+              ? AppTheme.alertRed.withValues(alpha: 0.4)
+              : const Color(0xFFFECACA))
         : (isDark
-            ? const Color(0xFFD97706).withValues(alpha: 0.4)
-            : const Color(0xFFFDE68A));
+              ? const Color(0xFFD97706).withValues(alpha: 0.4)
+              : const Color(0xFFFDE68A));
 
     final String badgeText = vencido
         ? 'PLAN VENCIDO'
@@ -2257,9 +2254,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: bgTint,
-        border: Border(
-          bottom: BorderSide(color: borderTint, width: 1.2),
-        ),
+        border: Border(bottom: BorderSide(color: borderTint, width: 1.2)),
       ),
       child: Row(
         children: [

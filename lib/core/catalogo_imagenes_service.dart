@@ -2022,9 +2022,7 @@ class CatalogoImagenesService {
   static final RegExp _reGramos = RegExp(
     r'(\d+(?:\.\d+)?)\s*(?:g|gr|gramos)\b',
   );
-  static final RegExp _reKilos = RegExp(
-    r'(\d+(?:\.\d+)?)\s*(?:kg|kilos)\b',
-  );
+  static final RegExp _reKilos = RegExp(r'(\d+(?:\.\d+)?)\s*(?:kg|kilos)\b');
   static final RegExp _reUnitToken = RegExp(r'\b\d+(?:\.\d+)?[a-z]+\b');
   static final RegExp _reTokenSplit = RegExp(r'[^a-zA-Z0-9]+');
 
@@ -2281,14 +2279,16 @@ class _IndexedFotoItem {
   final List<String> normKeywords;
 
   _IndexedFotoItem(this.item)
-      : normNombre = CatalogoImagenesService._normalizar(item.nombre),
-        normMarca = CatalogoImagenesService._normalizar(item.marca),
-        normCategoria = CatalogoImagenesService._normalizar(item.categoria),
-        sizes = CatalogoImagenesService._extraerTamanos(item.nombre),
-        normKeywords = item.keywords
-            .map(CatalogoImagenesService._normalizar)
-            .where((k) =>
+    : normNombre = CatalogoImagenesService._normalizar(item.nombre),
+      normMarca = CatalogoImagenesService._normalizar(item.marca),
+      normCategoria = CatalogoImagenesService._normalizar(item.categoria),
+      sizes = CatalogoImagenesService._extraerTamanos(item.nombre),
+      normKeywords = item.keywords
+          .map(CatalogoImagenesService._normalizar)
+          .where(
+            (k) =>
                 !CatalogoImagenesService._stopwords.contains(k) &&
-                k.length >= 2)
-            .toList(growable: false);
+                k.length >= 2,
+          )
+          .toList(growable: false);
 }

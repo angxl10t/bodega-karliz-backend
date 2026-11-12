@@ -294,12 +294,11 @@ class _KardexScreenState extends State<KardexScreen> {
                                 vertical: 12,
                               ),
                             ),
-                            onChanged: (val) =>
-                                _searchDebouncer.run(() {
-                                  if (mounted) {
-                                    setState(() => _filtroTexto = val);
-                                  }
-                                }),
+                            onChanged: (val) => _searchDebouncer.run(() {
+                              if (mounted) {
+                                setState(() => _filtroTexto = val);
+                              }
+                            }),
                             onSubmitted: (val) {
                               _searchDebouncer.cancel();
                               setState(() => _filtroTexto = val);

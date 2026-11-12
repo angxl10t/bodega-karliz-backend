@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../clientes/cliente_model.dart';
 import 'venta_model.dart';
 
@@ -46,36 +48,36 @@ class VentaEnEspera {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'fecha': fecha.toIso8601String(),
-        'etiqueta': etiqueta,
-        'items': items.map((it) => it.toJson()).toList(),
-        if (cliente != null) 'cliente': cliente!.toJson(),
-        'metodoPago': metodoPago,
-        'tipoComprobante': tipoComprobante,
-        'descuentoManualCarrito': descuentoManualCarrito,
-        if (descuentoManualMotivo != null)
-          'descuentoManualMotivo': descuentoManualMotivo,
-        'aplicarPromocionesWeb': aplicarPromocionesWeb,
-      };
+    'id': id,
+    'fecha': fecha.toIso8601String(),
+    'etiqueta': etiqueta,
+    'items': items.map((it) => it.toJson()).toList(),
+    if (cliente != null) 'cliente': cliente!.toJson(),
+    'metodoPago': metodoPago,
+    'tipoComprobante': tipoComprobante,
+    'descuentoManualCarrito': descuentoManualCarrito,
+    if (descuentoManualMotivo != null)
+      'descuentoManualMotivo': descuentoManualMotivo,
+    'aplicarPromocionesWeb': aplicarPromocionesWeb,
+  };
 
   factory VentaEnEspera.fromJson(Map<String, dynamic> json) => VentaEnEspera(
-        id: json['id']?.toString() ?? '',
-        fecha: DateTime.tryParse(json['fecha']?.toString() ?? '') ?? DateTime.now(),
-        etiqueta: json['etiqueta']?.toString() ?? 'Ticket en Espera',
-        items: ((json['items'] as List<dynamic>?) ?? [])
-            .map((e) => CartItem.fromJson(Map<String, dynamic>.from(e as Map)))
-            .toList(),
-        cliente: json['cliente'] != null
-            ? Cliente.fromJson(Map<String, dynamic>.from(json['cliente'] as Map))
-            : null,
-        metodoPago: json['metodoPago']?.toString() ?? 'Efectivo',
-        tipoComprobante: json['tipoComprobante']?.toString() ?? 'NOTA_VENTA',
-        descuentoManualCarrito:
-            (json['descuentoManualCarrito'] as num?)?.toDouble() ?? 0.0,
-        descuentoManualMotivo: json['descuentoManualMotivo']?.toString(),
-        aplicarPromocionesWeb: json['aplicarPromocionesWeb'] == true,
-      );
+    id: json['id']?.toString() ?? '',
+    fecha: DateTime.tryParse(json['fecha']?.toString() ?? '') ?? DateTime.now(),
+    etiqueta: json['etiqueta']?.toString() ?? 'Ticket en Espera',
+    items: ((json['items'] as List<dynamic>?) ?? [])
+        .map((e) => CartItem.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList(),
+    cliente: json['cliente'] != null
+        ? Cliente.fromJson(Map<String, dynamic>.from(json['cliente'] as Map))
+        : null,
+    metodoPago: json['metodoPago']?.toString() ?? 'Efectivo',
+    tipoComprobante: json['tipoComprobante']?.toString() ?? 'NOTA_VENTA',
+    descuentoManualCarrito:
+        (json['descuentoManualCarrito'] as num?)?.toDouble() ?? 0.0,
+    descuentoManualMotivo: json['descuentoManualMotivo']?.toString(),
+    aplicarPromocionesWeb: json['aplicarPromocionesWeb'] == true,
+  );
 }
 
 class VentaEnEsperaService {
@@ -93,7 +95,9 @@ class VentaEnEsperaService {
         final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
         _ventas.clear();
         for (final item in decoded) {
-          _ventas.add(VentaEnEspera.fromJson(Map<String, dynamic>.from(item as Map)));
+          _ventas.add(
+            VentaEnEspera.fromJson(Map<String, dynamic>.from(item as Map)),
+          );
         }
         countNotifier.value = _ventas.length;
       }

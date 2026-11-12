@@ -46,7 +46,8 @@ final _router = GoRouter(
     final uriStr = state.uri.toString();
     if (path == '/splash') return null;
     if (path == '/catalogo' || uriStr.startsWith('/catalogo')) return null;
-    if (path == '/reclamaciones' || uriStr.startsWith('/reclamaciones')) return null;
+    if (path == '/reclamaciones' || uriStr.startsWith('/reclamaciones'))
+      return null;
     if (path == '/terminos' || uriStr.startsWith('/terminos')) return null;
     if (path == '/privacidad' || uriStr.startsWith('/privacidad')) return null;
     final isLoggedIn = await AuthService().isLoggedIn();

@@ -66,7 +66,9 @@ class KarlizLockScreen extends StatefulWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             height: 1.45,
-            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF475569),
           ),
         ),
         actions: [
@@ -103,9 +105,7 @@ class KarlizLockScreen extends StatefulWidget {
             icon: const Icon(LucideIcons.keyRound, size: 16),
             label: Text(
               'Crear PIN Ahora',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w700,
-              ),
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
             ),
           ),
         ],

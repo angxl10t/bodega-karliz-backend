@@ -61,14 +61,14 @@ class TerminosCondicionesScreen extends StatelessWidget {
                   isDark: isDark,
                   numero: '1',
                   titulo: 'Aceptación y Objeto del Servicio',
-                  contenido:
-                      'El presente documento regula el acceso y uso de la plataforma CajaYa Cloud POS (en adelante, "CajaYa"), software de punto de venta (POS) y catálogo digital en la nube diseñado para bodegas, minimarkets y comercios minoristas del Perú. Al acceder, registrarse o utilizar el sistema, el usuario declara haber leído, comprendido y aceptado en su totalidad estos Términos y Condiciones.',
+                  contenido: 'El presente documento regula el acceso y uso de la plataforma CajaYa Cloud POS (en adelante, "CajaYa"), software de punto de venta (POS) y catálogo digital en la nube diseñado para bodegas, minimarkets y comercios minoristas del Perú. Al acceder, registrarse o utilizar el sistema, el usuario declara haber leído, comprendido y aceptado en su totalidad estos Términos y Condiciones.',
                 ),
 
                 _buildClausula(
                   isDark: isDark,
                   numero: '2',
-                  titulo: 'Naturaleza del Servicio y Responsabilidad Tributaria',
+                  titulo:
+                      'Naturaleza del Servicio y Responsabilidad Tributaria',
                   contenido:
                       'CajaYa es un facilitador tecnológico que provee herramientas de gestión de inventarios, registro de ventas, cuentas corrientes (fiados), control de caja y vitrina web.\n\n'
                       '• Conforme a la Ley N° 30877 (Ley General del Bodeguero), cada establecimiento comercial es el único responsable de determinar su régimen tributario ante la SUNAT (Nuevo RUS, Régimen Especial de Renta - RER, MYPE Tributario o Régimen General).\n'
@@ -89,7 +89,8 @@ class TerminosCondicionesScreen extends StatelessWidget {
                 _buildClausula(
                   isDark: isDark,
                   numero: '4',
-                  titulo: 'Catálogo Web y Relación con los Consumidores del Barrio',
+                  titulo:
+                      'Catálogo Web y Relación con los Consumidores del Barrio',
                   contenido:
                       'El catálogo digital permite a los vecinos y consumidores consultar el surtido de la bodega y coordinar compras vía WhatsApp:\n\n'
                       '• Los precios, disponibilidad, calidad, vencimiento y entrega efectiva de los productos físicos exhibidos son de exclusiva responsabilidad de la bodega proveedora identificada en el catálogo.\n'
@@ -100,8 +101,7 @@ class TerminosCondicionesScreen extends StatelessWidget {
                   isDark: isDark,
                   numero: '5',
                   titulo: 'Disponibilidad, Continuidad y Modo Offline',
-                  contenido:
-                      'CajaYa implementa arquitectura de alta disponibilidad en la nube con respaldo automatizado. Para mitigar eventuales fallas de conectividad a internet en el mostrador, la app móvil cuenta con sincronización offline para continuar registrando transacciones que se sincronizan una vez restablecida la red.',
+                  contenido: 'CajaYa implementa arquitectura de alta disponibilidad en la nube con respaldo automatizado. Para mitigar eventuales fallas de conectividad a internet en el mostrador, la app móvil cuenta con sincronización offline para continuar registrando transacciones que se sincronizan una vez restablecida la red.',
                 ),
 
                 _buildClausula(

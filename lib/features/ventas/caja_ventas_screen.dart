@@ -22,11 +22,7 @@ class CajaVentasScreen extends StatefulWidget {
   final ValueListenable<int>? activeTabNotifier;
   final int? tabIndex;
 
-  const CajaVentasScreen({
-    super.key,
-    this.activeTabNotifier,
-    this.tabIndex,
-  });
+  const CajaVentasScreen({super.key, this.activeTabNotifier, this.tabIndex});
 
   @override
   State<CajaVentasScreen> createState() => _CajaVentasScreenState();
@@ -2238,8 +2234,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       final autorizado = await SolicitarPinDialog.mostrar(
         context,
         titulo: 'Autorización Requerida',
-        mensaje:
-            'La anulación de ventas repone inventario y altera el arqueo. Requiere PIN de Administrador.',
+        mensaje: 'La anulación de ventas repone inventario y altera el arqueo. Requiere PIN de Administrador.',
       );
       if (!autorizado) return;
       if (!mounted) return;

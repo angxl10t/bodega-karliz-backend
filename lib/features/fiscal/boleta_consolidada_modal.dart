@@ -118,8 +118,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
 
           if (resumen.yaRegistrada) {
             _serieCtrl.text = resumen.serieCorrelativo ?? '001-000001';
-            _montoCtrl.text =
-                (resumen.montoRegistrado ?? 0.0).toStringAsFixed(2);
+            _montoCtrl.text = (resumen.montoRegistrado ?? 0.0).toStringAsFixed(
+              2,
+            );
             _operacionesCtrl.text =
                 (resumen.cantidadOperacionesRegistradas ?? 1).toString();
             _tipoEmision = resumen.tipoEmision ?? 'TALONARIO_FISICO';
@@ -127,8 +128,8 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
           } else {
             _serieCtrl.text = _sugerirSerieCorrelativo();
             _montoCtrl.text = resumen.montoSugerido.toStringAsFixed(2);
-            _operacionesCtrl.text =
-                resumen.cantidadOperacionesSugeridas.toString();
+            _operacionesCtrl.text = resumen.cantidadOperacionesSugeridas
+                .toString();
             _tipoEmision = 'TALONARIO_FISICO';
             _observacionesCtrl.text =
                 'Consolidado de ${resumen.cantidadOperacionesSugeridas} ventas de mostrador <= S/ 5.00';
@@ -153,9 +154,10 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
         final serie = partes[0];
         final numCorrelativo = int.tryParse(partes[1]);
         if (numCorrelativo != null) {
-          final nuevoNum = (numCorrelativo + 1)
-              .toString()
-              .padLeft(partes[1].length, '0');
+          final nuevoNum = (numCorrelativo + 1).toString().padLeft(
+            partes[1].length,
+            '0',
+          );
           return '$serie-$nuevoNum';
         }
       }
@@ -246,16 +248,22 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
     }
   }
 
-  Future<void> _imprimirTicketRespaldo([BoletaConsolidadaRecord? registro]) async {
+  Future<void> _imprimirTicketRespaldo([
+    BoletaConsolidadaRecord? registro,
+  ]) async {
     setState(() => _isPrinting = true);
     try {
-      final serie = registro?.serieCorrelativo ?? _serieCtrl.text.trim().toUpperCase();
-      final monto = registro?.montoTotal ??
+      final serie =
+          registro?.serieCorrelativo ?? _serieCtrl.text.trim().toUpperCase();
+      final monto =
+          registro?.montoTotal ??
           (double.tryParse(_montoCtrl.text.replaceAll(',', '.')) ?? 0.0);
-      final ops = registro?.cantidadOperaciones ??
+      final ops =
+          registro?.cantidadOperaciones ??
           (int.tryParse(_operacionesCtrl.text) ?? 1);
       final tipo = registro?.tipoEmision ?? _tipoEmision;
-      final obs = registro?.observaciones ??
+      final obs =
+          registro?.observaciones ??
           (_observacionesCtrl.text.trim().isNotEmpty
               ? _observacionesCtrl.text.trim()
               : null);
@@ -280,8 +288,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result.mensaje),
-            backgroundColor:
-                result.exito ? AppTheme.accentGreen : AppTheme.alertRed,
+            backgroundColor: result.exito
+                ? AppTheme.accentGreen
+                : AppTheme.alertRed,
           ),
         );
       }
@@ -304,12 +313,15 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF141724) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF1E2436) : const Color(0xFFE2E8F0);
+    final borderColor = isDark
+        ? const Color(0xFF1E2436)
+        : const Color(0xFFE2E8F0);
 
     final d = _fechaSeleccionada;
     final fechaLabel =
         '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
-    final esHoy = d.year == DateTime.now().year &&
+    final esHoy =
+        d.year == DateTime.now().year &&
         d.month == DateTime.now().month &&
         d.day == DateTime.now().day;
 
@@ -353,7 +365,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                           ),
                         ),
                         Text(
@@ -397,15 +411,20 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(LucideIcons.calendar,
-                                size: 16, color: AppTheme.brandPrimary),
+                            const Icon(
+                              LucideIcons.calendar,
+                              size: 16,
+                              color: AppTheme.brandPrimary,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               esHoy ? '$fechaLabel (Hoy)' : fechaLabel,
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
                               ),
                             ),
                           ],
@@ -432,7 +451,10 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                     ),
                     label: Text(
                       _mostrarHistorial ? 'Formulario' : 'Historial',
-                      style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700),
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     onPressed: () {
                       setState(() => _mostrarHistorial = !_mostrarHistorial);
@@ -446,28 +468,33 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppTheme.brandPrimary),
+                      child: CircularProgressIndicator(
+                        color: AppTheme.brandPrimary,
+                      ),
                     )
                   : _errorMessage != null
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(LucideIcons.alertTriangle,
-                                  size: 40, color: AppTheme.alertRed),
-                              const SizedBox(height: 12),
-                              Text(_errorMessage!),
-                              const SizedBox(height: 12),
-                              ElevatedButton(
-                                onPressed: _cargarDatosFecha,
-                                child: const Text('Reintentar'),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.alertTriangle,
+                            size: 40,
+                            color: AppTheme.alertRed,
                           ),
-                        )
-                      : _mostrarHistorial
-                          ? _buildVistaHistorial(isDark, borderColor)
-                          : _buildVistaRegistro(isDark, borderColor),
+                          const SizedBox(height: 12),
+                          Text(_errorMessage!),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: _cargarDatosFecha,
+                            child: const Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _mostrarHistorial
+                  ? _buildVistaHistorial(isDark, borderColor)
+                  : _buildVistaRegistro(isDark, borderColor),
             ),
           ],
         ),
@@ -555,7 +582,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: borderColor),
               ),
@@ -564,15 +593,20 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                 children: [
                   Row(
                     children: [
-                      const Icon(LucideIcons.sparkles,
-                          size: 16, color: AppTheme.brandPrimary),
+                      const Icon(
+                        LucideIcons.sparkles,
+                        size: 16,
+                        color: AppTheme.brandPrimary,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Cálculo Automático de Ventas en Mostrador <= S/ 5.00',
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                     ],
@@ -584,7 +618,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E2436) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF1E2436)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
@@ -617,7 +653,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E2436) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF1E2436)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Column(
@@ -668,10 +706,14 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
               children: [
                 Expanded(
                   child: InkWell(
-                    onTap: () => setState(() => _tipoEmision = 'TALONARIO_FISICO'),
+                    onTap: () =>
+                        setState(() => _tipoEmision = 'TALONARIO_FISICO'),
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: _tipoEmision == 'TALONARIO_FISICO'
                             ? AppTheme.brandPrimary.withValues(alpha: 0.12)
@@ -686,11 +728,13 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.bookOpen,
-                              size: 16,
-                              color: _tipoEmision == 'TALONARIO_FISICO'
-                                  ? AppTheme.brandPrimary
-                                  : null),
+                          Icon(
+                            LucideIcons.bookOpen,
+                            size: 16,
+                            color: _tipoEmision == 'TALONARIO_FISICO'
+                                ? AppTheme.brandPrimary
+                                : null,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Talonario Físico (Papel)',
@@ -712,10 +756,14 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: InkWell(
-                    onTap: () => setState(() => _tipoEmision = 'DIGITAL_CAJAYA'),
+                    onTap: () =>
+                        setState(() => _tipoEmision = 'DIGITAL_CAJAYA'),
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: _tipoEmision == 'DIGITAL_CAJAYA'
                             ? AppTheme.brandPrimary.withValues(alpha: 0.12)
@@ -730,11 +778,13 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.printer,
-                              size: 16,
-                              color: _tipoEmision == 'DIGITAL_CAJAYA'
-                                  ? AppTheme.brandPrimary
-                                  : null),
+                          Icon(
+                            LucideIcons.printer,
+                            size: 16,
+                            color: _tipoEmision == 'DIGITAL_CAJAYA'
+                                ? AppTheme.brandPrimary
+                                : null,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Digital CajaYa',
@@ -769,8 +819,13 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                       labelText: 'N° Boleta / Serie-Número',
                       hintText: '001-000456',
                       prefixIcon: const Icon(LucideIcons.hash, size: 18),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? 'Ingrese el número de boleta'
@@ -782,17 +837,25 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                   flex: 3,
                   child: TextFormField(
                     controller: _montoCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Monto Total (S/)',
                       prefixIcon: const Icon(LucideIcons.coins, size: 18),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Requerido';
                       final numVal = double.tryParse(v.replaceAll(',', '.'));
-                      if (numVal == null || numVal <= 0) return 'Monto inválido';
+                      if (numVal == null || numVal <= 0)
+                        return 'Monto inválido';
                       return null;
                     },
                   ),
@@ -806,8 +869,13 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                     decoration: InputDecoration(
                       labelText: 'Cant. Ventas',
                       prefixIcon: const Icon(LucideIcons.layers, size: 18),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) return 'Requerido';
@@ -827,9 +895,12 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
               maxLines: 2,
               decoration: InputDecoration(
                 labelText: 'Notas / Observaciones (Opcional)',
-                hintText: 'Ej. Consolidado de ventas de mostrador del turno tarde',
+                hintText:
+                    'Ej. Consolidado de ventas de mostrador del turno tarde',
                 prefixIcon: const Icon(LucideIcons.fileText, size: 18),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 contentPadding: const EdgeInsets.all(12),
               ),
             ),
@@ -843,7 +914,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       icon: _isPrinting
                           ? const SizedBox(
@@ -856,7 +929,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                         'Imprimir Respaldo',
                         style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
                       ),
-                      onPressed: _isPrinting ? null : () => _imprimirTicketRespaldo(),
+                      onPressed: _isPrinting
+                          ? null
+                          : () => _imprimirTicketRespaldo(),
                     ),
                   ),
                 if (yaRegistrada) const SizedBox(width: 12),
@@ -866,7 +941,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                       backgroundColor: AppTheme.accentGreen,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       elevation: 0,
                     ),
                     icon: _isSaving
@@ -903,9 +980,13 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.history,
-                  size: 40,
-                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+              Icon(
+                LucideIcons.history,
+                size: 40,
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
+              ),
               const SizedBox(height: 12),
               Text(
                 'Aún no hay boletas consolidadas registradas',
@@ -921,7 +1002,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -955,8 +1038,11 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                   color: AppTheme.accentGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(LucideIcons.fileCheck2,
-                    color: AppTheme.accentGreen, size: 20),
+                child: const Icon(
+                  LucideIcons.fileCheck2,
+                  color: AppTheme.accentGreen,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -970,12 +1056,17 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                           style: GoogleFonts.outfit(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: b.tipoEmision == 'TALONARIO_FISICO'
                                 ? Colors.blue.withValues(alpha: 0.12)
@@ -983,7 +1074,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            b.tipoEmision == 'TALONARIO_FISICO' ? 'FÍSICO' : 'DIGITAL',
+                            b.tipoEmision == 'TALONARIO_FISICO'
+                                ? 'FÍSICO'
+                                : 'DIGITAL',
                             style: GoogleFonts.outfit(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w800,
@@ -1000,7 +1093,9 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                       'Fecha de Ventas: $fdStr • ${b.cantidadOperaciones} ventas consolidadas',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],

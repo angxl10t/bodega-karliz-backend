@@ -170,10 +170,9 @@ class OfflineCatalogService {
     double cantidadVendida, {
     String? idBodega,
   }) {
-    return deductBatchLocally(
-      {idProducto: cantidadVendida},
-      idBodega: idBodega,
-    );
+    return deductBatchLocally({
+      idProducto: cantidadVendida,
+    }, idBodega: idBodega);
   }
 
   /// Descuenta en una sola pasada todo el lote de items vendidos offline,

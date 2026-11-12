@@ -15,6 +15,7 @@ class ConfiguracionTicket {
   final bool impresionAutomatica;
 
   /// Modo de comunicación:
+  /// - 'bluetooth_nativo': Impresión directa nativa Android vía Bluetooth SPP (sin RawBT)
   /// - 'rawbt': Aplicación / Driver RawBT vía URI scheme (Bluetooth SPP/BLE y USB)
   /// - 'servidor_local': Servicio local HTTP o bridge de impresión (ej. 127.0.0.1:40213)
   /// - 'navegador': Diálogo de impresión del navegador o compartir
@@ -47,6 +48,12 @@ class ConfiguracionTicket {
   /// Nombre del titular de la cuenta de Yape / Plin
   final String titularQr;
 
+  /// Nombre descriptivo de la impresora Bluetooth SPP vinculada (ej. 'InnerPrinter')
+  final String bluetoothDeviceName;
+
+  /// Dirección MAC de la impresora Bluetooth SPP vinculada (ej. '00:11:22:33:44:55')
+  final String bluetoothDeviceAddress;
+
   const ConfiguracionTicket({
     this.anchoPapel = 32,
     this.abrirGaveta = true,
@@ -61,6 +68,8 @@ class ConfiguracionTicket {
     this.tipoQr = 'YAPE',
     this.numeroQr = '',
     this.titularQr = '',
+    this.bluetoothDeviceName = '',
+    this.bluetoothDeviceAddress = '',
   });
 
   /// Clonar con campos actualizados
@@ -78,6 +87,8 @@ class ConfiguracionTicket {
     String? tipoQr,
     String? numeroQr,
     String? titularQr,
+    String? bluetoothDeviceName,
+    String? bluetoothDeviceAddress,
   }) {
     return ConfiguracionTicket(
       anchoPapel: anchoPapel ?? this.anchoPapel,
@@ -94,6 +105,9 @@ class ConfiguracionTicket {
       tipoQr: tipoQr ?? this.tipoQr,
       numeroQr: numeroQr ?? this.numeroQr,
       titularQr: titularQr ?? this.titularQr,
+      bluetoothDeviceName: bluetoothDeviceName ?? this.bluetoothDeviceName,
+      bluetoothDeviceAddress:
+          bluetoothDeviceAddress ?? this.bluetoothDeviceAddress,
     );
   }
 
@@ -113,6 +127,8 @@ class ConfiguracionTicket {
       'tipoQr': tipoQr,
       'numeroQr': numeroQr,
       'titularQr': titularQr,
+      'bluetoothDeviceName': bluetoothDeviceName,
+      'bluetoothDeviceAddress': bluetoothDeviceAddress,
     };
   }
 
@@ -138,6 +154,8 @@ class ConfiguracionTicket {
       tipoQr: json['tipoQr'] as String? ?? 'YAPE',
       numeroQr: json['numeroQr'] as String? ?? '',
       titularQr: json['titularQr'] as String? ?? '',
+      bluetoothDeviceName: json['bluetoothDeviceName'] as String? ?? '',
+      bluetoothDeviceAddress: json['bluetoothDeviceAddress'] as String? ?? '',
     );
   }
 }

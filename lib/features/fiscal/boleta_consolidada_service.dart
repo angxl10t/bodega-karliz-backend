@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import '../../core/api_client.dart';
 
 class ResumenVentasMenores {
@@ -54,8 +55,8 @@ class ResumenVentasMenores {
           : null,
       cantidadOperacionesRegistradas:
           json['cantidadOperacionesRegistradas'] is num
-              ? (json['cantidadOperacionesRegistradas'] as num).toInt()
-              : null,
+          ? (json['cantidadOperacionesRegistradas'] as num).toInt()
+          : null,
       observaciones: json['observaciones'],
       usuarioRegistro: json['usuarioRegistro'],
       fechaRegistro: json['fechaRegistro'] != null
@@ -123,15 +124,16 @@ class BoletaConsolidadaService {
   final ApiClient _client;
 
   BoletaConsolidadaService({ApiClient? client})
-      : _client = client ?? ApiClient();
+    : _client = client ?? ApiClient();
 
   /// Obtiene la sugerencia de cálculo para una fecha dada (por defecto hoy)
   Future<ResumenVentasMenores> obtenerSugerencia({DateTime? fecha}) async {
     final f = fecha ?? DateTime.now();
     final fechaIso =
         '${f.year.toString().padLeft(4, '0')}-${f.month.toString().padLeft(2, '0')}-${f.day.toString().padLeft(2, '0')}';
-    final response = await _client
-        .get('/bodegas/fiscal/boleta-consolidada/sugerencia?fecha=$fechaIso');
+    final response = await _client.get(
+      '/bodegas/fiscal/boleta-consolidada/sugerencia?fecha=$fechaIso',
+    );
 
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -166,8 +168,10 @@ class BoletaConsolidadaService {
       'observaciones': observaciones?.trim(),
     };
 
-    final response =
-        await _client.post('/bodegas/fiscal/boleta-consolidada', body);
+    final response = await _client.post(
+      '/bodegas/fiscal/boleta-consolidada',
+      body,
+    );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -182,13 +186,18 @@ class BoletaConsolidadaService {
   }
 
   /// Obtiene el historial de boletas consolidadas registradas
-  Future<List<BoletaConsolidadaRecord>> listarHistorial({int limit = 30}) async {
-    final response = await _client
-        .get('/bodegas/fiscal/boleta-consolidada/historial?limit=$limit');
+  Future<List<BoletaConsolidadaRecord>> listarHistorial({
+    int limit = 30,
+  }) async {
+    final response = await _client.get(
+      '/bodegas/fiscal/boleta-consolidada/historial?limit=$limit',
+    );
 
     if (response.statusCode == 200) {
       final List list = jsonDecode(utf8.decode(response.bodyBytes));
-      return list.map((item) => BoletaConsolidadaRecord.fromJson(item)).toList();
+      return list
+          .map((item) => BoletaConsolidadaRecord.fromJson(item))
+          .toList();
     }
 
     final errorMsg = ApiClient.extractErrorMessage(

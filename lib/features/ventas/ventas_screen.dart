@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -62,11 +63,7 @@ class VentasScreen extends StatefulWidget {
   final ValueListenable<int>? activeTabNotifier;
   final int? tabIndex;
 
-  const VentasScreen({
-    super.key,
-    this.activeTabNotifier,
-    this.tabIndex,
-  });
+  const VentasScreen({super.key, this.activeTabNotifier, this.tabIndex});
 
   @override
   State<VentasScreen> createState() => _VentasScreenState();
@@ -269,7 +266,9 @@ class _VentasScreenState extends State<VentasScreen>
             .toList();
         return;
       }
-      _cachedFilteredTabletProductos = List<Producto>.from(_frecuentesProductos);
+      _cachedFilteredTabletProductos = List<Producto>.from(
+        _frecuentesProductos,
+      );
       return;
     }
 
@@ -553,7 +552,8 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   double get _totalVenta {
-    final finalTotal = _subtotalVenta - _totalDescuentoPromociones - _descuentoManualCarrito;
+    final finalTotal =
+        _subtotalVenta - _totalDescuentoPromociones - _descuentoManualCarrito;
     return finalTotal < 0 ? 0.0 : finalTotal;
   }
 
@@ -1001,7 +1001,9 @@ class _VentasScreenState extends State<VentasScreen>
     if (_carrito.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('La canasta está vacía. No hay productos para poner en espera.'),
+          content: Text(
+            'La canasta está vacía. No hay productos para poner en espera.',
+          ),
           backgroundColor: AppTheme.alertRed,
         ),
       );
@@ -1020,7 +1022,9 @@ class _VentasScreenState extends State<VentasScreen>
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return AlertDialog(
           backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Row(
             children: [
               Container(
@@ -1029,13 +1033,20 @@ class _VentasScreenState extends State<VentasScreen>
                   color: const Color(0xFFD97706).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(LucideIcons.pauseCircle, color: Color(0xFFD97706), size: 22),
+                child: const Icon(
+                  LucideIcons.pauseCircle,
+                  color: Color(0xFFD97706),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Poner Venta en Espera',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 18),
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ),
                 ),
               ),
             ],
@@ -1048,7 +1059,9 @@ class _VentasScreenState extends State<VentasScreen>
                 'Esta venta ($_totalUnidades u. • S/ ${_totalVenta.toStringAsFixed(2)}) se pausará para atender al siguiente cliente en la fila sin perder los productos escaneados.',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
-                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : AppTheme.textMuted,
                 ),
               ),
               const SizedBox(height: 14),
@@ -1057,8 +1070,11 @@ class _VentasScreenState extends State<VentasScreen>
                 autofocus: true,
                 decoration: InputDecoration(
                   labelText: 'Nombre o referencia del cliente (opcional)',
-                  hintText: 'Ej. Don Carlos (fue por dinero), Señora de chompa roja',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintText:
+                      'Ej. Don Carlos (fue por dinero), Señora de chompa roja',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(LucideIcons.user, size: 18),
                 ),
               ),
@@ -1092,12 +1108,16 @@ class _VentasScreenState extends State<VentasScreen>
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         fecha: DateTime.now(),
         etiqueta: etiqueta,
-        items: _carrito.map((it) => CartItem(
-          producto: it.producto,
-          cantidad: it.cantidad,
-          descuentoManual: it.descuentoManual,
-          descuentoMotivo: it.descuentoMotivo,
-        )).toList(),
+        items: _carrito
+            .map(
+              (it) => CartItem(
+                producto: it.producto,
+                cantidad: it.cantidad,
+                descuentoManual: it.descuentoManual,
+                descuentoMotivo: it.descuentoMotivo,
+              ),
+            )
+            .toList(),
         cliente: _clienteSeleccionado,
         metodoPago: _metodoPago,
         tipoComprobante: _tipoComprobante,
@@ -1115,12 +1135,18 @@ class _VentasScreenState extends State<VentasScreen>
           SnackBar(
             content: Row(
               children: [
-                const Icon(LucideIcons.pauseCircle, color: Colors.white, size: 20),
+                const Icon(
+                  LucideIcons.pauseCircle,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Ticket "$etiqueta" guardado en espera. Listo para la siguiente venta.',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -1147,7 +1173,9 @@ class _VentasScreenState extends State<VentasScreen>
               height: MediaQuery.of(context).size.height * 0.75,
               decoration: BoxDecoration(
                 color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               child: Column(
                 children: [
@@ -1158,10 +1186,15 @@ class _VentasScreenState extends State<VentasScreen>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                            color: const Color(0xFFD97706)
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(LucideIcons.pauseCircle, color: Color(0xFFD97706), size: 22),
+                          child: const Icon(
+                            LucideIcons.pauseCircle,
+                            color: Color(0xFFD97706),
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -1170,13 +1203,18 @@ class _VentasScreenState extends State<VentasScreen>
                             children: [
                               Text(
                                 'Tickets en Espera (Park Cart)',
-                                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                               Text(
                                 '${lista.length} tickets pausados en caja',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
-                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : AppTheme.textMuted,
                                 ),
                               ),
                             ],
@@ -1201,12 +1239,17 @@ class _VentasScreenState extends State<VentasScreen>
                                   Icon(
                                     LucideIcons.shoppingCart,
                                     size: 48,
-                                    color: isDark ? Colors.white24 : Colors.black26,
+                                    color: isDark
+                                        ? Colors.white24
+                                        : Colors.black26,
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
                                     'No hay tickets en espera',
-                                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
@@ -1214,7 +1257,9 @@ class _VentasScreenState extends State<VentasScreen>
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12.5,
-                                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : AppTheme.textMuted,
                                     ),
                                   ),
                                 ],
@@ -1224,16 +1269,21 @@ class _VentasScreenState extends State<VentasScreen>
                         : ListView.separated(
                             padding: const EdgeInsets.all(16),
                             itemCount: lista.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 10),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 10),
                             itemBuilder: (context, index) {
                               final venta = lista[index];
                               return Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+                                  color: isDark
+                                      ? AppTheme.cardDarkElevated
+                                      : const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                                    color: isDark
+                                        ? AppTheme.borderDark
+                                        : const Color(0xFFE2E8F0),
                                   ),
                                 ),
                                 child: Column(
@@ -1251,10 +1301,16 @@ class _VentasScreenState extends State<VentasScreen>
                                           ),
                                         ),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFD97706).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: const Color(0xFFD97706)
+                                                .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: Text(
                                             venta.tiempoTranscurrido,
@@ -1272,7 +1328,9 @@ class _VentasScreenState extends State<VentasScreen>
                                       '${venta.items.length} productos (${venta.totalUnidades.toStringAsFixed(venta.totalUnidades % 1 == 0 ? 0 : 2)} u.) • Comprobante: ${venta.tipoComprobante}',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 12,
-                                        color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : AppTheme.textMuted,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -1289,72 +1347,131 @@ class _VentasScreenState extends State<VentasScreen>
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         IconButton(
-                                          icon: const Icon(LucideIcons.trash2, size: 18, color: AppTheme.alertRed),
+                                          icon: const Icon(
+                                            LucideIcons.trash2,
+                                            size: 18,
+                                            color: AppTheme.alertRed,
+                                          ),
                                           tooltip: 'Descartar ticket',
                                           onPressed: () async {
-                                            await VentaEnEsperaService.eliminar(venta.id);
+                                            await VentaEnEsperaService.eliminar(
+                                              venta.id,
+                                            );
                                             setModalState(() {});
                                           },
                                         ),
                                         const SizedBox(width: 8),
                                         FilledButton.icon(
                                           style: FilledButton.styleFrom(
-                                            backgroundColor: AppTheme.brandPrimary,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                            backgroundColor:
+                                                AppTheme.brandPrimary,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 14,
+                                              vertical: 8,
+                                            ),
                                           ),
-                                          icon: const Icon(LucideIcons.play, size: 15),
+                                          icon: const Icon(
+                                            LucideIcons.play,
+                                            size: 15,
+                                          ),
                                           label: const Text('Recuperar a Caja'),
                                           onPressed: () async {
                                             if (_carrito.isNotEmpty) {
-                                              final sobreescribir = await showDialog<bool>(
-                                                context: context,
-                                                builder: (dCtx) => AlertDialog(
-                                                  title: const Text('¿Reemplazar canasta actual?'),
-                                                  content: const Text(
-                                                    'Tienes productos en la canasta actual. ¿Deseas pausar la venta actual antes de recuperar este ticket?',
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.pop(dCtx, false),
-                                                      child: const Text('Cancelar'),
-                                                    ),
-                                                    FilledButton(
-                                                      onPressed: () => Navigator.pop(dCtx, true),
-                                                      child: const Text('Pausar actual y Recuperar'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
+                                              final sobreescribir =
+                                                  await showDialog<bool>(
+                                                    context: context,
+                                                    builder: (dCtx) =>
+                                                        AlertDialog(
+                                                          title: const Text(
+                                                            '¿Reemplazar canasta actual?',
+                                                          ),
+                                                          content: const Text(
+                                                            'Tienes productos en la canasta actual. ¿Deseas pausar la venta actual antes de recuperar este ticket?',
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                    dCtx,
+                                                                    false,
+                                                                  ),
+                                                              child: const Text(
+                                                                'Cancelar',
+                                                              ),
+                                                            ),
+                                                            FilledButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                    dCtx,
+                                                                    true,
+                                                                  ),
+                                                              child: const Text(
+                                                                'Pausar actual y Recuperar',
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                  );
                                               if (sobreescribir != true) return;
                                               final actualPausada = VentaEnEspera(
-                                                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                                id: DateTime.now()
+                                                    .millisecondsSinceEpoch
+                                                    .toString(),
                                                 fecha: DateTime.now(),
-                                                etiqueta: 'Venta rápida ${_carrito.length} items',
-                                                items: List<CartItem>.from(_carrito),
+                                                etiqueta:
+                                                    'Venta rápida ${_carrito.length} items',
+                                                items: List<CartItem>.from(
+                                                  _carrito,
+                                                ),
                                                 cliente: _clienteSeleccionado,
                                                 metodoPago: _metodoPago,
-                                                tipoComprobante: _tipoComprobante,
-                                                descuentoManualCarrito: _descuentoManualCarrito,
-                                                descuentoManualMotivo: _descuentoManualMotivo,
-                                                aplicarPromocionesWeb: _aplicarPromocionesWeb,
+                                                tipoComprobante:
+                                                    _tipoComprobante,
+                                                descuentoManualCarrito:
+                                                    _descuentoManualCarrito,
+                                                descuentoManualMotivo:
+                                                    _descuentoManualMotivo,
+                                                aplicarPromocionesWeb:
+                                                    _aplicarPromocionesWeb,
                                               );
-                                              await VentaEnEsperaService.ponerEnEspera(actualPausada);
+                                              await VentaEnEsperaService.ponerEnEspera(
+                                                actualPausada,
+                                              );
                                             }
 
-                                            final recuperada = await VentaEnEsperaService.recuperar(venta.id);
+                                            final recuperada =
+                                                await VentaEnEsperaService.recuperar(
+                                                  venta.id,
+                                                );
                                             if (recuperada != null) {
                                               setState(() {
                                                 _carrito.clear();
-                                                _carrito.addAll(recuperada.items);
-                                                _clienteSeleccionado = recuperada.cliente;
-                                                _metodoPago = recuperada.metodoPago;
-                                                _tipoComprobante = recuperada.tipoComprobante;
-                                                _descuentoManualCarrito = recuperada.descuentoManualCarrito;
-                                                _descuentoManualMotivo = recuperada.descuentoManualMotivo ?? '';
-                                                _aplicarPromocionesWeb = recuperada.aplicarPromocionesWeb;
+                                                _carrito.addAll(
+                                                  recuperada.items,
+                                                );
+                                                _clienteSeleccionado =
+                                                    recuperada.cliente;
+                                                _metodoPago =
+                                                    recuperada.metodoPago;
+                                                _tipoComprobante =
+                                                    recuperada.tipoComprobante;
+                                                _descuentoManualCarrito =
+                                                    recuperada
+                                                        .descuentoManualCarrito;
+                                                _descuentoManualMotivo =
+                                                    recuperada
+                                                        .descuentoManualMotivo ??
+                                                    '';
+                                                _aplicarPromocionesWeb =
+                                                    recuperada
+                                                        .aplicarPromocionesWeb;
                                               });
-                                              KarlizSoundService.instance.playBarcodeBeep();
+                                              KarlizSoundService.instance
+                                                  .playBarcodeBeep();
                                             }
                                             if (ctx.mounted) Navigator.pop(ctx);
                                           },
@@ -1392,16 +1509,26 @@ class _VentasScreenState extends State<VentasScreen>
             final todos = PedidoWebService.pedidos;
             final lista = filtroBusqueda.isEmpty
                 ? todos
-                : todos.where((p) =>
-                    p.codigoDisplay.toLowerCase().contains(filtroBusqueda) ||
-                    p.nombreCliente.toLowerCase().contains(filtroBusqueda) ||
-                    (p.telefonoCliente != null && p.telefonoCliente!.contains(filtroBusqueda))
-                  ).toList();
+                : todos
+                      .where(
+                        (p) =>
+                            p.codigoDisplay.toLowerCase().contains(
+                              filtroBusqueda,
+                            ) ||
+                            p.nombreCliente.toLowerCase().contains(
+                              filtroBusqueda,
+                            ) ||
+                            (p.telefonoCliente != null &&
+                                p.telefonoCliente!.contains(filtroBusqueda)),
+                      )
+                      .toList();
             return Container(
               height: MediaQuery.of(context).size.height * 0.8,
               decoration: BoxDecoration(
                 color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
               ),
               child: Column(
                 children: [
@@ -1412,10 +1539,15 @@ class _VentasScreenState extends State<VentasScreen>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                            color: const Color(0xFF0D9488)
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(LucideIcons.globe, color: Color(0xFF0D9488), size: 22),
+                          child: const Icon(
+                            LucideIcons.globe,
+                            color: Color(0xFF0D9488),
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -1424,34 +1556,49 @@ class _VentasScreenState extends State<VentasScreen>
                             children: [
                               Text(
                                 'Bandeja de Pedidos Web',
-                                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                               Text(
                                 '${PedidoWebService.pedidosPendientes.length} pedidos web pendientes de atención',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
-                                  color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : AppTheme.textMuted,
                                 ),
                               ),
                             ],
                           ),
                         ),
                         ValueListenableBuilder<bool>(
-                          valueListenable: PedidoWebService.estaSincronizandoNotifier,
+                          valueListenable:
+                              PedidoWebService.estaSincronizandoNotifier,
                           builder: (context, sincronizando, _) {
                             return IconButton(
                               icon: sincronizando
                                   ? const SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0D9488)),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFF0D9488),
+                                      ),
                                     )
-                                  : const Icon(LucideIcons.refreshCw, size: 18, color: Color(0xFF0D9488)),
+                                  : const Icon(
+                                      LucideIcons.refreshCw,
+                                      size: 18,
+                                      color: Color(0xFF0D9488),
+                                    ),
                               tooltip: 'Sincronizar con la nube',
                               onPressed: sincronizando
                                   ? null
                                   : () async {
-                                      await PedidoWebService.sincronizarConNube(forzar: true);
+                                      await PedidoWebService.sincronizarConNube(
+                                        forzar: true,
+                                      );
                                       setModalState(() {});
                                     },
                             );
@@ -1468,15 +1615,26 @@ class _VentasScreenState extends State<VentasScreen>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
                     child: TextField(
-                      onChanged: (val) => setModalState(() => filtroBusqueda = val.trim().toLowerCase()),
+                      onChanged: (val) => setModalState(
+                        () => filtroBusqueda = val.trim().toLowerCase(),
+                      ),
                       decoration: InputDecoration(
-                        hintText: 'Buscar por código #W-XXXX, cliente o teléfono...',
+                        hintText:
+                            'Buscar por código #W-XXXX, cliente o teléfono...',
                         prefixIcon: const Icon(LucideIcons.search, size: 18),
                         isDense: true,
                         filled: true,
-                        fillColor: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        fillColor: isDark
+                            ? AppTheme.cardDarkSunken
+                            : const Color(0xFFF1F5F9),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   ),
@@ -1491,12 +1649,17 @@ class _VentasScreenState extends State<VentasScreen>
                                   Icon(
                                     LucideIcons.globe,
                                     size: 48,
-                                    color: isDark ? Colors.white24 : Colors.black26,
+                                    color: isDark
+                                        ? Colors.white24
+                                        : Colors.black26,
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
                                     'No hay pedidos web registrados',
-                                    style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700),
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
@@ -1504,7 +1667,9 @@ class _VentasScreenState extends State<VentasScreen>
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12.5,
-                                      color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : AppTheme.textMuted,
                                     ),
                                   ),
                                 ],
@@ -1514,19 +1679,24 @@ class _VentasScreenState extends State<VentasScreen>
                         : ListView.separated(
                             padding: const EdgeInsets.all(16),
                             itemCount: lista.length,
-                            separatorBuilder: (_, _) => const SizedBox(height: 12),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 12),
                             itemBuilder: (context, index) {
                               final pedido = lista[index];
                               final esPendiente = pedido.estado == 'PENDIENTE';
                               return Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF8FAFC),
+                                  color: isDark
+                                      ? AppTheme.cardDarkElevated
+                                      : const Color(0xFFF8FAFC),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: esPendiente
                                         ? const Color(0xFF0D9488)
-                                        : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                                        : (isDark
+                                              ? AppTheme.borderDark
+                                              : const Color(0xFFE2E8F0)),
                                     width: esPendiente ? 1.5 : 1.0,
                                   ),
                                 ),
@@ -1536,12 +1706,23 @@ class _VentasScreenState extends State<VentasScreen>
                                     Row(
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                          margin: const EdgeInsets.only(right: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 2,
+                                          ),
+                                          margin: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF0D9488).withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.3)),
+                                            color: const Color(0xFF0D9488)
+                                                .withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: const Color(0xFF0D9488)
+                                                  .withValues(alpha: 0.3),
+                                            ),
                                           ),
                                           child: Text(
                                             pedido.codigoDisplay,
@@ -1562,29 +1743,46 @@ class _VentasScreenState extends State<VentasScreen>
                                           ),
                                         ),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: esPendiente
-                                                ? const Color(0xFF0D9488).withValues(alpha: 0.15)
-                                                : Colors.grey.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(8),
+                                                ? const Color(0xFF0D9488)
+                                                      .withValues(alpha: 0.15)
+                                                : Colors.grey.withValues(
+                                                    alpha: 0.15,
+                                                  ),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: Text(
-                                            esPendiente ? 'PENDIENTE' : pedido.estado,
+                                            esPendiente
+                                                ? 'PENDIENTE'
+                                                : pedido.estado,
                                             style: GoogleFonts.plusJakartaSans(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w800,
-                                              color: esPendiente ? const Color(0xFF0D9488) : Colors.grey,
+                                              color: esPendiente
+                                                  ? const Color(0xFF0D9488)
+                                                  : Colors.grey,
                                             ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    if (pedido.telefonoCliente != null && pedido.telefonoCliente!.isNotEmpty) ...[
+                                    if (pedido.telefonoCliente != null &&
+                                        pedido.telefonoCliente!.isNotEmpty) ...[
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          const Icon(LucideIcons.phone, size: 14, color: AppTheme.brandPrimary),
+                                          const Icon(
+                                            LucideIcons.phone,
+                                            size: 14,
+                                            color: AppTheme.brandPrimary,
+                                          ),
                                           const SizedBox(width: 6),
                                           Text(
                                             pedido.telefonoCliente!,
@@ -1596,14 +1794,17 @@ class _VentasScreenState extends State<VentasScreen>
                                         ],
                                       ),
                                     ],
-                                    if (pedido.notas != null && pedido.notas!.isNotEmpty) ...[
+                                    if (pedido.notas != null &&
+                                        pedido.notas!.isNotEmpty) ...[
                                       const SizedBox(height: 4),
                                       Text(
                                         'Nota: ${pedido.notas!}',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
                                           fontStyle: FontStyle.italic,
-                                          color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : AppTheme.textMuted,
                                         ),
                                       ),
                                     ],
@@ -1611,37 +1812,50 @@ class _VentasScreenState extends State<VentasScreen>
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: isDark ? AppTheme.cardDarkSunken : Colors.white,
+                                        color: isDark
+                                            ? AppTheme.cardDarkSunken
+                                            : Colors.white,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Column(
                                         children: [
                                           for (final it in pedido.items)
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 2),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 2,
+                                                  ),
                                               child: Row(
                                                 children: [
                                                   Text(
                                                     '${it.cantidad.toStringAsFixed(it.cantidad % 1 == 0 ? 0 : 2)}x',
-                                                    style: GoogleFonts.plusJakartaSans(
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.w700,
-                                                      color: AppTheme.brandPrimary,
-                                                    ),
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: AppTheme
+                                                              .brandPrimary,
+                                                        ),
                                                   ),
                                                   const SizedBox(width: 8),
                                                   Expanded(
                                                     child: Text(
                                                       it.nombre,
-                                                      style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 12,
+                                                          ),
                                                     ),
                                                   ),
                                                   Text(
                                                     'S/ ${it.subtotal.toStringAsFixed(2)}',
-                                                    style: GoogleFonts.plusJakartaSans(
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.w700,
-                                                    ),
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
                                                   ),
                                                 ],
                                               ),
@@ -1651,7 +1865,8 @@ class _VentasScreenState extends State<VentasScreen>
                                     ),
                                     const SizedBox(height: 8),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           'Total: S/ ${pedido.total.toStringAsFixed(2)}',
@@ -1664,10 +1879,18 @@ class _VentasScreenState extends State<VentasScreen>
                                         Row(
                                           children: [
                                             IconButton(
-                                              icon: const Icon(LucideIcons.trash2, size: 18, color: AppTheme.alertRed),
+                                              icon: const Icon(
+                                                LucideIcons.trash2,
+                                                size: 18,
+                                                color: AppTheme.alertRed,
+                                              ),
                                               tooltip: 'Eliminar pedido',
                                               onPressed: () async {
-                                                await PedidoWebService.eliminarPedido(pedido.idPedido, idPedidoWeb: pedido.idPedidoWeb);
+                                                await PedidoWebService.eliminarPedido(
+                                                  pedido.idPedido,
+                                                  idPedidoWeb:
+                                                      pedido.idPedidoWeb,
+                                                );
                                                 setModalState(() {});
                                               },
                                             ),
@@ -1675,27 +1898,54 @@ class _VentasScreenState extends State<VentasScreen>
                                               const SizedBox(width: 6),
                                               FilledButton.icon(
                                                 style: FilledButton.styleFrom(
-                                                  backgroundColor: const Color(0xFF0D9488),
-                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                                  backgroundColor: const Color(
+                                                    0xFF0D9488,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 14,
+                                                        vertical: 8,
+                                                      ),
                                                 ),
-                                                icon: const Icon(LucideIcons.shoppingBag, size: 15),
-                                                label: const Text('Cargar al Carrito'),
+                                                icon: const Icon(
+                                                  LucideIcons.shoppingBag,
+                                                  size: 15,
+                                                ),
+                                                label: const Text(
+                                                  'Cargar al Carrito',
+                                                ),
                                                 onPressed: () async {
                                                   int itemsCargados = 0;
                                                   setState(() {
-                                                    for (final itemWeb in pedido.items) {
+                                                    for (final itemWeb
+                                                        in pedido.items) {
                                                       Producto? prod;
-                                                      for (final p in _productosDisponibles) {
-                                                        if (p.idProducto == itemWeb.idProducto) {
+                                                      for (final p
+                                                          in _productosDisponibles) {
+                                                        if (p.idProducto ==
+                                                            itemWeb
+                                                                .idProducto) {
                                                           prod = p;
                                                           break;
                                                         }
                                                       }
                                                       if (prod == null) {
-                                                        final nomLimpio = itemWeb.nombre.trim().toLowerCase();
-                                                        for (final p in _productosDisponibles) {
-                                                          if (p.nombre.trim().toLowerCase() == nomLimpio) {
+                                                        final nomLimpio =
+                                                            itemWeb.nombre
+                                                                .trim()
+                                                                .toLowerCase();
+                                                        for (final p
+                                                            in _productosDisponibles) {
+                                                          if (p.nombre
+                                                                  .trim()
+                                                                  .toLowerCase() ==
+                                                              nomLimpio) {
                                                             prod = p;
                                                             break;
                                                           }
@@ -1703,29 +1953,49 @@ class _VentasScreenState extends State<VentasScreen>
                                                       }
 
                                                       if (prod != null) {
-                                                        _agregarAlCarrito(prod, playSound: false, cantidad: itemWeb.cantidad);
+                                                        _agregarAlCarrito(
+                                                          prod,
+                                                          playSound: false,
+                                                          cantidad:
+                                                              itemWeb.cantidad,
+                                                        );
                                                         itemsCargados++;
                                                       }
                                                     }
 
                                                     _identificarCliente = true;
-                                                    _clienteNombreController.text = pedido.nombreCliente;
-                                                    if (pedido.ahorroPromociones > 0) {
-                                                      _aplicarPromocionesWeb = true;
+                                                    _clienteNombreController
+                                                            .text =
+                                                        pedido.nombreCliente;
+                                                    if (pedido
+                                                            .ahorroPromociones >
+                                                        0) {
+                                                      _aplicarPromocionesWeb =
+                                                          true;
                                                     }
                                                   });
 
-                                                  await PedidoWebService.marcarComoCargadoEnPos(pedido.idPedido, idPedidoWeb: pedido.idPedidoWeb);
-                                                  KarlizSoundService.instance.playBarcodeBeep();
+                                                  await PedidoWebService.marcarComoCargadoEnPos(
+                                                    pedido.idPedido,
+                                                    idPedidoWeb:
+                                                        pedido.idPedidoWeb,
+                                                  );
+                                                  KarlizSoundService.instance
+                                                      .playBarcodeBeep();
 
                                                   if (ctx.mounted) {
                                                     Navigator.pop(ctx);
-                                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                                    ScaffoldMessenger.of(
+                                                      ctx,
+                                                    ).showSnackBar(
                                                       SnackBar(
                                                         content: Text(
                                                           '¡Pedido de ${pedido.nombreCliente} ($itemsCargados productos) cargado al carrito!',
                                                         ),
-                                                        backgroundColor: const Color(0xFF0D9488),
+                                                        backgroundColor:
+                                                            const Color(
+                                                              0xFF0D9488,
+                                                            ),
                                                       ),
                                                     );
                                                   }
@@ -1755,7 +2025,9 @@ class _VentasScreenState extends State<VentasScreen>
     if (_carrito.isEmpty && itemEspecifico == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Añade productos a la canasta antes de aplicar un descuento.'),
+          content: Text(
+            'Añade productos a la canasta antes de aplicar un descuento.',
+          ),
           backgroundColor: AppTheme.alertRed,
         ),
       );
@@ -1795,14 +2067,18 @@ class _VentasScreenState extends State<VentasScreen>
         final isDark = Theme.of(dlgCtx).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (context, setDlgState) {
-            final double val = double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+            final double val =
+                double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ??
+                0.0;
             final double dsctoCalculado = esPorcentaje
                 ? (baseCalculo * (val / 100.0)).clamp(0.0, baseCalculo)
                 : val.clamp(0.0, baseCalculo);
 
             return AlertDialog(
               backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Row(
                 children: [
                   Container(
@@ -1811,7 +2087,11 @@ class _VentasScreenState extends State<VentasScreen>
                       color: AppTheme.brandPrimary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(LucideIcons.tag, color: AppTheme.brandPrimary, size: 22),
+                    child: const Icon(
+                      LucideIcons.tag,
+                      color: AppTheme.brandPrimary,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -1819,7 +2099,10 @@ class _VentasScreenState extends State<VentasScreen>
                       itemEspecifico != null
                           ? 'Descuento en ${itemEspecifico.producto.nombre}'
                           : 'Descuento de Cortesía / Manual',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 17,
+                      ),
                     ),
                   ),
                 ],
@@ -1834,7 +2117,9 @@ class _VentasScreenState extends State<VentasScreen>
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : AppTheme.textMuted,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -1864,13 +2149,19 @@ class _VentasScreenState extends State<VentasScreen>
                     const SizedBox(height: 12),
                     TextField(
                       controller: valorCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       autofocus: true,
                       onChanged: (_) => setDlgState(() {}),
                       decoration: InputDecoration(
-                        labelText: esPorcentaje ? 'Porcentaje de Descuento (%)' : 'Monto de Descuento (S/)',
+                        labelText: esPorcentaje
+                            ? 'Porcentaje de Descuento (%)'
+                            : 'Monto de Descuento (S/)',
                         prefixText: esPorcentaje ? '% ' : 'S/ ',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     if (val > 0) ...[
@@ -1887,16 +2178,28 @@ class _VentasScreenState extends State<VentasScreen>
                     const SizedBox(height: 14),
                     Text(
                       'Motivo / Justificación:',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Wrap(
                       spacing: 6,
                       runSpacing: 4,
                       children: [
-                        for (final m in ['Cortesía', 'Redondeo', 'Empaque dañado', 'Familiar', 'Promoción especial'])
+                        for (final m in [
+                          'Cortesía',
+                          'Redondeo',
+                          'Empaque dañado',
+                          'Familiar',
+                          'Promoción especial',
+                        ])
                           ActionChip(
-                            label: Text(m, style: const TextStyle(fontSize: 11)),
+                            label: Text(
+                              m,
+                              style: const TextStyle(fontSize: 11),
+                            ),
                             onPressed: () {
                               setDlgState(() => motivoCtrl.text = m);
                             },
@@ -1908,7 +2211,9 @@ class _VentasScreenState extends State<VentasScreen>
                       controller: motivoCtrl,
                       decoration: InputDecoration(
                         hintText: 'Ej. Cortesía al vecino / cliente frecuente',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],
@@ -1931,11 +2236,14 @@ class _VentasScreenState extends State<VentasScreen>
     );
 
     if (resultado == true) {
-      final double val = double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+      final double val =
+          double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
       final double dsctoFinal = esPorcentaje
           ? (baseCalculo * (val / 100.0)).clamp(0.0, baseCalculo)
           : val.clamp(0.0, baseCalculo);
-      final motivoFinal = motivoCtrl.text.trim().isNotEmpty ? motivoCtrl.text.trim() : 'Cortesía';
+      final motivoFinal = motivoCtrl.text.trim().isNotEmpty
+          ? motivoCtrl.text.trim()
+          : 'Cortesía';
 
       final totalAnterior = _totalVenta;
       setState(() {
@@ -1967,7 +2275,9 @@ class _VentasScreenState extends State<VentasScreen>
     if (_carrito.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Añade productos a la canasta para registrar el autoconsumo.'),
+          content: Text(
+            'Añade productos a la canasta para registrar el autoconsumo.',
+          ),
           backgroundColor: AppTheme.alertRed,
         ),
       );
@@ -1998,7 +2308,9 @@ class _VentasScreenState extends State<VentasScreen>
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return AlertDialog(
           backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Row(
             children: [
               Container(
@@ -2007,13 +2319,20 @@ class _VentasScreenState extends State<VentasScreen>
                   color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(LucideIcons.coffee, color: Color(0xFF8B5CF6), size: 22),
+                child: const Icon(
+                  LucideIcons.coffee,
+                  color: Color(0xFF8B5CF6),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Consumo Interno / Bodega',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 17),
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                  ),
                 ),
               ),
             ],
@@ -2027,14 +2346,18 @@ class _VentasScreenState extends State<VentasScreen>
                   'Los productos se darán de baja del stock al costo sin generar cobro en caja:',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
-                    color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : AppTheme.textMuted,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+                    color: isDark
+                        ? AppTheme.cardDarkSunken
+                        : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -2048,7 +2371,9 @@ class _VentasScreenState extends State<VentasScreen>
                               Expanded(
                                 child: Text(
                                   '${_formatCantidad(it.cantidad)}x ${it.producto.nombre}',
-                                  style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                               Text(
@@ -2065,10 +2390,18 @@ class _VentasScreenState extends State<VentasScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Valor total al costo:', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+                          Text(
+                            'Valor total al costo:',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                           Text(
                             'S/ ${totalCosto.toStringAsFixed(2)}',
-                            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: const Color(0xFF8B5CF6)),
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF8B5CF6),
+                            ),
                           ),
                         ],
                       ),
@@ -2076,13 +2409,21 @@ class _VentasScreenState extends State<VentasScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text('Motivo del consumo:', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700)),
+                Text(
+                  'Motivo del consumo:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 TextField(
                   controller: motivoCtrl,
                   decoration: InputDecoration(
                     hintText: 'Ej. Refrigerio de personal, Limpieza de local, Muestra',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ],
@@ -2094,7 +2435,9 @@ class _VentasScreenState extends State<VentasScreen>
               child: const Text('Cancelar'),
             ),
             FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF8B5CF6)),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF8B5CF6),
+              ),
               icon: const Icon(LucideIcons.check, size: 16),
               label: const Text('Confirmar Autoconsumo'),
               onPressed: () => Navigator.pop(ctx, true),
@@ -2105,7 +2448,9 @@ class _VentasScreenState extends State<VentasScreen>
     );
 
     if (confirmado == true) {
-      final motivo = motivoCtrl.text.trim().isNotEmpty ? motivoCtrl.text.trim() : 'Consumo interno de bodega';
+      final motivo = motivoCtrl.text.trim().isNotEmpty
+          ? motivoCtrl.text.trim()
+          : 'Consumo interno de bodega';
       setState(() => _isProcesando = true);
 
       int exitos = 0;
@@ -2128,7 +2473,9 @@ class _VentasScreenState extends State<VentasScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ $exitos productos registrados como consumo interno de bodega.'),
+            content: Text(
+              '✅ $exitos productos registrados como consumo interno de bodega.',
+            ),
             backgroundColor: const Color(0xFF8B5CF6),
           ),
         );
@@ -2137,7 +2484,10 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   Widget _buildDescuentoManualBanner(bool isDark) {
-    final double itemDsctos = _carrito.fold(0.0, (acc, it) => acc + it.descuentoManual);
+    final double itemDsctos = _carrito.fold(
+      0.0,
+      (acc, it) => acc + it.descuentoManual,
+    );
     final double totalDscto = _descuentoManualCarrito + itemDsctos;
 
     if (totalDscto > 0.01) {
@@ -2165,7 +2515,9 @@ class _VentasScreenState extends State<VentasScreen>
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8),
+                      color: isDark
+                          ? const Color(0xFF93C5FD)
+                          : const Color(0xFF1D4ED8),
                     ),
                   ),
                   if (_descuentoManualMotivo.isNotEmpty)
@@ -2174,14 +2526,20 @@ class _VentasScreenState extends State<VentasScreen>
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
                       ),
                     ),
                 ],
               ),
             ),
             IconButton(
-              icon: const Icon(LucideIcons.x, size: 16, color: Color(0xFF2563EB)),
+              icon: const Icon(
+                LucideIcons.x,
+                size: 16,
+                color: Color(0xFF2563EB),
+              ),
               tooltip: 'Quitar descuento manual',
               onPressed: () {
                 final totalAnterior = _totalVenta;
@@ -6268,10 +6626,19 @@ class _VentasScreenState extends State<VentasScreen>
                         return _buildPosActionChip(
                           icon: LucideIcons.pauseCircle,
                           label: count > 0 ? 'En Espera ($count)' : 'En Espera',
-                          color: count > 0 ? const Color(0xFFD97706) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                          color: count > 0
+                              ? const Color(0xFFD97706)
+                              : (isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF64748B)),
                           bgColor: count > 0
-                              ? (isDark ? const Color(0xFF78350F).withValues(alpha: 0.3) : const Color(0xFFFEF3C7))
-                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                              ? (isDark
+                                    ? const Color(0xFF78350F)
+                                          .withValues(alpha: 0.3)
+                                    : const Color(0xFFFEF3C7))
+                              : (isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9)),
                           onTap: _mostrarModalVentasEnEspera,
                           isDark: isDark,
                         );
@@ -6279,15 +6646,27 @@ class _VentasScreenState extends State<VentasScreen>
                     ),
                     const SizedBox(width: 6),
                     ValueListenableBuilder<int>(
-                      valueListenable: PedidoWebService.pedidosPendientesCountNotifier,
+                      valueListenable:
+                          PedidoWebService.pedidosPendientesCountNotifier,
                       builder: (context, count, _) {
                         return _buildPosActionChip(
                           icon: LucideIcons.globe,
-                          label: count > 0 ? 'Pedidos Web ($count)' : 'Pedidos Web',
-                          color: count > 0 ? const Color(0xFF0D9488) : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                          label: count > 0
+                              ? 'Pedidos Web ($count)'
+                              : 'Pedidos Web',
+                          color: count > 0
+                              ? const Color(0xFF0D9488)
+                              : (isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF64748B)),
                           bgColor: count > 0
-                              ? (isDark ? const Color(0xFF134E4A).withValues(alpha: 0.3) : const Color(0xFFCCFBF1))
-                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                              ? (isDark
+                                    ? const Color(0xFF134E4A)
+                                          .withValues(alpha: 0.3)
+                                    : const Color(0xFFCCFBF1))
+                              : (isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9)),
                           onTap: _mostrarBandejaPedidosWeb,
                           isDark: isDark,
                         );
@@ -6450,15 +6829,24 @@ class _VentasScreenState extends State<VentasScreen>
                             children: [
                               IconButton(
                                 tooltip: 'Poner en Espera (Pausar Ticket)',
-                                icon: const Icon(LucideIcons.pauseCircle, size: 18, color: Color(0xFFD97706)),
+                                icon: const Icon(
+                                  LucideIcons.pauseCircle,
+                                  size: 18,
+                                  color: Color(0xFFD97706),
+                                ),
                                 onPressed: _ponerVentaEnEspera,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
                               const SizedBox(width: 6),
                               IconButton(
-                                tooltip: 'Registrar como Consumo Interno de Bodega',
-                                icon: const Icon(LucideIcons.coffee, size: 18, color: Color(0xFF8B5CF6)),
+                                tooltip:
+                                    'Registrar como Consumo Interno de Bodega',
+                                icon: const Icon(
+                                  LucideIcons.coffee,
+                                  size: 18,
+                                  color: Color(0xFF8B5CF6),
+                                ),
                                 onPressed: _registrarConsumoInterno,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
@@ -6466,7 +6854,11 @@ class _VentasScreenState extends State<VentasScreen>
                               const SizedBox(width: 6),
                               IconButton(
                                 tooltip: 'Garantía de Botellas / Retornables',
-                                icon: const Icon(LucideIcons.wine, size: 18, color: Color(0xFF2563EB)),
+                                icon: const Icon(
+                                  LucideIcons.wine,
+                                  size: 18,
+                                  color: Color(0xFF2563EB),
+                                ),
                                 onPressed: _abrirModalGarantiaEnvase,
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
@@ -6477,7 +6869,8 @@ class _VentasScreenState extends State<VentasScreen>
                                   foregroundColor: AppTheme.alertRed,
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 onPressed: _vaciarCarrito,
                                 child: Text(
@@ -6953,12 +7346,17 @@ class _VentasScreenState extends State<VentasScreen>
                           label: count > 0 ? 'En Espera ($count)' : 'En Espera',
                           color: count > 0
                               ? const Color(0xFFD97706)
-                              : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                              : (isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF64748B)),
                           bgColor: count > 0
                               ? (isDark
-                                    ? const Color(0xFF78350F).withValues(alpha: 0.3)
+                                    ? const Color(0xFF78350F)
+                                          .withValues(alpha: 0.3)
                                     : const Color(0xFFFEF3C7))
-                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                              : (isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9)),
                           onTap: _mostrarModalVentasEnEspera,
                           isDark: isDark,
                         );
@@ -6966,19 +7364,27 @@ class _VentasScreenState extends State<VentasScreen>
                     ),
                     const SizedBox(width: 6),
                     ValueListenableBuilder<int>(
-                      valueListenable: PedidoWebService.pedidosPendientesCountNotifier,
+                      valueListenable:
+                          PedidoWebService.pedidosPendientesCountNotifier,
                       builder: (context, count, _) {
                         return _buildPosActionChip(
                           icon: LucideIcons.globe,
-                          label: count > 0 ? 'Pedidos Web ($count)' : 'Pedidos Web',
+                          label: count > 0
+                              ? 'Pedidos Web ($count)'
+                              : 'Pedidos Web',
                           color: count > 0
                               ? const Color(0xFF0D9488)
-                              : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+                              : (isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF64748B)),
                           bgColor: count > 0
                               ? (isDark
-                                    ? const Color(0xFF134E4A).withValues(alpha: 0.3)
+                                    ? const Color(0xFF134E4A)
+                                          .withValues(alpha: 0.3)
                                     : const Color(0xFFCCFBF1))
-                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
+                              : (isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9)),
                           onTap: _mostrarBandejaPedidosWeb,
                           isDark: isDark,
                         );
@@ -7153,25 +7559,21 @@ class _VentasScreenState extends State<VentasScreen>
             _abrirGavetaManual,
           ),
           const SizedBox(width: 6),
-          _buildKeyBadge(
-            'F8',
-            'Espera',
-            LucideIcons.pauseCircle,
-            isDark,
-            () {
-              if (_carrito.isNotEmpty) {
-                _ponerVentaEnEspera();
-              } else {
-                _mostrarModalVentasEnEspera();
-              }
-            },
-          ),
+          _buildKeyBadge('F8', 'Espera', LucideIcons.pauseCircle, isDark, () {
+            if (_carrito.isNotEmpty) {
+              _ponerVentaEnEspera();
+            } else {
+              _mostrarModalVentasEnEspera();
+            }
+          }),
           const SizedBox(width: 6),
           _buildKeyBadge(
             'F9',
             _regimenTributario == 'INFORMAL'
                 ? 'Ticket'
-                : (_tipoComprobante == 'BOLETA_ELECTRONICA' ? 'Boleta' : 'Ticket'),
+                : (_tipoComprobante == 'BOLETA_ELECTRONICA'
+                      ? 'Boleta'
+                      : 'Ticket'),
             LucideIcons.fileText,
             isDark,
             _regimenTributario == 'INFORMAL'
@@ -8192,7 +8594,11 @@ class _VentasScreenState extends State<VentasScreen>
                 children: [
                   IconButton(
                     tooltip: 'Garantía de Botellas / Retornables',
-                    icon: const Icon(LucideIcons.wine, size: 18, color: Color(0xFF2563EB)),
+                    icon: const Icon(
+                      LucideIcons.wine,
+                      size: 18,
+                      color: Color(0xFF2563EB),
+                    ),
                     onPressed: _abrirModalGarantiaEnvase,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -8201,7 +8607,11 @@ class _VentasScreenState extends State<VentasScreen>
                     const SizedBox(width: 6),
                     IconButton(
                       tooltip: 'Poner en Espera (Pausar Ticket)',
-                      icon: const Icon(LucideIcons.pauseCircle, size: 18, color: Color(0xFFD97706)),
+                      icon: const Icon(
+                        LucideIcons.pauseCircle,
+                        size: 18,
+                        color: Color(0xFFD97706),
+                      ),
                       onPressed: _ponerVentaEnEspera,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -8209,7 +8619,11 @@ class _VentasScreenState extends State<VentasScreen>
                     const SizedBox(width: 6),
                     IconButton(
                       tooltip: 'Registrar como Consumo Interno de Bodega',
-                      icon: const Icon(LucideIcons.coffee, size: 18, color: Color(0xFF8B5CF6)),
+                      icon: const Icon(
+                        LucideIcons.coffee,
+                        size: 18,
+                        color: Color(0xFF8B5CF6),
+                      ),
                       onPressed: _registrarConsumoInterno,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -9555,7 +9969,8 @@ class _VentasScreenState extends State<VentasScreen>
                 ),
                 for (final b in billetes)
                   _buildDenomChip(
-                    label: 'S/ ${b % 1 == 0 ? b.toInt() : b.toStringAsFixed(2)}',
+                    label:
+                        'S/ ${b % 1 == 0 ? b.toInt() : b.toStringAsFixed(2)}',
                     amount: b,
                     isDark: isDark,
                   ),
@@ -10898,7 +11313,9 @@ class _VentasScreenState extends State<VentasScreen>
               Icon(
                 esInformal ? LucideIcons.leaf : LucideIcons.checkCircle2,
                 size: 11,
-                color: esInformal ? const Color(0xFF0D9488) : AppTheme.accentGreen,
+                color: esInformal
+                    ? const Color(0xFF0D9488)
+                    : AppTheme.accentGreen,
               ),
               const SizedBox(width: 4),
               Flexible(

@@ -38,6 +38,7 @@ class PagoYapeModal {
       }
     }
   }
+
   static Future<void> show(
     BuildContext context, {
     String planInicial = 'PRO',
@@ -542,8 +543,7 @@ class PagoYapeModal {
                                       final cod = codOperacionCtrl.text.trim();
                                       if (cod.length < 4) {
                                         setModalState(
-                                          () => modalError =
-                                              'Ingresa un código de operación válido para reportar.',
+                                          () => modalError = 'Ingresa un código de operación válido para reportar.',
                                         );
                                         return;
                                       }
@@ -584,11 +584,9 @@ class PagoYapeModal {
                                                     padding:
                                                         const EdgeInsets.all(8),
                                                     decoration: BoxDecoration(
-                                                      color:
-                                                          const Color(0xFFF59E0B)
-                                                              .withValues(
-                                                                alpha: 0.15,
-                                                              ),
+                                                      color: const Color(
+                                                        0xFFF59E0B,
+                                                      ).withValues(alpha: 0.15),
                                                       shape: BoxShape.circle,
                                                     ),
                                                     child: const Icon(
@@ -615,15 +613,17 @@ class PagoYapeModal {
                                               ),
                                               content: Text(
                                                 'Tu operación N° $cod ha sido registrada como PENDIENTE.\n\nEl macro del sistema la validará en breve. También puedes enviar tu captura a WhatsApp para atención y activación prioritaria.',
-                                                style: GoogleFonts
-                                                    .plusJakartaSans(
-                                                  fontSize: 12.5,
-                                                  color: isDark
-                                                      ? AppTheme
-                                                          .textDarkSecondary
-                                                      : const Color(0xFF475569),
-                                                  height: 1.4,
-                                                ),
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 12.5,
+                                                      color: isDark
+                                                          ? AppTheme
+                                                                .textDarkSecondary
+                                                          : const Color(
+                                                              0xFF475569,
+                                                            ),
+                                                      height: 1.4,
+                                                    ),
                                               ),
                                               actions: [
                                                 TextButton(
@@ -631,11 +631,11 @@ class PagoYapeModal {
                                                       Navigator.pop(alertCtx),
                                                   child: Text(
                                                     'Cerrar',
-                                                    style: GoogleFonts
-                                                        .plusJakartaSans(
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
                                                   ),
                                                 ),
                                                 ElevatedButton.icon(
@@ -655,19 +655,17 @@ class PagoYapeModal {
                                                   label: const Text(
                                                     'Enviar a WhatsApp',
                                                   ),
-                                                  style: ElevatedButton
-                                                      .styleFrom(
+                                                  style: ElevatedButton.styleFrom(
                                                     backgroundColor:
                                                         AppTheme.accentGreen,
                                                     foregroundColor:
                                                         Colors.white,
                                                     elevation: 0,
-                                                    shape:
-                                                        RoundedRectangleBorder(
+                                                    shape: RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                        10,
-                                                      ),
+                                                            10,
+                                                          ),
                                                     ),
                                                   ),
                                                 ),
@@ -833,11 +831,11 @@ class PagoYapeModal {
                       onPressed: isSubmitting
                           ? null
                           : () => _abrirWhatsApp(
-                                context: context,
-                                plan: planSeleccionado,
-                                monto: monto,
-                                codigoOperacion: codOperacionCtrl.text.trim(),
-                              ),
+                              context: context,
+                              plan: planSeleccionado,
+                              monto: monto,
+                              codigoOperacion: codOperacionCtrl.text.trim(),
+                            ),
                       icon: const Icon(
                         LucideIcons.messageCircle,
                         size: 16,

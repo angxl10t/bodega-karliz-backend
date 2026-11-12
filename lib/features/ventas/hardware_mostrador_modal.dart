@@ -5,13 +5,14 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme.dart';
 import '../../core/configuracion_ticket_service.dart';
+import '../../core/native_bluetooth_printer_service.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/karliz_sound_service.dart';
 import '../productos/producto_model.dart';
 
 /// Modal centralizado de Diagnóstico, Calibración y Control de Hardware en Mostrador.
 /// Diseñado para la realidad operativa del bodeguero peruano:
-/// 1. Ticketera térmica (58mm/80mm, RawBT móvil, Web Print en PC Windows, Servidor de red)
+/// 1. Ticketera térmica (58mm/80mm, Bluetooth Nativo Android directo, RawBT móvil, Web Print en PC Windows, Servidor de red)
 /// 2. Lector de código de barras (Pistola USB / Bluetooth / Escáner de sobremesa)
 /// 3. Gaveta de dinero eléctrica (Cajón monedero RJ11)
 /// 4. Teclado rápido y atajos comerciales de mostrador (F2, F4, F7, F8, F9, Esc)
@@ -54,6 +55,9 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
   bool _isOpeningDrawer = false;
   String? _printerStatusMessage;
   bool _printerStatusSuccess = true;
+  bool _isScanningBluetooth = false;
+  List<BluetoothPrinterDevice> _bluetoothDevices = const [];
+  String? _bluetoothErrorMessage;
 
   // Estado del Probador de Escáner
   final TextEditingController _scannerInputCtrl = TextEditingController();
@@ -82,8 +86,55 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
 
   Future<void> _cargarConfiguracion() async {
     final cfg = await ConfiguracionTicketService.cargar();
-    if (mounted) {
-      setState(() => _cfg = cfg);
+    if (!mounted) return;
+    setState(() => _cfg = cfg);
+    if (cfg.modoConexion == 'bluetooth_nativo' &&
+        NativeBluetoothPrinterService.isSupportedPlatform) {
+      _cargarImpresorasBluetooth(silent: true);
+    }
+  }
+
+  Future<void> _cargarImpresorasBluetooth({bool silent = false}) async {
+    if (!NativeBluetoothPrinterService.isSupportedPlatform) {
+      if (!silent && mounted) {
+        setState(() {
+          _bluetoothDevices = const [];
+          _bluetoothErrorMessage = 'La detección Bluetooth nativa directa solo está disponible en la app Android.';
+        });
+      }
+      return;
+    }
+
+    setState(() {
+      _isScanningBluetooth = true;
+      _bluetoothErrorMessage = null;
+    });
+
+    try {
+      final devices =
+          await NativeBluetoothPrinterService.listarImpresorasVinculadas();
+      if (!mounted) return;
+      setState(() {
+        _isScanningBluetooth = false;
+        _bluetoothDevices = devices;
+        if (devices.isEmpty) {
+          _bluetoothErrorMessage = 'No se encontraron dispositivos Bluetooth vinculados. Empareja tu ticketera en Ajustes > Bluetooth del celular y vuelve a buscar.';
+        }
+      });
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isScanningBluetooth = false;
+        _bluetoothErrorMessage = e.message?.trim().isNotEmpty == true
+            ? e.message!.trim()
+            : 'No se pudo consultar dispositivos Bluetooth (${e.code}).';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isScanningBluetooth = false;
+        _bluetoothErrorMessage = 'Error al consultar Bluetooth: $e';
+      });
     }
   }
 
@@ -276,149 +327,160 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
         constraints: const BoxConstraints(maxWidth: 680, maxHeight: 720),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Cabecera del Centro de Hardware
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Row(
                 children: [
-                  // Cabecera del Centro de Hardware
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            LucideIcons.cpu,
-                            color: AppTheme.brandPrimary,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Hardware & Mostrador POS',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: textPrimary,
-                                ),
-                              ),
-                              Text(
-                                'Calibración de ticketera, escáner, gaveta y atajos rápidos',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12.5,
-                                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(LucideIcons.x, size: 20),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // TabBar de Periféricos
                   Container(
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: borderColor, width: 1),
-                      ),
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    child: TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      tabAlignment: TabAlignment.start,
-                      indicatorColor: AppTheme.brandPrimary,
-                      indicatorWeight: 3,
-                      labelColor: AppTheme.brandPrimary,
-                      unselectedLabelColor: isDark ? Colors.white54 : const Color(0xFF64748B),
-                      labelStyle: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                      tabs: const [
-                        Tab(
-                          icon: Icon(LucideIcons.printer, size: 18),
-                          text: 'Ticketera Térmica',
-                        ),
-                        Tab(
-                          icon: Icon(LucideIcons.scanBarcode, size: 18),
-                          text: 'Lector de Barras',
-                        ),
-                        Tab(
-                          icon: Icon(LucideIcons.vault, size: 18),
-                          text: 'Gaveta de Dinero',
-                        ),
-                        Tab(
-                          icon: Icon(LucideIcons.keyboard, size: 18),
-                          text: 'Atajos & Kiosco',
-                        ),
-                      ],
+                    child: const Icon(
+                      LucideIcons.cpu,
+                      color: AppTheme.brandPrimary,
+                      size: 24,
                     ),
                   ),
-
-                  // Contenido de las pestañas
+                  const SizedBox(width: 14),
                   Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildTabTicketera(isDark),
-                        _buildTabScanner(isDark),
-                        _buildTabGaveta(isDark),
-                        _buildTabAtajos(isDark),
-                      ],
-                    ),
-                  ),
-
-                  // Barra Inferior
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF0B1120) : const Color(0xFFF8FAFC),
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-                      border: Border(top: BorderSide(color: borderColor)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'CajaYa Hardware Engine v2.0',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                          'Hardware & Mostrador POS',
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
                           ),
                         ),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: AppTheme.brandPrimary,
-                            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Listo',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13.5,
-                            ),
+                        Text(
+                          'Calibración de ticketera, escáner, gaveta y atajos rápidos',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            color: isDark
+                                ? Colors.white60
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(LucideIcons.x, size: 20),
+                  ),
+                ],
+              ),
+            ),
+
+            // TabBar de Periféricos
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: borderColor, width: 1),
+                ),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: AppTheme.brandPrimary,
+                indicatorWeight: 3,
+                labelColor: AppTheme.brandPrimary,
+                unselectedLabelColor: isDark
+                    ? Colors.white54
+                    : const Color(0xFF64748B),
+                labelStyle: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                tabs: const [
+                  Tab(
+                    icon: Icon(LucideIcons.printer, size: 18),
+                    text: 'Ticketera Térmica',
+                  ),
+                  Tab(
+                    icon: Icon(LucideIcons.scanBarcode, size: 18),
+                    text: 'Lector de Barras',
+                  ),
+                  Tab(
+                    icon: Icon(LucideIcons.vault, size: 18),
+                    text: 'Gaveta de Dinero',
+                  ),
+                  Tab(
+                    icon: Icon(LucideIcons.keyboard, size: 18),
+                    text: 'Atajos & Kiosco',
+                  ),
+                ],
+              ),
+            ),
+
+            // Contenido de las pestañas
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTabTicketera(isDark),
+                  _buildTabScanner(isDark),
+                  _buildTabGaveta(isDark),
+                  _buildTabAtajos(isDark),
+                ],
+              ),
+            ),
+
+            // Barra Inferior
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF0B1120)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(24),
+                ),
+                border: Border(top: BorderSide(color: borderColor)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'CajaYa Hardware Engine v2.0',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppTheme.brandPrimary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Listo',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5,
+                      ),
                     ),
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -435,8 +497,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           _buildInfoBanner(
             icon: LucideIcons.checkCircle2,
             title: 'Protocolo Universal ESC/POS',
-            subtitle:
-                'Compatible con rollos de papel térmico continuo de 58mm y 80mm en marcas Xprinter, Epson, POS-58, Sunmi, Goojprt y Zjiang.',
+            subtitle: 'Compatible con rollos de papel térmico continuo de 58mm y 80mm en marcas Xprinter, Epson, POS-58, Sunmi, Goojprt y Zjiang.',
             isDark: isDark,
           ),
           const SizedBox(height: 16),
@@ -494,28 +555,48 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           const SizedBox(height: 8),
           _buildSelectCard(
             title: '🖥️ Impresora del Sistema / Web Print (PC Windows & Mac)',
-            subtitle:
-                'Utiliza el driver USB de Windows directamente desde el navegador con formato térmico sin márgenes. No requiere apps intermedias.',
+            subtitle: 'Utiliza el driver USB de Windows directamente desde el navegador con formato térmico sin márgenes. No requiere apps intermedias.',
             selected: _cfg.modoConexion == 'navegador',
-            onTap: () => _guardarConfiguracion(_cfg.copyWith(modoConexion: 'navegador')),
+            onTap: () =>
+                _guardarConfiguracion(_cfg.copyWith(modoConexion: 'navegador')),
             isDark: isDark,
           ),
           const SizedBox(height: 8),
           _buildSelectCard(
+            title: '📶 Bluetooth Nativo Android (Directo sin RawBT)',
+            subtitle: 'Impresión ESC/POS directa por Bluetooth clásico (SPP) desde CajaYa POS, sin instalar aplicaciones externas.',
+            selected: _cfg.modoConexion == 'bluetooth_nativo',
+            onTap: () {
+              _guardarConfiguracion(
+                _cfg.copyWith(modoConexion: 'bluetooth_nativo'),
+              );
+              if (NativeBluetoothPrinterService.isSupportedPlatform) {
+                _cargarImpresorasBluetooth();
+              }
+            },
+            isDark: isDark,
+          ),
+          if (_cfg.modoConexion == 'bluetooth_nativo') ...[
+            const SizedBox(height: 8),
+            _buildBluetoothNativePanel(isDark),
+          ],
+          const SizedBox(height: 8),
+          _buildSelectCard(
             title: '📱 App RawBT (Android Bluetooth / USB Móvil)',
-            subtitle:
-                'Ideal para celular o tablet conectado por Bluetooth a mini-impresoras portátiles de S/ 80.',
+            subtitle: 'Ideal para celular o tablet conectado por Bluetooth a mini-impresoras portátiles de S/ 80.',
             selected: _cfg.modoConexion == 'rawbt',
-            onTap: () => _guardarConfiguracion(_cfg.copyWith(modoConexion: 'rawbt')),
+            onTap: () =>
+                _guardarConfiguracion(_cfg.copyWith(modoConexion: 'rawbt')),
             isDark: isDark,
           ),
           const SizedBox(height: 8),
           _buildSelectCard(
             title: '🌐 Servidor Local / Red LAN (IP Ethernet)',
-            subtitle:
-                'Para impresoras conectadas al router por cable de red (ej. 192.168.1.100) o puente local 127.0.0.1:40213.',
+            subtitle: 'Para impresoras conectadas al router por cable de red (ej. 192.168.1.100) o puente local 127.0.0.1:40213.',
             selected: _cfg.modoConexion == 'servidor_local',
-            onTap: () => _guardarConfiguracion(_cfg.copyWith(modoConexion: 'servidor_local')),
+            onTap: () => _guardarConfiguracion(
+              _cfg.copyWith(modoConexion: 'servidor_local'),
+            ),
             isDark: isDark,
           ),
           const SizedBox(height: 18),
@@ -524,10 +605,14 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _cfg.impresionAutomatica,
-            onChanged: (val) => _guardarConfiguracion(_cfg.copyWith(impresionAutomatica: val)),
+            onChanged: (val) =>
+                _guardarConfiguracion(_cfg.copyWith(impresionAutomatica: val)),
             title: Text(
               'Impresión automática al cobrar',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5),
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 13.5,
+              ),
             ),
             subtitle: Text(
               'Emite el ticket inmediatamente al registrar la venta sin requerir confirmación.',
@@ -537,10 +622,14 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             value: _cfg.abrirGaveta,
-            onChanged: (val) => _guardarConfiguracion(_cfg.copyWith(abrirGaveta: val)),
+            onChanged: (val) =>
+                _guardarConfiguracion(_cfg.copyWith(abrirGaveta: val)),
             title: Text(
               'Disparar apertura de gaveta de dinero en efectivo',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5),
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 13.5,
+              ),
             ),
             subtitle: Text(
               'Envía el pulso eléctrico a la gaveta conectada por cable RJ11 a la ticketera.',
@@ -555,18 +644,28 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF0F766E),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             icon: _isPrintingTest
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(LucideIcons.printer, size: 18),
             label: Text(
-              _isPrintingTest ? 'Imprimiendo ticket de prueba...' : '🖨️ Imprimir Ticket de Diagnóstico',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
+              _isPrintingTest
+                  ? 'Imprimiendo ticket de prueba...'
+                  : '🖨️ Imprimir Ticket de Diagnóstico',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
             ),
           ),
           if (_printerStatusMessage != null) ...[
@@ -579,14 +678,20 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                     : const Color(0xFFEF4444).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: _printerStatusSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                  color: _printerStatusSuccess
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFEF4444),
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    _printerStatusSuccess ? LucideIcons.check : LucideIcons.alertTriangle,
-                    color: _printerStatusSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                    _printerStatusSuccess
+                        ? LucideIcons.check
+                        : LucideIcons.alertTriangle,
+                    color: _printerStatusSuccess
+                        ? const Color(0xFF10B981)
+                        : const Color(0xFFEF4444),
                     size: 18,
                   ),
                   const SizedBox(width: 8),
@@ -597,14 +702,229 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
                         color: _printerStatusSuccess
-                            ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46))
-                            : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B)),
+                            ? (isDark
+                                  ? const Color(0xFF6EE7B7)
+                                  : const Color(0xFF065F46))
+                            : (isDark
+                                  ? const Color(0xFFFCA5A5)
+                                  : const Color(0xFF991B1B)),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBluetoothNativePanel(bool isDark) {
+    final bool isAndroidSupported =
+        NativeBluetoothPrinterService.isSupportedPlatform;
+    final bool hasSelectedPrinter = _cfg.bluetoothDeviceAddress
+        .trim()
+        .isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                LucideIcons.bluetooth,
+                size: 18,
+                color: AppTheme.brandPrimary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  hasSelectedPrinter
+                      ? 'Ticketera activa: ${_cfg.bluetoothDeviceName.isNotEmpty ? _cfg.bluetoothDeviceName : 'Impresora BT'} (${_cfg.bluetoothDeviceAddress})'
+                      : 'Ninguna ticketera Bluetooth seleccionada',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: hasSelectedPrinter
+                        ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                        : (isDark
+                              ? const Color(0xFFFBBF24)
+                              : const Color(0xFFB45309)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '1. Vincula tu impresora térmica (58mm/80mm) una sola vez en Ajustes > Bluetooth de Android.\n2. Presiona "Buscar impresoras vinculadas" y elige tu ticketera.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5,
+              color: isDark ? Colors.white70 : const Color(0xFF475569),
+            ),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            key: const Key('bluetooth_scan_button'),
+            onPressed: _isScanningBluetooth
+                ? null
+                : () => _cargarImpresorasBluetooth(),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.brandPrimary,
+              side: BorderSide(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.5),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+            ),
+            icon: _isScanningBluetooth
+                ? const SizedBox(
+                    width: 15,
+                    height: 15,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(LucideIcons.refreshCw, size: 15),
+            label: Text(
+              _isScanningBluetooth
+                  ? 'Consultando impresoras vinculadas...'
+                  : 'Buscar impresoras vinculadas',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (!isAndroidSupported && _bluetoothErrorMessage == null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Disponible únicamente en la app Android. En Windows/Mac/Web usa "Impresora del Sistema / Web Print".',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+              ),
+            ),
+          ],
+          if (_bluetoothErrorMessage != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFFEF4444).withValues(alpha: 0.4),
+                ),
+              ),
+              child: Text(
+                _bluetoothErrorMessage!,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? const Color(0xFFFCA5A5)
+                      : const Color(0xFF991B1B),
+                ),
+              ),
+            ),
+          ],
+          if (_bluetoothDevices.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            ..._bluetoothDevices.map((device) {
+              final bool selected =
+                  _cfg.bluetoothDeviceAddress.trim().toUpperCase() ==
+                  device.address.trim().toUpperCase();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: InkWell(
+                  onTap: () => _guardarConfiguracion(
+                    _cfg.copyWith(
+                      modoConexion: 'bluetooth_nativo',
+                      bluetoothDeviceName: device.name,
+                      bluetoothDeviceAddress: device.address,
+                    ),
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppTheme.brandPrimary.withValues(alpha: 0.12)
+                          : (isDark ? const Color(0xFF0F172A) : Colors.white),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: selected
+                            ? AppTheme.brandPrimary
+                            : (isDark
+                                  ? Colors.white12
+                                  : const Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          selected ? LucideIcons.check : LucideIcons.printer,
+                          size: 16,
+                          color: selected
+                              ? AppTheme.brandPrimary
+                              : (isDark ? Colors.white54 : Colors.black54),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                device.name,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                device.address,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? Colors.white60
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (selected)
+                          Text(
+                            'ACTIVA',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.brandPrimary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
           ],
         ],
       ),
@@ -625,8 +945,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           _buildInfoBanner(
             icon: LucideIcons.scanLine,
             title: 'Lector USB / Bluetooth emulado (HID Wedge)',
-            subtitle:
-                'Cualquier pistola lectora de S/ 45 en Wilson o MercadoLibre funciona como teclado emulado. Al escanear, envía los números y salta de línea (Enter).',
+            subtitle: 'Cualquier pistola lectora de S/ 45 en Wilson o MercadoLibre funciona como teclado emulado. Al escanear, envía los números y salta de línea (Enter).',
             isDark: isDark,
           ),
           const SizedBox(height: 16),
@@ -659,7 +978,11 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
               children: [
                 Row(
                   children: [
-                    const Icon(LucideIcons.barcode, size: 22, color: AppTheme.brandPrimary),
+                    const Icon(
+                      LucideIcons.barcode,
+                      size: 22,
+                      color: AppTheme.brandPrimary,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -696,7 +1019,11 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    prefixIcon: const Icon(LucideIcons.zap, size: 18, color: Color(0xFFD97706)),
+                    prefixIcon: const Icon(
+                      LucideIcons.zap,
+                      size: 18,
+                      color: Color(0xFFD97706),
+                    ),
                   ),
                   onChanged: (val) {
                     _firstCharTime ??= DateTime.now();
@@ -732,11 +1059,16 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                          color: isDark
+                              ? Colors.white60
+                              : const Color(0xFF64748B),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: esHardware
                               ? const Color(0xFF10B981).withValues(alpha: 0.15)
@@ -744,11 +1076,15 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          esHardware ? '⚡ ESCÁNER FÍSICO DETECTADO' : '⌨️ TECLEO MANUAL',
+                          esHardware
+                              ? '⚡ ESCÁNER FÍSICO DETECTADO'
+                              : '⌨️ TECLEO MANUAL',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w800,
-                            color: esHardware ? const Color(0xFF10B981) : const Color(0xFFD97706),
+                            color: esHardware
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFD97706),
                           ),
                         ),
                       ),
@@ -778,7 +1114,9 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                       Expanded(
                         child: _buildMetricTile(
                           label: 'Terminador Enter',
-                          value: _scannerEnterDetectado ? '✓ Sí (Enter)' : '✗ Sin Enter',
+                          value: _scannerEnterDetectado
+                              ? '✓ Sí (Enter)'
+                              : '✗ Sin Enter',
                           icon: LucideIcons.cornerDownLeft,
                           isDark: isDark,
                         ),
@@ -794,7 +1132,9 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F766E).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF0F766E).withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: const Color(0xFF0F766E).withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -802,10 +1142,15 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(LucideIcons.packageCheck, color: Color(0xFF0F766E)),
+                            child: const Icon(
+                              LucideIcons.packageCheck,
+                              color: Color(0xFF0F766E),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -823,7 +1168,9 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                                   'Precio mostrador: S/ ${_productoDetectado!.precioVenta.toStringAsFixed(2)} | Stock: ${_productoDetectado!.stockActual.toStringAsFixed(0)} un.',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
-                                    color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                    color: isDark
+                                        ? Colors.white70
+                                        : const Color(0xFF475569),
                                   ),
                                 ),
                               ],
@@ -838,11 +1185,17 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                       decoration: BoxDecoration(
                         color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.info, color: Color(0xFFD97706), size: 20),
+                          const Icon(
+                            LucideIcons.info,
+                            color: Color(0xFFD97706),
+                            size: 20,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -875,8 +1228,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           _buildInfoBanner(
             icon: LucideIcons.vault,
             title: 'Conexión de Cajón Monedero por Cable RJ11',
-            subtitle:
-                'La gaveta metálica para billetes y monedas no se conecta a la computadora; se enchufa con su cable de teléfono RJ11 en la parte trasera de tu ticketera térmica. La ticketera le envía un pulso de 24V para abrirla.',
+            subtitle: 'La gaveta metálica para billetes y monedas no se conecta a la computadora; se enchufa con su cable de teléfono RJ11 en la parte trasera de tu ticketera térmica. La ticketera le envía un pulso de 24V para abrirla.',
             isDark: isDark,
           ),
           const SizedBox(height: 18),
@@ -901,7 +1253,11 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                         color: const Color(0xFF10B981).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(LucideIcons.keyRound, color: Color(0xFF10B981), size: 26),
+                      child: const Icon(
+                        LucideIcons.keyRound,
+                        color: Color(0xFF10B981),
+                        size: 26,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -919,7 +1275,9 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                             'Abre la gaveta para dar sencillo o cambiar billetes sin necesidad de realizar una venta ficticia.',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                              color: isDark
+                                  ? Colors.white60
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ],
@@ -933,17 +1291,24 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   icon: _isOpeningDrawer
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(LucideIcons.vault, size: 20),
                   label: Text(
-                    _isOpeningDrawer ? 'Disparando solenoide...' : '💰 ABRIR GAVETA AHORA (Tecla F7)',
+                    _isOpeningDrawer
+                        ? 'Disparando solenoide...'
+                        : '💰 ABRIR GAVETA AHORA (Tecla F7)',
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w800,
                       fontSize: 14.5,
@@ -995,8 +1360,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           _buildInfoBanner(
             icon: LucideIcons.keyboard,
             title: 'Operatividad Rápida sin Ratón (Fast-Keys)',
-            subtitle:
-                'En hora punta con fila de vecinos, el cajero opera a máxima velocidad usando únicamente el teclado físico de la computadora o tablet.',
+            subtitle: 'En hora punta con fila de vecinos, el cajero opera a máxima velocidad usando únicamente el teclado físico de la computadora o tablet.',
             isDark: isDark,
           ),
           const SizedBox(height: 16),
@@ -1012,13 +1376,48 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
           ),
           const SizedBox(height: 10),
 
-          _buildShortcutRow('F2', 'Buscar Producto', 'Enfoca la barra de búsqueda para escribir nombre o marca', isDark),
-          _buildShortcutRow('F4 / F12', 'Cobrar Venta', 'Abre la bandeja de cobro rápido para pagar con Efectivo o Yape', isDark),
-          _buildShortcutRow('F7', 'Abrir Gaveta', 'Expulsa la gaveta metálica de billetes sin emitir papel', isDark),
-          _buildShortcutRow('F8', 'Venta en Espera', 'Pone en espera la compra actual o abre la lista de tickets pausados', isDark),
-          _buildShortcutRow('F9', 'Régimen / Comprobante', 'Alterna entre Boleta de Venta y Ticket de Mostrador', isDark),
-          _buildShortcutRow('Esc', 'Limpiar / Cancelar', 'Borra la búsqueda actual o vacía la canasta si está vacía', isDark),
-          _buildShortcutRow('Enter', 'Escanear Código', 'Al disparar con la pistola, se agrega el ítem automáticamente', isDark),
+          _buildShortcutRow(
+            'F2',
+            'Buscar Producto',
+            'Enfoca la barra de búsqueda para escribir nombre o marca',
+            isDark,
+          ),
+          _buildShortcutRow(
+            'F4 / F12',
+            'Cobrar Venta',
+            'Abre la bandeja de cobro rápido para pagar con Efectivo o Yape',
+            isDark,
+          ),
+          _buildShortcutRow(
+            'F7',
+            'Abrir Gaveta',
+            'Expulsa la gaveta metálica de billetes sin emitir papel',
+            isDark,
+          ),
+          _buildShortcutRow(
+            'F8',
+            'Venta en Espera',
+            'Pone en espera la compra actual o abre la lista de tickets pausados',
+            isDark,
+          ),
+          _buildShortcutRow(
+            'F9',
+            'Régimen / Comprobante',
+            'Alterna entre Boleta de Venta y Ticket de Mostrador',
+            isDark,
+          ),
+          _buildShortcutRow(
+            'Esc',
+            'Limpiar / Cancelar',
+            'Borra la búsqueda actual o vacía la canasta si está vacía',
+            isDark,
+          ),
+          _buildShortcutRow(
+            'Enter',
+            'Escanear Código',
+            'Al disparar con la pistola, se agrega el ítem automáticamente',
+            isDark,
+          ),
         ],
       ),
     );
@@ -1036,7 +1435,9 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
       decoration: BoxDecoration(
         color: AppTheme.brandPrimary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.25)),
+        border: Border.all(
+          color: AppTheme.brandPrimary.withValues(alpha: 0.25),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1187,7 +1588,11 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 6),
-            child: Icon(LucideIcons.check, size: 14, color: AppTheme.accentGreen),
+            child: Icon(
+              LucideIcons.check,
+              size: 14,
+              color: AppTheme.accentGreen,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -1205,7 +1610,12 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
     );
   }
 
-  Widget _buildShortcutRow(String keyBadge, String action, String description, bool isDark) {
+  Widget _buildShortcutRow(
+    String keyBadge,
+    String action,
+    String description,
+    bool isDark,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

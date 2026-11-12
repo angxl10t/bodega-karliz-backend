@@ -120,15 +120,21 @@ void main() {
         }
       }
 
-      final dove = CatalogoImagenesService.buscarSugerencia(codigoBarras: '7750113008056');
+      final dove = CatalogoImagenesService.buscarSugerencia(
+        codigoBarras: '7750113008056',
+      );
       expect(dove?.id, equals('jabon_dove'));
       expect(dove?.imagenUrl, endsWith('jabon_dove.png'));
 
-      final rexonaMen = CatalogoImagenesService.buscarSugerencia(codigoBarras: '7750113008094');
+      final rexonaMen = CatalogoImagenesService.buscarSugerencia(
+        codigoBarras: '7750113008094',
+      );
       expect(rexonaMen?.id, equals('desodorante_rexona'));
       expect(rexonaMen?.imagenUrl, endsWith('rexona_men.png'));
 
-      final rexonaWomen = CatalogoImagenesService.buscarSugerencia(codigoBarras: '7750113008100');
+      final rexonaWomen = CatalogoImagenesService.buscarSugerencia(
+        codigoBarras: '7750113008100',
+      );
       expect(rexonaWomen?.id, equals('desodorante_rexona_women'));
       expect(rexonaWomen?.imagenUrl, endsWith('rexona_women.png'));
     });

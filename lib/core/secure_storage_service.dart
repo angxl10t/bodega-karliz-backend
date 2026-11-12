@@ -29,6 +29,7 @@ class SecureStorageService {
       } catch (_) {}
     }
   }
+
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(resetOnError: true),
   );

@@ -12,10 +12,7 @@ import '../../core/theme.dart';
 class SelectorPlanRegistroModal extends StatefulWidget {
   final String planActual;
 
-  const SelectorPlanRegistroModal({
-    super.key,
-    this.planActual = 'PRO',
-  });
+  const SelectorPlanRegistroModal({super.key, this.planActual = 'PRO'});
 
   static Future<String?> show(
     BuildContext context, {
@@ -95,7 +92,8 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                            color: const Color(0xFF8B5CF6)
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
@@ -114,7 +112,9 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
                                 ),
                               ),
                               Text(
@@ -164,8 +164,10 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                         gradient: LinearGradient(
                           colors: isDark
                               ? [
-                                  const Color(0xFF14532D).withValues(alpha: 0.5),
-                                  const Color(0xFF052E16).withValues(alpha: 0.6),
+                                  const Color(0xFF14532D)
+                                      .withValues(alpha: 0.5),
+                                  const Color(0xFF052E16)
+                                      .withValues(alpha: 0.6),
                                 ]
                               : [
                                   const Color(0xFFDCFCE7),
@@ -185,7 +187,9 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppTheme.accentGreen.withValues(alpha: 0.2),
+                              color: AppTheme.accentGreen.withValues(
+                                alpha: 0.2,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -248,8 +252,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                       subtituloPrecio: 'el 1er mes (luego S/ 100 / mes)',
                       badgeSuperior: '🔥 RECOMENDADO • 1 MES GRATIS',
                       colorBadge: AppTheme.accentGreen,
-                      descripcion:
-                          'Para bodegas y minimarkets que buscan crecer, vender por WhatsApp y tener catálogo web online propio.',
+                      descripcion: 'Para bodegas y minimarkets que buscan crecer, vender por WhatsApp y tener catálogo web online propio.',
                       limiteProductos: 'ILIMITADO (Sin tope)',
                       isDark: isDark,
                     ),
@@ -263,8 +266,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                       subtituloPrecio: '/ mes (facturación mensual)',
                       badgeSuperior: '🏪 BODEGAS TRADICIONALES',
                       colorBadge: const Color(0xFF64748B),
-                      descripcion:
-                          'Para pequeños puestos o bodegas con surtido acotado que solo necesitan registrar ventas rápidas de mostrador.',
+                      descripcion: 'Para pequeños puestos o bodegas con surtido acotado que solo necesitan registrar ventas rápidas de mostrador.',
                       limiteProductos: 'Hasta 150 productos',
                       isDark: isDark,
                     ),
@@ -371,8 +373,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                             ),
                             _buildFeatureRow(
                               nombre: 'Catálogo Web Online Oficial Propio',
-                              detalle:
-                                  'cajaya-pos.onrender.com/#/catalogo?tienda=tu-bodega',
+                              detalle: 'cajaya-pos.onrender.com/#/catalogo?tienda=tu-bodega',
                               valorBasico: '❌ No',
                               valorPro: '✅ Sí (WhatsApp)',
                               isProExclusive: true,
@@ -380,8 +381,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                             ),
                             _buildFeatureRow(
                               nombre: 'Kit Viralidad & Marketing de Barrio',
-                              detalle:
-                                  'Volantes térmicos para vuelto y afiches con QR',
+                              detalle: 'Volantes térmicos para vuelto y afiches con QR',
                               valorBasico: '❌ No',
                               valorPro: '✅ Sí',
                               isProExclusive: true,
@@ -389,8 +389,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                             ),
                             _buildFeatureRow(
                               nombre: 'Dashboard BI & Rotación ABC',
-                              detalle:
-                                  'Margen neto en soles, utilidad y productos estrella',
+                              detalle: 'Margen neto en soles, utilidad y productos estrella',
                               valorBasico: '❌ No',
                               valorPro: '✅ Sí',
                               isProExclusive: true,
@@ -398,8 +397,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                             ),
                             _buildFeatureRow(
                               nombre: 'Detector de Mercadería Hueso',
-                              detalle:
-                                  'Alertas de dinero inmovilizado y combos sugeridos',
+                              detalle: 'Alertas de dinero inmovilizado y combos sugeridos',
                               valorBasico: '❌ No',
                               valorPro: '✅ Sí',
                               isProExclusive: true,
@@ -407,8 +405,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                             ),
                             _buildFeatureRow(
                               nombre: 'Auditoría Ciega de Caja',
-                              detalle:
-                                  'Cierre y arqueo sin mostrar monto teórico a cajeros',
+                              detalle: 'Cierre y arqueo sin mostrar monto teórico a cajeros',
                               valorBasico: '❌ No',
                               valorPro: '✅ Sí',
                               isProExclusive: true,
@@ -416,8 +413,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                             ),
                             _buildFeatureRow(
                               nombre: 'Envío de Cierre Auditado a WhatsApp',
-                              detalle:
-                                  'Resumen de ventas y dinero en caja directo al dueño',
+                              detalle: 'Resumen de ventas y dinero en caja directo al dueño',
                               valorBasico: '❌ No',
                               valorPro: '✅ Sí',
                               isProExclusive: true,
@@ -432,7 +428,8 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                               isDark: isDark,
                             ),
                             _buildFeatureRow(
-                              nombre: 'POS Rápido en Mostrador & Tickets 58/80mm',
+                              nombre:
+                                  'POS Rápido en Mostrador & Tickets 58/80mm',
                               detalle: 'Ventas ágiles, código de barras y gaveta RJ11',
                               valorBasico: '✅ Sí',
                               valorPro: '✅ Sí',
@@ -449,7 +446,8 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                             ),
                             _buildFeatureRow(
                               nombre: 'Modo Offline Resiliente (Sin Internet)',
-                              detalle: 'Sigue vendiendo ante cortes de señal móvil',
+                              detalle:
+                                  'Sigue vendiendo ante cortes de señal móvil',
                               valorBasico: '✅ Sí',
                               valorPro: '✅ Sí',
                               isProExclusive: false,
@@ -560,8 +558,12 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
         decoration: BoxDecoration(
           color: isSelected
               ? (isPro
-                  ? AppTheme.accentGreen.withValues(alpha: isDark ? 0.16 : 0.08)
-                  : AppTheme.brandPrimary.withValues(alpha: isDark ? 0.16 : 0.06))
+                    ? AppTheme.accentGreen.withValues(
+                        alpha: isDark ? 0.16 : 0.08,
+                      )
+                    : AppTheme.brandPrimary.withValues(
+                        alpha: isDark ? 0.16 : 0.06,
+                      ))
               : (isDark ? AppTheme.cardDarkElevated : Colors.white),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
@@ -573,8 +575,9 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary)
-                        .withValues(alpha: 0.18),
+                    color:
+                        (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary)
+                            .withValues(alpha: 0.18),
                     blurRadius: 14,
                     offset: const Offset(0, 4),
                   ),
@@ -588,8 +591,10 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colorBadge.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
@@ -609,9 +614,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                   ),
                 ),
                 Icon(
-                  isSelected
-                      ? LucideIcons.checkCircle2
-                      : LucideIcons.circle,
+                  isSelected ? LucideIcons.checkCircle2 : LucideIcons.circle,
                   color: isSelected
                       ? (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary)
                       : const Color(0xFF94A3B8),
@@ -654,7 +657,9 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: isPro
-                    ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF15803D))
+                    ? (isDark
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFF15803D))
                     : (isDark ? Colors.white : AppTheme.brandDark),
               ),
             ),
@@ -664,7 +669,9 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
               descripcion,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
-                color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF475569),
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF475569),
                 height: 1.35,
               ),
             ),
@@ -684,7 +691,9 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                   Icon(
                     isPro ? LucideIcons.infinity : LucideIcons.package,
                     size: 14,
-                    color: isPro ? AppTheme.accentGreen : const Color(0xFF64748B),
+                    color: isPro
+                        ? AppTheme.accentGreen
+                        : const Color(0xFF64748B),
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -694,8 +703,8 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                       fontWeight: FontWeight.w700,
                       color: isPro
                           ? (isDark
-                              ? const Color(0xFF4ADE80)
-                              : const Color(0xFF166534))
+                                ? const Color(0xFF4ADE80)
+                                : const Color(0xFF166534))
                           : (isDark ? Colors.white70 : const Color(0xFF334155)),
                     ),
                   ),
@@ -792,8 +801,8 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                     fontWeight: FontWeight.w800,
                     color: isProExclusive
                         ? (isDark
-                            ? const Color(0xFF4ADE80)
-                            : const Color(0xFF15803D))
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D))
                         : (isDark ? Colors.white : const Color(0xFF1E293B)),
                   ),
                 ),

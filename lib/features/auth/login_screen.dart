@@ -882,11 +882,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   child: _keepMeSignedIn
-                      ? const Icon(
-                          Icons.check,
-                          size: 13,
-                          color: Colors.white,
-                        )
+                      ? const Icon(Icons.check, size: 13, color: Colors.white)
                       : null,
                 ),
                 const SizedBox(width: 8),

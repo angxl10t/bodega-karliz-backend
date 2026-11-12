@@ -45,38 +45,39 @@ void main() {
   });
 
   group('RecuperarPasswordModal Widget Tests', () {
-    testWidgets('Renderiza Paso 1 (Identificación) con campo para usuario o correo', (tester) async {
+    testWidgets(
+      'Renderiza Paso 1 (Identificación) con campo para usuario o correo',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 1000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: RecuperarPasswordModal(initialIdentificador: 'bodega-test'),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Título y encabezado
+        expect(find.text('¿Olvidaste tu Contraseña?'), findsOneWidget);
+        expect(find.text('Usuario o Correo Electrónico'), findsOneWidget);
+        expect(find.text('bodega-test'), findsOneWidget);
+        expect(find.text('ENVIAR CÓDIGO DE SEGURIDAD'), findsOneWidget);
+        expect(find.text('Cancelar y volver al login'), findsOneWidget);
+      },
+    );
+
+    testWidgets('Muestra error de validación cuando el campo está vacío', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(800, 1000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: RecuperarPasswordModal(initialIdentificador: 'bodega-test'),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Título y encabezado
-      expect(find.text('¿Olvidaste tu Contraseña?'), findsOneWidget);
-      expect(find.text('Usuario o Correo Electrónico'), findsOneWidget);
-      expect(find.text('bodega-test'), findsOneWidget);
-      expect(find.text('ENVIAR CÓDIGO DE SEGURIDAD'), findsOneWidget);
-      expect(find.text('Cancelar y volver al login'), findsOneWidget);
-    });
-
-    testWidgets('Muestra error de validación cuando el campo está vacío', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: RecuperarPasswordModal(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: RecuperarPasswordModal())),
       );
 
       await tester.pumpAndSettle();
@@ -84,34 +85,36 @@ void main() {
       await tester.tap(find.text('ENVIAR CÓDIGO DE SEGURIDAD'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Ingresa tu usuario o correo electrónico.'), findsOneWidget);
+      expect(
+        find.text('Ingresa tu usuario o correo electrónico.'),
+        findsOneWidget,
+      );
     });
   });
 
   group('LoginScreen - Enlace de Recuperación', () {
-    testWidgets('LoginScreen muestra enlace interactivo ¿Olvidaste tu contraseña?', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1200));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+    testWidgets(
+      'LoginScreen muestra enlace interactivo ¿Olvidaste tu contraseña?',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(800, 1200));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: LoginScreen(),
-        ),
-      );
+        await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Verifica presencia del enlace
-      expect(find.text('¿Olvidaste tu contraseña?'), findsOneWidget);
+        // Verifica presencia del enlace
+        expect(find.text('¿Olvidaste tu contraseña?'), findsOneWidget);
 
-      // Desplaza hasta el enlace y pulsa para abrir el modal
-      await tester.ensureVisible(find.text('¿Olvidaste tu contraseña?'));
-      await tester.tap(find.text('¿Olvidaste tu contraseña?'));
-      await tester.pumpAndSettle();
+        // Desplaza hasta el enlace y pulsa para abrir el modal
+        await tester.ensureVisible(find.text('¿Olvidaste tu contraseña?'));
+        await tester.tap(find.text('¿Olvidaste tu contraseña?'));
+        await tester.pumpAndSettle();
 
-      // El modal de recuperación debe desplegarse
-      expect(find.text('¿Olvidaste tu Contraseña?'), findsOneWidget);
-      expect(find.text('ENVIAR CÓDIGO DE SEGURIDAD'), findsOneWidget);
-    });
+        // El modal de recuperación debe desplegarse
+        expect(find.text('¿Olvidaste tu Contraseña?'), findsOneWidget);
+        expect(find.text('ENVIAR CÓDIGO DE SEGURIDAD'), findsOneWidget);
+      },
+    );
   });
 }

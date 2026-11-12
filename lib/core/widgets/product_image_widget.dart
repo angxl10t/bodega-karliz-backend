@@ -92,7 +92,8 @@ class ProductImageWidget extends StatelessWidget {
       }
     }
 
-    if (!_resolvedUrlCache.containsKey(rawUrl) && _resolvedUrlCache.length >= _maxResolvedUrlCacheSize) {
+    if (!_resolvedUrlCache.containsKey(rawUrl) &&
+        _resolvedUrlCache.length >= _maxResolvedUrlCacheSize) {
       _resolvedUrlCache.remove(_resolvedUrlCache.keys.first);
     }
     _resolvedUrlCache[rawUrl] = resolved;
@@ -186,7 +187,8 @@ class ProductImageWidget extends StatelessWidget {
                 );
               }
               // Si fallo y no provino ya de la sugerencia oficial, intentar sugerencia
-              if (!fromCatalogSuggestion && (nombre != null || codigoBarras != null)) {
+              if (!fromCatalogSuggestion &&
+                  (nombre != null || codigoBarras != null)) {
                 final fallbackSug = CatalogoImagenesService.buscarSugerencia(
                   codigoBarras: codigoBarras,
                   nombre: nombre,

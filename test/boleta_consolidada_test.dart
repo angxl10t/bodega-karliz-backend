@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bodega_mobile/features/fiscal/boleta_consolidada_service.dart';
 import 'package:bodega_mobile/core/thermal_ticket_service.dart';
@@ -11,7 +12,8 @@ void main() {
         'cantidadOperacionesSugeridas': 18,
         'montoSugerido': 48.50,
         'yaRegistrada': false,
-        'baseLegal': 'Art. 8, Num. 3.2 de la Res. de Superintendencia N° 007-99/SUNAT',
+        'baseLegal':
+            'Art. 8, Num. 3.2 de la Res. de Superintendencia N° 007-99/SUNAT',
       };
 
       final resumen = ResumenVentasMenores.fromJson(json);
@@ -39,7 +41,8 @@ void main() {
         'observaciones': 'Boleta física del talonario manual',
         'usuarioRegistro': 'Don Pepe',
         'fechaRegistro': '2026-11-03T21:45:00',
-        'baseLegal': 'Art. 8, Num. 3.2 de la Res. de Superintendencia N° 007-99/SUNAT',
+        'baseLegal':
+            'Art. 8, Num. 3.2 de la Res. de Superintendencia N° 007-99/SUNAT',
       };
 
       final resumen = ResumenVentasMenores.fromJson(json);
@@ -51,32 +54,38 @@ void main() {
       expect(resumen.cantidadOperacionesRegistradas, equals(25));
       expect(resumen.tipoEmision, equals('TALONARIO_FISICO'));
       expect(resumen.usuarioRegistro, equals('Don Pepe'));
-      expect(resumen.observaciones, equals('Boleta física del talonario manual'));
+      expect(
+        resumen.observaciones,
+        equals('Boleta física del talonario manual'),
+      );
     });
 
-    test('BoletaConsolidadaRecord parsea correctamente registro del historial', () {
-      final json = {
-        'idBoletaConsolidada': 201,
-        'fechaEmision': '2026-11-02',
-        'montoTotal': 54.00,
-        'cantidadOperaciones': 14,
-        'serieCorrelativo': 'B001-00000005',
-        'tipoEmision': 'SISTEMA_CAJAYA',
-        'observaciones': 'Cierre digital',
-        'usuarioRegistro': 'admin',
-        'fechaRegistro': '2026-11-02T22:00:00',
-      };
+    test(
+      'BoletaConsolidadaRecord parsea correctamente registro del historial',
+      () {
+        final json = {
+          'idBoletaConsolidada': 201,
+          'fechaEmision': '2026-11-02',
+          'montoTotal': 54.00,
+          'cantidadOperaciones': 14,
+          'serieCorrelativo': 'B001-00000005',
+          'tipoEmision': 'SISTEMA_CAJAYA',
+          'observaciones': 'Cierre digital',
+          'usuarioRegistro': 'admin',
+          'fechaRegistro': '2026-11-02T22:00:00',
+        };
 
-      final record = BoletaConsolidadaRecord.fromJson(json);
+        final record = BoletaConsolidadaRecord.fromJson(json);
 
-      expect(record.idBoletaConsolidada, equals(201));
-      expect(record.fechaEmision.day, equals(2));
-      expect(record.montoTotal, equals(54.00));
-      expect(record.cantidadOperaciones, equals(14));
-      expect(record.serieCorrelativo, equals('B001-00000005'));
-      expect(record.tipoEmision, equals('SISTEMA_CAJAYA'));
-      expect(record.usuarioRegistro, equals('admin'));
-    });
+        expect(record.idBoletaConsolidada, equals(201));
+        expect(record.fechaEmision.day, equals(2));
+        expect(record.montoTotal, equals(54.00));
+        expect(record.cantidadOperaciones, equals(14));
+        expect(record.serieCorrelativo, equals('B001-00000005'));
+        expect(record.tipoEmision, equals('SISTEMA_CAJAYA'));
+        expect(record.usuarioRegistro, equals('admin'));
+      },
+    );
 
     test('ThermalTicketService.generateBoletaConsolidadaText genera texto estructurado de respaldo', () {
       final text = ThermalTicketService.generateBoletaConsolidadaText(

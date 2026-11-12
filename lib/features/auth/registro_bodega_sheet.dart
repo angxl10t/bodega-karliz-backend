@@ -704,10 +704,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                               const Color(0xFF14532D).withValues(alpha: 0.35),
                               const Color(0xFF0F172A),
                             ]
-                          : [
-                              const Color(0xFFF0FDF4),
-                              Colors.white,
-                            ],
+                          : [const Color(0xFFF0FDF4), Colors.white],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     )
@@ -715,15 +712,15 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
               color: isPro
                   ? null
                   : (isDark
-                      ? AppTheme.cardDarkElevated
-                      : const Color(0xFFF8FAFC)),
+                        ? AppTheme.cardDarkElevated
+                        : const Color(0xFFF8FAFC)),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: isPro
                     ? AppTheme.accentGreen.withValues(alpha: 0.7)
                     : (isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFCBD5E1)),
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1)),
                 width: 1.8,
               ),
               boxShadow: [
@@ -747,10 +744,11 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: (isPro
-                                ? AppTheme.accentGreen
-                                : const Color(0xFF64748B))
-                            .withValues(alpha: 0.15),
+                        color:
+                            (isPro
+                                    ? AppTheme.accentGreen
+                                    : const Color(0xFF64748B))
+                                .withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -762,8 +760,8 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                           fontWeight: FontWeight.w800,
                           color: isPro
                               ? (isDark
-                                  ? const Color(0xFF4ADE80)
-                                  : const Color(0xFF166534))
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF166534))
                               : const Color(0xFF64748B),
                         ),
                       ),
@@ -822,8 +820,8 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                     fontWeight: FontWeight.w800,
                     color: isPro
                         ? (isDark
-                            ? const Color(0xFF4ADE80)
-                            : const Color(0xFF15803D))
+                              ? const Color(0xFF4ADE80)
+                              : const Color(0xFF15803D))
                         : (isDark ? Colors.white : AppTheme.brandDark),
                   ),
                 ),
