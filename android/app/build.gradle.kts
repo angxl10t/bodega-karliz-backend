@@ -32,7 +32,12 @@ val hasAnyEnvSigning =
         envStorePassword.isNotEmpty() ||
         envKeyAlias.isNotEmpty() ||
         envKeyPassword.isNotEmpty()
-val hasReleaseSigningSource = keystorePropertiesFile.exists() || hasAnyEnvSigning
+val hasCompleteEnvSigning =
+    envStorePath.isNotEmpty() &&
+        envStorePassword.isNotEmpty() &&
+        envKeyAlias.isNotEmpty() &&
+        envKeyPassword.isNotEmpty()
+val hasReleaseSigningSource = keystorePropertiesFile.exists() || hasCompleteEnvSigning
 val isStrictReleaseSigningRequested =
     gradle.startParameter.taskNames.any { it.contains("bundle", ignoreCase = true) } ||
         project.hasProperty("requireReleaseSigning")
@@ -62,8 +67,8 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            if (hasReleaseSigningSource) {
+        if (hasReleaseSigningSource) {
+            create("release") {
                 val rawAlias = if (keystorePropertiesFile.exists()) {
                     keystoreProperties.getProperty("keyAlias")?.trim().orEmpty()
                 } else {
@@ -102,20 +107,29 @@ android {
                 keyPassword = rawKeyPassword
                 storeFile = resolvedStoreFile
                 storePassword = rawStorePassword
-            } else if (isStrictReleaseSigningRequested) {
+            }
+        } else {
+            if (hasAnyEnvSigning) {
+                logger.warn(
+                    "WARNING: Variables ANDROID_KEYSTORE_* incompletas; usando firma debug de previsualizacion para APK."
+                )
+            }
+            if (isStrictReleaseSigningRequested) {
                 throw GradleException(
                     "Falta firma de produccion para generar AAB de Play Store. Configura android/key.properties o las variables ANDROID_KEYSTORE_*."
                 )
-            } else {
-                // Fallback controlado solo para builds APK de previsualizacion sin claves de produccion
-                initWith(getByName("debug"))
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseSigningSource) {
+                signingConfigs.getByName("release")
+            } else {
+                // Fallback controlado solo para builds APK de previsualizacion sin claves de produccion
+                signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
