@@ -136,7 +136,7 @@ jobs:
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.daemon.jvm.options=-Xmx1024m
         run: |
           echo "==> Compilando APK Android optimizado..."
-          flutter build apk --release --verbose
+          flutter build apk --release --verbose --android-skip-build-dependency-validation
 
       - name: Guardar APK Android como Artefacto en GitHub Actions
         uses: actions/upload-artifact@v4
