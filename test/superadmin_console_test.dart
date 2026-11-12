@@ -96,6 +96,59 @@ void main() {
 
       expect(diff, inInclusiveRange(14, 15));
     });
+
+    test('StarterPackPresetItem serializes and deserializes JSON correctly', () {
+      final json = {
+        'idPreset': 1,
+        'codigoBarras': '7750106001015',
+        'nombre': 'Arroz Costeño Extra 1kg',
+        'marca': 'Costeño',
+        'categoria': 'ABARROTES',
+        'precioVenta': 4.80,
+        'precioCosto': 3.90,
+        'imagenUrl': 'https://res.cloudinary.com/cajaya/arroz.jpg',
+        'activo': true,
+      };
+
+      final item = StarterPackPresetItem.fromJson(json);
+
+      expect(item.idPreset, 1);
+      expect(item.codigoBarras, '7750106001015');
+      expect(item.nombre, 'Arroz Costeño Extra 1kg');
+      expect(item.marca, 'Costeño');
+      expect(item.categoria, 'ABARROTES');
+      expect(item.precioVenta, 4.80);
+      expect(item.precioCosto, 3.90);
+      expect(item.imagenUrl, 'https://res.cloudinary.com/cajaya/arroz.jpg');
+      expect(item.activo, isTrue);
+
+      final outJson = item.toJson();
+      expect(outJson['codigoBarras'], '7750106001015');
+      expect(outJson['precioVenta'], 4.80);
+      expect(outJson['activo'], isTrue);
+    });
+
+    test('StarterPackPresetItem parses nullables and numeric strings gracefully', () {
+      final json = {
+        'idPreset': '42',
+        'codigoBarras': '7750106009999',
+        'nombre': 'Gaseosa Inca Kola 500ml',
+        'categoria': 'BEBIDAS',
+        'precioVenta': '3.50',
+        'precioCosto': '2.80',
+        'activo': false,
+      };
+
+      final item = StarterPackPresetItem.fromJson(json);
+
+      expect(item.idPreset, 42);
+      expect(item.codigoBarras, '7750106009999');
+      expect(item.marca, isNull);
+      expect(item.imagenUrl, isNull);
+      expect(item.precioVenta, 3.50);
+      expect(item.precioCosto, 2.80);
+      expect(item.activo, isFalse);
+    });
   });
 
   group('Superadmin Console Widget & Navigation Tests', () {

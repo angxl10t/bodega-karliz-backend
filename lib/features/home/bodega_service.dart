@@ -497,6 +497,87 @@ class BodegaService {
     }
   }
 
+  /// Listar productos del Preset Global de Starter Pack (Exclusivo Superadmin)
+  Future<List<StarterPackPresetItem>> listarStarterPackPresets() async {
+    try {
+      final response = await _client.get('/superadmin/starter-pack');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data
+            .map((json) => StarterPackPresetItem.fromJson(json))
+            .toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Crear nuevo producto en el Preset Global de Starter Pack (Exclusivo Superadmin)
+  Future<StarterPackPresetItem> crearStarterPackPreset(
+    Map<String, dynamic> data,
+  ) async {
+    final response = await _client.post('/superadmin/starter-pack', data);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return StarterPackPresetItem.fromJson(json);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo registrar el producto en el Preset Starter Pack',
+    );
+    throw Exception(errorMsg);
+  }
+
+  /// Actualizar un producto existente del Preset Global (Exclusivo Superadmin)
+  Future<StarterPackPresetItem> actualizarStarterPackPreset(
+    int idPreset,
+    Map<String, dynamic> data,
+  ) async {
+    final response = await _client.put(
+      '/superadmin/starter-pack/$idPreset',
+      data,
+    );
+    if (response.statusCode == 200) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return StarterPackPresetItem.fromJson(json);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo actualizar el producto en el Preset Starter Pack',
+    );
+    throw Exception(errorMsg);
+  }
+
+  /// Eliminar un producto del Preset Global (Exclusivo Superadmin)
+  Future<void> eliminarStarterPackPreset(int idPreset) async {
+    final response = await _client.delete('/superadmin/starter-pack/$idPreset');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'No se pudo eliminar el producto del Preset Starter Pack',
+      );
+      throw Exception(errorMsg);
+    }
+  }
+
+  /// Restablecer el Preset Global a los valores oficiales de fábrica (Exclusivo Superadmin)
+  Future<List<StarterPackPresetItem>> restablecerStarterPackPreset() async {
+    final response = await _client.post(
+      '/superadmin/starter-pack/restablecer',
+      {},
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+      return data
+          .map((json) => StarterPackPresetItem.fromJson(json))
+          .toList();
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo restablecer el Preset Starter Pack a valores de fábrica',
+    );
+    throw Exception(errorMsg);
+  }
+
   /// Obtiene el monitor y semáforo fiscal del Nuevo RUS (ventas y compras del mes vs límites S/ 5,000 y S/ 8,000)
   Future<ResumenNuevoRus?> obtenerMonitorNuevoRus({int? anio, int? mes}) async {
     try {
@@ -667,5 +748,67 @@ class PagoSuscripcionItem {
       usuarioRegistro: json['usuarioRegistro'],
       estado: json['estado'] ?? 'CONFIRMADO',
     );
+  }
+}
+
+class StarterPackPresetItem {
+  final int idPreset;
+  final String codigoBarras;
+  final String nombre;
+  final String? marca;
+  final String categoria;
+  final double precioVenta;
+  final double precioCosto;
+  final String? imagenUrl;
+  final bool activo;
+
+  StarterPackPresetItem({
+    required this.idPreset,
+    required this.codigoBarras,
+    required this.nombre,
+    this.marca,
+    required this.categoria,
+    required this.precioVenta,
+    required this.precioCosto,
+    this.imagenUrl,
+    required this.activo,
+  });
+
+  factory StarterPackPresetItem.fromJson(Map<String, dynamic> json) {
+    return StarterPackPresetItem(
+      idPreset: json['idPreset'] is int
+          ? json['idPreset']
+          : int.parse(json['idPreset']?.toString() ?? '0'),
+      codigoBarras: json['codigoBarras']?.toString() ?? '',
+      nombre: json['nombre']?.toString() ?? '',
+      marca: json['marca']?.toString(),
+      categoria: json['categoria']?.toString() ?? 'GENERAL',
+      precioVenta: json['precioVenta'] != null
+          ? (json['precioVenta'] is num
+                ? (json['precioVenta'] as num).toDouble()
+                : double.tryParse(json['precioVenta'].toString()) ?? 0.0)
+          : 0.0,
+      precioCosto: json['precioCosto'] != null
+          ? (json['precioCosto'] is num
+                ? (json['precioCosto'] as num).toDouble()
+                : double.tryParse(json['precioCosto'].toString()) ?? 0.0)
+          : 0.0,
+      imagenUrl: json['imagenUrl']?.toString(),
+      activo: json['activo'] == true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'idPreset': idPreset,
+      'codigoBarras': codigoBarras,
+      'nombre': nombre,
+      'marca': marca,
+      'categoria': categoria,
+      'precioVenta': precioVenta,
+      'precioCosto': precioCosto,
+      'imagenUrl': imagenUrl,
+      'activo': activo,
+    };
   }
 }

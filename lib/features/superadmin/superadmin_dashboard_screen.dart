@@ -44,6 +44,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   List<BodegaInfo> _bodegas = [];
   List<UsuarioItem> _usuarios = [];
   List<PagoSuscripcionItem> _pagos = [];
+  List<StarterPackPresetItem> _starterPackItems = [];
 
   // Filtros de búsqueda
   final TextEditingController _searchBodegaCtrl = TextEditingController();
@@ -56,6 +57,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   final TextEditingController _searchPagoCtrl = TextEditingController();
   String _filtroBilleteraPago = 'TODOS';
 
+  final TextEditingController _searchStarterPackCtrl = TextEditingController();
+  String _filtroCategoriaStarterPack = 'TODOS';
+  String _filtroEstadoStarterPack = 'TODOS';
+  bool _isLoadingStarterPack = false;
+
   int _latencyMs = 0;
   bool _isRefreshingMetrics = false;
   Timer? _refreshTimer;
@@ -63,7 +69,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _cargarTodo();
     // Refresco periódico ligero cada 60s
     _refreshTimer = Timer.periodic(
@@ -79,6 +85,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     _searchBodegaCtrl.dispose();
     _searchUsuarioCtrl.dispose();
     _searchPagoCtrl.dispose();
+    _searchStarterPackCtrl.dispose();
     super.dispose();
   }
 
@@ -97,6 +104,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       final usuariosFuture = _usuariosService.listarUsuarios();
       final pagosFuture = _bodegaService.listarTodosLosPagos();
       final anuncioFuture = _bodegaService.obtenerAnuncioGlobal();
+      final starterPackFuture = _bodegaService.listarStarterPackPresets();
 
       final results = await Future.wait([
         metricasFuture,
@@ -105,6 +113,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         usuariosFuture,
         pagosFuture,
         anuncioFuture,
+        starterPackFuture,
       ]);
 
       stopwatch.stop();
@@ -117,6 +126,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           _usuarios = results[3] as List<UsuarioItem>;
           _pagos = results[4] as List<PagoSuscripcionItem>;
           _anuncioGlobal = results[5] as Map<String, dynamic>;
+          _starterPackItems = results[6] as List<StarterPackPresetItem>;
           _latencyMs = stopwatch.elapsedMilliseconds;
           _isLoading = false;
         });
@@ -127,6 +137,29 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           _isLoading = false;
           _errorMessage = e.toString().replaceAll('Exception: ', '');
         });
+      }
+    }
+  }
+
+  Future<void> _cargarStarterPack() async {
+    setState(() => _isLoadingStarterPack = true);
+    try {
+      final items = await _bodegaService.listarStarterPackPresets();
+      if (mounted) {
+        setState(() {
+          _starterPackItems = items;
+          _isLoadingStarterPack = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingStarterPack = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al recargar Starter Pack: $e'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
       }
     }
   }
@@ -1698,6 +1731,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           icon: Icon(LucideIcons.server, size: 18),
                           text: 'Infraestructura & Servidor',
                         ),
+                        Tab(
+                          icon: const Icon(LucideIcons.packagePlus, size: 18),
+                          text: 'Preset Starter Pack (${_starterPackItems.length})',
+                        ),
                       ],
                     ),
                   ),
@@ -1711,6 +1748,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         _buildTabUsuarios(isDark),
                         _buildTabPagos(isDark),
                         _buildTabInfraestructura(isDark),
+                        _buildTabStarterPack(isDark),
                       ],
                     ),
                   ),
@@ -3788,5 +3826,1137 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final hours = seconds ~/ 3600;
     final mins = (seconds % 3600) ~/ 60;
     return '$hours h $mins m';
+  }
+
+  // ===========================================================================
+  // PESTAÑA: PRESET STARTER PACK GLOBAL
+  // ===========================================================================
+
+  Widget _buildTabStarterPack(bool isDark) {
+    if (_isLoadingStarterPack) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final query = _searchStarterPackCtrl.text.trim().toLowerCase();
+
+    // Obtener lista única de categorías para los filtros
+    final categoriasUnicas = <String>{};
+    for (final p in _starterPackItems) {
+      if (p.categoria.isNotEmpty) {
+        categoriasUnicas.add(p.categoria.toUpperCase());
+      }
+    }
+    final listaCategorias = categoriasUnicas.toList()..sort();
+
+    final filtrados = _starterPackItems.where((p) {
+      if (query.isNotEmpty) {
+        final nom = p.nombre.toLowerCase();
+        final cod = p.codigoBarras.toLowerCase();
+        final mar = (p.marca ?? '').toLowerCase();
+        final cat = p.categoria.toLowerCase();
+        if (!nom.contains(query) &&
+            !cod.contains(query) &&
+            !mar.contains(query) &&
+            !cat.contains(query)) {
+          return false;
+        }
+      }
+
+      if (_filtroCategoriaStarterPack != 'TODOS') {
+        if (p.categoria.toUpperCase() != _filtroCategoriaStarterPack) {
+          return false;
+        }
+      }
+
+      if (_filtroEstadoStarterPack != 'TODOS') {
+        if (_filtroEstadoStarterPack == 'ACTIVOS' && !p.activo) return false;
+        if (_filtroEstadoStarterPack == 'INACTIVOS' && p.activo) return false;
+      }
+
+      return true;
+    }).toList();
+
+    final totalActivos = _starterPackItems.where((i) => i.activo).length;
+
+    return Column(
+      children: [
+        // Barra Superior: Búsqueda y Botones de Acción
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _searchStarterPackCtrl,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por producto, código de barras o marca...',
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: AppTheme.getAdaptiveHintText(isDark),
+                      ),
+                      prefixIcon: const Icon(LucideIcons.search, size: 18),
+                      suffixIcon: _searchStarterPackCtrl.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(LucideIcons.x, size: 16),
+                              onPressed: () {
+                                _searchStarterPackCtrl.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Botón Restablecer de Fábrica
+              IconButton.filledTonal(
+                tooltip: 'Restablecer Preset a Fábrica (172 productos)',
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F5F9),
+                  foregroundColor: const Color(0xFFE11D48),
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(LucideIcons.rotateCcw, size: 18),
+                onPressed: () => _confirmarRestablecerPreset(context, isDark),
+              ),
+              const SizedBox(width: 8),
+              // Botón Añadir Producto Preset
+              ElevatedButton.icon(
+                icon: const Icon(LucideIcons.plus, size: 16),
+                label: Text(
+                  'Añadir',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () => _mostrarModalCrearEditarPreset(context, isDark),
+              ),
+            ],
+          ),
+        ),
+
+        // Barra Informativa / KPIs del Starter Pack
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF1E1B4B).withValues(alpha: 0.4)
+                : const Color(0xFFEEF2FF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF4338CA).withValues(alpha: 0.5)
+                  : const Color(0xFFC7D2FE),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                LucideIcons.sparkles,
+                color: Color(0xFF6366F1),
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Este catálogo global se clona automáticamente cada vez que se crea o registra una nueva bodega.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? const Color(0xFFA5B4FC)
+                        : const Color(0xFF3730A3),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF312E81) : Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Activos: $totalActivos / ${_starterPackItems.length}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF6366F1),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Chips de Filtro (Estado y Categorías)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip(
+                  'Estado:',
+                  'TODOS',
+                  _filtroEstadoStarterPack,
+                  (v) => setState(() => _filtroEstadoStarterPack = v),
+                ),
+                const SizedBox(width: 4),
+                _buildFilterChip(
+                  '',
+                  'ACTIVOS',
+                  _filtroEstadoStarterPack,
+                  (v) => setState(() => _filtroEstadoStarterPack = v),
+                ),
+                const SizedBox(width: 4),
+                _buildFilterChip(
+                  '',
+                  'INACTIVOS',
+                  _filtroEstadoStarterPack,
+                  (v) => setState(() => _filtroEstadoStarterPack = v),
+                ),
+                const SizedBox(width: 14),
+                _buildFilterChip(
+                  'Categoría:',
+                  'TODOS',
+                  _filtroCategoriaStarterPack,
+                  (v) => setState(() => _filtroCategoriaStarterPack = v),
+                ),
+                ...listaCategorias.map((cat) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: _buildFilterChip(
+                      '',
+                      cat,
+                      _filtroCategoriaStarterPack,
+                      (v) => setState(() => _filtroCategoriaStarterPack = v),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+
+        // Lista de Productos del Preset
+        Expanded(
+          child: filtrados.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.packageOpen,
+                        size: 48,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF94A3B8),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No se encontraron productos en el preset',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Prueba ajustando los filtros o restablece los 172 productos de fábrica.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      ElevatedButton.icon(
+                        icon: const Icon(LucideIcons.rotateCcw, size: 16),
+                        label: const Text('Restablecer de Fábrica'),
+                        onPressed: () =>
+                            _confirmarRestablecerPreset(context, isDark),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  itemCount: filtrados.length,
+                  separatorBuilder: (ctx, idx) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final item = filtrados[index];
+                    return _buildStarterPackItemCard(item, isDark);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStarterPackItemCard(
+    StarterPackPresetItem item,
+    bool isDark,
+  ) {
+    final margenPorcentaje = item.precioVenta > 0
+        ? (((item.precioVenta - item.precioCosto) / item.precioVenta) * 100)
+            .toStringAsFixed(0)
+        : '0';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? (item.activo ? const Color(0xFF334155) : const Color(0xFF1E293B))
+              : (item.activo ? const Color(0xFFE2E8F0) : const Color(0xFFF1F5F9)),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Imagen o Icono de Producto
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: item.imagenUrl != null && item.imagenUrl!.isNotEmpty
+                  ? Image.network(
+                      item.imagenUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, stack) => const Icon(
+                        LucideIcons.package,
+                        size: 24,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    )
+                  : const Icon(
+                      LucideIcons.package,
+                      size: 24,
+                      color: Color(0xFF94A3B8),
+                    ),
+            ),
+            const SizedBox(width: 12),
+
+            // Información Principal
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Título y Marca
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.nombre,
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.5,
+                            color: item.activo
+                                ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                                : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                            decoration: item.activo
+                                ? null
+                                : TextDecoration.lineThrough,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (!item.activo)
+                        Container(
+                          margin: const EdgeInsets.only(left: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'DESACTIVADO',
+                            style: GoogleFonts.outfit(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+
+                  // Categoría y Código de Barras
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          item.categoria,
+                          style: GoogleFonts.outfit(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF7C3AED),
+                          ),
+                        ),
+                      ),
+                      if (item.marca != null && item.marca!.isNotEmpty)
+                        Text(
+                          '• ${item.marca}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.scanBarcode,
+                            size: 12,
+                            color: isDark
+                                ? const Color(0xFF64748B)
+                                : const Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            item.codigoBarras,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Precios: Venta, Costo, Margen
+                  Row(
+                    children: [
+                      Text(
+                        'Venta: ',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                      Text(
+                        'S/ ${item.precioVenta.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Costo: ',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                      Text(
+                        'S/ ${item.precioCosto.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '$margenPorcentaje% mg.',
+                          style: GoogleFonts.outfit(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF10B981),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Acciones: Switch Activo, Editar, Eliminar
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Switch.adaptive(
+                  value: item.activo,
+                  activeTrackColor: const Color(0xFF7C3AED),
+                  onChanged: (val) async {
+                    try {
+                      await _bodegaService.actualizarStarterPackPreset(
+                        item.idPreset,
+                        {'activo': val},
+                      );
+                      if (!mounted) return;
+                      setState(() {
+                        final idx = _starterPackItems.indexWhere(
+                          (i) => i.idPreset == item.idPreset,
+                        );
+                        if (idx != -1) {
+                          _starterPackItems[idx] = StarterPackPresetItem(
+                            idPreset: item.idPreset,
+                            codigoBarras: item.codigoBarras,
+                            nombre: item.nombre,
+                            marca: item.marca,
+                            categoria: item.categoria,
+                            precioVenta: item.precioVenta,
+                            precioCosto: item.precioCosto,
+                            imagenUrl: item.imagenUrl,
+                            activo: val,
+                          );
+                        }
+                      });
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error al cambiar estado: $e'),
+                          backgroundColor: AppTheme.alertRed,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(LucideIcons.pencil, size: 16),
+                      tooltip: 'Editar producto',
+                      onPressed: () => _mostrarModalCrearEditarPreset(
+                        context,
+                        isDark,
+                        item: item,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        LucideIcons.trash2,
+                        size: 16,
+                        color: Color(0xFFEF4444),
+                      ),
+                      tooltip: 'Eliminar del preset',
+                      onPressed: () => _confirmarEliminarPresetItem(
+                        context,
+                        isDark,
+                        item,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // MODALES CRUD PRESET STARTER PACK
+  // ===========================================================================
+
+  Future<void> _mostrarModalCrearEditarPreset(
+    BuildContext context,
+    bool isDark, {
+    StarterPackPresetItem? item,
+  }) async {
+    final esEdicion = item != null;
+    final codigoCtrl = TextEditingController(text: item?.codigoBarras ?? '');
+    final nombreCtrl = TextEditingController(text: item?.nombre ?? '');
+    final marcaCtrl = TextEditingController(text: item?.marca ?? '');
+    final categoriaCtrl = TextEditingController(
+      text: item?.categoria ?? 'ABARROTES',
+    );
+    final precioVentaCtrl = TextEditingController(
+      text: item != null ? item.precioVenta.toStringAsFixed(2) : '1.00',
+    );
+    final precioCostoCtrl = TextEditingController(
+      text: item != null ? item.precioCosto.toStringAsFixed(2) : '0.80',
+    );
+    final imagenUrlCtrl = TextEditingController(text: item?.imagenUrl ?? '');
+    bool activoVal = item?.activo ?? true;
+
+    final formKey = GlobalKey<FormState>();
+    bool guardando = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dlgCtx) => StatefulBuilder(
+        builder: (ctx, setDlgState) {
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  esEdicion ? LucideIcons.filePenLine : LucideIcons.packagePlus,
+                  color: const Color(0xFF7C3AED),
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    esEdicion
+                        ? 'Editar Producto Preset'
+                        : 'Nuevo Producto Preset',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  onPressed: () => Navigator.pop(dlgCtx),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 480,
+              child: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Los cambios se aplicarán globalmente a todas las nuevas bodegas que se registren a partir de ahora.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Código de Barras
+                      TextFormField(
+                        controller: codigoCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Código de Barras (EAN-13 / SKU) *',
+                          prefixIcon: const Icon(LucideIcons.scanBarcode, size: 18),
+                          suffixIcon: IconButton(
+                            tooltip: 'Generar EAN aleatorio',
+                            icon: const Icon(LucideIcons.shuffle, size: 16),
+                            onPressed: () {
+                              final rnd = math.Random();
+                              final ean = '775${List.generate(10, (_) => rnd.nextInt(10)).join()}';
+                              codigoCtrl.text = ean;
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'El código de barras es obligatorio'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Nombre
+                      TextFormField(
+                        controller: nombreCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Nombre del Producto *',
+                          prefixIcon: const Icon(LucideIcons.package, size: 18),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'El nombre es obligatorio'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Marca y Categoría en Fila
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: marcaCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Marca (Opcional)',
+                                prefixIcon: const Icon(LucideIcons.tag, size: 18),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: categoriaCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Categoría *',
+                                prefixIcon:
+                                    const Icon(LucideIcons.layers, size: 18),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'La categoría es obligatoria'
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Precios Venta y Costo
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: precioVentaCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'Precio Venta (S/) *',
+                                prefixText: 'S/ ',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              validator: (v) {
+                                final n = double.tryParse(v ?? '');
+                                if (n == null || n < 0) return 'Precio inválido';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: precioCostoCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'Precio Costo (S/) *',
+                                prefixText: 'S/ ',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              validator: (v) {
+                                final n = double.tryParse(v ?? '');
+                                if (n == null || n < 0) return 'Costo inválido';
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Imagen URL
+                      TextFormField(
+                        controller: imagenUrlCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'URL de Imagen (Opcional)',
+                          prefixIcon: const Icon(LucideIcons.image, size: 18),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Switch Activo
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Activo en Preset Starter Pack',
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Si está inactivo, no se clonará a las nuevas bodegas creadas.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                        value: activoVal,
+                        activeTrackColor: const Color(0xFF7C3AED),
+                        onChanged: (v) => setDlgState(() => activoVal = v),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: guardando ? null : () => Navigator.pop(dlgCtx),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
+                ),
+                icon: guardando
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(LucideIcons.save, size: 16),
+                label: Text(guardando ? 'Guardando...' : 'Guardar'),
+                onPressed: guardando
+                    ? null
+                    : () async {
+                        if (!formKey.currentState!.validate()) return;
+                        setDlgState(() => guardando = true);
+
+                        final payload = {
+                          'codigoBarras': codigoCtrl.text.trim(),
+                          'nombre': nombreCtrl.text.trim(),
+                          'marca': marcaCtrl.text.trim().isNotEmpty
+                              ? marcaCtrl.text.trim()
+                              : null,
+                          'categoria': categoriaCtrl.text.trim().toUpperCase(),
+                          'precioVenta': double.parse(precioVentaCtrl.text.trim()),
+                          'precioCosto': double.parse(precioCostoCtrl.text.trim()),
+                          'imagenUrl': imagenUrlCtrl.text.trim().isNotEmpty
+                              ? imagenUrlCtrl.text.trim()
+                              : null,
+                          'activo': activoVal,
+                        };
+
+                        try {
+                          if (esEdicion) {
+                            await _bodegaService.actualizarStarterPackPreset(
+                              item.idPreset,
+                              payload,
+                            );
+                          } else {
+                            await _bodegaService.crearStarterPackPreset(payload);
+                          }
+                          if (context.mounted) {
+                            Navigator.pop(dlgCtx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  esEdicion
+                                      ? 'Producto del preset actualizado correctamente'
+                                      : 'Nuevo producto agregado al preset global',
+                                ),
+                                backgroundColor: AppTheme.accentGreen,
+                              ),
+                            );
+                            await _cargarStarterPack();
+                          }
+                        } catch (e) {
+                          setDlgState(() => guardando = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: AppTheme.alertRed,
+                              ),
+                            );
+                          }
+                        }
+                      },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _confirmarEliminarPresetItem(
+    BuildContext context,
+    bool isDark,
+    StarterPackPresetItem item,
+  ) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(
+              LucideIcons.alertTriangle,
+              color: Color(0xFFEF4444),
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Eliminar Producto del Preset',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          '¿Deseas eliminar permanentemente "${item.nombre}" (${item.codigoBarras}) del catálogo preset global?\n\n'
+          'Las bodegas existentes conservarán su inventario actual, pero las nuevas bodegas ya no recibirán este producto al crearse.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Eliminar del Preset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && context.mounted) {
+      try {
+        await _bodegaService.eliminarStarterPackPreset(item.idPreset);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Producto eliminado del preset global'),
+              backgroundColor: AppTheme.accentGreen,
+            ),
+          );
+          await _cargarStarterPack();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al eliminar producto: $e'),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _confirmarRestablecerPreset(
+    BuildContext context,
+    bool isDark,
+  ) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(
+              LucideIcons.rotateCcw,
+              color: Color(0xFFE11D48),
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Restablecer Preset de Fábrica',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Esta acción borrará cualquier modificación o adición que hayas realizado en el catálogo Starter Pack global y restablecerá los 172 productos oficiales canónicos de CajaYa.\n\n'
+          '¿Estás seguro de continuar?',
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE11D48),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sí, Restablecer Todo'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && context.mounted) {
+      try {
+        final nuevos = await _bodegaService.restablecerStarterPackPreset();
+        if (context.mounted) {
+          setState(() {
+            _starterPackItems = nuevos;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Preset global restablecido con éxito (${nuevos.length} productos oficiales).',
+              ),
+              backgroundColor: AppTheme.accentGreen,
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al restablecer preset: $e'),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+        }
+      }
+    }
   }
 }
