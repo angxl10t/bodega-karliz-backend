@@ -18,7 +18,9 @@ class GarantiaBotellaService {
   static void _ensureCleanupRegistered() {
     if (_cleanupRegistered) return;
     _cleanupRegistered = true;
-    SecureStorageService.registerSessionCleanup(invalidateCache);
+    SecureStorageService.registerSessionCleanup(
+      () => invalidateCache(notify: false),
+    );
   }
 
   static List<GarantiaBotella>? _cachedGarantias;
@@ -29,12 +31,14 @@ class GarantiaBotellaService {
 
   static final ValueNotifier<int> garantiasRevision = ValueNotifier<int>(0);
 
-  static void invalidateCache() {
+  static void invalidateCache({bool notify = true}) {
     _cachedGarantias = null;
     _cacheTimestamp = null;
     _inFlightGarantias = null;
     _cacheEpoch++;
-    garantiasRevision.value++;
+    if (notify) {
+      garantiasRevision.value++;
+    }
   }
 
   Future<List<GarantiaBotella>> getGarantias({

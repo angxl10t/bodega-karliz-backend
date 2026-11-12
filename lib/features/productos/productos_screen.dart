@@ -323,15 +323,15 @@ class _ProductosScreenState extends State<ProductosScreen>
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Container(
                                 width: 3,
                                 height: 3,
-                                decoration: const BoxDecoration(
-                                  color: AppTheme.textMuted,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -355,8 +355,10 @@ class _ProductosScreenState extends State<ProductosScreen>
                                 Container(
                                   width: 3,
                                   height: 3,
-                                  decoration: const BoxDecoration(
-                                    color: AppTheme.textMuted,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.getAdaptiveMutedText(
+                                      isDark,
+                                    ),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -1021,7 +1023,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                             decoration: InputDecoration(
                               hintText: 'Buscar por nombre, código o marca...',
                               hintStyle: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.textMuted,
+                                color: AppTheme.getAdaptiveHintText(isDark),
                                 fontSize: 12.5,
                               ),
                               prefixIcon: const Icon(
@@ -1619,9 +1621,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                           child: Icon(
                             LucideIcons.info,
                             size: 10.5,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF475569),
+                            color: AppTheme.getAdaptiveHintText(isDark),
                           ),
                         ),
                       ),
@@ -1690,7 +1690,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w500,
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                             if (p.codigoBarras != null &&
@@ -1914,7 +1914,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                                   'Marca: ${p.marca}',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
-                                    color: AppTheme.textMuted,
+                                    color: AppTheme.getAdaptiveMutedText(
+                                      isDark,
+                                    ),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -1925,7 +1927,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                                   'EAN: ${p.codigoBarras}',
                                   style: GoogleFonts.outfit(
                                     fontSize: 11,
-                                    color: AppTheme.textMuted,
+                                    color: AppTheme.getAdaptiveMutedText(
+                                      isDark,
+                                    ),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),

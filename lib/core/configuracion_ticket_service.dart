@@ -162,16 +162,46 @@ class ConfiguracionTicket {
 
 /// Servicio singleton para persistir y cargar la configuración de impresión térmica
 class ConfiguracionTicketService {
-  static const String _storageKey = 'cajaya_config_ticket_pos';
+  static const String _defaultStorageKey = 'cajaya_config_ticket_pos';
   static ConfiguracionTicket _actual = const ConfiguracionTicket();
+  static bool _sessionCleanupRegistered = false;
+
+  static void _ensureSessionCleanupRegistered() {
+    if (!_sessionCleanupRegistered) {
+      _sessionCleanupRegistered = true;
+      SecureStorageService.registerSessionCleanup(resetSession);
+    }
+  }
+
+  /// Limpia la configuración en memoria de la bodega al cerrar sesión
+  static void resetSession() {
+    _actual = const ConfiguracionTicket();
+  }
+
+  /// Clave de almacenamiento aislada por bodega para evitar fuga de número Yape/QR
+  static Future<String> _getStorageKey() async {
+    try {
+      final idBodega = await SecureStorageService.read('id_bodega');
+      if (idBodega != null && idBodega.trim().isNotEmpty) {
+        return 'cajaya_config_ticket_pos_${idBodega.trim()}';
+      }
+    } catch (_) {}
+    return _defaultStorageKey;
+  }
 
   /// Configuración en memoria disponible síncronamente
   static ConfiguracionTicket get actual => _actual;
 
   /// Carga la configuración persistida desde SecureStorageService
   static Future<ConfiguracionTicket> cargar() async {
+    _ensureSessionCleanupRegistered();
     try {
-      final raw = await SecureStorageService.read(_storageKey);
+      final key = await _getStorageKey();
+      String? raw = await SecureStorageService.read(key);
+      if ((raw == null || raw.trim().isEmpty) && key != _defaultStorageKey) {
+        // Fallback para migración de configuración previa sin prefijo
+        raw = await SecureStorageService.read(_defaultStorageKey);
+      }
       if (raw != null && raw.trim().isNotEmpty) {
         final decoded = jsonDecode(raw) as Map<String, dynamic>;
         _actual = ConfiguracionTicket.fromJson(decoded);
@@ -184,10 +214,12 @@ class ConfiguracionTicketService {
 
   /// Guarda y actualiza la configuración persistida
   static Future<void> guardar(ConfiguracionTicket config) async {
+    _ensureSessionCleanupRegistered();
     _actual = config;
     try {
+      final key = await _getStorageKey();
       final raw = jsonEncode(config.toJson());
-      await SecureStorageService.write(_storageKey, raw);
+      await SecureStorageService.write(key, raw);
     } catch (_) {}
   }
 }

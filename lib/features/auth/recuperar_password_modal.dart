@@ -571,7 +571,7 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             hintStyle: GoogleFonts.jetBrainsMono(
               fontSize: 28,
               letterSpacing: 10,
-              color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1),
             ),
             filled: true,
             fillColor: isDark
@@ -669,9 +669,7 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                   fontWeight: FontWeight.w700,
                   color: _resendCooldown == 0
                       ? AppTheme.brandPrimary
-                      : (isDark
-                            ? const Color(0xFF64748B)
-                            : const Color(0xFF94A3B8)),
+                      : AppTheme.getAdaptiveHintText(isDark),
                 ),
               ),
             ),

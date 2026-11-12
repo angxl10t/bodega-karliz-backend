@@ -159,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _resetInactivityTimer();
       },
       onLogout: () async {
+        _inactivityTimer?.cancel();
         await AuthService().logout();
         if (mounted) context.go('/login');
       },
@@ -263,169 +264,205 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: SafeArea(
                 top: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Manija superior
-                      Center(
-                        child: Container(
-                          width: 38,
-                          height: 4.5,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF334155)
-                                : const Color(0xFFCBD5E1),
-                            borderRadius: BorderRadius.circular(10),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.88,
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Manija superior
+                        Center(
+                          child: Container(
+                            width: 38,
+                            height: 4.5,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFCBD5E1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
+                        const SizedBox(height: 14),
 
-                      // Cabecera: Título y Cerrar
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+                        // Cabecera: Título y Cerrar
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(7),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.brandPrimary.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    LucideIcons.user,
+                                    size: 18,
+                                    color: AppTheme.brandPrimary,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Mi Cuenta & Turno',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                LucideIcons.x,
+                                size: 20,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                              onPressed: () =>
+                                  Navigator.pop(bottomSheetContext),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+
+                        // Tarjeta de Usuario en Sesión
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(7),
+                                width: 48,
+                                height: 48,
                                 decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(
-                                    alpha: 0.12,
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      AppTheme.brandPrimary,
+                                      AppTheme.brandDark,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.user,
-                                  size: 18,
-                                  color: AppTheme.brandPrimary,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Mi Cuenta & Turno',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            icon: Icon(
-                              LucideIcons.x,
-                              size: 20,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF64748B),
-                            ),
-                            onPressed: () => Navigator.pop(bottomSheetContext),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Tarjeta de Usuario en Sesión
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: cardBg,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: borderColor),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    AppTheme.brandPrimary,
-                                    AppTheme.brandDark,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.brandPrimary.withValues(
-                                      alpha: 0.30,
-                                    ),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  _username.isNotEmpty
-                                      ? _username.substring(0, 1).toUpperCase()
-                                      : 'U',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          _username.isNotEmpty
-                                              ? _username.toUpperCase()
-                                              : 'USUARIO',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w800,
-                                            color: isDark
-                                                ? Colors.white
-                                                : AppTheme.textDark,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.brandPrimary.withValues(
+                                        alpha: 0.30,
                                       ),
-                                      const SizedBox(width: 8),
-                                      InkWell(
-                                        onTap: _userRol == 'ADMIN'
-                                            ? () {
-                                                Navigator.pop(
-                                                  bottomSheetContext,
-                                                );
-                                                MiSuscripcionModal.show(
-                                                  context,
-                                                  nombreBodega: _nombreBodega,
-                                                  planActual: _plan,
-                                                  onPlanUpdated:
-                                                      _cargarDatosUsuario,
-                                                );
-                                              }
-                                            : null,
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    _username.isNotEmpty
+                                        ? _username
+                                              .substring(0, 1)
+                                              .toUpperCase()
+                                        : 'U',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            _username.isNotEmpty
+                                                ? _username.toUpperCase()
+                                                : 'USUARIO',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w800,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : AppTheme.textDark,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                (_userRol == 'SUPERADMIN'
+                                        ),
+                                        const SizedBox(width: 8),
+                                        InkWell(
+                                          onTap: _userRol == 'ADMIN'
+                                              ? () {
+                                                  Navigator.pop(
+                                                    bottomSheetContext,
+                                                  );
+                                                  MiSuscripcionModal.show(
+                                                    context,
+                                                    nombreBodega: _nombreBodega,
+                                                    planActual: _plan,
+                                                    onPlanUpdated:
+                                                        _cargarDatosUsuario,
+                                                  );
+                                                }
+                                              : null,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  (_userRol == 'SUPERADMIN'
+                                                          ? const Color(
+                                                              0xFF8B5CF6,
+                                                            )
+                                                          : (_userRol == 'ADMIN'
+                                                                ? AppTheme
+                                                                      .brandPrimary
+                                                                : const Color(
+                                                                    0xFF64748B,
+                                                                  )))
+                                                      .withValues(alpha: 0.15),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  _userRol == 'SUPERADMIN'
+                                                      ? 'SUPERADMIN'
+                                                      : (_userRol == 'ADMIN'
+                                                            ? 'ADMIN • PLAN $_plan'
+                                                            : 'CAJERO'),
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color:
+                                                        _userRol == 'SUPERADMIN'
                                                         ? const Color(
                                                             0xFF8B5CF6,
                                                           )
@@ -434,81 +471,320 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     .brandPrimary
                                                               : const Color(
                                                                   0xFF64748B,
-                                                                )))
-                                                    .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
+                                                                )),
+                                                  ),
+                                                ),
+                                                if (_userRol == 'ADMIN') ...[
+                                                  const SizedBox(width: 3),
+                                                  const Icon(
+                                                    LucideIcons.chevronRight,
+                                                    size: 10,
+                                                    color:
+                                                        AppTheme.brandPrimary,
+                                                  ),
+                                                ],
+                                              ],
                                             ),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                _userRol == 'SUPERADMIN'
-                                                    ? 'SUPERADMIN'
-                                                    : (_userRol == 'ADMIN'
-                                                          ? 'ADMIN • PLAN $_plan'
-                                                          : 'CAJERO'),
-                                                style: GoogleFonts.outfit(
-                                                  fontSize: 9.5,
-                                                  fontWeight: FontWeight.w800,
-                                                  color:
-                                                      _userRol == 'SUPERADMIN'
-                                                      ? const Color(0xFF8B5CF6)
-                                                      : (_userRol == 'ADMIN'
-                                                            ? AppTheme
-                                                                  .brandPrimary
-                                                            : const Color(
-                                                                0xFF64748B,
-                                                              )),
-                                                ),
-                                              ),
-                                              if (_userRol == 'ADMIN') ...[
-                                                const SizedBox(width: 3),
-                                                const Icon(
-                                                  LucideIcons.chevronRight,
-                                                  size: 10,
-                                                  color: AppTheme.brandPrimary,
-                                                ),
-                                              ],
-                                            ],
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${_bodegaInfo?.nombreComercial ?? (_nombreBodega.isNotEmpty ? _nombreBodega : "CajaYa")} • Terminal Activo',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF64748B),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Suscripción SaaS (Exclusivo Administrador)
+                        if (_userRol == 'ADMIN' ||
+                            _userRol == 'SUPERADMIN') ...[
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              MiSuscripcionModal.show(
+                                context,
+                                nombreBodega: _nombreBodega,
+                                planActual: _plan,
+                                onPlanUpdated: _cargarDatosUsuario,
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 11,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF3B82F6)
+                                            .withValues(alpha: 0.3)
+                                      : const Color(0xFFBFDBFE),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2563EB)
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.crown,
+                                      color: Color(0xFF2563EB),
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Plan ${_plan.toUpperCase()} • Mi Suscripción',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF1E3A8A),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${_bodegaInfo?.nombreComercial ?? (_nombreBodega.isNotEmpty ? _nombreBodega : "CajaYa")} • Terminal Activo',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF64748B),
+                                        Text(
+                                          _diasRestantesPlan != null
+                                              ? (_diasRestantesPlan! < 0
+                                                    ? 'Suscripción vencida • Renovar ahora'
+                                                    : (_diasRestantesPlan! <= 5
+                                                          ? '¡Vence en $_diasRestantesPlan días! • Renovar'
+                                                          : 'Activa • Vence en $_diasRestantesPlan días'))
+                                              : 'Gestionar plan y comprobantes',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                _diasRestantesPlan != null &&
+                                                    _diasRestantesPlan! <= 5
+                                                ? const Color(0xFFD97706)
+                                                : (isDark
+                                                      ? const Color(0xFF93C5FD)
+                                                      : const Color(
+                                                          0xFF2563EB,
+                                                        )),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 9,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2563EB),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      'Gestionar',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+
+                        // Acciones de Turno y Seguridad de Mostrador (Fila ergonómica de 2 tarjetas)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pop(bottomSheetContext);
+                                  _bloquearPantalla();
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: cardBg,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(7),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.brandPrimary
+                                              .withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          LucideIcons.lock,
+                                          color: AppTheme.brandPrimary,
+                                          size: 17,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Bloquear Terminal',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        'Pausa con PIN',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10.5,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pop(bottomSheetContext);
+                                  ConfigurarPinModal.show(
+                                    context,
+                                    onPinGuardado: () {
+                                      if (mounted) setState(() {});
+                                    },
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: cardBg,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: borderColor),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(7),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.accentGreen
+                                              .withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          LucideIcons.keyRound,
+                                          color: AppTheme.accentGreen,
+                                          size: 17,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Mi PIN de Caja',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        'Clave de 4 dígitos',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10.5,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 10),
 
-                      // Suscripción SaaS (Exclusivo Administrador)
-                      if (_userRol == 'ADMIN' || _userRol == 'SUPERADMIN') ...[
+                        // Centro de Ayuda & Atajos de Mostrador
+                        _buildModalMenuTile(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          icon: LucideIcons.helpCircle,
+                          iconColor: const Color(0xFF0284C7),
+                          iconBg: const Color(0xFF0284C7)
+                              .withValues(alpha: 0.12),
+                          title: 'Centro de Ayuda & Atajos',
+                          subtitle:
+                              'Manual del sistema, atajos F2, F4, Esc y guías',
+                          onTap: () {
+                            Navigator.pop(bottomSheetContext);
+                            _mostrarGuiaDidactica();
+                          },
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Cerrar Sesión del Terminal
                         InkWell(
                           onTap: () {
                             Navigator.pop(bottomSheetContext);
-                            MiSuscripcionModal.show(
-                              context,
-                              nombreBodega: _nombreBodega,
-                              planActual: _plan,
-                              onPlanUpdated: _cargarDatosUsuario,
-                            );
+                            _confirmarCerrarSesion();
                           },
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
@@ -517,382 +793,131 @@ class _HomeScreenState extends State<HomeScreen> {
                               vertical: 11,
                             ),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E293B)
-                                  : const Color(0xFFEFF6FF),
+                              color: AppTheme.alertRed.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isDark
-                                    ? const Color(0xFF3B82F6)
-                                          .withValues(alpha: 0.3)
-                                    : const Color(0xFFBFDBFE),
+                                color: AppTheme.alertRed.withValues(
+                                  alpha: 0.25,
+                                ),
                               ),
                             ),
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(7),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2563EB)
-                                        .withValues(alpha: 0.15),
+                                    color: AppTheme.alertRed.withValues(
+                                      alpha: 0.15,
+                                    ),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Icon(
-                                    LucideIcons.crown,
-                                    color: Color(0xFF2563EB),
-                                    size: 18,
+                                    LucideIcons.logOut,
+                                    color: AppTheme.alertRed,
+                                    size: 17,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Plan ${_plan.toUpperCase()} • Mi Suscripción',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? Colors.white
-                                              : const Color(0xFF1E3A8A),
-                                        ),
-                                      ),
-                                      Text(
-                                        _diasRestantesPlan != null
-                                            ? (_diasRestantesPlan! < 0
-                                                  ? 'Suscripción vencida • Renovar ahora'
-                                                  : (_diasRestantesPlan! <= 5
-                                                        ? '¡Vence en $_diasRestantesPlan días! • Renovar'
-                                                        : 'Activa • Vence en $_diasRestantesPlan días'))
-                                            : 'Gestionar plan y comprobantes',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color:
-                                              _diasRestantesPlan != null &&
-                                                  _diasRestantesPlan! <= 5
-                                              ? const Color(0xFFD97706)
-                                              : (isDark
-                                                    ? const Color(0xFF93C5FD)
-                                                    : const Color(0xFF2563EB)),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 9,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF2563EB),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
                                   child: Text(
-                                    'Gestionar',
+                                    'Cerrar Sesión del Terminal',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.alertRed,
                                     ),
                                   ),
+                                ),
+                                const Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 16,
+                                  color: AppTheme.alertRed,
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                      ],
+                        const SizedBox(height: 14),
 
-                      // Acciones de Turno y Seguridad de Mostrador (Fila ergonómica de 2 tarjetas)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.pop(bottomSheetContext);
-                                _bloquearPantalla();
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: cardBg,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: borderColor),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(7),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.brandPrimary.withValues(
-                                          alpha: 0.12,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(
-                                        LucideIcons.lock,
-                                        color: AppTheme.brandPrimary,
-                                        size: 17,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Bloquear Terminal',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark
-                                            ? Colors.white
-                                            : AppTheme.textDark,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      'Pausa con PIN',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10.5,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.pop(bottomSheetContext);
-                                ConfigurarPinModal.show(
-                                  context,
-                                  onPinGuardado: () {
-                                    if (mounted) setState(() {});
-                                  },
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: cardBg,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: borderColor),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(7),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.accentGreen.withValues(
-                                          alpha: 0.12,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(
-                                        LucideIcons.keyRound,
-                                        color: AppTheme.accentGreen,
-                                        size: 17,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Mi PIN de Caja',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark
-                                            ? Colors.white
-                                            : AppTheme.textDark,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      'Clave de 4 dígitos',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 10.5,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Centro de Ayuda & Atajos de Mostrador
-                      _buildModalMenuTile(
-                        isDark: isDark,
-                        cardBg: cardBg,
-                        borderColor: borderColor,
-                        icon: LucideIcons.helpCircle,
-                        iconColor: const Color(0xFF0284C7),
-                        iconBg: const Color(0xFF0284C7).withValues(alpha: 0.12),
-                        title: 'Centro de Ayuda & Atajos',
-                        subtitle:
-                            'Manual del sistema, atajos F2, F4, Esc y guías',
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _mostrarGuiaDidactica();
-                        },
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Cerrar Sesión del Terminal
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          _confirmarCerrarSesion();
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 11,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.alertRed.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppTheme.alertRed.withValues(alpha: 0.25),
-                            ),
-                          ),
-                          child: Row(
+                        // Footer sutil: versión y enlaces legales discretos
+                        Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(7),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.alertRed.withValues(
-                                    alpha: 0.15,
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pop(bottomSheetContext);
+                                  _verificarActualizacion();
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
                                   ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.logOut,
-                                  color: AppTheme.alertRed,
-                                  size: 17,
+                                  child: Wrap(
+                                    alignment: WrapAlignment.center,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    spacing: 4,
+                                    runSpacing: 2,
+                                    children: [
+                                      Text(
+                                        'CajaYa POS v2.4.0',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                      Text(
+                                        '• Buscar actualización',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color: isDark
+                                              ? AppTheme.brandLight
+                                              : AppTheme.brandPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Cerrar Sesión del Terminal',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppTheme.alertRed,
+                              const SizedBox(height: 4),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pop(bottomSheetContext);
+                                  _mostrarModalLegal();
+                                },
+                                borderRadius: BorderRadius.circular(6),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  child: Text(
+                                    'Términos & Privacidad • Libro de Reclamaciones',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.getAdaptiveHintText(
+                                        isDark,
+                                      ),
+                                      decoration: TextDecoration.underline,
+                                      decorationColor:
+                                          AppTheme.getAdaptiveHintText(isDark),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const Icon(
-                                LucideIcons.chevronRight,
-                                size: 16,
-                                color: AppTheme.alertRed,
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Footer sutil: versión y enlaces legales discretos
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(bottomSheetContext);
-                                _verificarActualizacion();
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'CajaYa POS v2.4.0',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '• Buscar actualización',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark
-                                            ? AppTheme.brandLight
-                                            : AppTheme.brandPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(bottomSheetContext);
-                                _mostrarModalLegal();
-                              },
-                              borderRadius: BorderRadius.circular(6),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                child: Text(
-                                  'Términos & Privacidad • Libro de Reclamaciones',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? const Color(0xFF64748B)
-                                        : const Color(0xFF94A3B8),
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: isDark
-                                        ? const Color(0xFF475569)
-                                        : const Color(0xFFCBD5E1),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1023,7 +1048,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Organización inteligente en 5 módulos',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                     ],
@@ -1119,7 +1144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   desc,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                     height: 1.3,
                   ),
                 ),
@@ -1201,6 +1226,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (confirmar == true) {
+      _inactivityTimer?.cancel();
       await AuthService().logout();
       if (mounted) {
         context.go('/login');
@@ -1276,9 +1302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         'Transparencia, protección al consumidor y privacidad',
                         style: GoogleFonts.outfit(
                           fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                     ],
@@ -1513,11 +1537,38 @@ class _HomeScreenState extends State<HomeScreen> {
       onPointerDown: (_) => _resetInactivityTimer(),
       onPointerMove: (_) => _resetInactivityTimer(throttle: true),
       child: PopScope(
-        canPop: _selectedIndex == 0,
-        onPopInvokedWithResult: (didPop, result) {
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
           if (didPop) return;
           if (_selectedIndex != 0) {
             _selectTab(0);
+          } else {
+            final salir = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('¿Deseas salir de CajaYa POS?'),
+                content: const Text(
+                  'El terminal se mantendrá seguro. Si tienes ventas en curso, se recomienda dejarlas en espera antes de salir.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Continuar en el Terminal'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.alertRed,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Salir'),
+                  ),
+                ],
+              ),
+            );
+            if (salir == true) {
+              SystemNavigator.pop();
+            }
           }
         },
         child: Scaffold(
@@ -1638,9 +1689,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 '•',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: isDark
-                                      ? const Color(0xFF475569)
-                                      : const Color(0xFF94A3B8),
+                                  color: AppTheme.getAdaptiveHintText(isDark),
                                 ),
                               ),
                             ),
@@ -1692,9 +1741,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 '•',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: isDark
-                                      ? const Color(0xFF475569)
-                                      : const Color(0xFF94A3B8),
+                                  color: AppTheme.getAdaptiveHintText(isDark),
                                 ),
                               ),
                             ),

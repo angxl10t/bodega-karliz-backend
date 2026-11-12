@@ -222,7 +222,9 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
               '• Plazo legal de respuesta: Máximo 15 días hábiles conforme al Código de Protección y Defensa del Consumidor (Ley N° 29571).\n• Hemos enviado una constancia electrónica al correo registrado.',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.5,
-                color: const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveMutedText(
+                  Theme.of(context).brightness == Brightness.dark,
+                ),
                 height: 1.4,
               ),
             ),
@@ -894,7 +896,7 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
             'Fecha de Registro: $fecha',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              color: const Color(0xFF64748B),
+              color: AppTheme.getAdaptiveMutedText(isDark),
             ),
           ),
           if (estado != 'ATENDIDO') ...[
@@ -914,7 +916,7 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
             style: GoogleFonts.outfit(
               fontSize: 11,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF64748B),
+              color: AppTheme.getAdaptiveMutedText(isDark),
             ),
           ),
           const SizedBox(height: 4),

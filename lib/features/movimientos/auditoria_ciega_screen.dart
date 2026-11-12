@@ -837,9 +837,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                         hintText: 'Buscar en catálogo para contar...',
                         hintStyle: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
+                          color: AppTheme.getAdaptiveHintText(isDark),
                         ),
                         prefixIcon: const Icon(
                           LucideIcons.search,

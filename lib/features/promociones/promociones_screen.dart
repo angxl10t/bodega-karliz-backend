@@ -385,7 +385,8 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                     Icon(
                       LucideIcons.tag,
                       size: 48,
-                      color: AppTheme.textMuted.withValues(alpha: 0.5),
+                      color: AppTheme.getAdaptiveMutedText(isDark)
+                          .withValues(alpha: 0.65),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -393,6 +394,7 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -400,7 +402,7 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                       'Crea tu primera promoción para atraer más clientes a tu catálogo online.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                     const SizedBox(height: 16),

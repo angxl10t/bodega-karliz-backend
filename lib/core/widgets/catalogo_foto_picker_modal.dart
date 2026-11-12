@@ -356,9 +356,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
               hintText: 'Buscar packshot (ej. Inca Kola, Gloria, Primor)...',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
-                color: isDark
-                    ? const Color(0xFF94A3B8)
-                    : const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveHintText(isDark),
               ),
               prefixIcon: const Icon(
                 LucideIcons.search,
@@ -445,7 +443,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
                       Icon(
                         LucideIcons.imageOff,
                         size: 40,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -628,9 +626,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
               hintText: 'https://ejemplo.com/producto-frontal.png',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
-                color: isDark
-                    ? const Color(0xFF94A3B8)
-                    : const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveHintText(isDark),
               ),
               prefixIcon: const Icon(
                 LucideIcons.link2,

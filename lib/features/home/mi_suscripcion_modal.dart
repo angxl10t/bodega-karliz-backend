@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme.dart';
 import '../../core/widgets/pago_yape_modal.dart';
+import '../../core/widgets/plan_comparativa_table.dart';
 import 'bodega_service.dart';
 
 class MiSuscripcionModal extends StatefulWidget {
@@ -173,48 +174,61 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          LucideIcons.crown,
-                          color: AppTheme.brandPrimary,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Mi Plan y Suscripción',
-                            style: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.brandPrimary.withValues(
+                              alpha: 0.12,
                             ),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          Text(
-                            widget.nombreBodega.isNotEmpty
-                                ? widget.nombreBodega
-                                : 'CajaYa Cloud POS',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF64748B),
-                            ),
+                          child: const Icon(
+                            LucideIcons.crown,
+                            color: AppTheme.brandPrimary,
+                            size: 22,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Mi Plan y Suscripción',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                widget.nombreBodega.isNotEmpty
+                                    ? widget.nombreBodega
+                                    : 'CajaYa Cloud POS',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: Icon(
                       LucideIcons.x,
@@ -265,24 +279,29 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                               ),
                             ),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
-                                          isPro
-                                              ? 'Plan Minimarket PRO'
-                                              : 'Plan Bodega Básico',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w900,
-                                            color: isDark
-                                                ? Colors.white
-                                                : AppTheme.textDark,
+                                        Flexible(
+                                          child: Text(
+                                            isPro
+                                                ? 'Plan Minimarket PRO'
+                                                : 'Plan Bodega Básico',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 17.5,
+                                              fontWeight: FontWeight.w900,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : AppTheme.textDark,
+                                            ),
                                           ),
                                         ),
                                         if (isPro) ...[
@@ -320,12 +339,14 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                                             size: 13,
                                           ),
                                           const SizedBox(width: 5),
-                                          Text(
-                                            statusText,
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w800,
-                                              color: statusColor,
+                                          Flexible(
+                                            child: Text(
+                                              statusText,
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w800,
+                                                color: statusColor,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -419,80 +440,95 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                           const SizedBox(height: 18),
 
                           // 3. Botones de Acción (Renovación y Soporte)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(
-                                      0xFF732283,
-                                    ), // Color Yape
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 13,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final yapeBtn = ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF732283),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 13,
+                                    horizontal: 12,
                                   ),
-                                  icon: const Icon(
-                                    LucideIcons.qrCode,
-                                    size: 18,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
-                                  label: Text(
-                                    'Pagar con Yape / Plin',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    PagoYapeModal.show(
-                                      context,
-                                      planInicial: widget.planActual,
-                                      onPlanUpdated: widget.onPlanUpdated,
-                                    );
-                                  },
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF16A34A),
-                                    side: const BorderSide(
-                                      color: Color(0xFF16A34A),
-                                      width: 1.5,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 13,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
+                                icon: const Icon(LucideIcons.qrCode, size: 18),
+                                label: Text(
+                                  'Pagar con Yape / Plin',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
                                   ),
-                                  icon: const Icon(
-                                    LucideIcons.messageCircle,
-                                    size: 18,
-                                  ),
-                                  label: Text(
-                                    'WhatsApp Oficial',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  onPressed: _contactarWhatsAppComercial,
                                 ),
-                              ),
-                            ],
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  PagoYapeModal.show(
+                                    context,
+                                    planInicial: widget.planActual,
+                                    onPlanUpdated: widget.onPlanUpdated,
+                                  );
+                                },
+                              );
+                              final whatsappBtn = OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF16A34A),
+                                  side: const BorderSide(
+                                    color: Color(0xFF16A34A),
+                                    width: 1.5,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 13,
+                                    horizontal: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  LucideIcons.messageCircle,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  'WhatsApp Oficial',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                onPressed: _contactarWhatsAppComercial,
+                              );
+
+                              if (constraints.maxWidth < 330) {
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    yapeBtn,
+                                    const SizedBox(height: 10),
+                                    whatsappBtn,
+                                  ],
+                                );
+                              }
+                              return Row(
+                                children: [
+                                  Expanded(child: yapeBtn),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: whatsappBtn),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 22),
 
                           // 4. Beneficios incluidos en el Plan Activo
                           Text(
-                            'BENEFICIOS INCLUIDOS EN TU PLAN:',
+                            isPro
+                                ? 'INCLUIDO EN TU PLAN MINIMARKET PRO:'
+                                : 'INCLUIDO EN TU PLAN BODEGA BÁSICO:',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
@@ -504,41 +540,64 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                           ),
                           const SizedBox(height: 10),
 
-                          _buildFeatureItem(
-                            icon: LucideIcons.shoppingBag,
-                            title: 'Catálogo Digital "Mi Bodega Online"',
-                            subtitle: 'Enlace web propio para recibir pedidos de clientes por WhatsApp sin comisiones.',
-                            isDark: isDark,
-                          ),
-                          _buildFeatureItem(
-                            icon: LucideIcons.splitSquareVertical,
-                            title: 'Ventas en Espera (Multiticket)',
-                            subtitle: 'Aparca y recupera hasta 5 carritos simultáneos en caja sin perder productos.',
-                            isDark: isDark,
-                          ),
-                          _buildFeatureItem(
-                            icon: LucideIcons.badgePercent,
-                            title: 'Promociones 3x2 y Combos',
-                            subtitle: 'Configura ofertas atractivas con activación/desactivación rápida en mostrador.',
-                            isDark: isDark,
-                          ),
-                          _buildFeatureItem(
-                            icon: LucideIcons.eyeOff,
-                            title: 'Modo Cajero Protegido & Arqueo a Ciegas',
-                            subtitle: 'Evita descuadres forzados ocultando los montos esperados a los cajeros.',
-                            isDark: isDark,
-                          ),
-                          _buildFeatureItem(
-                            icon: LucideIcons.calculator,
-                            title: 'Costo Promedio Ponderado (CPP)',
-                            subtitle: 'Cálculo contable exacto de utilidades ante cambios de precios de proveedores.',
-                            isDark: isDark,
-                          ),
-                          _buildFeatureItem(
-                            icon: LucideIcons.wine,
-                            title: 'Garantía de Botellas Retornables',
-                            subtitle: 'Control de envases retornables de cerveza y gaseosas con devolución en caja.',
-                            isDark: isDark,
+                          if (isPro) ...[
+                            _buildFeatureItem(
+                              icon: LucideIcons.shoppingBag,
+                              title: 'Catálogo Digital "Mi Bodega Online"',
+                              subtitle: 'Enlace web propio para recibir pedidos de clientes por WhatsApp sin comisiones.',
+                              isDark: isDark,
+                            ),
+                            _buildFeatureItem(
+                              icon: LucideIcons.infinity,
+                              title: 'Inventario y Catálogo Ilimitado',
+                              subtitle: 'Registra todos los productos, códigos y presentaciones de tu minimarket.',
+                              isDark: isDark,
+                            ),
+                            _buildFeatureItem(
+                              icon: LucideIcons.badgePercent,
+                              title: 'Promociones 3x2, Combos y Detector Hueso',
+                              subtitle: 'Campañas automáticas y alertas de capital inmovilizado.',
+                              isDark: isDark,
+                            ),
+                            _buildFeatureItem(
+                              icon: LucideIcons.eyeOff,
+                              title:
+                                  'Auditoría Ciega, BI & Cierre por WhatsApp',
+                              subtitle: 'Control anti-robo hormiga, utilidad neta y resumen al dueño.',
+                              isDark: isDark,
+                            ),
+                          ] else ...[
+                            _buildFeatureItem(
+                              icon: LucideIcons.scanBarcode,
+                              title: 'POS Rápido & Tickets Térmicos 58/80mm',
+                              subtitle: 'Cobro ágil con escáner de código de barras e impresión directa.',
+                              isDark: isDark,
+                            ),
+                            _buildFeatureItem(
+                              icon: LucideIcons.package,
+                              title: 'Inventario Activo (Hasta 150 productos)',
+                              subtitle: 'Control de stock en tiempo real y alertas de vencimiento básicas.',
+                              isDark: isDark,
+                            ),
+                            _buildFeatureItem(
+                              icon: LucideIcons.wallet,
+                              title:
+                                  'Caja Diaria, Yape/Plin y Libreta de Fiados',
+                              subtitle: 'Apertura, egresos, arqueo de turno y cuentas por cobrar de vecinos.',
+                              isDark: isDark,
+                            ),
+                            _buildFeatureItem(
+                              icon: LucideIcons.users,
+                              title: 'Modo Offline & Personal Ilimitado',
+                              subtitle: 'Vende incluso sin internet con roles de administrador y cajeros.',
+                              isDark: isDark,
+                            ),
+                          ],
+
+                          const SizedBox(height: 10),
+                          PlanComparativaTable(
+                            highlightedPlan: isPro ? 'PRO' : 'BASICO',
+                            title: 'COMPARATIVA DETALLADA: BÁSICO VS PRO',
                           ),
                         ],
                       ),

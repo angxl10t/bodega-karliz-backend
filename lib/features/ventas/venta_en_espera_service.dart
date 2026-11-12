@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/secure_storage_service.dart';
 import '../clientes/cliente_model.dart';
 import 'venta_model.dart';
 
@@ -81,16 +82,46 @@ class VentaEnEspera {
 }
 
 class VentaEnEsperaService {
-  static const String _storageKey = 'cajaya_ventas_en_espera_v1';
+  static const String _defaultStorageKey = 'cajaya_ventas_en_espera_v1';
   static final List<VentaEnEspera> _ventas = [];
   static final ValueNotifier<int> countNotifier = ValueNotifier<int>(0);
+  static bool _sessionCleanupRegistered = false;
+
+  static void _ensureSessionCleanupRegistered() {
+    if (!_sessionCleanupRegistered) {
+      _sessionCleanupRegistered = true;
+      SecureStorageService.registerSessionCleanup(resetSession);
+    }
+  }
+
+  /// Limpia las ventas en espera en memoria al cerrar sesión
+  static void resetSession() {
+    _ventas.clear();
+    countNotifier.value = 0;
+  }
+
+  /// Clave de almacenamiento aislada por bodega
+  static Future<String> _getStorageKey() async {
+    try {
+      final idBodega = await SecureStorageService.read('id_bodega');
+      if (idBodega != null && idBodega.trim().isNotEmpty) {
+        return 'cajaya_ventas_en_espera_${idBodega.trim()}_v1';
+      }
+    } catch (_) {}
+    return _defaultStorageKey;
+  }
 
   static List<VentaEnEspera> get ventas => List.unmodifiable(_ventas);
 
   static Future<void> inicializar() async {
+    _ensureSessionCleanupRegistered();
     try {
       final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_storageKey);
+      final key = await _getStorageKey();
+      String? raw = prefs.getString(key);
+      if ((raw == null || raw.isEmpty) && key != _defaultStorageKey) {
+        raw = prefs.getString(_defaultStorageKey);
+      }
       if (raw != null && raw.isNotEmpty) {
         final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
         _ventas.clear();
@@ -105,6 +136,7 @@ class VentaEnEsperaService {
   }
 
   static Future<void> ponerEnEspera(VentaEnEspera venta) async {
+    _ensureSessionCleanupRegistered();
     _ventas.removeWhere((v) => v.id == venta.id);
     _ventas.insert(0, venta);
     countNotifier.value = _ventas.length;
@@ -112,6 +144,7 @@ class VentaEnEsperaService {
   }
 
   static Future<VentaEnEspera?> recuperar(String id) async {
+    _ensureSessionCleanupRegistered();
     final idx = _ventas.indexWhere((v) => v.id == id);
     if (idx != -1) {
       final venta = _ventas.removeAt(idx);
@@ -123,6 +156,7 @@ class VentaEnEsperaService {
   }
 
   static Future<void> eliminar(String id) async {
+    _ensureSessionCleanupRegistered();
     _ventas.removeWhere((v) => v.id == id);
     countNotifier.value = _ventas.length;
     await _persistir();
@@ -131,8 +165,9 @@ class VentaEnEsperaService {
   static Future<void> _persistir() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final key = await _getStorageKey();
       final data = jsonEncode(_ventas.map((v) => v.toJson()).toList());
-      await prefs.setString(_storageKey, data);
+      await prefs.setString(key, data);
     } catch (_) {}
   }
 }

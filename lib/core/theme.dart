@@ -90,6 +90,10 @@ class AppTheme {
   static Color getAdaptiveMutedText(bool isDark) =>
       isDark ? textDarkMuted : textMuted;
 
+  /// Retorna un color de placeholder/hint legible y con contraste seguro en claro y oscuro
+  static Color getAdaptiveHintText(bool isDark) =>
+      isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B);
+
   /// Retorna un color de texto secundario nítido según el tema
   static Color getAdaptiveSecondaryText(bool isDark) =>
       isDark ? textDarkSecondary : const Color(0xFF334155);

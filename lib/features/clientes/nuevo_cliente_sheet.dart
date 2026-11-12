@@ -542,7 +542,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
                         'Identifica a los vecinos leales para ofrecerles mejor atención.',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                       onChanged: (val) => setState(() => _esCaserito = val),

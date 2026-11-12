@@ -8,10 +8,18 @@ import 'secure_storage_service.dart';
 class LockService {
   static final LockService _instance = LockService._internal();
   factory LockService() => _instance;
-  LockService._internal();
+  LockService._internal() {
+    SecureStorageService.registerSessionCleanup(resetSession);
+  }
 
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool isLocked = false;
+
+  void resetSession() {
+    isLocked = false;
+    _failedPinAttempts = 0;
+    _blockedUntil = null;
+  }
 
   static const String _pinKey = 'pos_lock_pin';
   static const String _autoLockEnabledKey = 'pos_auto_lock_enabled';

@@ -267,7 +267,7 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
                   'de $totalRestantes pendientes',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: isDark ? Colors.white54 : AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
               ],

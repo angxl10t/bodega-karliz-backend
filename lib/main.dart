@@ -52,10 +52,17 @@ final _router = GoRouter(
     if (path == '/privacidad' || uriStr.startsWith('/privacidad')) return null;
     final isLoggedIn = await AuthService().isLoggedIn();
     if (!isLoggedIn && path != '/login') return '/login';
-    if (isLoggedIn && path == '/login') {
-      final role = await AuthService().getUserRole();
-      if (role.toUpperCase() == 'SUPERADMIN') return '/superadmin';
-      return '/home';
+    if (isLoggedIn) {
+      final role = (await AuthService().getUserRole()).toUpperCase();
+      if (path == '/login') {
+        return role == 'SUPERADMIN' ? '/superadmin' : '/home';
+      }
+      if (path == '/superadmin' && role != 'SUPERADMIN') {
+        return '/home';
+      }
+      if (path == '/home' && role == 'SUPERADMIN') {
+        return '/superadmin';
+      }
     }
     return null;
   },

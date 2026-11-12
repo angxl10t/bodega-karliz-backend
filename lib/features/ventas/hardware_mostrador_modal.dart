@@ -392,9 +392,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                 indicatorColor: AppTheme.brandPrimary,
                 indicatorWeight: 3,
                 labelColor: AppTheme.brandPrimary,
-                unselectedLabelColor: isDark
-                    ? Colors.white54
-                    : const Color(0xFF64748B),
+                unselectedLabelColor: AppTheme.getAdaptiveMutedText(isDark),
                 labelStyle: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
@@ -453,7 +451,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      color: AppTheme.getAdaptiveHintText(isDark),
                     ),
                   ),
                   FilledButton(
@@ -813,9 +811,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
-                color: isDark
-                    ? const Color(0xFF94A3B8)
-                    : const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveMutedText(isDark),
               ),
             ),
           ],
@@ -884,7 +880,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                           size: 16,
                           color: selected
                               ? AppTheme.brandPrimary
-                              : (isDark ? Colors.white54 : Colors.black54),
+                              : AppTheme.getAdaptiveMutedText(isDark),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -1011,7 +1007,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                     hintText: 'Esperando disparo de pistola...',
                     hintStyle: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
-                      color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      color: AppTheme.getAdaptiveHintText(isDark),
                     ),
                     filled: true,
                     fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
@@ -1502,7 +1498,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
               selected ? LucideIcons.circleDot : LucideIcons.circle,
               color: selected
                   ? AppTheme.brandPrimary
-                  : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                  : AppTheme.getAdaptiveHintText(isDark),
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -1559,7 +1555,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white54 : const Color(0xFF64748B),
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

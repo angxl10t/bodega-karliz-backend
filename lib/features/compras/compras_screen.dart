@@ -347,9 +347,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                           decoration: InputDecoration(
                             hintText: 'Buscar por Razón Social o RUC...',
                             hintStyle: GoogleFonts.plusJakartaSans(
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF64748B),
+                              color: AppTheme.getAdaptiveHintText(isDark),
                               fontSize: 13,
                             ),
                             prefixIcon: const Icon(
@@ -409,7 +407,9 @@ class _ComprasScreenState extends State<ComprasScreen>
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
-                                          color: AppTheme.textMuted,
+                                          color: AppTheme.getAdaptiveMutedText(
+                                            isDark,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -629,9 +629,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                           decoration: InputDecoration(
                             hintText: 'Buscar por nombre, código o barra...',
                             hintStyle: GoogleFonts.plusJakartaSans(
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF64748B),
+                              color: AppTheme.getAdaptiveHintText(isDark),
                               fontSize: 13,
                             ),
                             prefixIcon: const Icon(
@@ -723,7 +721,9 @@ class _ComprasScreenState extends State<ComprasScreen>
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
-                                          color: AppTheme.textMuted,
+                                          color: AppTheme.getAdaptiveMutedText(
+                                            isDark,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -795,7 +795,9 @@ class _ComprasScreenState extends State<ComprasScreen>
                                         fontSize: 12,
                                         color: yaEnOrden
                                             ? AppTheme.accentGreen
-                                            : AppTheme.textMuted,
+                                            : AppTheme.getAdaptiveMutedText(
+                                                isDark,
+                                              ),
                                         fontWeight: yaEnOrden
                                             ? FontWeight.w700
                                             : FontWeight.w500,
@@ -1788,7 +1790,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                           'No hay productos con stock por debajo del límite mínimo.',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: AppTheme.textMuted,
+                            color: AppTheme.getAdaptiveMutedText(isDark),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -1954,7 +1956,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   height: 1.5,
-                  color: AppTheme.textMuted,
+                  color: AppTheme.getAdaptiveMutedText(isDark),
                 ),
               ),
               const SizedBox(height: 24),
@@ -2364,7 +2366,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   height: 1.4,
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                             ],
@@ -2406,7 +2408,9 @@ class _ComprasScreenState extends State<ComprasScreen>
                                       'Costo unit.: S/ ${item.precioUnitario.toStringAsFixed(2)} • Subtotal: S/ ${item.subtotal.toStringAsFixed(2)}',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11.5,
-                                        color: AppTheme.textMuted,
+                                        color: AppTheme.getAdaptiveMutedText(
+                                          isDark,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -2535,7 +2539,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                               Text(
                                 'TOTAL DE LA COMPRA',
                                 style: GoogleFonts.plusJakartaSans(
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.5,
@@ -2544,7 +2548,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                               Text(
                                 '${_canastaCompras.length} prods. • $_totalUnidadesCompraFormatted unid.',
                                 style: GoogleFonts.plusJakartaSans(
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -2659,9 +2663,7 @@ class _ComprasScreenState extends State<ComprasScreen>
               decoration: InputDecoration(
                 hintText: 'Buscar por proveedor o comprobante...',
                 hintStyle: GoogleFonts.plusJakartaSans(
-                  color: isDark
-                      ? const Color(0xFF94A3B8)
-                      : const Color(0xFF64748B),
+                  color: AppTheme.getAdaptiveHintText(isDark),
                   fontSize: 13,
                 ),
                 prefixIcon: const Icon(LucideIcons.search, size: 18),
@@ -2778,7 +2780,10 @@ class _ComprasScreenState extends State<ComprasScreen>
                                             'Doc: ${c.comprobante} • $fechaStr',
                                             style: GoogleFonts.plusJakartaSans(
                                               fontSize: 11.5,
-                                              color: AppTheme.textMuted,
+                                              color:
+                                                  AppTheme.getAdaptiveMutedText(
+                                                    isDark,
+                                                  ),
                                             ),
                                           ),
                                         ],

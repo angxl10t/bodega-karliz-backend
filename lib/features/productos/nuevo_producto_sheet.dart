@@ -287,9 +287,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
               hintText: 'Ej. Lácteos, Snacks, Abarrotes...',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
-                color: isDark
-                    ? const Color(0xFF94A3B8)
-                    : const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveHintText(isDark),
               ),
               filled: true,
               fillColor: isDark

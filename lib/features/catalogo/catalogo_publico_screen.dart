@@ -52,6 +52,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   // Carrito de compras: {idProducto: cantidad}
   final Map<int, int> _carrito = {};
+  bool _isEnviandoPedido = false;
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _notasPedidoCtrl = TextEditingController();
 
@@ -245,137 +246,152 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }
 
   Future<void> _enviarPedidoWhatsApp([String? notas]) async {
-    if (_carrito.isEmpty) return;
+    if (_carrito.isEmpty || _isEnviandoPedido) return;
+    setState(() => _isEnviandoPedido = true);
 
-    final nombreBodega = _bodega['nombreComercial']?.toString() ?? 'la Bodega';
-    final rawTelefono = _bodega['telefono']?.toString().trim() ?? '';
-    final limpio = rawTelefono.replaceAll(RegExp(r'[^0-9]'), '');
-
-    String telefonoFinal = '';
-    if (limpio.length == 9 && limpio.startsWith('9')) {
-      telefonoFinal = '51$limpio';
-    } else if (limpio.length >= 9) {
-      telefonoFinal = limpio.startsWith('51') ? limpio : '51$limpio';
-    }
-
-    final String codigoShort =
-        '#W-${(DateTime.now().millisecondsSinceEpoch % 9000) + 1000}';
-    final String codigoPedido =
-        'WEB-${(DateTime.now().millisecondsSinceEpoch % 90000) + 10000}';
-
-    final buffer = StringBuffer();
-    buffer.writeln('*Pedido $codigoShort - $nombreBodega*');
-    if (notas != null && notas.trim().isNotEmpty) {
-      buffer.writeln('Cliente: ${notas.trim()}');
-    }
-    buffer.writeln('--------------------------------');
-
-    final List<PedidoWebItem> itemsParaBandeja = [];
-
-    _carrito.forEach((id, cant) {
-      final prod = _productosPorId[id.toString()] ?? const <String, dynamic>{};
-      final nombre = prod['nombre']?.toString() ?? 'Producto';
-      final double regular = (prod['precioVenta'] is num)
-          ? (prod['precioVenta'] as num).toDouble()
-          : 0.0;
-      final double promo = (prod['precioPromocional'] is num)
-          ? (prod['precioPromocional'] as num).toDouble()
-          : regular;
-      final bool tienePromo = prod['tienePromocion'] == true && promo > 0;
-      final double precioFinal = tienePromo ? promo : regular;
-      final subtotal = precioFinal * cant;
-      final badge = tienePromo
-          ? (prod['badgePromocion']?.toString() ?? 'PROMO')
-          : null;
-
-      itemsParaBandeja.add(
-        PedidoWebItem(
-          idProducto:
-              (prod['idProducto'] as num?)?.toInt() ??
-              int.tryParse(id.toString()) ??
-              0,
-          nombre: nombre,
-          cantidad: cant.toDouble(),
-          precioUnitario: precioFinal,
-          subtotal: subtotal,
-          badge: badge,
-        ),
-      );
-
-      if (tienePromo) {
-        buffer.writeln(
-          '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)} ($badge)',
-        );
-      } else {
-        buffer.writeln(
-          '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)}',
-        );
-      }
-    });
-
-    buffer.writeln('--------------------------------');
-    buffer.writeln(
-      '*Total a Pagar: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*',
-    );
-    if (_totalAhorroCarrito > 0) {
-      buffer.writeln(
-        'Descuento web aplicado: -S/ ${_totalAhorroCarrito.toStringAsFixed(2)}',
-      );
-    }
-    final bool incluyeRetornables = _carrito.keys.any((id) {
-      final p = _productosPorId[id.toString()] ?? const <String, dynamic>{};
-      return _esProductoRetornable(p);
-    });
-    if (incluyeRetornables) {
-      buffer.writeln('(Incluye botellas retornables)');
-    }
-    buffer.writeln('');
-    buffer.writeln('¿Me confirman disponibilidad para recoger?');
-
-    // Registrar en la bandeja de pedidos web de CajaYa y sincronizar en la nube
-    final slugOrId = _bodega['idBodega']?.toString() ?? widget.tiendaSlug;
-    final nuevoPedido = PedidoWeb(
-      idPedido: codigoPedido,
-      codigoPedido: codigoShort,
-      fecha: DateTime.now(),
-      nombreCliente: (notas != null && notas.trim().isNotEmpty)
-          ? notas.trim()
-          : 'Cliente Web',
-      telefonoCliente: limpio,
-      notas: notas,
-      items: itemsParaBandeja,
-      total: _totalMontoCarrito,
-      ahorroPromociones: _totalAhorroCarrito,
-      incluyeRetornables: incluyeRetornables,
-      estado: 'PENDIENTE',
-    );
-    PedidoWebService.registrarPedido(nuevoPedido, slugOrIdBodega: slugOrId);
-
-    final encoded = Uri.encodeComponent(buffer.toString());
-    final urlStr = telefonoFinal.isNotEmpty
-        ? 'https://wa.me/$telefonoFinal?text=$encoded'
-        : 'https://wa.me/?text=$encoded';
-
-    final uri = Uri.parse(urlStr);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      final nombreBodega =
+          _bodega['nombreComercial']?.toString() ?? 'la Bodega';
+      final rawTelefono = _bodega['telefono']?.toString().trim() ?? '';
+      final limpio = rawTelefono.replaceAll(RegExp(r'[^0-9]'), '');
+
+      String telefonoFinal = '';
+      if (limpio.length == 9 && limpio.startsWith('9')) {
+        telefonoFinal = '51$limpio';
+      } else if (limpio.length >= 9) {
+        telefonoFinal = limpio.startsWith('51') ? limpio : '51$limpio';
       }
-    } catch (_) {
-      // Fallback: copiar pedido al portapapeles si el navegador bloquea ventanas emergentes
-      if (mounted) {
-        Clipboard.setData(ClipboardData(text: buffer.toString()));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              '¡Pedido copiado al portapapeles! Puedes pegarlo directamente en WhatsApp.',
-            ),
-            backgroundColor: Color(0xFF16A34A),
-            behavior: SnackBarBehavior.floating,
+
+      final String codigoShort =
+          '#W-${(DateTime.now().millisecondsSinceEpoch % 9000) + 1000}';
+      final String codigoPedido =
+          'WEB-${(DateTime.now().millisecondsSinceEpoch % 90000) + 10000}';
+
+      final buffer = StringBuffer();
+      buffer.writeln('*Pedido $codigoShort - $nombreBodega*');
+      if (notas != null && notas.trim().isNotEmpty) {
+        buffer.writeln('Cliente: ${notas.trim()}');
+      }
+      buffer.writeln('--------------------------------');
+
+      final List<PedidoWebItem> itemsParaBandeja = [];
+
+      _carrito.forEach((id, cant) {
+        final prod =
+            _productosPorId[id.toString()] ?? const <String, dynamic>{};
+        final nombre = prod['nombre']?.toString() ?? 'Producto';
+        final double regular = (prod['precioVenta'] is num)
+            ? (prod['precioVenta'] as num).toDouble()
+            : 0.0;
+        final double promo = (prod['precioPromocional'] is num)
+            ? (prod['precioPromocional'] as num).toDouble()
+            : regular;
+        final bool tienePromo = prod['tienePromocion'] == true && promo > 0;
+        final double precioFinal = tienePromo ? promo : regular;
+        final subtotal = precioFinal * cant;
+        final badge = tienePromo
+            ? (prod['badgePromocion']?.toString() ?? 'PROMO')
+            : null;
+
+        itemsParaBandeja.add(
+          PedidoWebItem(
+            idProducto:
+                (prod['idProducto'] as num?)?.toInt() ??
+                int.tryParse(id.toString()) ??
+                0,
+            nombre: nombre,
+            cantidad: cant.toDouble(),
+            precioUnitario: precioFinal,
+            subtotal: subtotal,
+            badge: badge,
           ),
         );
+
+        if (tienePromo) {
+          buffer.writeln(
+            '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)} ($badge)',
+          );
+        } else {
+          buffer.writeln(
+            '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)}',
+          );
+        }
+      });
+
+      buffer.writeln('--------------------------------');
+      buffer.writeln(
+        '*Total a Pagar: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*',
+      );
+      if (_totalAhorroCarrito > 0) {
+        buffer.writeln(
+          'Descuento web aplicado: -S/ ${_totalAhorroCarrito.toStringAsFixed(2)}',
+        );
+      }
+      final bool incluyeRetornables = _carrito.keys.any((id) {
+        final p = _productosPorId[id.toString()] ?? const <String, dynamic>{};
+        return _esProductoRetornable(p);
+      });
+      if (incluyeRetornables) {
+        buffer.writeln('(Incluye botellas retornables)');
+      }
+      buffer.writeln('');
+      buffer.writeln('¿Me confirman disponibilidad para recoger?');
+
+      // Registrar en la bandeja de pedidos web de CajaYa y sincronizar en la nube
+      final slugOrId = _bodega['idBodega']?.toString() ?? widget.tiendaSlug;
+      final nuevoPedido = PedidoWeb(
+        idPedido: codigoPedido,
+        codigoPedido: codigoShort,
+        fecha: DateTime.now(),
+        nombreCliente: (notas != null && notas.trim().isNotEmpty)
+            ? notas.trim()
+            : 'Cliente Web',
+        telefonoCliente: limpio,
+        notas: notas,
+        items: itemsParaBandeja,
+        total: _totalMontoCarrito,
+        ahorroPromociones: _totalAhorroCarrito,
+        incluyeRetornables: incluyeRetornables,
+        estado: 'PENDIENTE',
+      );
+      PedidoWebService.registrarPedido(nuevoPedido, slugOrIdBodega: slugOrId);
+
+      final encoded = Uri.encodeComponent(buffer.toString());
+      final urlStr = telefonoFinal.isNotEmpty
+          ? 'https://wa.me/$telefonoFinal?text=$encoded'
+          : 'https://wa.me/?text=$encoded';
+
+      final uri = Uri.parse(urlStr);
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
+      } catch (_) {
+        // Fallback: copiar pedido al portapapeles si el navegador bloquea ventanas emergentes
+        if (mounted) {
+          Clipboard.setData(ClipboardData(text: buffer.toString()));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '¡Pedido copiado al portapapeles! Puedes pegarlo directamente en WhatsApp.',
+              ),
+              backgroundColor: Color(0xFF16A34A),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _carrito.clear();
+          _isEnviandoPedido = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isEnviandoPedido = false);
       }
     }
   }
@@ -1269,9 +1285,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       Icon(
                         LucideIcons.shoppingBag,
                         size: isTablet ? 48 : 40,
-                        color: isDark
-                            ? const Color(0xFF475569)
-                            : const Color(0xFFCBD5E1),
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -1376,7 +1390,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF64748B),
+              color: AppTheme.getAdaptiveMutedText(isDark),
             ),
             textAlign: TextAlign.center,
           ),
@@ -1445,16 +1459,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         'Conforme a la normativa INDECOPI - D.S. N° 011-2011-PCM',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9.5,
-                          color: const Color(0xFF64748B),
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(width: 8),
-                  const Icon(
+                  Icon(
                     LucideIcons.chevronRight,
                     size: 14,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ],
               ),
@@ -1482,11 +1496,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               ),
               Text(
                 '•',
-                style: TextStyle(
-                  color: isDark
-                      ? const Color(0xFF475569)
-                      : const Color(0xFFCBD5E1),
-                ),
+                style: TextStyle(color: AppTheme.getAdaptiveHintText(isDark)),
               ),
               InkWell(
                 onTap: () => context.push('/privacidad'),
@@ -1508,7 +1518,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             'Comercio formalizado bajo la Ley del Bodeguero N° 30877 y Código del Consumidor N° 29571.\nTodos los derechos reservados © 2026 CajaYa.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 10,
-              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+              color: AppTheme.getAdaptiveHintText(isDark),
               height: 1.4,
             ),
             textAlign: TextAlign.center,
@@ -3578,7 +3588,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    onPressed: () => _enviarPedidoWhatsApp(),
+                    onPressed: _isEnviandoPedido
+                        ? null
+                        : () => _enviarPedidoWhatsApp(),
                   ),
                 ] else ...[
                   // En móviles: Botón directo para Ver Pedido y finalizar por WhatsApp

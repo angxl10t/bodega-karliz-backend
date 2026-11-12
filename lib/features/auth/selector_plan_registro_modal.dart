@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme.dart';
+import '../../core/widgets/plan_comparativa_table.dart';
 
 /// Modal especializado para comparar exhaustivamente y seleccionar el plan SaaS
 /// durante el onboarding / registro de una nueva bodega.
@@ -239,7 +240,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                         fontSize: 11.5,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.8,
-                        color: const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -273,198 +274,9 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                     const SizedBox(height: 24),
 
                     // Tabla Comparativa Exhaustiva de Funcionalidades
-                    Row(
-                      children: [
-                        const Icon(
-                          LucideIcons.arrowLeftRight,
-                          size: 18,
-                          color: AppTheme.brandPrimary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'COMPARATIVA DETALLADA DE FUNCIONES',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.6,
-                            color: isDark ? Colors.white : AppTheme.brandDark,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark
-                              ? const Color(0xFF334155)
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Column(
-                          children: [
-                            // Encabezado de la tabla
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
-                              color: isDark
-                                  ? const Color(0xFF1E293B)
-                                  : const Color(0xFFE2E8F0),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 5,
-                                    child: Text(
-                                      'Funcionalidad',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      'Básico (S/50)',
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      'PRO (1er Mes S/0)',
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppTheme.brandPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Filas de Comparación
-                            _buildFeatureRow(
-                              nombre: 'Capacidad de Productos en Inventario',
-                              detalle: 'Límite de catálogo activo en sistema',
-                              valorBasico: 'Máx. 150',
-                              valorPro: 'ILIMITADO',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Catálogo Web Online Oficial Propio',
-                              detalle: 'cajaya-pos.onrender.com/#/catalogo?tienda=tu-bodega',
-                              valorBasico: '❌ No',
-                              valorPro: '✅ Sí (WhatsApp)',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Kit Viralidad & Marketing de Barrio',
-                              detalle: 'Volantes térmicos para vuelto y afiches con QR',
-                              valorBasico: '❌ No',
-                              valorPro: '✅ Sí',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Dashboard BI & Rotación ABC',
-                              detalle: 'Margen neto en soles, utilidad y productos estrella',
-                              valorBasico: '❌ No',
-                              valorPro: '✅ Sí',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Detector de Mercadería Hueso',
-                              detalle: 'Alertas de dinero inmovilizado y combos sugeridos',
-                              valorBasico: '❌ No',
-                              valorPro: '✅ Sí',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Auditoría Ciega de Caja',
-                              detalle: 'Cierre y arqueo sin mostrar monto teórico a cajeros',
-                              valorBasico: '❌ No',
-                              valorPro: '✅ Sí',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Envío de Cierre Auditado a WhatsApp',
-                              detalle: 'Resumen de ventas y dinero en caja directo al dueño',
-                              valorBasico: '❌ No',
-                              valorPro: '✅ Sí',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Módulo de Mermas y Desmedros',
-                              detalle: 'Registro de vencidos y mermas con cálculo en soles',
-                              valorBasico: '❌ No',
-                              valorPro: '✅ Sí',
-                              isProExclusive: true,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre:
-                                  'POS Rápido en Mostrador & Tickets 58/80mm',
-                              detalle: 'Ventas ágiles, código de barras y gaveta RJ11',
-                              valorBasico: '✅ Sí',
-                              valorPro: '✅ Sí',
-                              isProExclusive: false,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Caja Chica, Arqueos & Libreta de Fiados',
-                              detalle: 'Cobros Yape/Plin, control de clientes y saldos',
-                              valorBasico: '✅ Sí',
-                              valorPro: '✅ Sí',
-                              isProExclusive: false,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Modo Offline Resiliente (Sin Internet)',
-                              detalle:
-                                  'Sigue vendiendo ante cortes de señal móvil',
-                              valorBasico: '✅ Sí',
-                              valorPro: '✅ Sí',
-                              isProExclusive: false,
-                              isDark: isDark,
-                            ),
-                            _buildFeatureRow(
-                              nombre: 'Cajeros y Administradores con PIN',
-                              detalle: 'Roles y personal ilimitado por tienda',
-                              valorBasico: '✅ Ilimitados',
-                              valorPro: '✅ Ilimitados',
-                              isProExclusive: false,
-                              isDark: isDark,
-                              isLast: true,
-                            ),
-                          ],
-                        ),
-                      ),
+                    PlanComparativaTable(
+                      highlightedPlan: _planSeleccionado,
+                      isRegistroConMesGratis: true,
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -590,34 +402,37 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorBadge.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: colorBadge.withValues(alpha: 0.35),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
                     ),
-                  ),
-                  child: Text(
-                    badgeSuperior,
-                    style: GoogleFonts.outfit(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
-                      color: isDark && colorBadge == const Color(0xFF64748B)
-                          ? const Color(0xFF94A3B8)
-                          : colorBadge,
+                    decoration: BoxDecoration(
+                      color: colorBadge.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: colorBadge.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Text(
+                      badgeSuperior,
+                      style: GoogleFonts.outfit(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark && colorBadge == const Color(0xFF64748B)
+                            ? AppTheme.textDarkMuted
+                            : colorBadge,
+                      ),
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Icon(
                   isSelected ? LucideIcons.checkCircle2 : LucideIcons.circle,
                   color: isSelected
                       ? (isPro ? AppTheme.accentGreen : AppTheme.brandPrimary)
-                      : const Color(0xFF94A3B8),
+                      : AppTheme.getAdaptiveHintText(isDark),
                   size: 22,
                 ),
               ],
@@ -643,7 +458,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF64748B),
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                   ),
                 ),
@@ -693,19 +508,23 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                     size: 14,
                     color: isPro
                         ? AppTheme.accentGreen
-                        : const Color(0xFF64748B),
+                        : AppTheme.getAdaptiveMutedText(isDark),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'Inventario: $limiteProductos',
-                    style: GoogleFonts.outfit(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: isPro
-                          ? (isDark
-                                ? const Color(0xFF4ADE80)
-                                : const Color(0xFF166534))
-                          : (isDark ? Colors.white70 : const Color(0xFF334155)),
+                  Flexible(
+                    child: Text(
+                      'Inventario: $limiteProductos',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isPro
+                            ? (isDark
+                                  ? const Color(0xFF4ADE80)
+                                  : const Color(0xFF166534))
+                            : (isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF334155)),
+                      ),
                     ),
                   ),
                 ],
@@ -713,103 +532,6 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureRow({
-    required String nombre,
-    required String detalle,
-    required String valorBasico,
-    required String valorPro,
-    required bool isProExclusive,
-    required bool isDark,
-    bool isLast = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        border: isLast
-            ? null
-            : Border(
-                bottom: BorderSide(
-                  color: isDark
-                      ? const Color(0xFF1E293B)
-                      : const Color(0xFFE2E8F0),
-                ),
-              ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            flex: 5,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  nombre,
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppTheme.textDark,
-                  ),
-                ),
-                Text(
-                  detalle,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    color: const Color(0xFF64748B),
-                    height: 1.25,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Center(
-              child: Text(
-                valorBasico,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: valorBasico.startsWith('❌')
-                      ? const Color(0xFFEF4444)
-                      : (isDark ? Colors.white70 : const Color(0xFF475569)),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-              decoration: isProExclusive
-                  ? BoxDecoration(
-                      color: AppTheme.accentGreen.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    )
-                  : null,
-              child: Center(
-                child: Text(
-                  valorPro,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.outfit(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    color: isProExclusive
-                        ? (isDark
-                              ? const Color(0xFF4ADE80)
-                              : const Color(0xFF15803D))
-                        : (isDark ? Colors.white : const Color(0xFF1E293B)),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

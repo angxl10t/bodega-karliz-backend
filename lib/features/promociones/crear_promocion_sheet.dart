@@ -407,7 +407,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.5,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -450,7 +450,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -511,7 +511,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                         style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                       if (_marcasDisponibles.isNotEmpty)
@@ -797,7 +797,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -825,7 +825,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                     style: GoogleFonts.outfit(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -851,7 +851,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                             style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getAdaptiveMutedText(isDark),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -950,7 +950,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               style: GoogleFonts.outfit(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
-                                color: AppTheme.textMuted,
+                                color: AppTheme.getAdaptiveMutedText(isDark),
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -1072,7 +1072,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -1099,7 +1099,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                   style: GoogleFonts.outfit(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -1132,7 +1132,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                             style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getAdaptiveMutedText(isDark),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -1164,7 +1164,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                             style: GoogleFonts.outfit(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getAdaptiveMutedText(isDark),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -1223,7 +1223,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.5,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1291,7 +1291,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                                 size: 16,
                                 color: _fechaInicio != null
                                     ? AppTheme.brandPrimary
-                                    : AppTheme.textMuted,
+                                    : AppTheme.getAdaptiveMutedText(isDark),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -1303,7 +1303,9 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                                       style: GoogleFonts.outfit(
                                         fontSize: 9.5,
                                         fontWeight: FontWeight.w800,
-                                        color: AppTheme.textMuted,
+                                        color: AppTheme.getAdaptiveMutedText(
+                                          isDark,
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 1),
@@ -1394,7 +1396,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                                 size: 16,
                                 color: _fechaFin != null
                                     ? AppTheme.brandPrimary
-                                    : AppTheme.textMuted,
+                                    : AppTheme.getAdaptiveMutedText(isDark),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -1406,7 +1408,9 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                                       style: GoogleFonts.outfit(
                                         fontSize: 9.5,
                                         fontWeight: FontWeight.w800,
-                                        color: AppTheme.textMuted,
+                                        color: AppTheme.getAdaptiveMutedText(
+                                          isDark,
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 1),
@@ -1670,7 +1674,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
       avatar: Icon(
         icon,
         size: 14,
-        color: selected ? Colors.white : AppTheme.textMuted,
+        color: selected ? Colors.white : AppTheme.getAdaptiveMutedText(isDark),
       ),
       label: Text(label),
       labelStyle: GoogleFonts.plusJakartaSans(
@@ -1715,7 +1719,11 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
         ),
         child: Row(
           children: [
-            const Icon(LucideIcons.search, size: 16, color: AppTheme.textMuted),
+            Icon(
+              LucideIcons.search,
+              size: 16,
+              color: AppTheme.getAdaptiveMutedText(isDark),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -1729,16 +1737,16 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                       : FontWeight.w500,
                   color: selected != null
                       ? (isDark ? Colors.white : AppTheme.textDark)
-                      : AppTheme.textMuted,
+                      : AppTheme.getAdaptiveHintText(isDark),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const Icon(
+            Icon(
               LucideIcons.chevronDown,
               size: 16,
-              color: AppTheme.textMuted,
+              color: AppTheme.getAdaptiveMutedText(isDark),
             ),
           ],
         ),
@@ -1803,7 +1811,7 @@ class _ProductPickerModalState extends State<_ProductPickerModal> {
                       child: Text(
                         'No hay productos encontrados',
                         style: GoogleFonts.plusJakartaSans(
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(widget.isDark),
                         ),
                       ),
                     )

@@ -131,6 +131,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
   }
 
   Future<void> _guardar() async {
+    if (_guardando) return;
     if (!_formKey.currentState!.validate()) return;
 
     final monto = double.tryParse(_montoCtrl.text.replaceAll(',', '.')) ?? 0.0;
@@ -304,7 +305,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                         'Seleccionar vecino de la lista (o escribir abajo)',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
-                          color: isDark ? Colors.white54 : AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveHintText(isDark),
                         ),
                       ),
                       dropdownColor: isDark
@@ -421,7 +422,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                           'Botellas de vidrio que se lleva',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            color: isDark ? Colors.white54 : AppTheme.textMuted,
+                            color: AppTheme.getAdaptiveMutedText(isDark),
                           ),
                         ),
                       ],
@@ -572,7 +573,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                           'Total retenido que se devolverá al cliente',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            color: isDark ? Colors.white54 : AppTheme.textMuted,
+                            color: AppTheme.getAdaptiveMutedText(isDark),
                           ),
                         ),
                       ],
@@ -626,7 +627,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : AppTheme.textMuted,
+                  color: AppTheme.getAdaptiveMutedText(isDark),
                 ),
               ),
               const SizedBox(height: 6),

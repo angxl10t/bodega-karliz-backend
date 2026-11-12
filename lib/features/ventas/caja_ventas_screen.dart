@@ -1813,7 +1813,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                                       'Conteo físico de billetes y monedas',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11.5,
-                                        color: AppTheme.textMuted,
+                                        color: AppTheme.getAdaptiveMutedText(
+                                          isDark,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -1892,7 +1894,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.5,
-                                    color: AppTheme.textMuted,
+                                    color: AppTheme.getAdaptiveMutedText(
+                                      isDark,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 2),
@@ -1956,7 +1960,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.8,
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                             ),
@@ -1982,7 +1986,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.8,
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                             ),
@@ -2402,9 +2406,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                         'Ej. Error en cobro, cliente desistió, duplicado...',
                     hintStyle: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF64748B),
+                      color: AppTheme.getAdaptiveHintText(isDark),
                     ),
                     filled: true,
                     fillColor: isDark
@@ -2790,7 +2792,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                             '${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getAdaptiveMutedText(isDark),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -2804,7 +2806,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -3395,7 +3397,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                       'Recaudado',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                   ],
@@ -3852,9 +3854,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 decoration: InputDecoration(
                   hintText: 'Buscar por venta #ID, cliente o DNI...',
                   hintStyle: GoogleFonts.plusJakartaSans(
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                    color: AppTheme.getAdaptiveHintText(isDark),
                     fontSize: 13,
                   ),
                   prefixIcon: const Icon(LucideIcons.search, size: 18),
@@ -4374,9 +4374,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                   if (!v.isAnulada)
                     TextButton.icon(
                       style: TextButton.styleFrom(
-                        foregroundColor: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF475569),
+                        foregroundColor: AppTheme.getAdaptiveMutedText(isDark),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 6,
@@ -4447,7 +4445,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                   ),
                   Text(
@@ -4459,7 +4457,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                           ? TextDecoration.lineThrough
                           : null,
                       color: v.isAnulada
-                          ? AppTheme.textMuted
+                          ? AppTheme.getAdaptiveMutedText(isDark)
                           : AppTheme.brandPrimary,
                     ),
                   ),
@@ -4488,7 +4486,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           style: GoogleFonts.plusJakartaSans(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textMuted,
+            color: AppTheme.getAdaptiveMutedText(isDark),
           ),
         ),
       );
@@ -4520,7 +4518,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
       icon = LucideIcons.creditCard;
     } else {
-      fg = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+      fg = AppTheme.getAdaptiveMutedText(isDark);
       bg = fg.withValues(alpha: isDark ? 0.20 : 0.10);
       icon = LucideIcons.arrowRightLeft;
     }
@@ -4650,7 +4648,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                                 'Reimpresión térmica ESC/POS',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
-                                  color: AppTheme.textMuted,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                             ],

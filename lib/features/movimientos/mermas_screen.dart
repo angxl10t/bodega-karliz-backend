@@ -557,7 +557,7 @@ class _MermasScreenState extends State<MermasScreen> {
         chipIcon = LucideIcons.cupSoda;
         break;
       case 'ROBO_DESMEDRO':
-        chipColor = const Color(0xFF6B7280);
+        chipColor = AppTheme.getAdaptiveMutedText(isDark);
         chipIcon = LucideIcons.alertTriangle;
         break;
       case 'MERMA':
@@ -1155,7 +1155,13 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                                     avatar: Icon(
                                       m['icon'] as IconData,
                                       size: 14,
-                                      color: isSel ? Colors.white : color,
+                                      color: isSel
+                                          ? Colors.white
+                                          : (color == const Color(0xFF6B7280)
+                                                ? AppTheme.getAdaptiveMutedText(
+                                                    isDark,
+                                                  )
+                                                : color),
                                     ),
                                     label: Text(m['label'] as String),
                                     selected: isSel,

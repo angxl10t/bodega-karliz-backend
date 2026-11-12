@@ -1155,14 +1155,12 @@ class _ClientesScreenState extends State<ClientesScreen>
                   hintText: 'Buscar persona, teléfono o botella...',
                   hintStyle: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveHintText(isDark),
                   ),
                   prefixIcon: Icon(
                     LucideIcons.search,
                     size: 16,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                    color: AppTheme.getAdaptiveHintText(isDark),
                   ),
                   suffixIcon: _filtroTextoGarantias.isNotEmpty
                       ? IconButton(
@@ -1418,7 +1416,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                           g.notas!,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            color: isDark ? Colors.white60 : AppTheme.textMuted,
+                            color: AppTheme.getAdaptiveMutedText(isDark),
                             fontStyle: FontStyle.italic,
                           ),
                           maxLines: 1,
@@ -1435,7 +1433,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white54 : AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                     Text(
@@ -1460,7 +1458,7 @@ class _ClientesScreenState extends State<ClientesScreen>
               Icon(
                 LucideIcons.calendar,
                 size: 12,
-                color: isDark ? Colors.white38 : AppTheme.textMuted,
+                color: AppTheme.getAdaptiveMutedText(isDark),
               ),
               const SizedBox(width: 4),
               Text(
@@ -1469,7 +1467,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                     : 'Hoy',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10.5,
-                  color: isDark ? Colors.white54 : AppTheme.textMuted,
+                  color: AppTheme.getAdaptiveMutedText(isDark),
                 ),
               ),
               if (g.fechaDevolucion != null) ...[
@@ -1477,7 +1475,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                 Text(
                   '•',
                   style: TextStyle(
-                    color: isDark ? Colors.white38 : AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                     fontSize: 10,
                   ),
                 ),
@@ -2021,12 +2019,12 @@ class _ClientesScreenState extends State<ClientesScreen>
           hintText: 'Buscar por nombre, DNI o teléfono...',
           hintStyle: GoogleFonts.plusJakartaSans(
             fontSize: 12.5,
-            color: AppTheme.textMuted,
+            color: AppTheme.getAdaptiveHintText(isDark),
           ),
           prefixIcon: Icon(
             LucideIcons.search,
             size: 16,
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            color: AppTheme.getAdaptiveHintText(isDark),
           ),
           suffixIcon: _filtroTexto.isNotEmpty
               ? IconButton(
@@ -2149,7 +2147,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   height: 1.45,
-                  color: AppTheme.textMuted,
+                  color: AppTheme.getAdaptiveMutedText(isDark),
                 ),
               ),
               const SizedBox(height: 20),

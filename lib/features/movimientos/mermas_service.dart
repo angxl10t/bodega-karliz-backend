@@ -9,8 +9,30 @@ import 'merma_model.dart';
 import 'movimiento_service.dart';
 
 class MermasService {
-  static const String _storageKey = 'cajaya_mermas_historico_v1';
+  static const String _defaultStorageKey = 'cajaya_mermas_historico_v1';
   static final ValueNotifier<int> mermasRevision = ValueNotifier<int>(0);
+  static bool _sessionCleanupRegistered = false;
+
+  static void _ensureSessionCleanupRegistered() {
+    if (!_sessionCleanupRegistered) {
+      _sessionCleanupRegistered = true;
+      SecureStorageService.registerSessionCleanup(resetSession);
+    }
+  }
+
+  static void resetSession() {
+    mermasRevision.value = 0;
+  }
+
+  static Future<String> _getStorageKey() async {
+    try {
+      final idBodega = await SecureStorageService.read('id_bodega');
+      if (idBodega != null && idBodega.trim().isNotEmpty) {
+        return 'cajaya_mermas_historico_${idBodega.trim()}_v1';
+      }
+    } catch (_) {}
+    return _defaultStorageKey;
+  }
 
   final MovimientoService _movimientoService = MovimientoService();
 
@@ -64,8 +86,13 @@ class MermasService {
 
   /// Obtiene la lista completa de mermas registradas ordenadas cronológicamente
   Future<List<MermaRegistro>> obtenerMermas() async {
+    _ensureSessionCleanupRegistered();
     try {
-      final raw = await SecureStorageService.read(_storageKey);
+      final key = await _getStorageKey();
+      String? raw = await SecureStorageService.read(key);
+      if ((raw == null || raw.trim().isEmpty) && key != _defaultStorageKey) {
+        raw = await SecureStorageService.read(_defaultStorageKey);
+      }
       if (raw != null && raw.trim().isNotEmpty) {
         final List<dynamic> decoded = jsonDecode(raw);
         return decoded
@@ -77,9 +104,11 @@ class MermasService {
   }
 
   Future<void> _guardarLista(List<MermaRegistro> lista) async {
+    _ensureSessionCleanupRegistered();
     try {
+      final key = await _getStorageKey();
       final encoded = jsonEncode(lista.map((m) => m.toJson()).toList());
-      await SecureStorageService.write(_storageKey, encoded);
+      await SecureStorageService.write(key, encoded);
     } catch (_) {}
   }
 

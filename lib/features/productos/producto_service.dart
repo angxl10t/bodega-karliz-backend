@@ -21,7 +21,9 @@ class ProductoService {
   static void _ensureCleanupRegistered() {
     if (_cleanupRegistered) return;
     _cleanupRegistered = true;
-    SecureStorageService.registerSessionCleanup(invalidateCache);
+    SecureStorageService.registerSessionCleanup(
+      () => invalidateCache(notify: false),
+    );
   }
 
   static List<Producto>? _cachedProductos;
@@ -35,12 +37,14 @@ class ProductoService {
   static final ValueNotifier<int> productosRevision = ValueNotifier<int>(0);
 
   /// Invalida manualmente la caché en memoria (ej: tras crear, editar, vender o comprar)
-  static void invalidateCache() {
+  static void invalidateCache({bool notify = true}) {
     _cachedProductos = null;
     _cacheTimestamp = null;
     _inFlightProductos = null;
     _cacheEpoch++;
-    productosRevision.value++;
+    if (notify) {
+      productosRevision.value++;
+    }
   }
 
   /// Permite inyectar productos en tests sin realizar llamadas de red HTTP

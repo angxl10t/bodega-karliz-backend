@@ -440,7 +440,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       'Imprime volantes en tu ticketera térmica y entrégalos a tus clientes con su vuelto.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                   ],
@@ -602,7 +602,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF64748B),
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -810,7 +810,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       'Envíalo al grupo de WhatsApp de tu urbanización, edificio o a tus caseros frecuentes.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                   ],
@@ -911,7 +911,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       'Comparte la solución con amigos que tengan tienda, market o bazar.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                   ],

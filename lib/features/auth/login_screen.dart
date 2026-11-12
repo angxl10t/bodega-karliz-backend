@@ -704,12 +704,10 @@ class _LoginScreenState extends State<LoginScreen> {
               fillColor: isDark
                   ? AppTheme.cardDarkSunken
                   : const Color(0xFFF1F5F9),
-              hintText: 'admin',
+              hintText: 'Ingresa tu usuario',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: isDark
-                    ? AppTheme.textDarkSecondary
-                    : const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveHintText(isDark),
               ),
               prefixIcon: Icon(
                 LucideIcons.user,
@@ -778,9 +776,7 @@ class _LoginScreenState extends State<LoginScreen> {
               hintText: '••••••',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: isDark
-                    ? AppTheme.textDarkSecondary
-                    : const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveHintText(isDark),
               ),
               prefixIcon: Icon(
                 LucideIcons.lock,
@@ -877,7 +873,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: Border.all(
                       color: _keepMeSignedIn
                           ? AppTheme.brandPrimary
-                          : const Color(0xFFCBD5E1),
+                          : (isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFCBD5E1)),
                       width: 1.5,
                     ),
                   ),
@@ -890,7 +888,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Recordar dispositivo',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
-                    color: const Color(0xFF64748B),
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
               ],
@@ -1047,7 +1045,7 @@ class _LoginScreenState extends State<LoginScreen> {
             '© 2026 CajaYa Cloud POS • Todos los derechos reservados',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+              color: AppTheme.getAdaptiveHintText(isDark),
               fontWeight: FontWeight.w500,
             ),
           ),

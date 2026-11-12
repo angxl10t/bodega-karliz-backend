@@ -18,7 +18,9 @@ class CategoriaService {
   static void _ensureCleanupRegistered() {
     if (_cleanupRegistered) return;
     _cleanupRegistered = true;
-    SecureStorageService.registerSessionCleanup(invalidateCache);
+    SecureStorageService.registerSessionCleanup(
+      () => invalidateCache(notify: false),
+    );
   }
 
   static List<Categoria>? _cachedCategorias;
@@ -31,12 +33,14 @@ class CategoriaService {
   /// sincronicen sus listas cuando se agregue o actualice una categoría.
   static final ValueNotifier<int> categoriasRevision = ValueNotifier<int>(0);
 
-  static void invalidateCache() {
+  static void invalidateCache({bool notify = true}) {
     _cachedCategorias = null;
     _cacheTimestamp = null;
     _inFlightCategorias = null;
     _cacheEpoch++;
-    categoriasRevision.value++;
+    if (notify) {
+      categoriasRevision.value++;
+    }
   }
 
   /// Permite inyectar categorías en tests sin realizar llamadas HTTP de red

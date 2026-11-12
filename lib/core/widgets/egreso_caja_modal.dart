@@ -76,6 +76,7 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
   }
 
   Future<void> _guardarEgreso() async {
+    if (_isSaving) return;
     final montoStr = _montoCtrl.text.trim().replaceAll(',', '.');
     final monto = double.tryParse(montoStr) ?? 0.0;
 
@@ -444,9 +445,7 @@ class _EgresoCajaModalState extends State<EgresoCajaModal> {
                       'Ej. 50 bolsas plásticas grandes, delivery pan, etc.',
                   hintStyle: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                    color: AppTheme.getAdaptiveHintText(isDark),
                   ),
                   filled: true,
                   fillColor: isDark

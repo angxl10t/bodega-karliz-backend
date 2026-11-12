@@ -374,9 +374,7 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                           'Ventas <= S/ 5.00 sin comprobante • Res. SUNAT 007-99',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
+                            color: AppTheme.getAdaptiveMutedText(isDark),
                           ),
                         ),
                       ],
@@ -630,9 +628,7 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                                 'Tickets emitidos <= S/ 5.00',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
-                                  color: isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B),
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -665,9 +661,7 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                                 'Monto Total Acumulado',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
-                                  color: isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B),
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -983,9 +977,7 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
               Icon(
                 LucideIcons.history,
                 size: 40,
-                color: isDark
-                    ? const Color(0xFF64748B)
-                    : const Color(0xFF94A3B8),
+                color: AppTheme.getAdaptiveMutedText(isDark),
               ),
               const SizedBox(height: 12),
               Text(
@@ -1002,9 +994,7 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: isDark
-                      ? const Color(0xFF94A3B8)
-                      : const Color(0xFF64748B),
+                  color: AppTheme.getAdaptiveMutedText(isDark),
                 ),
               ),
             ],
@@ -1093,9 +1083,7 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
                       'Fecha de Ventas: $fdStr • ${b.cantidadOperaciones} ventas consolidadas',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                   ],

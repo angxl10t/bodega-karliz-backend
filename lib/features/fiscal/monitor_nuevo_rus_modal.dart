@@ -702,7 +702,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                 'S/ 0',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10,
-                  color: const Color(0xFF94A3B8),
+                  color: AppTheme.getAdaptiveMutedText(isDark),
                 ),
               ),
               Text(
@@ -904,7 +904,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             resumen.sugerenciaPagoSunat ?? 'Paga en agentes BCP, BBVA, Interbank, Banco de la Nación o App SUNAT con tu número de RUC y periodo tributario.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              color: AppTheme.getAdaptiveMutedText(isDark),
               height: 1.4,
             ),
           ),
@@ -1257,7 +1257,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             texto,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              color: AppTheme.getAdaptiveMutedText(isDark),
               height: 1.35,
             ),
           ),

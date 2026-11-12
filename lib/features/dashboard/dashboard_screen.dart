@@ -1958,7 +1958,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Icon(
                   _ruc.isNotEmpty ? LucideIcons.fileText : LucideIcons.layers,
                   size: 13,
-                  color: const Color(0xFF94A3B8),
+                  color: const Color(0xFFCBD5E1),
                 ),
                 const SizedBox(width: 6),
                 Expanded(

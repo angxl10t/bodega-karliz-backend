@@ -516,7 +516,7 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                                   color: _noMostrarHoy
                                       ? AppTheme.brandPrimary
                                       : (isDark
-                                            ? const Color(0xFF71717A)
+                                            ? AppTheme.textDarkMuted
                                             : const Color(0xFF94A3B8)),
                                 ),
                                 const SizedBox(width: 8),

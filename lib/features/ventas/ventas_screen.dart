@@ -1016,94 +1016,98 @@ class _VentasScreenState extends State<VentasScreen>
           : '',
     );
 
-    final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return AlertDialog(
-          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD97706).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  LucideIcons.pauseCircle,
-                  color: Color(0xFFD97706),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Poner Venta en Espera',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
+    final bool? confirmado;
+    final String etiqueta;
+    try {
+      confirmado = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          final isDark = Theme.of(ctx).brightness == Brightness.dark;
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD97706).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    LucideIcons.pauseCircle,
+                    color: Color(0xFFD97706),
+                    size: 22,
                   ),
                 ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Esta venta ($_totalUnidades u. • S/ ${_totalVenta.toStringAsFixed(2)}) se pausará para atender al siguiente cliente en la fila sin perder los productos escaneados.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: isDark
-                      ? AppTheme.textDarkSecondary
-                      : AppTheme.textMuted,
-                ),
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: refCtrl,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: 'Nombre o referencia del cliente (opcional)',
-                  hintText:
-                      'Ej. Don Carlos (fue por dinero), Señora de chompa roja',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Poner Venta en Espera',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
                   ),
-                  prefixIcon: const Icon(LucideIcons.user, size: 18),
                 ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Esta venta ($_totalUnidades u. • S/ ${_totalVenta.toStringAsFixed(2)}) se pausará para atender al siguiente cliente en la fila sin perder los productos escaneados.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : AppTheme.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: refCtrl,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: 'Nombre o referencia del cliente (opcional)',
+                    hintText: 'Ej. Don Carlos (fue por dinero), Señora de chompa roja',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    prefixIcon: const Icon(LucideIcons.user, size: 18),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFD97706),
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(LucideIcons.pause, size: 16),
+                label: const Text('Poner en Espera'),
+                onPressed: () => Navigator.pop(ctx, true),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFD97706),
-                foregroundColor: Colors.white,
-              ),
-              icon: const Icon(LucideIcons.pause, size: 16),
-              label: const Text('Poner en Espera'),
-              onPressed: () => Navigator.pop(ctx, true),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmado == true) {
-      final etiqueta = refCtrl.text.trim().isNotEmpty
+          );
+        },
+      );
+      etiqueta = refCtrl.text.trim().isNotEmpty
           ? refCtrl.text.trim()
           : 'Cliente ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+    } finally {
+      refCtrl.dispose();
+    }
 
+    if (confirmado == true) {
       final ventaPausada = VentaEnEspera(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         fecha: DateTime.now(),
@@ -1767,7 +1771,9 @@ class _VentasScreenState extends State<VentasScreen>
                                               fontWeight: FontWeight.w800,
                                               color: esPendiente
                                                   ? const Color(0xFF0D9488)
-                                                  : Colors.grey,
+                                                  : AppTheme.getAdaptiveMutedText(
+                                                      isDark,
+                                                    ),
                                             ),
                                           ),
                                         ),
@@ -2061,189 +2067,203 @@ class _VentasScreenState extends State<VentasScreen>
     bool esPorcentaje = false;
 
     if (!mounted) return;
-    final resultado = await showDialog<bool>(
-      context: context,
-      builder: (dlgCtx) {
-        final isDark = Theme.of(dlgCtx).brightness == Brightness.dark;
-        return StatefulBuilder(
-          builder: (context, setDlgState) {
-            final double val =
-                double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ??
-                0.0;
-            final double dsctoCalculado = esPorcentaje
-                ? (baseCalculo * (val / 100.0)).clamp(0.0, baseCalculo)
-                : val.clamp(0.0, baseCalculo);
+    final bool? resultado;
+    final double val;
+    final String motivoFinal;
+    try {
+      resultado = await showDialog<bool>(
+        context: context,
+        builder: (dlgCtx) {
+          final isDark = Theme.of(dlgCtx).brightness == Brightness.dark;
+          return StatefulBuilder(
+            builder: (context, setDlgState) {
+              final double val =
+                  double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ??
+                  0.0;
+              final double dsctoCalculado = esPorcentaje
+                  ? (baseCalculo * (val / 100.0)).clamp(0.0, baseCalculo)
+                  : val.clamp(0.0, baseCalculo);
 
-            return AlertDialog(
-              backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      LucideIcons.tag,
-                      color: AppTheme.brandPrimary,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      itemEspecifico != null
-                          ? 'Descuento en ${itemEspecifico.producto.nombre}'
-                          : 'Descuento de Cortesía / Manual',
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 17,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              return AlertDialog(
+                backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: Row(
                   children: [
-                    Text(
-                      'Base sobre la cual aplica: S/ ${baseCalculo.toStringAsFixed(2)}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : AppTheme.textMuted,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        LucideIcons.tag,
+                        color: AppTheme.brandPrimary,
+                        size: 22,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ChoiceChip(
-                            label: const Center(child: Text('Monto Fijo (S/)')),
-                            selected: !esPorcentaje,
-                            onSelected: (sel) {
-                              if (sel) setDlgState(() => esPorcentaje = false);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ChoiceChip(
-                            label: const Center(child: Text('Porcentaje (%)')),
-                            selected: esPorcentaje,
-                            onSelected: (sel) {
-                              if (sel) setDlgState(() => esPorcentaje = true);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: valorCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      autofocus: true,
-                      onChanged: (_) => setDlgState(() {}),
-                      decoration: InputDecoration(
-                        labelText: esPorcentaje
-                            ? 'Porcentaje de Descuento (%)'
-                            : 'Monto de Descuento (S/)',
-                        prefixText: esPorcentaje ? '% ' : 'S/ ',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    if (val > 0) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'Descuento a descontar: - S/ ${dsctoCalculado.toStringAsFixed(2)}',
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        itemEspecifico != null
+                            ? 'Descuento en ${itemEspecifico.producto.nombre}'
+                            : 'Descuento de Cortesía / Manual',
                         style: GoogleFonts.outfit(
-                          fontSize: 13.5,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.accentGreen,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 14),
-                    Text(
-                      'Motivo / Justificación:',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        for (final m in [
-                          'Cortesía',
-                          'Redondeo',
-                          'Empaque dañado',
-                          'Familiar',
-                          'Promoción especial',
-                        ])
-                          ActionChip(
-                            label: Text(
-                              m,
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            onPressed: () {
-                              setDlgState(() => motivoCtrl.text = m);
-                            },
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: motivoCtrl,
-                      decoration: InputDecoration(
-                        hintText: 'Ej. Cortesía al vecino / cliente frecuente',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          fontSize: 17,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dlgCtx, false),
-                  child: const Text('Cancelar'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Base sobre la cual aplica: S/ ${baseCalculo.toStringAsFixed(2)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(
+                                child: Text('Monto Fijo (S/)'),
+                              ),
+                              selected: !esPorcentaje,
+                              onSelected: (sel) {
+                                if (sel)
+                                  setDlgState(() => esPorcentaje = false);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ChoiceChip(
+                              label: const Center(
+                                child: Text('Porcentaje (%)'),
+                              ),
+                              selected: esPorcentaje,
+                              onSelected: (sel) {
+                                if (sel) setDlgState(() => esPorcentaje = true);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: valorCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        autofocus: true,
+                        onChanged: (_) => setDlgState(() {}),
+                        decoration: InputDecoration(
+                          labelText: esPorcentaje
+                              ? 'Porcentaje de Descuento (%)'
+                              : 'Monto de Descuento (S/)',
+                          prefixText: esPorcentaje ? '% ' : 'S/ ',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      if (val > 0) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Descuento a descontar: - S/ ${dsctoCalculado.toStringAsFixed(2)}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.accentGreen,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 14),
+                      Text(
+                        'Motivo / Justificación:',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          for (final m in [
+                            'Cortesía',
+                            'Redondeo',
+                            'Empaque dañado',
+                            'Familiar',
+                            'Promoción especial',
+                          ])
+                            ActionChip(
+                              label: Text(
+                                m,
+                                style: const TextStyle(fontSize: 11),
+                              ),
+                              onPressed: () {
+                                setDlgState(() => motivoCtrl.text = m);
+                              },
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: motivoCtrl,
+                        decoration: InputDecoration(
+                          hintText:
+                              'Ej. Cortesía al vecino / cliente frecuente',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(dlgCtx, true),
-                  child: const Text('Aplicar Descuento'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dlgCtx, false),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(dlgCtx, true),
+                    child: const Text('Aplicar Descuento'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      val = double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
+      motivoFinal = motivoCtrl.text.trim().isNotEmpty
+          ? motivoCtrl.text.trim()
+          : 'Cortesía';
+    } finally {
+      valorCtrl.dispose();
+      motivoCtrl.dispose();
+    }
 
     if (resultado == true) {
-      final double val =
-          double.tryParse(valorCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
       final double dsctoFinal = esPorcentaje
           ? (baseCalculo * (val / 100.0)).clamp(0.0, baseCalculo)
           : val.clamp(0.0, baseCalculo);
-      final motivoFinal = motivoCtrl.text.trim().isNotEmpty
-          ? motivoCtrl.text.trim()
-          : 'Cortesía';
 
       final totalAnterior = _totalVenta;
       setState(() {
@@ -2302,155 +2322,161 @@ class _VentasScreenState extends State<VentasScreen>
     final motivoCtrl = TextEditingController(text: 'Refrigerio de personal');
 
     if (!mounted) return;
-    final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        final isDark = Theme.of(ctx).brightness == Brightness.dark;
-        return AlertDialog(
-          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  LucideIcons.coffee,
-                  color: Color(0xFF8B5CF6),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Consumo Interno / Bodega',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 17,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final bool? confirmado;
+    final String motivo;
+    try {
+      confirmado = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          final isDark = Theme.of(ctx).brightness == Brightness.dark;
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
               children: [
-                Text(
-                  'Los productos se darán de baja del stock al costo sin generar cobro en caja:',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.5,
-                    color: isDark
-                        ? AppTheme.textDarkSecondary
-                        : AppTheme.textMuted,
-                  ),
-                ),
-                const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.cardDarkSunken
-                        : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Column(
-                    children: [
-                      for (final it in _carrito)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${_formatCantidad(it.cantidad)}x ${it.producto.nombre}',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                'Costo: S/ ${((it.producto.precioCosto ?? 0.0) * it.cantidad).toStringAsFixed(2)}',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Valor total al costo:',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            'S/ ${totalCosto.toStringAsFixed(2)}',
-                            style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF8B5CF6),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: const Icon(
+                    LucideIcons.coffee,
+                    color: Color(0xFF8B5CF6),
+                    size: 22,
                   ),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Motivo del consumo:',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                TextField(
-                  controller: motivoCtrl,
-                  decoration: InputDecoration(
-                    hintText: 'Ej. Refrigerio de personal, Limpieza de local, Muestra',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Consumo Interno / Bodega',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 17,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF8B5CF6),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Los productos se darán de baja del stock al costo sin generar cobro en caja:',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : AppTheme.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.cardDarkSunken
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        for (final it in _carrito)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${_formatCantidad(it.cantidad)}x ${it.producto.nombre}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  'Costo: S/ ${((it.producto.precioCosto ?? 0.0) * it.cantidad).toStringAsFixed(2)}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        const Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Valor total al costo:',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              'S/ ${totalCosto.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF8B5CF6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Motivo del consumo:',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: motivoCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Ej. Refrigerio de personal, Limpieza de local, Muestra',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              icon: const Icon(LucideIcons.check, size: 16),
-              label: const Text('Confirmar Autoconsumo'),
-              onPressed: () => Navigator.pop(ctx, true),
             ),
-          ],
-        );
-      },
-    );
-
-    if (confirmado == true) {
-      final motivo = motivoCtrl.text.trim().isNotEmpty
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B5CF6),
+                ),
+                icon: const Icon(LucideIcons.check, size: 16),
+                label: const Text('Confirmar Autoconsumo'),
+                onPressed: () => Navigator.pop(ctx, true),
+              ),
+            ],
+          );
+        },
+      );
+      motivo = motivoCtrl.text.trim().isNotEmpty
           ? motivoCtrl.text.trim()
           : 'Consumo interno de bodega';
+    } finally {
+      motivoCtrl.dispose();
+    }
+
+    if (confirmado == true) {
       setState(() => _isProcesando = true);
 
       int exitos = 0;
@@ -2805,9 +2831,7 @@ class _VentasScreenState extends State<VentasScreen>
                   '¿El cliente trajo envases vacíos para cambio?',
                   style: GoogleFonts.outfit(
                     fontSize: 10.5,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF475569),
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
               ],
@@ -4477,9 +4501,7 @@ class _VentasScreenState extends State<VentasScreen>
                           decoration: InputDecoration(
                             hintText: 'Buscar por nombre, código o barra...',
                             hintStyle: GoogleFonts.plusJakartaSans(
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF64748B),
+                              color: AppTheme.getAdaptiveHintText(isDark),
                               fontSize: 13,
                             ),
                             prefixIcon: const Icon(
@@ -5053,7 +5075,7 @@ class _VentasScreenState extends State<VentasScreen>
                         'Límite asignado:',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                       Text(
@@ -5070,7 +5092,7 @@ class _VentasScreenState extends State<VentasScreen>
                         'Deuda actual:',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                       Text(
@@ -5090,7 +5112,7 @@ class _VentasScreenState extends State<VentasScreen>
                         'Venta actual:',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: AppTheme.textMuted,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                       Text(
@@ -7467,7 +7489,9 @@ class _VentasScreenState extends State<VentasScreen>
                     _buildPosActionChip(
                       icon: LucideIcons.settings,
                       label: 'Ticket',
-                      color: const Color(0xFF6B7280),
+                      color: isDark
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFF475569),
                       bgColor: isDark
                           ? const Color(0xFF1F2937)
                           : const Color(0xFFF3F4F6),
@@ -7824,9 +7848,7 @@ class _VentasScreenState extends State<VentasScreen>
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w500,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveHintText(isDark),
                       ),
                       prefixIcon: const Icon(
                         LucideIcons.search,
@@ -10800,6 +10822,8 @@ class _VentasScreenState extends State<VentasScreen>
                                             children: [
                                               Text(
                                                 c.nombreCompleto,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.outfit(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w800,
@@ -10816,12 +10840,13 @@ class _VentasScreenState extends State<VentasScreen>
                                                           .isNotEmpty) ...[
                                                     Text(
                                                       'DNI: ${c.documento}',
-                                                      style:
-                                                          GoogleFonts.plusJakartaSans(
-                                                            fontSize: 11,
-                                                            color: AppTheme
-                                                                .textMuted,
-                                                          ),
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 11,
+                                                        color:
+                                                            AppTheme.getAdaptiveMutedText(
+                                                              isDark,
+                                                            ),
+                                                      ),
                                                     ),
                                                     const SizedBox(width: 8),
                                                   ],
@@ -10829,12 +10854,13 @@ class _VentasScreenState extends State<VentasScreen>
                                                       c.telefono!.isNotEmpty)
                                                     Text(
                                                       'Tel: ${c.telefono}',
-                                                      style:
-                                                          GoogleFonts.plusJakartaSans(
-                                                            fontSize: 11,
-                                                            color: AppTheme
-                                                                .textMuted,
-                                                          ),
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 11,
+                                                        color:
+                                                            AppTheme.getAdaptiveMutedText(
+                                                              isDark,
+                                                            ),
+                                                      ),
                                                     ),
                                                 ],
                                               ),

@@ -762,7 +762,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                               ? (isDark
                                     ? const Color(0xFF4ADE80)
                                     : const Color(0xFF166534))
-                              : const Color(0xFF64748B),
+                              : AppTheme.getAdaptiveMutedText(isDark),
                         ),
                       ),
                     ),
@@ -806,7 +806,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                     ),
                   ],

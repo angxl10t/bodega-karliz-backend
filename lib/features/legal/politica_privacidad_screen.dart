@@ -108,7 +108,7 @@ class PoliticaPrivacidadScreen extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF64748B),
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                   ),
                 ),

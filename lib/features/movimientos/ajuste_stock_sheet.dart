@@ -152,6 +152,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
   }
 
   Future<void> _guardarAjuste() async {
+    if (_isSaving) return;
     final cant = _cantidadParsed;
     if (cant <= 0) {
       _mostrarAlerta('La cantidad debe ser mayor a cero.');
@@ -391,7 +392,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                           Icon(
                             tipo['icon'] as IconData,
                             size: 15,
-                            color: isSelected ? col : AppTheme.textMuted,
+                            color: isSelected
+                                ? col
+                                : AppTheme.getAdaptiveMutedText(isDark),
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -651,9 +654,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
               hintText: 'Describe la razón del ajuste para auditoría...',
               hintStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
-                color: isDark
-                    ? const Color(0xFF94A3B8)
-                    : const Color(0xFF64748B),
+                color: AppTheme.getAdaptiveHintText(isDark),
               ),
               filled: true,
               fillColor: isDark

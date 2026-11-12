@@ -13,6 +13,8 @@ import 'bodega_service.dart';
 import 'configuracion_marca_modal.dart';
 import 'mi_bodega_online_modal.dart';
 import '../promociones/promociones_screen.dart';
+import '../../core/widgets/pago_yape_modal.dart';
+import '../../core/widgets/plan_comparativa_table.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
 
 import '../auth/auth_service.dart';
@@ -1348,9 +1350,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11.5,
                               height: 1.35,
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF475569),
+                              color: AppTheme.getAdaptiveMutedText(isDark),
                             ),
                           ),
                         ),
@@ -1452,777 +1452,15 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
     }
   }
 
-  Widget _buildQrReal(Color brandColor) {
-    return Container(
-      width: 175,
-
-      height: 175,
-
-      padding: const EdgeInsets.all(8),
-
-      decoration: BoxDecoration(
-        color: Colors.white,
-
-        borderRadius: BorderRadius.circular(18),
-
-        boxShadow: [
-          BoxShadow(
-            color: brandColor.withValues(alpha: 0.18),
-
-            blurRadius: 14,
-
-            offset: const Offset(0, 3),
-          ),
-        ],
-
-        border: Border.all(
-          color: brandColor.withValues(alpha: 0.25),
-          width: 1.5,
-        ),
-      ),
-
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-
-        child: Image.asset(
-          'assets/images/yape_qr_cajaya.png',
-
-          fit: BoxFit.contain,
-
-          filterQuality: FilterQuality.medium,
-
-          errorBuilder: (context, error, stackTrace) => Center(
-            child: Icon(LucideIcons.qrCode, color: brandColor, size: 54),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _abrirModalPagoYape(BuildContext context) {
-    final codOperacionCtrl = TextEditingController();
-
-    String planSeleccionado = (_currentPlan.toUpperCase() == 'PRO')
-        ? 'PRO'
-        : 'BASICO';
-
-    String billetera = 'YAPE';
-
-    bool isSubmitting = false;
-
-    String modalError = '';
-
-    showDialog(
-      context: context,
-
-      barrierDismissible: !isSubmitting,
-
-      builder: (dialogCtx) => StatefulBuilder(
-        builder: (ctx, setModalState) {
-          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-
-          final double monto = planSeleccionado == 'PRO' ? 100.0 : 50.0;
-
-          final Color walletPrimary = billetera == 'YAPE'
-              ? const Color(0xFF732283)
-              : const Color(0xFF0084FF);
-
-          return Dialog(
-            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 24,
-            ),
-
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-
-                          decoration: BoxDecoration(
-                            color: walletPrimary.withValues(alpha: 0.12),
-
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-
-                          child: Icon(
-                            LucideIcons.qrCode,
-                            color: walletPrimary,
-                            size: 24,
-                          ),
-                        ),
-
-                        const SizedBox(width: 12),
-
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-
-                            children: [
-                              Text(
-                                'Pago Directo Yape / Plin',
-
-                                style: GoogleFonts.outfit(
-                                  fontSize: 17,
-
-                                  fontWeight: FontWeight.w800,
-
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
-                                ),
-                              ),
-
-                              Text(
-                                '0% Comisiones • Renovación Inmediata',
-
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-
-                                  fontWeight: FontWeight.w600,
-
-                                  color: AppTheme.accentGreen,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        IconButton(
-                          icon: const Icon(LucideIcons.x, size: 20),
-
-                          onPressed: isSubmitting
-                              ? null
-                              : () => Navigator.pop(dialogCtx),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'SELECCIONA EL PLAN A SUSCRIBIR:',
-
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
-
-                        fontWeight: FontWeight.w800,
-
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF334155),
-
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => setModalState(
-                              () => planSeleccionado = 'BASICO',
-                            ),
-
-                            borderRadius: BorderRadius.circular(14),
-
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 10,
-                              ),
-
-                              decoration: BoxDecoration(
-                                color: planSeleccionado == 'BASICO'
-                                    ? AppTheme.brandPrimary.withValues(
-                                        alpha: 0.12,
-                                      )
-                                    : (isDark
-                                          ? const Color(0xFF1E293B)
-                                          : const Color(0xFFF1F5F9)),
-
-                                borderRadius: BorderRadius.circular(14),
-
-                                border: Border.all(
-                                  color: planSeleccionado == 'BASICO'
-                                      ? AppTheme.brandPrimary
-                                      : Colors.transparent,
-
-                                  width: 1.8,
-                                ),
-                              ),
-
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Plan Bodega',
-
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 13,
-
-                                      fontWeight: FontWeight.w800,
-
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 2),
-
-                                  Text(
-                                    'S/ 50.00 /mes',
-
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 14,
-
-                                      fontWeight: FontWeight.w900,
-
-                                      color: AppTheme.brandPrimary,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 2),
-
-                                  Text(
-                                    'POS + Stock + Caja diaria',
-
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-
-                                      fontWeight: FontWeight.w600,
-
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 10),
-
-                        Expanded(
-                          child: InkWell(
-                            onTap: () =>
-                                setModalState(() => planSeleccionado = 'PRO'),
-
-                            borderRadius: BorderRadius.circular(14),
-
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 10,
-                              ),
-
-                              decoration: BoxDecoration(
-                                color: planSeleccionado == 'PRO'
-                                    ? AppTheme.accentGreen.withValues(
-                                        alpha: 0.12,
-                                      )
-                                    : (isDark
-                                          ? const Color(0xFF1E293B)
-                                          : const Color(0xFFF1F5F9)),
-
-                                borderRadius: BorderRadius.circular(14),
-
-                                border: Border.all(
-                                  color: planSeleccionado == 'PRO'
-                                      ? AppTheme.accentGreen
-                                      : Colors.transparent,
-
-                                  width: 1.8,
-                                ),
-                              ),
-
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-
-                                    children: [
-                                      Text(
-                                        'Plan PRO',
-
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 13,
-
-                                          fontWeight: FontWeight.w800,
-
-                                          color: isDark
-                                              ? Colors.white
-                                              : AppTheme.textDark,
-                                        ),
-                                      ),
-
-                                      const SizedBox(width: 4),
-
-                                      const Icon(
-                                        LucideIcons.sparkles,
-                                        size: 12,
-                                        color: AppTheme.accentGreen,
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 2),
-
-                                  Text(
-                                    'S/ 100.00 /mes',
-
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 14,
-
-                                      fontWeight: FontWeight.w900,
-
-                                      color: AppTheme.accentGreen,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 2),
-
-                                  Text(
-                                    'Catálogo Web + Anti-Robo + Huesos + BI',
-
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-
-                                      fontWeight: FontWeight.w600,
-
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    Container(
-                      padding: const EdgeInsets.all(4),
-
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppTheme.cardDarkSunken
-                            : const Color(0xFFE2E8F0),
-
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () =>
-                                  setModalState(() => billetera = 'YAPE'),
-
-                              borderRadius: BorderRadius.circular(10),
-
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-
-                                decoration: BoxDecoration(
-                                  color: billetera == 'YAPE'
-                                      ? const Color(0xFF732283)
-                                      : Colors.transparent,
-
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-
-                                child: Center(
-                                  child: Text(
-                                    'YAPE',
-
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 13,
-
-                                      fontWeight: FontWeight.w800,
-
-                                      color: billetera == 'YAPE'
-                                          ? Colors.white
-                                          : (isDark
-                                                ? Colors.white60
-                                                : AppTheme.textDark),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          Expanded(
-                            child: InkWell(
-                              onTap: () =>
-                                  setModalState(() => billetera = 'PLIN'),
-
-                              borderRadius: BorderRadius.circular(10),
-
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
-                                ),
-
-                                decoration: BoxDecoration(
-                                  color: billetera == 'PLIN'
-                                      ? const Color(0xFF0084FF)
-                                      : Colors.transparent,
-
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-
-                                child: Center(
-                                  child: Text(
-                                    'PLIN',
-
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 13,
-
-                                      fontWeight: FontWeight.w800,
-
-                                      color: billetera == 'PLIN'
-                                          ? Colors.white
-                                          : (isDark
-                                                ? Colors.white60
-                                                : AppTheme.textDark),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    Container(
-                      padding: const EdgeInsets.all(14),
-
-                      decoration: BoxDecoration(
-                        color: walletPrimary.withValues(alpha: 0.06),
-
-                        borderRadius: BorderRadius.circular(18),
-
-                        border: Border.all(
-                          color: walletPrimary.withValues(alpha: 0.2),
-                        ),
-                      ),
-
-                      child: Column(
-                        children: [
-                          _buildQrReal(walletPrimary),
-
-                          const SizedBox(height: 10),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-
-                                decoration: BoxDecoration(
-                                  color: AppTheme.accentGreen.withValues(
-                                    alpha: 0.12,
-                                  ),
-
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.checkCheck,
-                                      size: 13,
-                                      color: AppTheme.accentGreen,
-                                    ),
-
-                                    const SizedBox(width: 4),
-
-                                    Text(
-                                      'QR Oficial Interoperable',
-
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-
-                                        fontWeight: FontWeight.w700,
-
-                                        color: AppTheme.accentGreen,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          Text(
-                            'Titular: Luis T.',
-
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-
-                              fontWeight: FontWeight.w800,
-
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                          ),
-
-                          const SizedBox(height: 2),
-
-                          Text(
-                            'Escanea directamente con Yape o Plin',
-
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-
-                              fontWeight: FontWeight.w600,
-
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : AppTheme.textMuted,
-                            ),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 5,
-                            ),
-
-                            decoration: BoxDecoration(
-                              color: walletPrimary.withValues(alpha: 0.12),
-
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-
-                            child: Text(
-                              'Monto exacto a pagar: S/ ',
-
-                              style: GoogleFonts.outfit(
-                                fontSize: 13.5,
-
-                                fontWeight: FontWeight.w800,
-
-                                color: walletPrimary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    if (modalError.isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.all(8),
-
-                        margin: const EdgeInsets.only(bottom: 10),
-
-                        decoration: BoxDecoration(
-                          color: AppTheme.alertRed.withValues(alpha: 0.1),
-
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-
-                        child: Text(
-                          modalError,
-
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: AppTheme.alertRed,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    TextFormField(
-                      controller: codOperacionCtrl,
-
-                      keyboardType: TextInputType.number,
-
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-
-                      decoration: InputDecoration(
-                        labelText: 'Código de Operación ($billetera)',
-
-                        hintText: 'Ej: 849201 (6 a 10 dígitos)',
-
-                        prefixIcon: const Icon(
-                          LucideIcons.receiptText,
-                          size: 18,
-                        ),
-
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-
-                        helperText:
-                            'Validación autónoma en tiempo real vía pasarela $billetera',
-                      ),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: walletPrimary,
-
-                        foregroundColor: Colors.white,
-
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-
-                        elevation: 0,
-                      ),
-
-                      onPressed: isSubmitting
-                          ? null
-                          : () async {
-                              final cod = codOperacionCtrl.text.trim();
-
-                              if (cod.length < 4) {
-                                setModalState(
-                                  () => modalError = 'Ingresa un código de operación válido (mín. 4 dígitos).',
-                                );
-
-                                return;
-                              }
-
-                              final messenger = ScaffoldMessenger.of(context);
-
-                              setModalState(() {
-                                isSubmitting = true;
-
-                                modalError = '';
-                              });
-
-                              try {
-                                final info = await _bodegaService
-                                    .registrarPagoYape(
-                                      codigoOperacion: cod,
-
-                                      plan: planSeleccionado,
-
-                                      monto: monto,
-
-                                      billetera: billetera,
-                                    );
-
-                                if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-
-                                if (mounted) {
-                                  setState(() {
-                                    _bodegaInfo = info;
-
-                                    _currentPlan = info.plan;
-                                  });
-
-                                  widget.onPlanUpdated?.call();
-
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: AppTheme.accentGreen,
-
-                                      content: Text(
-                                        '¡Suscripción actualizada exitosamente con $billetera! Tu plan $planSeleccionado está activo por 30 días adicionales.',
-
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                setModalState(() {
-                                  isSubmitting = false;
-
-                                  modalError = e.toString().replaceAll(
-                                    'Exception: ',
-                                    '',
-                                  );
-                                });
-                              }
-                            },
-
-                      child: isSubmitting
-                          ? const SizedBox(
-                              height: 20,
-
-                              width: 20,
-
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
-                              ),
-                            )
-                          : Text(
-                              'CONFIRMAR Y ACTIVAR SUSCRIPCIÓN',
-
-                              style: GoogleFonts.outfit(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    ).then((_) => codOperacionCtrl.dispose());
+    PagoYapeModal.show(
+      context,
+      planInicial: _currentPlan,
+      onPlanUpdated: () {
+        _cargarDatos();
+        widget.onPlanUpdated?.call();
+      },
+    );
   }
 
   void _abrirHistorialPagosModal(BuildContext context) {
@@ -2374,9 +1612,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   Icon(
                                     LucideIcons.receipt,
                                     size: 36,
-                                    color: AppTheme.textMuted.withValues(
-                                      alpha: 0.6,
-                                    ),
+                                    color: AppTheme.getAdaptiveMutedText(isDark)
+                                        .withValues(alpha: 0.7),
                                   ),
 
                                   const SizedBox(height: 10),
@@ -2405,7 +1642,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
 
-                                      color: AppTheme.textMuted,
+                                      color: AppTheme.getAdaptiveMutedText(
+                                        isDark,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -2490,7 +1729,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                           CrossAxisAlignment.start,
 
                                       children: [
-                                        Row(
+                                        Wrap(
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
                                           children: [
                                             Text(
                                               'Plan ${p.plan}',
@@ -2505,8 +1748,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                                     : AppTheme.textDark,
                                               ),
                                             ),
-
-                                            const SizedBox(width: 6),
 
                                             Container(
                                               padding:
@@ -2565,9 +1806,10 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                             fontWeight: FontWeight.w700,
 
-                                            color: isDark
-                                                ? const Color(0xFF94A3B8)
-                                                : const Color(0xFF475569),
+                                            color:
+                                                AppTheme.getAdaptiveMutedText(
+                                                  isDark,
+                                                ),
                                           ),
                                         ),
 
@@ -2579,7 +1821,10 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 10.5,
 
-                                            color: AppTheme.textMuted,
+                                            color:
+                                                AppTheme.getAdaptiveMutedText(
+                                                  isDark,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -2776,7 +2021,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                       fontWeight: FontWeight.w600,
 
-                                      color: AppTheme.textMuted,
+                                      color: AppTheme.getAdaptiveMutedText(
+                                        isDark,
+                                      ),
                                     ),
 
                                     maxLines: 1,
@@ -2872,10 +2119,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
 
                               children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Text(
                                       isPro
@@ -2927,7 +2175,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                 Text(
                                   isPro
                                       ? '• Detector de Productos Hueso: alerta de dinero inmovilizado.\n• Mi Bodega Online: enlace web para pedidos por WhatsApp.\n• Auditoría Rápida por Pasillo: conteos de 5 min contra robo hormiga.\n• Termómetro de Meta Diaria: seguimiento en tiempo real con barra de progreso.\n• Mapa de Horas Punta: analítica de afluencia para saber cuándo vender más.\n• Reporte de Cierre al WhatsApp del Dueño: arqueo ejecutivo con 1 toque.'
-                                      : '• Punto de Venta táctil y rápido con tickets digitales.\n• Control de Stock e Inventario en tiempo real.\n• Caja Diaria y Arqueo (apertura, egresos y cierre).\n• Cajeros y administradores con PIN ilimitados.\n• Libreta de fiados y control de vencimientos básico.',
+                                      : '• Punto de Venta táctil y rápido con tickets digitales.\n• Control de Stock e Inventario en tiempo real (hasta 150 productos).\n• Caja Diaria y Arqueo (apertura, egresos y cierre).\n• Cajeros y administradores con PIN ilimitados.\n• Libreta de fiados y control de vencimientos básico.',
 
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11.5,
@@ -2954,16 +2202,18 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                       const SizedBox(width: 5),
 
-                                      Text(
-                                        'Vigente hasta el ${_formatearFecha(_bodegaInfo!.fechaVencimientoPlan!)}',
+                                      Expanded(
+                                        child: Text(
+                                          'Vigente hasta el ${_formatearFecha(_bodegaInfo!.fechaVencimientoPlan!)}',
 
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 11,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
 
-                                          fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.w600,
 
-                                          color: Colors.white.withValues(
-                                            alpha: 0.95,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.95,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -3008,6 +2258,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                       isPro
                                           ? 'Renovar Plan Pro con Yape / Plin (S/ 100)'
                                           : 'Pagar / Mejorar con Yape / Plin (S/ 50 o S/ 100)',
+                                      textAlign: TextAlign.center,
 
                                       style: GoogleFonts.outfit(
                                         fontSize: 12.5,
@@ -3053,6 +2304,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                     label: Text(
                                       'Ver Historial de Vouchers y Renovaciones',
+                                      textAlign: TextAlign.center,
 
                                       style: GoogleFonts.outfit(
                                         fontSize: 12,
@@ -3209,7 +2461,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                         LucideIcons.globe,
                                         color: isPro
                                             ? AppTheme.accentGreen
-                                            : const Color(0xFF64748B),
+                                            : AppTheme.getAdaptiveMutedText(
+                                                isDark,
+                                              ),
                                         size: 22,
                                       ),
                                     ),
@@ -3219,7 +2473,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Row(
+                                          Wrap(
+                                            spacing: 6,
+                                            runSpacing: 4,
+                                            crossAxisAlignment:
+                                                WrapCrossAlignment.center,
                                             children: [
                                               Text(
                                                 'Mi Bodega Online',
@@ -3231,7 +2489,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                                       : AppTheme.textDark,
                                                 ),
                                               ),
-                                              const SizedBox(width: 6),
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -3295,7 +2552,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                               fontSize: 11,
                                               color: isPro
                                                   ? AppTheme.accentGreen
-                                                  : AppTheme.textMuted,
+                                                  : AppTheme.getAdaptiveMutedText(
+                                                      isDark,
+                                                    ),
                                             ),
                                           ),
                                         ],
@@ -3315,7 +2574,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                             : 'Desbloquea tu catálogo propio mejorando a PRO',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
-                                          color: AppTheme.textMuted,
+                                          color: AppTheme.getAdaptiveMutedText(
+                                            isDark,
+                                          ),
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -3422,7 +2683,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Row(
+                                          Wrap(
+                                            spacing: 6,
+                                            runSpacing: 4,
+                                            crossAxisAlignment:
+                                                WrapCrossAlignment.center,
                                             children: [
                                               Text(
                                                 'Promociones y Descuentos',
@@ -3434,7 +2699,6 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                                       : AppTheme.textDark,
                                                 ),
                                               ),
-                                              const SizedBox(width: 6),
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -3465,7 +2729,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                               fontSize: 11,
                                               color: isPro
                                                   ? AppTheme.brandPrimary
-                                                  : AppTheme.textMuted,
+                                                  : AppTheme.getAdaptiveMutedText(
+                                                      isDark,
+                                                    ),
                                             ),
                                           ),
                                         ],
@@ -3485,7 +2751,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                             : 'Desbloquea panel de promociones mejorando a PRO',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
-                                          color: AppTheme.textMuted,
+                                          color: AppTheme.getAdaptiveMutedText(
+                                            isDark,
+                                          ),
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -3577,17 +2845,19 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                       const SizedBox(width: 8),
 
-                                      Text(
-                                        '¿Quieres crecer con más control?',
+                                      Expanded(
+                                        child: Text(
+                                          '¿Quieres crecer con más control?',
 
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 14.5,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14.5,
 
-                                          fontWeight: FontWeight.w800,
+                                            fontWeight: FontWeight.w800,
 
-                                          color: isDark
-                                              ? Colors.white
-                                              : AppTheme.textDark,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -3601,7 +2871,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
 
-                                      color: AppTheme.textMuted,
+                                      color: AppTheme.getAdaptiveMutedText(
+                                        isDark,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -3610,6 +2882,13 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                             const SizedBox(height: 16),
                           ],
+
+                          PlanComparativaTable(
+                            highlightedPlan: isPro ? 'PRO' : 'BASICO',
+                            title: 'COMPARATIVA DETALLADA: BÁSICO VS PRO',
+                          ),
+
+                          const SizedBox(height: 16),
                         ], // Fin seccion suscripcion
 
                         if (widget.seccionInicial !=
@@ -3622,7 +2901,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Personal Registrado ()',
+                                  'Personal Registrado (${_usuarios.length})',
 
                                   style: GoogleFonts.outfit(
                                     fontSize: 15,
@@ -3688,6 +2967,214 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   widget.currentUsername,
                                 );
 
+                                final infoColumn = Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 4,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        Text(
+                                          u.username,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        if (isMe)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5,
+                                              vertical: 1,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.accentGreen
+                                                  .withValues(alpha: 0.15),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              'TÚ',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w900,
+                                                color: AppTheme.accentGreen,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      u.rol == 'SUPERADMIN'
+                                          ? 'Superadministrador'
+                                          : (u.rol == 'ADMIN'
+                                                ? 'Administrador (Dueño)'
+                                                : 'Cajero / Operador'),
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.getAdaptiveMutedText(
+                                          isDark,
+                                        ),
+                                      ),
+                                    ),
+                                    // Correo de recuperación: Exclusivo para Administrador / Dueño
+                                    if (u.rol == 'ADMIN' ||
+                                        u.rol == 'SUPERADMIN') ...[
+                                      const SizedBox(height: 3),
+                                      if (u.email != null &&
+                                          u.email!.trim().isNotEmpty)
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              LucideIcons.mail,
+                                              size: 11,
+                                              color: AppTheme.brandPrimary,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                u.email!,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: isDark
+                                                          ? const Color(
+                                                              0xFF93C5FD,
+                                                            )
+                                                          : const Color(
+                                                              0xFF1D4ED8,
+                                                            ),
+                                                    ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      else
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 2,
+                                              ),
+                                              child: Icon(
+                                                LucideIcons.mailWarning,
+                                                size: 11,
+                                                color: Colors.amber.shade700,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                'Sin correo de recuperación (Configurar)',
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 10.5,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color:
+                                                          Colors.amber.shade800,
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                    ],
+                                  ],
+                                );
+
+                                final actionWidgets = <Widget>[
+                                  // Botón editar correo de recuperación: Solo para Administradores
+                                  if (u.rol == 'ADMIN' || u.rol == 'SUPERADMIN')
+                                    IconButton(
+                                      visualDensity: VisualDensity.compact,
+                                      constraints: const BoxConstraints(
+                                        minWidth: 36,
+                                        minHeight: 36,
+                                      ),
+                                      icon: const Icon(
+                                        LucideIcons.pencil,
+                                        size: 17,
+                                        color: AppTheme.brandPrimary,
+                                      ),
+                                      tooltip:
+                                          'Configurar correo de recuperación',
+                                      onPressed: () =>
+                                          _abrirEditarUsuarioModal(u),
+                                    ),
+                                  IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    constraints: const BoxConstraints(
+                                      minWidth: 36,
+                                      minHeight: 36,
+                                    ),
+                                    icon: const Icon(
+                                      LucideIcons.keyRound,
+                                      size: 18,
+                                    ),
+                                    tooltip: 'Resetear contraseña',
+                                    onPressed: () =>
+                                        _abrirResetPasswordModal(u),
+                                  ),
+                                  // Botón eliminar: Disponible para cajeros
+                                  if (!isMe &&
+                                      (u.rol == 'CAJERO' ||
+                                          widget.userRol == 'SUPERADMIN'))
+                                    IconButton(
+                                      visualDensity: VisualDensity.compact,
+                                      constraints: const BoxConstraints(
+                                        minWidth: 36,
+                                        minHeight: 36,
+                                      ),
+                                      icon: const Icon(
+                                        LucideIcons.trash2,
+                                        size: 17,
+                                        color: AppTheme.alertRed,
+                                      ),
+                                      tooltip: 'Eliminar cajero',
+                                      onPressed: () =>
+                                          _confirmarEliminarUsuario(u),
+                                    ),
+                                  if (!isMe)
+                                    Switch(
+                                      value: u.estado,
+                                      activeThumbColor: AppTheme.accentGreen,
+                                      onChanged: (val) async {
+                                        final messenger = ScaffoldMessenger.of(
+                                          context,
+                                        );
+                                        try {
+                                          await _usuariosService.cambiarEstado(
+                                            u.idUsuario,
+                                            val,
+                                          );
+                                          _cargarUsuarios();
+                                        } catch (e) {
+                                          messenger.showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                e.toString().replaceAll(
+                                                  'Exception: ',
+                                                  '',
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                ];
+
                                 return Container(
                                   padding: const EdgeInsets.all(12),
 
@@ -3699,262 +3186,72 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                     border: Border.all(color: borderColor),
                                   ),
 
-                                  child: Row(
-                                    children: [
-                                      Container(
+                                  child: LayoutBuilder(
+                                    builder: (context, cardConstraints) {
+                                      final isNarrowCard =
+                                          cardConstraints.maxWidth < 430;
+                                      final avatar = Container(
                                         width: 40,
-
                                         height: 40,
-
                                         decoration: BoxDecoration(
                                           color:
                                               (u.rol == 'ADMIN'
                                                       ? AppTheme.brandPrimary
                                                       : const Color(0xFF6366F1))
                                                   .withValues(alpha: 0.15),
-
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
                                         ),
-
                                         child: Icon(
                                           u.rol == 'ADMIN'
                                               ? LucideIcons.shield
                                               : LucideIcons.user,
-
                                           color: u.rol == 'ADMIN'
                                               ? AppTheme.brandPrimary
                                               : const Color(0xFF6366F1),
-
                                           size: 20,
                                         ),
-                                      ),
+                                      );
 
-                                      const SizedBox(width: 12),
-
-                                      Expanded(
-                                        child: Column(
+                                      if (isNarrowCard) {
+                                        return Column(
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-
+                                              CrossAxisAlignment.stretch,
                                           children: [
                                             Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                Text(
-                                                  u.username,
-
-                                                  style: GoogleFonts.outfit(
-                                                    fontSize: 14,
-
-                                                    fontWeight: FontWeight.w700,
-
-                                                    color: isDark
-                                                        ? Colors.white
-                                                        : AppTheme.textDark,
-                                                  ),
-                                                ),
-
-                                                if (isMe) ...[
-                                                  const SizedBox(width: 6),
-
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 5,
-                                                          vertical: 1,
-                                                        ),
-
-                                                    decoration: BoxDecoration(
-                                                      color: AppTheme
-                                                          .accentGreen
-                                                          .withValues(
-                                                            alpha: 0.15,
-                                                          ),
-
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            6,
-                                                          ),
-                                                    ),
-
-                                                    child: Text(
-                                                      'TÚ',
-
-                                                      style: GoogleFonts.outfit(
-                                                        fontSize: 9,
-
-                                                        fontWeight:
-                                                            FontWeight.w900,
-
-                                                        color: AppTheme
-                                                            .accentGreen,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
+                                                avatar,
+                                                const SizedBox(width: 12),
+                                                Expanded(child: infoColumn),
                                               ],
                                             ),
-
-                                            const SizedBox(height: 2),
-
-                                            Text(
-                                              u.rol == 'SUPERADMIN'
-                                                  ? 'Superadministrador'
-                                                  : (u.rol == 'ADMIN'
-                                                        ? 'Administrador (Dueño)'
-                                                        : 'Cajero / Operador'),
-
-                                              style:
-                                                  GoogleFonts.plusJakartaSans(
-                                                    fontSize: 11,
-
-                                                    color: AppTheme.textMuted,
-                                                  ),
+                                            const SizedBox(height: 6),
+                                            Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Wrap(
+                                                spacing: 2,
+                                                runSpacing: 2,
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.center,
+                                                children: actionWidgets,
+                                              ),
                                             ),
-
-                                            // Correo de recuperación: Exclusivo para Administrador / Dueño
-                                            if (u.rol == 'ADMIN' ||
-                                                u.rol == 'SUPERADMIN') ...[
-                                              const SizedBox(height: 3),
-                                              if (u.email != null &&
-                                                  u.email!.trim().isNotEmpty)
-                                                Row(
-                                                  children: [
-                                                    const Icon(
-                                                      LucideIcons.mail,
-                                                      size: 11,
-                                                      color:
-                                                          AppTheme.brandPrimary,
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Flexible(
-                                                      child: Text(
-                                                        u.email!,
-                                                        style:
-                                                            GoogleFonts.plusJakartaSans(
-                                                              fontSize: 11,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                              color: isDark
-                                                                  ? const Color(
-                                                                      0xFF93C5FD,
-                                                                    )
-                                                                  : const Color(
-                                                                      0xFF1D4ED8,
-                                                                    ),
-                                                            ),
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                )
-                                              else
-                                                Row(
-                                                  children: [
-                                                    Icon(
-                                                      LucideIcons.mailWarning,
-                                                      size: 11,
-                                                      color:
-                                                          Colors.amber.shade700,
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      'Sin correo de recuperación (Configurar)',
-                                                      style:
-                                                          GoogleFonts.plusJakartaSans(
-                                                            fontSize: 10.5,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: Colors
-                                                                .amber
-                                                                .shade800,
-                                                          ),
-                                                    ),
-                                                  ],
-                                                ),
-                                            ],
                                           ],
-                                        ),
-                                      ),
+                                        );
+                                      }
 
-                                      // Botón editar correo de recuperación: Solo para Administradores
-                                      if (u.rol == 'ADMIN' ||
-                                          u.rol == 'SUPERADMIN')
-                                        IconButton(
-                                          icon: const Icon(
-                                            LucideIcons.pencil,
-                                            size: 17,
-                                            color: AppTheme.brandPrimary,
-                                          ),
-                                          tooltip: 'Configurar correo de recuperación',
-                                          onPressed: () =>
-                                              _abrirEditarUsuarioModal(u),
-                                        ),
-
-                                      IconButton(
-                                        icon: const Icon(
-                                          LucideIcons.keyRound,
-                                          size: 18,
-                                        ),
-
-                                        tooltip: 'Resetear contraseña',
-
-                                        onPressed: () =>
-                                            _abrirResetPasswordModal(u),
-                                      ),
-
-                                      // Botón eliminar: Disponible para cajeros
-                                      if (!isMe &&
-                                          (u.rol == 'CAJERO' ||
-                                              widget.userRol == 'SUPERADMIN'))
-                                        IconButton(
-                                          icon: const Icon(
-                                            LucideIcons.trash2,
-                                            size: 17,
-                                            color: AppTheme.alertRed,
-                                          ),
-                                          tooltip: 'Eliminar cajero',
-                                          onPressed: () =>
-                                              _confirmarEliminarUsuario(u),
-                                        ),
-
-                                      if (!isMe)
-                                        Switch(
-                                          value: u.estado,
-
-                                          activeThumbColor:
-                                              AppTheme.accentGreen,
-
-                                          onChanged: (val) async {
-                                            final messenger =
-                                                ScaffoldMessenger.of(context);
-
-                                            try {
-                                              await _usuariosService
-                                                  .cambiarEstado(
-                                                    u.idUsuario,
-                                                    val,
-                                                  );
-
-                                              _cargarUsuarios();
-                                            } catch (e) {
-                                              messenger.showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    e.toString().replaceAll(
-                                                      'Exception: ',
-                                                      '',
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                        ),
-                                    ],
+                                      return Row(
+                                        children: [
+                                          avatar,
+                                          const SizedBox(width: 12),
+                                          Expanded(child: infoColumn),
+                                          ...actionWidgets,
+                                        ],
+                                      );
+                                    },
                                   ),
                                 );
                               },
@@ -3998,59 +3295,65 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
 
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.15),
 
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-
-                    child: const Icon(
-                      LucideIcons.building2,
-                      size: 18,
-                      color: Color(0xFF8B5CF6),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-
-                    children: [
-                      Text(
-                        'Directorio de Bodegas',
-
-                        style: GoogleFonts.outfit(
-                          fontSize: 15,
-
-                          fontWeight: FontWeight.w800,
-
-                          color: isDark ? Colors.white : AppTheme.textDark,
-                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
 
-                      Text(
-                        'Consola Global Multi-Inquilino',
-
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-
-                          fontWeight: FontWeight.w600,
-
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
-                        ),
+                      child: const Icon(
+                        LucideIcons.building2,
+                        size: 18,
+                        color: Color(0xFF8B5CF6),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                        children: [
+                          Text(
+                            'Directorio de Bodegas',
+
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+
+                              fontWeight: FontWeight.w800,
+
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+
+                          Text(
+                            'Consola Global Multi-Inquilino',
+
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+
+                              fontWeight: FontWeight.w600,
+
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+
+              const SizedBox(width: 8),
 
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -4157,27 +3460,24 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
 
                           children: [
-                            Row(
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                Flexible(
-                                  child: Text(
-                                    b.nombreComercial,
+                                Text(
+                                  b.nombreComercial,
 
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 14,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
 
-                                      fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w700,
 
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
-                                    ),
-
-                                    overflow: TextOverflow.ellipsis,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
                                 ),
-
-                                const SizedBox(width: 6),
 
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -4220,7 +3520,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
 
-                                color: AppTheme.textMuted,
+                                color: AppTheme.getAdaptiveMutedText(isDark),
                               ),
 
                               overflow: TextOverflow.ellipsis,

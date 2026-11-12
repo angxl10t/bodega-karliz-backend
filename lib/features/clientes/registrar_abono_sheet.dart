@@ -332,7 +332,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
                     IconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(LucideIcons.x, size: 20),
-                      color: isDark ? Colors.white60 : Colors.black45,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                   ],
                 ),

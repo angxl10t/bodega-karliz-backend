@@ -33,7 +33,9 @@ class SyncBatchResult {
 class OfflineSyncManager {
   static final OfflineSyncManager _instance = OfflineSyncManager._internal();
   static OfflineSyncManager get instance => _instance;
-  OfflineSyncManager._internal();
+  OfflineSyncManager._internal() {
+    SecureStorageService.registerSessionCleanup(resetSession);
+  }
 
   final VentaService _ventaService = VentaService();
   final OfflineCatalogService _catalogService = OfflineCatalogService();
@@ -194,7 +196,23 @@ class OfflineSyncManager {
     );
 
     // Procesa en orden FIFO estricto para mantener la cronología de transacciones
-    final copias = List<OfflineVenta>.from(_queue);
+    // Filtra ventas que hayan superado el límite de reintentos por error permanente
+    final copias = _queue.where((v) {
+      if (v.estadoSync == 'PENDIENTE') return true;
+      if (v.estadoSync == 'ERROR' && v.intentosSync < 5) return true;
+      return false;
+    }).toList();
+
+    if (copias.isEmpty) {
+      _isSyncing = false;
+      isSyncingNotifier.value = false;
+      return SyncBatchResult(
+        totalPendientes: _queue.length,
+        sincronizadas: 0,
+        fallidas: _queue.length,
+        mensaje: 'Las ventas en cola tienen errores permanentes. Revísalas en la bandeja offline.',
+      );
+    }
 
     for (final venta in copias) {
       venta.estadoSync = 'SINCRONIZANDO';
@@ -281,6 +299,40 @@ class OfflineSyncManager {
         syncPendingSales();
       }
     });
+  }
+
+  /// Reinicia el estado en memoria y detiene la auto-sincronización al cerrar sesión o cambiar de bodega.
+  void resetSession() {
+    _autoSyncTimer?.cancel();
+    _autoSyncTimer = null;
+    _isInitialized = false;
+    _isSyncing = false;
+    final hadQueue = _queue.isNotEmpty;
+    _queue.clear();
+    if (hadQueue ||
+        pendingSalesNotifier.value.isNotEmpty ||
+        isSyncingNotifier.value ||
+        isOfflineNotifier.value ||
+        lastSyncSuccessNotifier.value != null) {
+      Future.microtask(() {
+        isSyncingNotifier.value = false;
+        isOfflineNotifier.value = false;
+        lastSyncSuccessNotifier.value = null;
+        _notifyQueueChanged();
+      });
+    }
+  }
+
+  /// Descarta o elimina una venta offline fallida de la cola local
+  Future<bool> descartarVentaOffline(String uuid) async {
+    final idx = _queue.indexWhere((v) => v.uuid == uuid);
+    if (idx != -1) {
+      _queue.removeAt(idx);
+      await _saveQueue();
+      _notifyQueueChanged();
+      return true;
+    }
+    return false;
   }
 
   /// Cancela el temporizador de auto-sincronización

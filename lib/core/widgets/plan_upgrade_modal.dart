@@ -74,40 +74,46 @@ class PlanUpgradeModal extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD97706).withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: const Color(0xFFD97706).withValues(alpha: 0.35),
-                        width: 1,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD97706).withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFD97706)
+                              .withValues(alpha: 0.35),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            LucideIcons.lock,
+                            size: 12,
+                            color: Color(0xFFD97706),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              'EXCLUSIVO PLAN MINIMARKET PRO',
+                              style: GoogleFonts.outfit(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFFD97706),
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          LucideIcons.lock,
-                          size: 12,
-                          color: Color(0xFFD97706),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'EXCLUSIVO PLAN MINIMARKET PRO',
-                          style: GoogleFonts.outfit(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFFD97706),
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(LucideIcons.x, size: 20),
                     tooltip: 'Cerrar',
@@ -292,6 +298,7 @@ class PlanUpgradeModal extends StatelessWidget {
                 icon: const Icon(LucideIcons.sparkles, size: 18),
                 label: Text(
                   'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,

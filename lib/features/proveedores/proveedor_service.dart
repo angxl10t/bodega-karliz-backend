@@ -18,7 +18,9 @@ class ProveedorService {
   static void _ensureCleanupRegistered() {
     if (_cleanupRegistered) return;
     _cleanupRegistered = true;
-    SecureStorageService.registerSessionCleanup(invalidateCache);
+    SecureStorageService.registerSessionCleanup(
+      () => invalidateCache(notify: false),
+    );
   }
 
   static List<Proveedor>? _cachedProveedores;
@@ -31,12 +33,14 @@ class ProveedorService {
   /// sincronice instantáneamente cuando se agregue o modifique un proveedor.
   static final ValueNotifier<int> proveedoresRevision = ValueNotifier<int>(0);
 
-  static void invalidateCache() {
+  static void invalidateCache({bool notify = true}) {
     _cachedProveedores = null;
     _cacheTimestamp = null;
     _inFlightProveedores = null;
     _cacheEpoch++;
-    proveedoresRevision.value++;
+    if (notify) {
+      proveedoresRevision.value++;
+    }
   }
 
   Future<List<Proveedor>> getProveedores({bool forceRefresh = false}) async {

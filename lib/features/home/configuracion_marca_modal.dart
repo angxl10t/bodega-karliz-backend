@@ -535,7 +535,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                 : 'Tu tienda utiliza la paleta estándar Cobalto de CajaYa. Pasa al Plan Pro para desbloquear colores de marca personalizados.',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getAdaptiveMutedText(isDark),
                             ),
                           ),
                           const SizedBox(height: 12),

@@ -1158,7 +1158,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   'Rol: ${u.rol} • Tienda: ${u.nombreBodega ?? "Sin bodega"}',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: AppTheme.textMuted,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -1974,9 +1974,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       hintText: 'Buscar bodega por nombre, RUC, dirección...',
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveHintText(isDark),
                       ),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
@@ -2095,7 +2093,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       Icon(
                         LucideIcons.store,
                         size: 48,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -2368,10 +2366,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       LucideIcons.fileText,
                       size: 13,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                     const SizedBox(width: 5),
                     Text(
@@ -2386,10 +2384,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       LucideIcons.phone,
                       size: 13,
-                      color: AppTheme.textMuted,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
                     ),
                     const SizedBox(width: 5),
                     Text(
@@ -2405,10 +2403,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         LucideIcons.calendar,
                         size: 13,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                       const SizedBox(width: 5),
                       Text(
@@ -2543,9 +2541,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           'Buscar usuario por username o nombre de bodega...',
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveHintText(isDark),
                       ),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
@@ -2611,7 +2607,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       Icon(
                         LucideIcons.users,
                         size: 48,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -2799,9 +2795,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       hintText: 'Buscar por código de operación o nombre de bodega...',
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                        color: AppTheme.getAdaptiveHintText(isDark),
                       ),
                       prefixIcon: const Icon(LucideIcons.search, size: 18),
                       border: InputBorder.none,
@@ -2857,7 +2851,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       Icon(
                         LucideIcons.receiptText,
                         size: 48,
-                        color: AppTheme.textMuted,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -2947,10 +2941,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                           ),
                                         );
                                       },
-                                      child: const Icon(
+                                      child: Icon(
                                         LucideIcons.copy,
                                         size: 13,
-                                        color: AppTheme.textMuted,
+                                        color: AppTheme.getAdaptiveMutedText(
+                                          isDark,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -3035,10 +3031,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           const SizedBox(width: 6),
                           PopupMenuButton<String>(
                             tooltip: 'Gestionar Estado del Pago',
-                            icon: const Icon(
+                            icon: Icon(
                               LucideIcons.ellipsisVertical,
                               size: 16,
-                              color: AppTheme.textMuted,
+                              color: AppTheme.getAdaptiveMutedText(isDark),
                             ),
                             onSelected: (val) => _cambiarEstadoPago(p, val),
                             itemBuilder: (context) => const [

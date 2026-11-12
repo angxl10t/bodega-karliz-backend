@@ -529,7 +529,7 @@ class _KarlizLockScreenState extends State<KarlizLockScreen>
         ? (isDark ? const Color(0xFF0F141F) : const Color(0xFFE2E8F0))
         : (isDark ? AppTheme.cardDark : Colors.white);
     final fg = disabled
-        ? (isDark ? Colors.white30 : const Color(0xFF94A3B8))
+        ? AppTheme.getAdaptiveHintText(isDark)
         : (isDark ? Colors.white : AppTheme.brandInk);
 
     return Material(

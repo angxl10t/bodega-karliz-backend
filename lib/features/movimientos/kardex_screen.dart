@@ -269,9 +269,7 @@ class _KardexScreenState extends State<KardexScreen> {
                               hintText:
                                   'Filtrar por producto, motivo o usuario...',
                               hintStyle: GoogleFonts.plusJakartaSans(
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
+                                color: AppTheme.getAdaptiveHintText(isDark),
                                 fontSize: 13,
                               ),
                               prefixIcon: const Icon(

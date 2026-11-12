@@ -19,7 +19,9 @@ class ClienteService {
   static void _ensureCleanupRegistered() {
     if (_cleanupRegistered) return;
     _cleanupRegistered = true;
-    SecureStorageService.registerSessionCleanup(invalidateCache);
+    SecureStorageService.registerSessionCleanup(
+      () => invalidateCache(notify: false),
+    );
   }
 
   static List<Cliente>? _cachedClientes;
@@ -30,12 +32,14 @@ class ClienteService {
 
   static final ValueNotifier<int> clientesRevision = ValueNotifier<int>(0);
 
-  static void invalidateCache() {
+  static void invalidateCache({bool notify = true}) {
     _cachedClientes = null;
     _cacheTimestamp = null;
     _inFlightClientes = null;
     _cacheEpoch++;
-    clientesRevision.value++;
+    if (notify) {
+      clientesRevision.value++;
+    }
   }
 
   Future<List<Cliente>> getClientes({

@@ -46,11 +46,11 @@ class AuthService {
 
   /// Limpia todas las cachés en memoria y sondeos propios de una bodega (ej. al cambiar de tenant).
   static void clearTenantCaches() {
-    ProductoService.invalidateCache();
-    ClienteService.invalidateCache();
-    CategoriaService.invalidateCache();
-    ProveedorService.invalidateCache();
-    GarantiaBotellaService.invalidateCache();
+    ProductoService.invalidateCache(notify: false);
+    ClienteService.invalidateCache(notify: false);
+    CategoriaService.invalidateCache(notify: false);
+    ProveedorService.invalidateCache(notify: false);
+    GarantiaBotellaService.invalidateCache(notify: false);
     OfflineCatalogService().clearMemoryCache();
     PedidoWebService.resetSession();
   }
