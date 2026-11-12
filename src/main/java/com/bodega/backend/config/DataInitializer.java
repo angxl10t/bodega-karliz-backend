@@ -87,6 +87,9 @@ public class DataInitializer implements ApplicationRunner {
         // 4. Sanitizar atajos y categorías basura (Bebidas Refrescantes 128/342/431/556/658) y unificar duplicados
         starterPackService.sanitizarCategoriasYAtajos();
 
+        // 4.1. Inicializar preset global de catálogo para el SuperAdmin si la tabla está vacía
+        starterPackService.inicializarPresetGlobalSiVacio();
+
         // 5. Enriquecer catálogo comercial y starter pack para Bodega KARLIZ y nuevas tiendas
         starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
 

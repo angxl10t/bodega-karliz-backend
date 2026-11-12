@@ -1,11 +1,14 @@
 package com.bodega.backend.service;
 
+import com.bodega.backend.dto.StarterPackPresetDTO;
 import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.Producto;
+import com.bodega.backend.entity.StarterPackPreset;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import com.bodega.backend.repository.StarterPackPresetRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,15 +27,18 @@ public class StarterPackService {
     private final BodegaRepository bodegaRepository;
     private final CategoriaRepository categoriaRepository;
     private final ProductoRepository productoRepository;
+    private final StarterPackPresetRepository starterPackPresetRepository;
 
     public StarterPackService(JdbcTemplate jdbcTemplate,
                               BodegaRepository bodegaRepository,
                               CategoriaRepository categoriaRepository,
-                              ProductoRepository productoRepository) {
+                              ProductoRepository productoRepository,
+                              StarterPackPresetRepository starterPackPresetRepository) {
         this.jdbcTemplate = jdbcTemplate;
         this.bodegaRepository = bodegaRepository;
         this.categoriaRepository = categoriaRepository;
         this.productoRepository = productoRepository;
+        this.starterPackPresetRepository = starterPackPresetRepository;
     }
 
     public static final String[][] CATEGORIAS_CANONICAS = {
@@ -426,14 +432,45 @@ public class StarterPackService {
         int creados = 0;
         int actualizados = 0;
 
-        for (String[] pData : PRODUCTOS_STARTER_PACK) {
-            String codigoBarras = pData[0];
-            String nombre = pData[1];
-            String marca = pData[2];
-            String catNombre = pData[3];
-            BigDecimal venta = new BigDecimal(pData[4]);
-            BigDecimal costo = new BigDecimal(pData[5]);
-            String imagenUrl = pData[6];
+        List<StarterPackItemRecord> itemsToClone = new ArrayList<>();
+        try {
+            if (starterPackPresetRepository != null) {
+                List<StarterPackPreset> dbPresets = starterPackPresetRepository.findByActivoTrueOrderByIdPresetAsc();
+                if (dbPresets != null && !dbPresets.isEmpty()) {
+                    for (StarterPackPreset p : dbPresets) {
+                        itemsToClone.add(new StarterPackItemRecord(
+                                p.getCodigoBarras(),
+                                p.getNombre(),
+                                p.getMarca(),
+                                p.getCategoria(),
+                                p.getPrecioVenta(),
+                                p.getPrecioCosto(),
+                                p.getImagenUrl()
+                        ));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[StarterPackService] Error al consultar preset global en BD, usando memoria: {}", e.getMessage());
+        }
+
+        if (itemsToClone.isEmpty()) {
+            for (String[] pData : PRODUCTOS_STARTER_PACK) {
+                itemsToClone.add(new StarterPackItemRecord(
+                        pData[0], pData[1], pData[2], pData[3],
+                        new BigDecimal(pData[4]), new BigDecimal(pData[5]), pData[6]
+                ));
+            }
+        }
+
+        for (StarterPackItemRecord item : itemsToClone) {
+            String codigoBarras = item.codigoBarras();
+            String nombre = item.nombre();
+            String marca = item.marca();
+            String catNombre = item.catNombre();
+            BigDecimal venta = item.venta();
+            BigDecimal costo = item.costo();
+            String imagenUrl = item.imagenUrl();
 
             Categoria categoria = categoriasMap.getOrDefault(catNombre.toLowerCase().trim(), fallbackCat);
             if (categoria == null) continue;
@@ -556,4 +593,143 @@ public class StarterPackService {
         }
         log.info("[StarterPackService] Precios actualizados en bodegas registradas: {} registros impactados.", totalActualizados);
     }
+
+    // =========================================================================
+    // GESTIÓN DEL PRESET GLOBAL PARA EL SUPERADMIN
+    // =========================================================================
+
+    @Transactional
+    public void inicializarPresetGlobalSiVacio() {
+        if (starterPackPresetRepository == null) return;
+        try {
+            long count = starterPackPresetRepository.count();
+            if (count > 0) return;
+
+            log.info("[StarterPackService] Inicializando catálogo preset global en base de datos...");
+            List<StarterPackPreset> presets = new ArrayList<>();
+            for (String[] pData : PRODUCTOS_STARTER_PACK) {
+                presets.add(StarterPackPreset.builder()
+                        .codigoBarras(pData[0].trim())
+                        .nombre(pData[1].trim())
+                        .marca(pData[2] != null ? pData[2].trim() : null)
+                        .categoria(pData[3].trim())
+                        .precioVenta(new BigDecimal(pData[4]))
+                        .precioCosto(new BigDecimal(pData[5]))
+                        .imagenUrl(pData[6] != null ? pData[6].trim() : null)
+                        .activo(true)
+                        .build());
+            }
+            starterPackPresetRepository.saveAll(presets);
+            log.info("[StarterPackService] Preset global inicializado exitosamente con {} productos.", presets.size());
+        } catch (Exception e) {
+            log.warn("[StarterPackService] Aviso al inicializar preset global: {}", e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<StarterPackPresetDTO> listarPresetGlobal() {
+        inicializarPresetGlobalSiVacio();
+        return starterPackPresetRepository.findAllByOrderByIdPresetAsc().stream()
+                .map(this::mapPresetToDTO)
+                .toList();
+    }
+
+    @Transactional
+    public StarterPackPresetDTO crearPresetItem(StarterPackPresetDTO dto) {
+        if (dto.getCodigoBarras() == null || dto.getCodigoBarras().isBlank()) {
+            throw new IllegalArgumentException("El código de barras es obligatorio.");
+        }
+        String ean = dto.getCodigoBarras().trim();
+        if (starterPackPresetRepository.existsByCodigoBarras(ean)) {
+            throw new IllegalArgumentException("Ya existe un producto con el código de barras '" + ean + "' en el preset global.");
+        }
+        StarterPackPreset entity = StarterPackPreset.builder()
+                .codigoBarras(ean)
+                .nombre(dto.getNombre().trim())
+                .marca(dto.getMarca() != null ? dto.getMarca().trim() : null)
+                .categoria(dto.getCategoria().trim())
+                .precioVenta(dto.getPrecioVenta() != null ? dto.getPrecioVenta() : BigDecimal.ZERO)
+                .precioCosto(dto.getPrecioCosto() != null ? dto.getPrecioCosto() : BigDecimal.ZERO)
+                .imagenUrl(dto.getImagenUrl() != null ? dto.getImagenUrl().trim() : null)
+                .activo(dto.getActivo() != null ? dto.getActivo() : true)
+                .build();
+        return mapPresetToDTO(starterPackPresetRepository.save(entity));
+    }
+
+    @Transactional
+    public StarterPackPresetDTO actualizarPresetItem(Long id, StarterPackPresetDTO dto) {
+        StarterPackPreset entity = starterPackPresetRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Producto del preset no encontrado con ID: " + id));
+
+        if (dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank()) {
+            String nuevoEan = dto.getCodigoBarras().trim();
+            if (!nuevoEan.equalsIgnoreCase(entity.getCodigoBarras()) && starterPackPresetRepository.existsByCodigoBarras(nuevoEan)) {
+                throw new IllegalArgumentException("Ya existe otro producto con el código de barras '" + nuevoEan + "'.");
+            }
+            entity.setCodigoBarras(nuevoEan);
+        }
+        if (dto.getNombre() != null && !dto.getNombre().isBlank()) {
+            entity.setNombre(dto.getNombre().trim());
+        }
+        if (dto.getMarca() != null) {
+            entity.setMarca(dto.getMarca().trim());
+        }
+        if (dto.getCategoria() != null && !dto.getCategoria().isBlank()) {
+            entity.setCategoria(dto.getCategoria().trim());
+        }
+        if (dto.getPrecioVenta() != null) {
+            entity.setPrecioVenta(dto.getPrecioVenta());
+        }
+        if (dto.getPrecioCosto() != null) {
+            entity.setPrecioCosto(dto.getPrecioCosto());
+        }
+        if (dto.getImagenUrl() != null) {
+            entity.setImagenUrl(dto.getImagenUrl().trim());
+        }
+        if (dto.getActivo() != null) {
+            entity.setActivo(dto.getActivo());
+        }
+        return mapPresetToDTO(starterPackPresetRepository.save(entity));
+    }
+
+    @Transactional
+    public void eliminarPresetItem(Long id) {
+        if (!starterPackPresetRepository.existsById(id)) {
+            throw new NoSuchElementException("Producto del preset no encontrado con ID: " + id);
+        }
+        starterPackPresetRepository.deleteById(id);
+    }
+
+    @Transactional
+    public List<StarterPackPresetDTO> restablecerPresetGlobal() {
+        starterPackPresetRepository.deleteAll();
+        inicializarPresetGlobalSiVacio();
+        return starterPackPresetRepository.findAllByOrderByIdPresetAsc().stream()
+                .map(this::mapPresetToDTO)
+                .toList();
+    }
+
+    private StarterPackPresetDTO mapPresetToDTO(StarterPackPreset p) {
+        return StarterPackPresetDTO.builder()
+                .idPreset(p.getIdPreset())
+                .codigoBarras(p.getCodigoBarras())
+                .nombre(p.getNombre())
+                .marca(p.getMarca())
+                .categoria(p.getCategoria())
+                .precioVenta(p.getPrecioVenta())
+                .precioCosto(p.getPrecioCosto())
+                .imagenUrl(p.getImagenUrl())
+                .activo(p.getActivo())
+                .build();
+    }
+
+    public record StarterPackItemRecord(
+            String codigoBarras,
+            String nombre,
+            String marca,
+            String catNombre,
+            BigDecimal venta,
+            BigDecimal costo,
+            String imagenUrl
+    ) {}
 }

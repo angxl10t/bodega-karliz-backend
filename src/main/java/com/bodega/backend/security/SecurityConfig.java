@@ -119,6 +119,7 @@ public class SecurityConfig {
                 // Health check ultraligero público para monitor de Render (diagnóstico restringido a SUPERADMIN)
 
                 .requestMatchers("/api/health/diagnostico").hasRole("SUPERADMIN")
+                .requestMatchers("/api/superadmin/**").hasRole("SUPERADMIN")
 
                 .requestMatchers("/api/productos/proxy-image", "/api/productos/proxy-image/**").permitAll()
                 .requestMatchers("/api/catalogo-publico", "/api/catalogo-publico/**").permitAll()
