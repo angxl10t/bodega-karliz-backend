@@ -14,6 +14,7 @@ import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
+import '../../core/widgets/pago_yape_modal.dart';
 import '../auth/auth_service.dart';
 import '../home/bodega_service.dart';
 import '../home/usuarios_service.dart';
@@ -563,7 +564,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final texto = Uri.encodeComponent(
       'Hola estimado/a ${b.nombreComercial}, te saludamos del equipo de soporte de CajaYa POS. '
       'Te informamos que $estadoMsg. '
-      'Puedes renovar fácilmente vía Yape o Plin al número 987654321 para continuar disfrutando de tu sistema sin interrupciones. ¡Muchas gracias por tu preferencia!',
+      'Puedes renovar fácilmente vía Yape o Plin al número ${PagoYapeModal.officialYapeDisplay} para continuar disfrutando de tu sistema sin interrupciones. ¡Muchas gracias por tu preferencia!',
     );
     final uri = Uri.parse('https://wa.me/$num?text=$texto');
     if (await canLaunchUrl(uri)) {

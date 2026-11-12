@@ -8,6 +8,23 @@ import '../../core/theme.dart';
 import '../../features/home/bodega_service.dart';
 
 class PagoYapeModal {
+  /// Número oficial de Yape / Plin y WhatsApp de soporte/suscripciones CajaYa POS.
+  static const String officialPhoneLocal = '981006081';
+  static const String officialPhoneE164 = '51981006081';
+  static const String officialYapeDisplay = '981 006 081';
+  static const String officialPhoneDisplay = '+51 981 006 081';
+
+  /// Camino de cobro activo:
+  /// - `false` (Camino A): registra el comprobante (`PENDIENTE`) + envío por WhatsApp y activación manual desde SuperAdmin.
+  /// - `true` (Camino B): conciliación automática inmediata vía webhook MacroDroid.
+  static const bool yapeWebhookAutomaticoActivo = false;
+
+  static Uri buildWhatsAppSupportUri(String mensaje) {
+    return Uri.parse(
+      'https://wa.me/$officialPhoneE164?text=${Uri.encodeComponent(mensaje)}',
+    );
+  }
+
   static Future<void> _abrirWhatsApp({
     required BuildContext context,
     required String plan,
@@ -19,9 +36,7 @@ class PagoYapeModal {
         : '';
     final mensaje =
         'Hola, adjunto mi comprobante de pago para mi suscripción CajaYa Cloud POS (Plan $plan - S/ ${monto.toStringAsFixed(2)}).$cod Favor de confirmar la activación.';
-    final uri = Uri.parse(
-      'https://wa.me/51987654321?text=${Uri.encodeComponent(mensaje)}',
-    );
+    final uri = buildWhatsAppSupportUri(mensaje);
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -32,11 +47,100 @@ class PagoYapeModal {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Comunícate al WhatsApp oficial: +51 987 654 321'),
+            content: Text(
+              'Comunícate al WhatsApp oficial: $officialPhoneDisplay',
+            ),
           ),
         );
       }
     }
+  }
+
+  static Future<void> _mostrarDialogoComprobanteReportado({
+    required BuildContext context,
+    required bool isDark,
+    required String codigoOperacion,
+    required String planSeleccionado,
+    required double monto,
+  }) {
+    final String detalle = yapeWebhookAutomaticoActivo
+        ? 'Tu operación N° $codigoOperacion ha sido registrada como PENDIENTE.\n\nEl sistema la validará en breve. También puedes enviar tu captura por WhatsApp al $officialYapeDisplay para agilizar la atención.'
+        : 'Tu operación N° $codigoOperacion ha sido registrada como PENDIENTE.\n\nVerificaremos tu abono manualmente y activaremos tu Plan $planSeleccionado en minutos. Envía tu captura por WhatsApp al $officialYapeDisplay para atención inmediata.';
+
+    return showDialog(
+      context: context,
+      builder: (alertCtx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                LucideIcons.clockAlert,
+                color: Color(0xFFD97706),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Comprobante Reportado',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          detalle,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12.5,
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF475569),
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(alertCtx),
+            child: Text(
+              'Cerrar',
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(alertCtx);
+              _abrirWhatsApp(
+                context: context,
+                plan: planSeleccionado,
+                monto: monto,
+                codigoOperacion: codigoOperacion,
+              );
+            },
+            icon: const Icon(LucideIcons.messageCircle, size: 16),
+            label: const Text('Enviar a WhatsApp'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentGreen,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   static Future<void> show(
@@ -465,9 +569,60 @@ class PagoYapeModal {
                               color: isDark ? Colors.white : AppTheme.textDark,
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 6),
+                          InkWell(
+                            onTap: () async {
+                              await Clipboard.setData(
+                                const ClipboardData(text: officialPhoneLocal),
+                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Número Yape/Plin copiado: $officialYapeDisplay',
+                                    ),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: walletPrimary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: walletPrimary.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.copy,
+                                    size: 13,
+                                    color: walletPrimary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Número $billetera: $officialYapeDisplay',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      color: walletPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
                           Text(
-                            'Escanea directamente con Yape o Plin',
+                            'Escanea el QR o yapea al número indicado',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -568,109 +723,12 @@ class PagoYapeModal {
                                         onPlanUpdated?.call();
 
                                         if (context.mounted) {
-                                          showDialog(
+                                          _mostrarDialogoComprobanteReportado(
                                             context: context,
-                                            builder: (alertCtx) => AlertDialog(
-                                              backgroundColor: isDark
-                                                  ? AppTheme.cardDarkElevated
-                                                  : Colors.white,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              title: Row(
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(
-                                                        0xFFF59E0B,
-                                                      ).withValues(alpha: 0.15),
-                                                      shape: BoxShape.circle,
-                                                    ),
-                                                    child: const Icon(
-                                                      LucideIcons.clockAlert,
-                                                      color: Color(0xFFD97706),
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 10),
-                                                  Expanded(
-                                                    child: Text(
-                                                      'Comprobante Reportado',
-                                                      style: GoogleFonts.outfit(
-                                                        fontWeight:
-                                                            FontWeight.w800,
-                                                        fontSize: 17,
-                                                        color: isDark
-                                                            ? Colors.white
-                                                            : AppTheme.textDark,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              content: Text(
-                                                'Tu operación N° $cod ha sido registrada como PENDIENTE.\n\nEl macro del sistema la validará en breve. También puedes enviar tu captura a WhatsApp para atención y activación prioritaria.',
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                      fontSize: 12.5,
-                                                      color: isDark
-                                                          ? AppTheme
-                                                                .textDarkSecondary
-                                                          : const Color(
-                                                              0xFF475569,
-                                                            ),
-                                                      height: 1.4,
-                                                    ),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.pop(alertCtx),
-                                                  child: Text(
-                                                    'Cerrar',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                  ),
-                                                ),
-                                                ElevatedButton.icon(
-                                                  onPressed: () {
-                                                    Navigator.pop(alertCtx);
-                                                    _abrirWhatsApp(
-                                                      context: context,
-                                                      plan: planSeleccionado,
-                                                      monto: monto,
-                                                      codigoOperacion: cod,
-                                                    );
-                                                  },
-                                                  icon: const Icon(
-                                                    LucideIcons.messageCircle,
-                                                    size: 16,
-                                                  ),
-                                                  label: const Text(
-                                                    'Enviar a WhatsApp',
-                                                  ),
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        AppTheme.accentGreen,
-                                                    foregroundColor:
-                                                        Colors.white,
-                                                    elevation: 0,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            10,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                            isDark: isDark,
+                                            codigoOperacion: cod,
+                                            planSeleccionado: planSeleccionado,
+                                            monto: monto,
                                           );
                                         }
                                       } catch (errReport) {
@@ -710,7 +768,7 @@ class PagoYapeModal {
                                     const SizedBox(width: 6),
                                     Flexible(
                                       child: Text(
-                                        '¿Ya transferiste? Reportar comprobante para revisión por Macro / WhatsApp',
+                                        '¿Ya transferiste? Reportar comprobante y enviar por WhatsApp',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
@@ -742,8 +800,9 @@ class PagoYapeModal {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        helperText:
-                            'Validación en tiempo real vía pasarela $billetera',
+                        helperText: yapeWebhookAutomaticoActivo
+                            ? 'Validación en tiempo real vía pasarela $billetera'
+                            : 'Tras transferir, registra el N° de operación para validar y activar tu plan.',
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -776,28 +835,55 @@ class PagoYapeModal {
                               });
 
                               try {
-                                await bodegaService.registrarPagoYape(
-                                  codigoOperacion: cod,
-                                  plan: planSeleccionado,
-                                  monto: monto,
-                                  billetera: billetera,
-                                );
+                                if (yapeWebhookAutomaticoActivo) {
+                                  await bodegaService.registrarPagoYape(
+                                    codigoOperacion: cod,
+                                    plan: planSeleccionado,
+                                    monto: monto,
+                                    billetera: billetera,
+                                  );
 
-                                if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                                  if (dialogCtx.mounted) {
+                                    Navigator.pop(dialogCtx);
+                                  }
 
-                                onPlanUpdated?.call();
+                                  onPlanUpdated?.call();
 
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: AppTheme.accentGreen,
-                                    content: Text(
-                                      '¡Suscripción actualizada exitosamente con $billetera! Tu plan $planSeleccionado está activo por 30 días adicionales.',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
+                                  messenger.showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: AppTheme.accentGreen,
+                                      content: Text(
+                                        '¡Suscripción actualizada exitosamente con $billetera! Tu plan $planSeleccionado está activo por 30 días adicionales.',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                } else {
+                                  await bodegaService.reportarPagoManual(
+                                    codigoOperacion: cod,
+                                    plan: planSeleccionado,
+                                    monto: monto,
+                                    billetera: billetera,
+                                  );
+
+                                  if (dialogCtx.mounted) {
+                                    Navigator.pop(dialogCtx);
+                                  }
+
+                                  onPlanUpdated?.call();
+
+                                  if (context.mounted) {
+                                    _mostrarDialogoComprobanteReportado(
+                                      context: context,
+                                      isDark: isDark,
+                                      codigoOperacion: cod,
+                                      planSeleccionado: planSeleccionado,
+                                      monto: monto,
+                                    );
+                                  }
+                                }
                               } catch (e) {
                                 setModalState(() {
                                   isSubmitting = false;
@@ -818,9 +904,12 @@ class PagoYapeModal {
                               ),
                             )
                           : Text(
-                              'CONFIRMAR Y ACTIVAR SUSCRIPCIÓN',
+                              yapeWebhookAutomaticoActivo
+                                  ? 'CONFIRMAR Y ACTIVAR SUSCRIPCIÓN'
+                                  : 'REGISTRAR COMPROBANTE Y SOLICITAR ACTIVACIÓN',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.outfit(
-                                fontSize: 14,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),

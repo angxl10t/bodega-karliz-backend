@@ -90,9 +90,7 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
     final mensaje =
         'Hola, soy de la bodega "$bodegaNombre" (Plan $plan). Deseo renovar o coordinar mi mensualidad de CajaYa Cloud POS.';
 
-    final uri = Uri.parse(
-      'https://wa.me/51987654321?text=${Uri.encodeComponent(mensaje)}',
-    );
+    final uri = PagoYapeModal.buildWhatsAppSupportUri(mensaje);
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
