@@ -218,6 +218,10 @@ public class SecurityConfig {
 
         configuration.setAllowedOriginPatterns(List.of(
 
+            "https://cajaya-api.onrender.com",
+
+            "https://*.onrender.com",
+
             "https://bodega-karliz-backend.onrender.com",
 
             "https://cajaya-pos.onrender.com",
@@ -253,4 +257,6 @@ public class SecurityConfig {
     }
 
 }
+
+
 
