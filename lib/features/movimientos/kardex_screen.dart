@@ -62,15 +62,50 @@ class _KardexScreenState extends State<KardexScreen> {
     }
   }
 
-  bool _esAjuste(MovimientoInventario m) {
+  bool _esCambioPrecio(MovimientoInventario m) {
+    final t = m.tipoMovimiento.toUpperCase();
     final mot = m.motivo.toUpperCase();
+    return t.contains('PRECIO') ||
+        t.contains('COSTO') ||
+        mot.contains('CAMBIO DE PRECIO') ||
+        mot.contains('PRECIO DE VENTA') ||
+        mot.contains('CAMBIO DE COSTO') ||
+        mot.contains('INICIAL DE COSTO');
+  }
+
+  bool _esCambioDatos(MovimientoInventario m) {
+    if (_esCambioPrecio(m)) return false;
+    final t = m.tipoMovimiento.toUpperCase();
+    final mot = m.motivo.toUpperCase();
+    return t.contains('NOMBRE') ||
+        t.contains('CATEGORIA') ||
+        t.contains('MARCA') ||
+        t.contains('CODIGO') ||
+        t.contains('VENCIMIENTO') ||
+        t.contains('EDICION') ||
+        t.contains('ADMIN') ||
+        mot.contains('CAMBIO DE DESCRIPCI') ||
+        mot.contains('CAMBIO DE NOMBRE') ||
+        mot.contains('CAMBIO DE CATEGOR') ||
+        mot.contains('CAMBIO DE MARCA') ||
+        mot.contains('CAMBIO DE CÓDIGO') ||
+        mot.contains('CÓDIGO DE BARRAS') ||
+        mot.contains('ACTUALIZACIÓN DE VENCIMIENTO') ||
+        mot.contains('ASIGNACIÓN DE VENCIMIENTO');
+  }
+
+  bool _esAjuste(MovimientoInventario m) {
+    if (_esCambioPrecio(m) || _esCambioDatos(m)) return false;
+    final mot = m.motivo.toUpperCase();
+    final t = m.tipoMovimiento.toUpperCase();
     return mot.contains('[MERMA]') ||
         mot.contains('[ROTURA]') ||
         mot.contains('[VENCIMIENTO]') ||
         mot.contains('[CONSUMO_INTERNO]') ||
         mot.contains('[SOBRANTE]') ||
         mot.contains('AJUSTE MANUAL') ||
-        mot.contains('[AJUSTE');
+        mot.contains('[AJUSTE') ||
+        t.contains('AJUSTE');
   }
 
   @override
@@ -80,7 +115,11 @@ class _KardexScreenState extends State<KardexScreen> {
     final filtrados = _movimientos.where((m) {
       final matchesText =
           m.nombreProducto.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
-          m.motivo.toLowerCase().contains(_filtroTexto.toLowerCase());
+          m.motivo.toLowerCase().contains(_filtroTexto.toLowerCase()) ||
+          (m.usuarioResponsable?.toLowerCase().contains(
+                _filtroTexto.toLowerCase(),
+              ) ??
+              false);
 
       bool matchesTipo = true;
       if (_filtroTipo == 'ENTRADA') {
@@ -88,14 +127,22 @@ class _KardexScreenState extends State<KardexScreen> {
             (m.tipoMovimiento.contains('ENTRADA') ||
                 m.tipoMovimiento.contains('COMPRA')) &&
             !m.motivo.toUpperCase().contains('ANULACI') &&
-            !_esAjuste(m);
+            !_esAjuste(m) &&
+            !_esCambioPrecio(m) &&
+            !_esCambioDatos(m);
       } else if (_filtroTipo == 'SALIDA') {
         matchesTipo =
             (m.tipoMovimiento.contains('SALIDA') ||
                 m.tipoMovimiento.contains('VENTA')) &&
-            !_esAjuste(m);
+            !_esAjuste(m) &&
+            !_esCambioPrecio(m) &&
+            !_esCambioDatos(m);
       } else if (_filtroTipo == 'AJUSTE') {
         matchesTipo = _esAjuste(m);
+      } else if (_filtroTipo == 'PRECIO') {
+        matchesTipo = _esCambioPrecio(m);
+      } else if (_filtroTipo == 'EDICION') {
+        matchesTipo = _esCambioDatos(m);
       } else if (_filtroTipo == 'DEVOLUCION') {
         matchesTipo =
             m.tipoMovimiento.contains('DEVOLUCION') ||
@@ -119,7 +166,9 @@ class _KardexScreenState extends State<KardexScreen> {
               (m.tipoMovimiento.contains('ENTRADA') ||
                   m.tipoMovimiento.contains('COMPRA')) &&
               !m.motivo.toUpperCase().contains('ANULACI') &&
-              !_esAjuste(m),
+              !_esAjuste(m) &&
+              !_esCambioPrecio(m) &&
+              !_esCambioDatos(m),
         )
         .length;
     final int totalSalidas = _movimientos
@@ -127,10 +176,18 @@ class _KardexScreenState extends State<KardexScreen> {
           (m) =>
               (m.tipoMovimiento.contains('SALIDA') ||
                   m.tipoMovimiento.contains('VENTA')) &&
-              !_esAjuste(m),
+              !_esAjuste(m) &&
+              !_esCambioPrecio(m) &&
+              !_esCambioDatos(m),
         )
         .length;
     final int totalAjustes = _movimientos.where((m) => _esAjuste(m)).length;
+    final int totalPrecios = _movimientos
+        .where((m) => _esCambioPrecio(m))
+        .length;
+    final int totalEdiciones = _movimientos
+        .where((m) => _esCambioDatos(m))
+        .length;
 
     final canPop = ModalRoute.of(context)?.canPop ?? false;
 
@@ -195,8 +252,8 @@ class _KardexScreenState extends State<KardexScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: const DidacticBanner(
-                      title: 'Auditoría en Tiempo Real',
-                      description: 'Cada venta en POS resta stock, cada compra suma existencias, cada merma o rotura descuenta por deterioro y las anulaciones restituyen productos.',
+                      title: 'Auditoría Integral de Kardex',
+                      description: 'Rastrea en tiempo real ventas, compras, mermas de stock y auditoría administrativa de cambios de precios, nombres y catálogo con sus respectivas insignias.',
                       icon: LucideIcons.fileSpreadsheet,
                     ),
                   ),
@@ -208,36 +265,60 @@ class _KardexScreenState extends State<KardexScreen> {
                       vertical: 12,
                     ),
                     color: Colors.transparent,
-                    child: Row(
-                      children: [
-                        _buildKpiChip(
-                          'Entradas',
-                          '$totalEntradas',
-                          AppTheme.accentGreen,
-                          isDark,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildKpiChip(
-                          'Salidas',
-                          '$totalSalidas',
-                          AppTheme.brandPrimary,
-                          isDark,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildKpiChip(
-                          'Mermas',
-                          '$totalAjustes',
-                          AppTheme.alertRed,
-                          isDark,
-                        ),
-                        const SizedBox(width: 6),
-                        _buildKpiChip(
-                          'Devolución',
-                          '$totalDevoluciones',
-                          AppTheme.infoIndigo,
-                          isDark,
-                        ),
-                      ],
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _buildKpiChip(
+                            'Entradas',
+                            '$totalEntradas',
+                            AppTheme.accentGreen,
+                            isDark,
+                            width: 85,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildKpiChip(
+                            'Salidas',
+                            '$totalSalidas',
+                            AppTheme.brandPrimary,
+                            isDark,
+                            width: 85,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildKpiChip(
+                            'Mermas',
+                            '$totalAjustes',
+                            AppTheme.alertRed,
+                            isDark,
+                            width: 85,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildKpiChip(
+                            'Precios',
+                            '$totalPrecios',
+                            const Color(0xFF8B5CF6),
+                            isDark,
+                            width: 85,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildKpiChip(
+                            'Ediciones',
+                            '$totalEdiciones',
+                            const Color(0xFF0284C7),
+                            isDark,
+                            width: 85,
+                          ),
+                          const SizedBox(width: 6),
+                          _buildKpiChip(
+                            'Devolución',
+                            '$totalDevoluciones',
+                            AppTheme.infoIndigo,
+                            isDark,
+                            width: 88,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -307,6 +388,7 @@ class _KardexScreenState extends State<KardexScreen> {
                         // Chips de Tipo
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
                           child: Row(
                             children: [
                               _buildFilterChip('TODOS', 'Todos', isDark),
@@ -326,6 +408,18 @@ class _KardexScreenState extends State<KardexScreen> {
                               _buildFilterChip(
                                 'AJUSTE',
                                 'Mermas y Ajustes',
+                                isDark,
+                              ),
+                              const SizedBox(width: 6),
+                              _buildFilterChip(
+                                'PRECIO',
+                                'Cambios de Precio',
+                                isDark,
+                              ),
+                              const SizedBox(width: 6),
+                              _buildFilterChip(
+                                'EDICION',
+                                'Edición de Catálogo',
                                 isDark,
                               ),
                               const SizedBox(width: 6),
@@ -541,43 +635,55 @@ class _KardexScreenState extends State<KardexScreen> {
     );
   }
 
-  Widget _buildKpiChip(String label, String count, Color color, bool isDark) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.cardDark : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              count,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: color,
-              ),
-            ),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11,
-                color: isDark
-                    ? AppTheme.textDarkSecondary
-                    : const Color(0xFF334155),
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+  Widget _buildKpiChip(
+    String label,
+    String count,
+    Color color,
+    bool isDark, {
+    double? width,
+  }) {
+    final chip = Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
         ),
       ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            count,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF334155),
+              fontWeight: FontWeight.w700,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
+
+    if (width != null) {
+      return chip;
+    }
+    return Expanded(child: chip);
   }
 
   Widget _buildFilterChip(String key, String label, bool isDark) {
@@ -606,42 +712,166 @@ class _KardexScreenState extends State<KardexScreen> {
     );
   }
 
-  Widget _buildMovimientoTile(MovimientoInventario m, bool isDark) {
+  ({
+    Color color,
+    IconData icon,
+    String badgeText,
+    IconData badgeIcon,
+    bool esAuditoriaAdmin,
+  })
+  _calcularDetalleVisual(MovimientoInventario m) {
     final tipo = m.tipoMovimiento.toUpperCase();
+    final mot = m.motivo.toUpperCase();
+
+    // 1. Auditoría de Precios
+    if (tipo == 'CAMBIO_PRECIO' || mot.contains('PRECIO DE VENTA')) {
+      return (
+        color: const Color(0xFF8B5CF6), // Violeta
+        icon: LucideIcons.tag,
+        badgeText: 'PRECIO',
+        badgeIcon: LucideIcons.tag,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    if (tipo == 'CAMBIO_COSTO' || mot.contains('COSTO DE COMPRA')) {
+      return (
+        color: const Color(0xFFD97706), // Ámbar cálido
+        icon: LucideIcons.coins,
+        badgeText: 'COSTO',
+        badgeIcon: LucideIcons.coins,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    // 2. Auditoría de Edición de Catálogo
+    if (tipo == 'CAMBIO_NOMBRE' ||
+        mot.contains('NOMBRE/DESCRIPCIÓN') ||
+        mot.contains('CAMBIO DE NOMBRE')) {
+      return (
+        color: const Color(0xFF0284C7), // Azul cielo
+        icon: LucideIcons.filePenLine,
+        badgeText: 'DETALLE',
+        badgeIcon: LucideIcons.filePenLine,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    if (tipo == 'CAMBIO_CATEGORIA' ||
+        mot.contains('CATEGORÍA') ||
+        mot.contains('CATEGORIA')) {
+      return (
+        color: const Color(0xFF6366F1), // Índigo
+        icon: LucideIcons.layoutGrid,
+        badgeText: 'CATEGORÍA',
+        badgeIcon: LucideIcons.layoutGrid,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    if (tipo == 'CAMBIO_MARCA' || mot.contains('MARCA')) {
+      return (
+        color: const Color(0xFFEC4899), // Rosa Magenta
+        icon: LucideIcons.sparkles,
+        badgeText: 'MARCA',
+        badgeIcon: LucideIcons.sparkles,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    if (tipo == 'CAMBIO_CODIGO' ||
+        mot.contains('CÓDIGO DE BARRAS') ||
+        mot.contains('CODIGO DE BARRAS')) {
+      return (
+        color: const Color(0xFF0EA5E9), // Azul Cian
+        icon: LucideIcons.scanBarcode,
+        badgeText: 'CÓDIGO',
+        badgeIcon: LucideIcons.scanBarcode,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    if (tipo == 'CAMBIO_VENCIMIENTO' ||
+        (mot.contains('VENCIMIENTO') && m.cantidad == 0 && !_esAjuste(m))) {
+      return (
+        color: const Color(0xFFEA580C), // Naranja intenso
+        icon: LucideIcons.calendarClock,
+        badgeText: 'VENCE',
+        badgeIcon: LucideIcons.calendarClock,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    if (_esCambioDatos(m)) {
+      return (
+        color: const Color(0xFF0284C7),
+        icon: LucideIcons.sliders,
+        badgeText: 'CATÁLOGO',
+        badgeIcon: LucideIcons.sliders,
+        esAuditoriaAdmin: true,
+      );
+    }
+
+    // 3. Movimientos Físicos de Stock
     final bool isDevolucion =
         tipo.contains('DEVOLUCION') ||
         tipo.contains('ANULACION') ||
-        m.motivo.toUpperCase().contains('ANULACI');
+        mot.contains('ANULACI');
     final bool isAjuste = _esAjuste(m);
     final bool isEntrada =
         !isDevolucion &&
         !isAjuste &&
         (tipo.contains('ENTRADA') || tipo.contains('COMPRA'));
 
-    Color badgeColor;
-    IconData icon;
-    String sign;
+    final String cantFormateada = m.cantidad % 1 == 0
+        ? m.cantidad.toInt().toString()
+        : m.cantidad.toStringAsFixed(2);
 
     if (isAjuste) {
-      final esSobrante =
-          m.motivo.toUpperCase().contains('[SOBRANTE]') ||
-          tipo.contains('ENTRADA');
-      badgeColor = esSobrante ? AppTheme.accentGreen : AppTheme.alertRed;
-      icon = esSobrante ? LucideIcons.packagePlus : LucideIcons.packageMinus;
-      sign = esSobrante ? '+' : '-';
-    } else if (isEntrada) {
-      badgeColor = AppTheme.accentGreen;
-      icon = LucideIcons.arrowDownLeft;
-      sign = '+';
-    } else if (isDevolucion) {
-      badgeColor = const Color(0xFF3B82F6);
-      icon = LucideIcons.rotateCcw;
-      sign = '+';
-    } else {
-      badgeColor = AppTheme.brandPrimary;
-      icon = LucideIcons.arrowUpRight;
-      sign = '-';
+      final esSobrante = mot.contains('[SOBRANTE]') || tipo.contains('ENTRADA');
+      return (
+        color: esSobrante ? AppTheme.accentGreen : AppTheme.alertRed,
+        icon: esSobrante ? LucideIcons.packagePlus : LucideIcons.packageMinus,
+        badgeText: '${esSobrante ? '+' : '-'}$cantFormateada u.',
+        badgeIcon: esSobrante
+            ? LucideIcons.packagePlus
+            : LucideIcons.packageMinus,
+        esAuditoriaAdmin: false,
+      );
     }
+
+    if (isEntrada) {
+      return (
+        color: AppTheme.accentGreen,
+        icon: LucideIcons.arrowDownLeft,
+        badgeText: '+$cantFormateada u.',
+        badgeIcon: LucideIcons.arrowDownLeft,
+        esAuditoriaAdmin: false,
+      );
+    }
+
+    if (isDevolucion) {
+      return (
+        color: const Color(0xFF3B82F6),
+        icon: LucideIcons.rotateCcw,
+        badgeText: '+$cantFormateada u.',
+        badgeIcon: LucideIcons.rotateCcw,
+        esAuditoriaAdmin: false,
+      );
+    }
+
+    // Por defecto: Salida / Venta en caja POS (flecha diagonal hacia la derecha)
+    return (
+      color: AppTheme.brandPrimary,
+      icon: LucideIcons.arrowUpRight,
+      badgeText: '-$cantFormateada u.',
+      badgeIcon: LucideIcons.arrowUpRight,
+      esAuditoriaAdmin: false,
+    );
+  }
+
+  Widget _buildMovimientoTile(MovimientoInventario m, bool isDark) {
+    final detalle = _calcularDetalleVisual(m);
 
     final fechaStr = m.fechaMovimiento != null
         ? '${m.fechaMovimiento!.day.toString().padLeft(2, '0')}/${m.fechaMovimiento!.month.toString().padLeft(2, '0')} ${m.fechaMovimiento!.hour.toString().padLeft(2, '0')}:${m.fechaMovimiento!.minute.toString().padLeft(2, '0')}'
@@ -660,39 +890,51 @@ class _KardexScreenState extends State<KardexScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Icono principal identificador (diferenciado de la flecha de stock)
           Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.12),
+              color: detalle.color.withValues(alpha: isDark ? 0.18 : 0.12),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: detalle.color.withValues(alpha: isDark ? 0.35 : 0.22),
+                width: 1,
+              ),
             ),
-            child: Icon(icon, color: badgeColor, size: 20),
+            child: Icon(detalle.icon, color: detalle.color, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  m.nombreProducto,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13.5,
-                    color: isDark ? Colors.white : AppTheme.textDark,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        m.nombreProducto,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   m.motivo.isNotEmpty ? m.motivo : 'Movimiento de inventario',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
+                    height: 1.35,
                     color: isDark
                         ? AppTheme.textDarkSecondary
                         : const Color(0xFF334155),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Row(
                   children: [
                     Text(
@@ -754,29 +996,57 @@ class _KardexScreenState extends State<KardexScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Builder(
-              builder: (context) {
-                final String cantFormateada = m.cantidad % 1 == 0
-                    ? m.cantidad.toInt().toString()
-                    : m.cantidad.toStringAsFixed(2);
-                return Text(
-                  '$sign$cantFormateada u.',
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: badgeColor,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+
+          // Insignia lateral derecha
+          if (detalle.esAuditoriaAdmin)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              decoration: BoxDecoration(
+                color: detalle.color.withValues(alpha: isDark ? 0.2 : 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: detalle.color.withValues(alpha: isDark ? 0.45 : 0.25),
+                  width: 1.1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(detalle.badgeIcon, size: 11, color: detalle.color),
+                  const SizedBox(width: 4),
+                  Text(
+                    detalle.badgeText,
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: detalle.color,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                );
-              },
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: detalle.color.withValues(alpha: isDark ? 0.18 : 0.1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: detalle.color.withValues(alpha: isDark ? 0.35 : 0.2),
+                  width: 1.1,
+                ),
+              ),
+              child: Text(
+                detalle.badgeText,
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: detalle.color,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );
