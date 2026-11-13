@@ -4427,6 +4427,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
+                      icon: const Icon(LucideIcons.send, size: 16, color: Color(0xFF7C3AED)),
+                      tooltip: 'Sugerir precio o datos a bodegas',
+                      onPressed: () => _mostrarModalSugerirABodegas(
+                        context,
+                        isDark,
+                        item,
+                      ),
+                    ),
+                    IconButton(
                       icon: const Icon(LucideIcons.pencil, size: 16),
                       tooltip: 'Editar producto',
                       onPressed: () => _mostrarModalCrearEditarPreset(
@@ -4482,6 +4491,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     );
     final imagenUrlCtrl = TextEditingController(text: item?.imagenUrl ?? '');
     bool activoVal = item?.activo ?? true;
+    bool difundirSugerenciaVal = false;
 
     final formKey = GlobalKey<FormState>();
     bool guardando = false;
@@ -4702,6 +4712,32 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         activeTrackColor: const Color(0xFF7C3AED),
                         onChanged: (v) => setDlgState(() => activoVal = v),
                       ),
+                      const SizedBox(height: 6),
+
+                      // Switch para difundir sugerencia a bodegas existentes
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Sugerir actualización a bodegas existentes',
+                          style: GoogleFonts.outfit(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF7C3AED),
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Envía una notificación a las bodegas que tienen este código de barras para que adopten estos precios o datos.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                        value: difundirSugerenciaVal,
+                        activeTrackColor: const Color(0xFF7C3AED),
+                        onChanged: (v) => setDlgState(() => difundirSugerenciaVal = v),
+                      ),
                     ],
                   ),
                 ),
@@ -4765,14 +4801,30 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           } else {
                             await _bodegaService.crearStarterPackPreset(payload);
                           }
+
+                          int difundidas = 0;
+                          if (difundirSugerenciaVal) {
+                            try {
+                              difundidas = await _bodegaService.difundirSugerenciaPrecio({
+                                'codigoBarras': codigoCtrl.text.trim(),
+                                'precioVentaSugerido': double.parse(precioVentaCtrl.text.trim()),
+                                'precioCostoSugerido': double.tryParse(precioCostoCtrl.text.trim()),
+                                'nombreSugerido': nombreCtrl.text.trim(),
+                                'marcaSugerida': marcaCtrl.text.trim().isNotEmpty ? marcaCtrl.text.trim() : null,
+                                'motivo': 'Actualización sugerida por el SuperAdmin desde el Preset Starter Pack',
+                              });
+                            } catch (_) {}
+                          }
+
                           if (context.mounted) {
                             Navigator.pop(dlgCtx);
+                            final msgDifusion = difundidas > 0 ? ' y sugerido a $difundidas bodegas' : '';
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
                                   esEdicion
-                                      ? 'Producto del preset actualizado correctamente'
-                                      : 'Nuevo producto agregado al preset global',
+                                      ? 'Producto actualizado$msgDifusion correctamente'
+                                      : 'Nuevo producto agregado al preset$msgDifusion',
                                 ),
                                 backgroundColor: AppTheme.accentGreen,
                               ),
@@ -4785,6 +4837,309 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Error: $e'),
+                                backgroundColor: AppTheme.alertRed,
+                              ),
+                            );
+                          }
+                        }
+                      },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _mostrarModalSugerirABodegas(
+    BuildContext context,
+    bool isDark,
+    StarterPackPresetItem item,
+  ) async {
+    final precioVentaCtrl = TextEditingController(
+      text: item.precioVenta.toStringAsFixed(2),
+    );
+    final precioCostoCtrl = TextEditingController(
+      text: item.precioCosto.toStringAsFixed(2),
+    );
+    final nombreCtrl = TextEditingController(text: item.nombre);
+    final marcaCtrl = TextEditingController(text: item.marca ?? '');
+    final motivoCtrl = TextEditingController(
+      text: 'Ajuste de precio y catálogo sugerido por CajaYa SuperAdmin',
+    );
+
+    int bodegasCount = 0;
+    bool cargandoConteo = true;
+    bool enviando = false;
+
+    // Consultar conteo en segundo plano
+    _bodegaService.contarBodegasConProducto(item.codigoBarras).then((count) {
+      bodegasCount = count;
+      cargandoConteo = false;
+    }).catchError((_) {
+      bodegasCount = 0;
+      cargandoConteo = false;
+    });
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dlgCtx) => StatefulBuilder(
+        builder: (ctx, setDlgState) {
+          if (cargandoConteo) {
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (ctx.mounted && !cargandoConteo) {
+                setDlgState(() {});
+              }
+            });
+          }
+
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    LucideIcons.send,
+                    color: Color(0xFF7C3AED),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Sugerir a Bodegas',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(LucideIcons.x, size: 20),
+                  onPressed: () => Navigator.pop(dlgCtx),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 480,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Resumen del producto y conteo
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.scanBarcode, size: 18, color: Color(0xFF7C3AED)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.nombre,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  'EAN: ${item.codigoBarras}',
+                                  style: GoogleFonts.jetBrainsMono(
+                                    fontSize: 11,
+                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              cargandoConteo
+                                  ? 'Buscando...'
+                                  : '$bodegasCount tiendas',
+                              style: GoogleFonts.outfit(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF7C3AED),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    Text(
+                      'Esta propuesta llegará a las bodegas como una sugerencia. Cada bodega podrá aceptarla o rechazarla de forma autónoma.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Precios Venta y Costo sugeridos
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: precioVentaCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              labelText: 'Precio Venta Sugerido *',
+                              prefixText: 'S/ ',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            controller: precioCostoCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            decoration: InputDecoration(
+                              labelText: 'Precio Costo Sugerido',
+                              prefixText: 'S/ ',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Nombre y Marca sugeridos
+                    TextFormField(
+                      controller: nombreCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Nombre Sugerido',
+                        prefixIcon: const Icon(LucideIcons.package, size: 18),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextFormField(
+                      controller: marcaCtrl,
+                      decoration: InputDecoration(
+                        labelText: 'Marca Sugerida',
+                        prefixIcon: const Icon(LucideIcons.tag, size: 18),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Motivo
+                    TextFormField(
+                      controller: motivoCtrl,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        labelText: 'Motivo / Mensaje para las Bodegas',
+                        prefixIcon: const Icon(LucideIcons.messageSquare, size: 18),
+                        hintText: 'Ej. Incremento sugerido por proveedor / Corrección de catálogo',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: enviando ? null : () => Navigator.pop(dlgCtx),
+                child: const Text('Cancelar'),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
+                icon: enviando
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(LucideIcons.send, size: 16),
+                label: Text(enviando ? 'Enviando...' : 'Enviar Sugerencia'),
+                onPressed: enviando
+                    ? null
+                    : () async {
+                        final v = double.tryParse(precioVentaCtrl.text.trim());
+                        if (v == null || v <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Ingresa un precio de venta válido mayor a 0.'),
+                              backgroundColor: AppTheme.alertRed,
+                            ),
+                          );
+                          return;
+                        }
+
+                        setDlgState(() => enviando = true);
+
+                        try {
+                          final notificadas = await _bodegaService.difundirSugerenciaPrecio({
+                            'codigoBarras': item.codigoBarras,
+                            'precioVentaSugerido': v,
+                            'precioCostoSugerido': double.tryParse(precioCostoCtrl.text.trim()),
+                            'nombreSugerido': nombreCtrl.text.trim().isNotEmpty ? nombreCtrl.text.trim() : null,
+                            'marcaSugerida': marcaCtrl.text.trim().isNotEmpty ? marcaCtrl.text.trim() : null,
+                            'motivo': motivoCtrl.text.trim(),
+                          });
+
+                          if (context.mounted) {
+                            Navigator.pop(dlgCtx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Sugerencia difundida a $notificadas bodega(s). Podrán aceptarla o rechazarla.',
+                                ),
+                                backgroundColor: AppTheme.accentGreen,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          setDlgState(() => enviando = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error al difundir sugerencia: $e'),
                                 backgroundColor: AppTheme.alertRed,
                               ),
                             );

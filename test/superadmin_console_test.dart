@@ -149,6 +149,48 @@ void main() {
       expect(item.precioCosto, 2.80);
       expect(item.activo, isFalse);
     });
+
+    test('SugerenciaPrecioItem parses suggestion JSON with price and naming differences correctly', () {
+      final json = {
+        'idSugerencia': 50,
+        'idBodega': 2,
+        'nombreBodega': 'Bodega Las Tres Marías',
+        'idProducto': 301,
+        'codigoBarras': '7750106001015',
+        'nombreActual': 'Arroz Costeño Extra 1kg',
+        'nombreSugerido': 'Arroz Costeño Grano Largo 1kg',
+        'marcaActual': 'Costeño',
+        'marcaSugerida': 'Costeño Gourmet',
+        'precioVentaActual': '4.50',
+        'precioVentaSugerido': '4.90',
+        'precioCostoActual': '3.80',
+        'precioCostoSugerido': '4.00',
+        'imagenUrl': 'https://res.cloudinary.com/cajaya/arroz.jpg',
+        'motivo': 'Alza de precios de fabricante Alicorp',
+        'estado': 'PENDIENTE',
+        'fechaCreacion': '2026-11-12T20:00:00Z',
+      };
+
+      final sug = SugerenciaPrecioItem.fromJson(json);
+
+      expect(sug.idSugerencia, 50);
+      expect(sug.idBodega, 2);
+      expect(sug.nombreBodega, 'Bodega Las Tres Marías');
+      expect(sug.idProducto, 301);
+      expect(sug.codigoBarras, '7750106001015');
+      expect(sug.nombreActual, 'Arroz Costeño Extra 1kg');
+      expect(sug.nombreSugerido, 'Arroz Costeño Grano Largo 1kg');
+      expect(sug.marcaActual, 'Costeño');
+      expect(sug.marcaSugerida, 'Costeño Gourmet');
+      expect(sug.precioVentaActual, 4.50);
+      expect(sug.precioVentaSugerido, 4.90);
+      expect(sug.precioCostoActual, 4.00 > 0 ? 3.80 : 0.0);
+      expect(sug.precioCostoSugerido, 4.00);
+      expect(sug.imagenUrl, 'https://res.cloudinary.com/cajaya/arroz.jpg');
+      expect(sug.motivo, 'Alza de precios de fabricante Alicorp');
+      expect(sug.estado, 'PENDIENTE');
+      expect(sug.precioVentaSugerido - sug.precioVentaActual, closeTo(0.40, 0.001));
+    });
   });
 
   group('Superadmin Console Widget & Navigation Tests', () {

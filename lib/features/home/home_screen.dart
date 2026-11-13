@@ -22,6 +22,7 @@ import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/responsive_layout.dart';
 import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
+import '../productos/sugerencias_precio_modal.dart';
 import '../legal/libro_reclamaciones_screen.dart';
 import '../legal/terminos_condiciones_screen.dart';
 import '../legal/politica_privacidad_screen.dart';
@@ -53,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   BodegaInfo? _bodegaInfo;
   Map<String, dynamic> _anuncioGlobal = {};
   bool _anuncioDismissed = false;
+  int _sugerenciasPendientes = 0;
   Timer? _inactivityTimer;
   DateTime? _lastInactivityResetAt;
   bool _orientationConfigured = false;
@@ -214,6 +216,8 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) setState(() => _anuncioGlobal = anuncio);
       } catch (_) {}
 
+      _verificarSugerenciasSuperadmin();
+
       if (mounted) {
         // Mostrar Briefing de Turno ejecutivo/operativo al inicio de sesión
         Future.delayed(const Duration(milliseconds: 350), () {
@@ -229,6 +233,13 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     }
+  }
+
+  Future<void> _verificarSugerenciasSuperadmin() async {
+    try {
+      final count = await BodegaService().contarMisSugerenciasPendientes();
+      if (mounted) setState(() => _sugerenciasPendientes = count);
+    } catch (_) {}
   }
 
   void _mostrarPanelAdmin() {
@@ -1987,6 +1998,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   _anuncioGlobal.isNotEmpty &&
                   _anuncioGlobal['activo'] == true)
                 _buildAnuncioGlobalBanner(context, isDark),
+              if (_sugerenciasPendientes > 0)
+                _buildSugerenciasAlertBanner(context, isDark),
               if (_userRol == 'ADMIN' &&
                   _diasRestantesPlan != null &&
                   _diasRestantesPlan! <= 5)
@@ -2372,6 +2385,78 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSugerenciasAlertBanner(BuildContext context, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF2E1065).withValues(alpha: 0.5)
+            : const Color(0xFFF5F3FF),
+        border: Border(
+          bottom: BorderSide(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+            width: 1.2,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              LucideIcons.sparkles,
+              size: 16,
+              color: Color(0xFF7C3AED),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Tienes $_sugerenciasPendientes sugerencia(s) de precios y catálogo del SuperAdmin.',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: isDark
+                    ? const Color(0xFFDDD6FE)
+                    : const Color(0xFF5B21B6),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+            ),
+            icon: const Icon(LucideIcons.arrowUpRight, size: 14),
+            label: const Text(
+              'Revisar',
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () => SugerenciasPrecioModal.show(
+              context,
+              onActualizado: _verificarSugerenciasSuperadmin,
             ),
           ),
         ],

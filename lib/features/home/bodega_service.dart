@@ -578,6 +578,137 @@ class BodegaService {
     throw Exception(errorMsg);
   }
 
+  // ===========================================================================
+  // SUGERENCIAS DE PRECIOS Y CATÁLOGO SUPERADMIN ➔ BODEGAS
+  // ===========================================================================
+
+  /// Difundir sugerencia de precio/datos a bodegas existentes (Exclusivo Superadmin)
+  Future<int> difundirSugerenciaPrecio(Map<String, dynamic> data) async {
+    final response = await _client.post('/superadmin/sugerencias-precio', data);
+    if (response.statusCode == 200) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return (json['bodegasNotificadas'] as num?)?.toInt() ?? 0;
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo difundir la sugerencia a las bodegas',
+    );
+    throw Exception(errorMsg);
+  }
+
+  /// Consultar cuántas bodegas activas tienen un producto por código de barras
+  Future<int> contarBodegasConProducto(String codigoBarras) async {
+    try {
+      final clean = Uri.encodeComponent(codigoBarras.trim());
+      final response = await _client.get(
+        '/superadmin/sugerencias-precio/conteo-bodegas?codigoBarras=$clean',
+      );
+      if (response.statusCode == 200) {
+        final json = jsonDecode(utf8.decode(response.bodyBytes));
+        return (json['bodegasConProducto'] as num?)?.toInt() ?? 0;
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  /// Listar sugerencias recibidas para la bodega autenticada
+  Future<List<SugerenciaPrecioItem>> listarMisSugerenciasPrecio({
+    String estado = 'PENDIENTE',
+  }) async {
+    try {
+      final response = await _client.get(
+        '/bodegas/mis-sugerencias-precio?estado=$estado',
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data
+            .map((json) => SugerenciaPrecioItem.fromJson(json))
+            .toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Conteo de sugerencias de precios pendientes para la bodega actual
+  Future<int> contarMisSugerenciasPendientes() async {
+    try {
+      final response = await _client.get('/bodegas/mis-sugerencias-precio/conteo');
+      if (response.statusCode == 200) {
+        final json = jsonDecode(utf8.decode(response.bodyBytes));
+        return (json['pendientes'] as num?)?.toInt() ?? 0;
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  /// Aceptar sugerencia de precio para la bodega actual
+  Future<SugerenciaPrecioItem> aceptarSugerenciaPrecio(int idSugerencia) async {
+    final response = await _client.put(
+      '/bodegas/mis-sugerencias-precio/$idSugerencia/aceptar',
+      {},
+    );
+    if (response.statusCode == 200) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return SugerenciaPrecioItem.fromJson(json);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo aceptar la sugerencia',
+    );
+    throw Exception(errorMsg);
+  }
+
+  /// Rechazar sugerencia de precio para la bodega actual
+  Future<SugerenciaPrecioItem> rechazarSugerenciaPrecio(int idSugerencia) async {
+    final response = await _client.put(
+      '/bodegas/mis-sugerencias-precio/$idSugerencia/rechazar',
+      {},
+    );
+    if (response.statusCode == 200) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return SugerenciaPrecioItem.fromJson(json);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo rechazar la sugerencia',
+    );
+    throw Exception(errorMsg);
+  }
+
+  /// Aceptar todas las sugerencias pendientes para la bodega actual
+  Future<int> aceptarTodasSugerenciasPrecio() async {
+    final response = await _client.put(
+      '/bodegas/mis-sugerencias-precio/aceptar-todas',
+      {},
+    );
+    if (response.statusCode == 200) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return (json['totalAceptadas'] as num?)?.toInt() ?? 0;
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudieron aceptar las sugerencias',
+    );
+    throw Exception(errorMsg);
+  }
+
+  /// Rechazar todas las sugerencias pendientes para la bodega actual
+  Future<int> rechazarTodasSugerenciasPrecio() async {
+    final response = await _client.put(
+      '/bodegas/mis-sugerencias-precio/rechazar-todas',
+      {},
+    );
+    if (response.statusCode == 200) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return (json['totalRechazadas'] as num?)?.toInt() ?? 0;
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudieron rechazar las sugerencias',
+    );
+    throw Exception(errorMsg);
+  }
+
   /// Obtiene el monitor y semáforo fiscal del Nuevo RUS (ventas y compras del mes vs límites S/ 5,000 y S/ 8,000)
   Future<ResumenNuevoRus?> obtenerMonitorNuevoRus({int? anio, int? mes}) async {
     try {
@@ -810,5 +941,85 @@ class StarterPackPresetItem {
       'imagenUrl': imagenUrl,
       'activo': activo,
     };
+  }
+}
+
+class SugerenciaPrecioItem {
+  final int idSugerencia;
+  final int idBodega;
+  final String? nombreBodega;
+  final int idProducto;
+  final String codigoBarras;
+  final String nombreActual;
+  final String? nombreSugerido;
+  final String? marcaActual;
+  final String? marcaSugerida;
+  final double precioVentaActual;
+  final double precioVentaSugerido;
+  final double? precioCostoActual;
+  final double? precioCostoSugerido;
+  final String? imagenUrl;
+  final String? motivo;
+  final String estado;
+  final String? fechaCreacion;
+  final String? fechaResolucion;
+  final String? usuarioResolucion;
+
+  SugerenciaPrecioItem({
+    required this.idSugerencia,
+    required this.idBodega,
+    this.nombreBodega,
+    required this.idProducto,
+    required this.codigoBarras,
+    required this.nombreActual,
+    this.nombreSugerido,
+    this.marcaActual,
+    this.marcaSugerida,
+    required this.precioVentaActual,
+    required this.precioVentaSugerido,
+    this.precioCostoActual,
+    this.precioCostoSugerido,
+    this.imagenUrl,
+    this.motivo,
+    required this.estado,
+    this.fechaCreacion,
+    this.fechaResolucion,
+    this.usuarioResolucion,
+  });
+
+  factory SugerenciaPrecioItem.fromJson(Map<String, dynamic> json) {
+    double? parseD(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString());
+    }
+
+    return SugerenciaPrecioItem(
+      idSugerencia: json['idSugerencia'] is int
+          ? json['idSugerencia']
+          : int.parse(json['idSugerencia']?.toString() ?? '0'),
+      idBodega: json['idBodega'] is int
+          ? json['idBodega']
+          : int.parse(json['idBodega']?.toString() ?? '0'),
+      nombreBodega: json['nombreBodega']?.toString(),
+      idProducto: json['idProducto'] is int
+          ? json['idProducto']
+          : int.parse(json['idProducto']?.toString() ?? '0'),
+      codigoBarras: json['codigoBarras']?.toString() ?? '',
+      nombreActual: json['nombreActual']?.toString() ?? '',
+      nombreSugerido: json['nombreSugerido']?.toString(),
+      marcaActual: json['marcaActual']?.toString(),
+      marcaSugerida: json['marcaSugerida']?.toString(),
+      precioVentaActual: parseD(json['precioVentaActual']) ?? 0.0,
+      precioVentaSugerido: parseD(json['precioVentaSugerido']) ?? 0.0,
+      precioCostoActual: parseD(json['precioCostoActual']),
+      precioCostoSugerido: parseD(json['precioCostoSugerido']),
+      imagenUrl: json['imagenUrl']?.toString(),
+      motivo: json['motivo']?.toString(),
+      estado: json['estado']?.toString() ?? 'PENDIENTE',
+      fechaCreacion: json['fechaCreacion']?.toString(),
+      fechaResolucion: json['fechaResolucion']?.toString(),
+      usuarioResolucion: json['usuarioResolucion']?.toString(),
+    );
   }
 }

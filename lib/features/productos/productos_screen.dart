@@ -10,6 +10,7 @@ import 'producto_model.dart';
 import 'producto_service.dart';
 import 'nuevo_producto_sheet.dart';
 import 'editar_producto_sheet.dart';
+import 'sugerencias_precio_modal.dart';
 import '../movimientos/kardex_screen.dart';
 import '../movimientos/ajuste_stock_sheet.dart';
 import '../movimientos/vencimientos_screen.dart';
@@ -59,6 +60,7 @@ class _ProductosScreenState extends State<ProductosScreen>
   String _selectedCategoria = 'Todos';
   String _estadoStockFiltro = 'todos'; // 'todos', 'bajo_stock', 'con_stock'
   String _userRol = 'CAJERO';
+  int _sugerenciasPendientes = 0;
   bool get _esAdmin =>
       _userRol.toUpperCase() == 'ADMIN' ||
       _userRol.toUpperCase() == 'SUPERADMIN';
@@ -114,6 +116,15 @@ class _ProductosScreenState extends State<ProductosScreen>
     runWhenTabVisible(() => _cargarProductos(forceRefresh: true));
   }
 
+  Future<void> _verificarSugerencias() async {
+    try {
+      final count = await _bodegaService.contarMisSugerenciasPendientes();
+      if (mounted) {
+        setState(() => _sugerenciasPendientes = count);
+      }
+    } catch (_) {}
+  }
+
   Future<void> _inicializarDatos() async {
     setState(() => _isLoading = true);
     try {
@@ -122,6 +133,7 @@ class _ProductosScreenState extends State<ProductosScreen>
         _productoService.getProductos(forceRefresh: false),
         _bodegaService.obtenerMiBodega(),
       ]);
+      _verificarSugerencias();
       if (mounted) {
         final rol = results[0] as String;
         final prods = results[1] as List<Producto>;
@@ -142,6 +154,7 @@ class _ProductosScreenState extends State<ProductosScreen>
 
   Future<void> _cargarProductos({bool forceRefresh = false}) async {
     setState(() => _isLoading = true);
+    _verificarSugerencias();
     final results = await Future.wait([
       _productoService.getProductos(forceRefresh: forceRefresh),
       _bodegaService.obtenerMiBodega(),
@@ -516,9 +529,84 @@ class _ProductosScreenState extends State<ProductosScreen>
                             builder: (_) => const KardexScreen(),
                           ),
                         );
+                      } else if (val == 'sugerencias') {
+                        SugerenciasPrecioModal.show(
+                          context,
+                          onActualizado: () {
+                            _cargarProductos(forceRefresh: true);
+                            _verificarSugerencias();
+                          },
+                        );
                       }
                     },
                     itemBuilder: (ctx) => [
+                      PopupMenuItem(
+                        value: 'sugerencias',
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                LucideIcons.sparkles,
+                                size: 15,
+                                color: Color(0xFF7C3AED),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Sugerencias de Precios',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                        ),
+                                      ),
+                                      if (_sugerenciasPendientes > 0) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF7C3AED),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            '$_sugerenciasPendientes',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  Text(
+                                    'Propuestas del SuperAdmin para tus productos',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
                       PopupMenuItem(
                         value: 'vencimientos',
                         child: Row(
@@ -990,6 +1078,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                 ],
               ),
             ),
+
+            if (_sugerenciasPendientes > 0)
+              _buildSugerenciasBanner(context, isDark),
 
             // 2. Toolbar Unificada (Buscador + Carrusel Único de Filtros)
             Container(
@@ -2638,6 +2729,64 @@ class _ProductosScreenState extends State<ProductosScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSugerenciasBanner(BuildContext context, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF2E1065).withValues(alpha: 0.6)
+            : const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(LucideIcons.sparkles, color: Color(0xFF7C3AED), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Tienes $_sugerenciasPendientes sugerencia(s) de precios y catálogo del SuperAdmin.',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: isDark ? const Color(0xFFDDD6FE) : const Color(0xFF5B21B6),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 0,
+            ),
+            icon: const Icon(LucideIcons.arrowUpRight, size: 14),
+            label: const Text(
+              'Revisar',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () => SugerenciasPrecioModal.show(
+              context,
+              onActualizado: () {
+                _cargarProductos(forceRefresh: true);
+                _verificarSugerencias();
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
