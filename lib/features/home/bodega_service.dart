@@ -567,9 +567,7 @@ class BodegaService {
     );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-      return data
-          .map((json) => StarterPackPresetItem.fromJson(json))
-          .toList();
+      return data.map((json) => StarterPackPresetItem.fromJson(json)).toList();
     }
     final errorMsg = ApiClient.extractErrorMessage(
       response,
@@ -621,9 +619,7 @@ class BodegaService {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        return data
-            .map((json) => SugerenciaPrecioItem.fromJson(json))
-            .toList();
+        return data.map((json) => SugerenciaPrecioItem.fromJson(json)).toList();
       }
     } catch (_) {}
     return [];
@@ -632,7 +628,9 @@ class BodegaService {
   /// Conteo de sugerencias de precios pendientes para la bodega actual
   Future<int> contarMisSugerenciasPendientes() async {
     try {
-      final response = await _client.get('/bodegas/mis-sugerencias-precio/conteo');
+      final response = await _client.get(
+        '/bodegas/mis-sugerencias-precio/conteo',
+      );
       if (response.statusCode == 200) {
         final json = jsonDecode(utf8.decode(response.bodyBytes));
         return (json['pendientes'] as num?)?.toInt() ?? 0;
@@ -659,7 +657,9 @@ class BodegaService {
   }
 
   /// Rechazar sugerencia de precio para la bodega actual
-  Future<SugerenciaPrecioItem> rechazarSugerenciaPrecio(int idSugerencia) async {
+  Future<SugerenciaPrecioItem> rechazarSugerenciaPrecio(
+    int idSugerencia,
+  ) async {
     final response = await _client.put(
       '/bodegas/mis-sugerencias-precio/$idSugerencia/rechazar',
       {},
@@ -717,7 +717,9 @@ class BodegaService {
       final query = (estado != null && estado.isNotEmpty && estado != 'TODOS')
           ? '?estado=$estado'
           : '';
-      final response = await _client.get('/superadmin/sugerencias-precio$query');
+      final response = await _client.get(
+        '/superadmin/sugerencias-precio$query',
+      );
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
         return data.map((json) => SugerenciaPrecioItem.fromJson(json)).toList();

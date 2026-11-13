@@ -10,7 +10,10 @@ class SugerenciasPrecioModal extends StatefulWidget {
 
   const SugerenciasPrecioModal({super.key, this.onActualizado});
 
-  static Future<void> show(BuildContext context, {VoidCallback? onActualizado}) {
+  static Future<void> show(
+    BuildContext context, {
+    VoidCallback? onActualizado,
+  }) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -38,7 +41,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
   Future<void> _cargarSugerencias() async {
     setState(() => _isLoading = true);
     try {
-      final items = await _bodegaService.listarMisSugerenciasPrecio(estado: 'PENDIENTE');
+      final items = await _bodegaService.listarMisSugerenciasPrecio(
+        estado: 'PENDIENTE',
+      );
       if (mounted) {
         setState(() {
           _sugerencias = items;
@@ -62,7 +67,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
       widget.onActualizado?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Se actualizó el producto "${item.nombreActual}" al precio sugerido.'),
+          content: Text(
+            'Se actualizó el producto "${item.nombreActual}" al precio sugerido.',
+          ),
           backgroundColor: AppTheme.accentGreen,
         ),
       );
@@ -87,7 +94,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
       widget.onActualizado?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Sugerencia rechazada. Tu precio se mantuvo sin cambios.'),
+          content: Text(
+            'Sugerencia rechazada. Tu precio se mantuvo sin cambios.',
+          ),
         ),
       );
     } catch (e) {
@@ -142,9 +151,7 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
       });
       widget.onActualizado?.call();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Se descartaron $total sugerencias.'),
-        ),
+        SnackBar(content: Text('Se descartaron $total sugerencias.')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -164,10 +171,7 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
     final size = MediaQuery.of(context).size;
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: size.height * 0.88,
-        maxWidth: 720,
-      ),
+      constraints: BoxConstraints(maxHeight: size.height * 0.88, maxWidth: 720),
       margin: EdgeInsets.symmetric(
         horizontal: size.width > 720 ? (size.width - 720) / 2 : 0,
       ),
@@ -223,14 +227,18 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                       Text(
                         'Actualizaciones propuestas para tus productos. Tú decides si aceptarlas.',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -293,51 +301,55 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _sugerencias.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(18),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                LucideIcons.badgeCheck,
-                                color: Color(0xFF10B981),
-                                size: 40,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            Text(
-                              '¡Estás al día!',
-                              style: GoogleFonts.outfit(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'No hay sugerencias de precios o datos pendientes de revisar.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFF1F5F9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.badgeCheck,
+                            color: Color(0xFF10B981),
+                            size: 40,
+                          ),
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                        itemCount: _sugerencias.length,
-                        separatorBuilder: (ctx, idx) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final item = _sugerencias[index];
-                          return _buildCardSugerencia(item, isDark);
-                        },
-                      ),
+                        const SizedBox(height: 14),
+                        Text(
+                          '¡Estás al día!',
+                          style: GoogleFonts.outfit(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'No hay sugerencias de precios o datos pendientes de revisar.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    itemCount: _sugerencias.length,
+                    separatorBuilder: (ctx, idx) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final item = _sugerencias[index];
+                      return _buildCardSugerencia(item, isDark);
+                    },
+                  ),
           ),
         ],
       ),
@@ -347,10 +359,12 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
   Widget _buildCardSugerencia(SugerenciaPrecioItem item, bool isDark) {
     final diffVenta = item.precioVentaSugerido - item.precioVentaActual;
     final esAlza = diffVenta > 0;
-    final tieneCambioNombre = item.nombreSugerido != null &&
+    final tieneCambioNombre =
+        item.nombreSugerido != null &&
         item.nombreSugerido!.trim().isNotEmpty &&
         item.nombreSugerido != item.nombreActual;
-    final tieneCambioMarca = item.marcaSugerida != null &&
+    final tieneCambioMarca =
+        item.marcaSugerida != null &&
         item.marcaSugerida!.trim().isNotEmpty &&
         item.marcaSugerida != item.marcaActual;
 
@@ -382,10 +396,14 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                    color: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
                     ),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -415,7 +433,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                         style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                       if (tieneCambioNombre)
@@ -436,14 +456,18 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                           Icon(
                             LucideIcons.scanBarcode,
                             size: 13,
-                            color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                            color: isDark
+                                ? const Color(0xFF64748B)
+                                : const Color(0xFF94A3B8),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             item.codigoBarras,
                             style: GoogleFonts.jetBrainsMono(
                               fontSize: 11,
-                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                           if (tieneCambioMarca) ...[
@@ -471,10 +495,14 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1B4B).withValues(alpha: 0.3) : const Color(0xFFF5F3FF),
+                color: isDark
+                    ? const Color(0xFF1E1B4B).withValues(alpha: 0.3)
+                    : const Color(0xFFF5F3FF),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF4338CA).withValues(alpha: 0.4) : const Color(0xFFDDD6FE),
+                  color: isDark
+                      ? const Color(0xFF4338CA).withValues(alpha: 0.4)
+                      : const Color(0xFFDDD6FE),
                 ),
               ),
               child: Row(
@@ -486,7 +514,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                         'Precio Actual',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                       Text(
@@ -495,13 +525,19 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           decoration: TextDecoration.lineThrough,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(width: 14),
-                  const Icon(LucideIcons.arrowRight, size: 16, color: Color(0xFF7C3AED)),
+                  const Icon(
+                    LucideIcons.arrowRight,
+                    size: 16,
+                    color: Color(0xFF7C3AED),
+                  ),
                   const SizedBox(width: 14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,7 +562,10 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: esAlza
                           ? const Color(0xFF10B981).withValues(alpha: 0.15)
@@ -540,7 +579,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: esAlza ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                        color: esAlza
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFFF59E0B),
                       ),
                     ),
                   ),
@@ -566,7 +607,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         fontStyle: FontStyle.italic,
-                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
                       ),
                     ),
                   ),
@@ -584,12 +627,17 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF64748B),
                     side: BorderSide(
-                      color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                      color: isDark
+                          ? const Color(0xFF475569)
+                          : const Color(0xFFCBD5E1),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                   ),
                   icon: const Icon(LucideIcons.x, size: 15),
                   label: const Text('Rechazar'),
@@ -603,7 +651,10 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     elevation: 0,
                   ),
                   icon: const Icon(LucideIcons.check, size: 16),

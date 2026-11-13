@@ -589,8 +589,11 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                     _selectedHex = preset.hex;
                                     _customHexCtrl.text = preset.hex;
                                   });
-                                  if (widget.isPro || preset.hex.toUpperCase() == '#2563EB') {
-                                    context.read<ThemeProvider>().setAccentColorFromHex(preset.hex);
+                                  if (widget.isPro ||
+                                      preset.hex.toUpperCase() == '#2563EB') {
+                                    context
+                                        .read<ThemeProvider>()
+                                        .setAccentColorFromHex(preset.hex);
                                   }
                                 },
                                 borderRadius: BorderRadius.circular(12),
@@ -679,18 +682,24 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                   decoration: BoxDecoration(
                                     color: _parseHexToColor(_selectedHex),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 1.5),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.5,
+                                    ),
                                   ),
                                 ),
                               ),
                               onChanged: (val) {
                                 final clean = val.trim();
-                                if (RegExp(r'^#?[0-9a-fA-F]{6}$').hasMatch(clean)) {
+                                if (RegExp(r'^#?[0-9a-fA-F]{6}$')
+                                    .hasMatch(clean)) {
                                   final hex = clean.startsWith('#')
                                       ? clean.toUpperCase()
                                       : '#${clean.toUpperCase()}';
                                   setState(() => _selectedHex = hex);
-                                  context.read<ThemeProvider>().setAccentColorFromHex(hex);
+                                  context
+                                      .read<ThemeProvider>()
+                                      .setAccentColorFromHex(hex);
                                 }
                               },
                             ),
@@ -698,7 +707,10 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
 
                           const SizedBox(height: 16),
                           // Tarjeta de Previsualización en Vivo de Marca
-                          _buildLivePreviewCard(isDark, _parseHexToColor(_selectedHex)),
+                          _buildLivePreviewCard(
+                            isDark,
+                            _parseHexToColor(_selectedHex),
+                          ),
 
                           const SizedBox(height: 18),
                         ],
@@ -749,7 +761,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
   }
 
   Widget _buildLivePreviewCard(bool isDark, Color selectedColor) {
-    final nombre = _nombreCtrl.text.trim().isNotEmpty ? _nombreCtrl.text.trim() : 'Tu Bodega';
+    final nombre = _nombreCtrl.text.trim().isNotEmpty
+        ? _nombreCtrl.text.trim()
+        : 'Tu Bodega';
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -818,7 +832,10 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(6),
@@ -863,7 +880,9 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                   decoration: BoxDecoration(
                     color: selectedColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: selectedColor.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: selectedColor.withValues(alpha: 0.4),
+                    ),
                   ),
                   alignment: Alignment.center,
                   child: Text(

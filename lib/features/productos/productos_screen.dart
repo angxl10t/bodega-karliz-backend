@@ -547,7 +547,8 @@ class _ProductosScreenState extends State<ProductosScreen>
                             Container(
                               padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                                color: const Color(0xFF7C3AED)
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
@@ -569,16 +570,23 @@ class _ProductosScreenState extends State<ProductosScreen>
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12.5,
                                           fontWeight: FontWeight.w700,
-                                          color: isDark ? Colors.white : AppTheme.textDark,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
                                         ),
                                       ),
                                       if (_sugerenciasPendientes > 0) ...[
                                         const SizedBox(width: 6),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 1,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFF7C3AED),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
                                             '$_sugerenciasPendientes',
@@ -597,7 +605,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155),
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
                                     ),
                                   ),
                                 ],
@@ -2755,7 +2765,9 @@ class _ProductosScreenState extends State<ProductosScreen>
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: isDark ? const Color(0xFFDDD6FE) : const Color(0xFF5B21B6),
+                color: isDark
+                    ? const Color(0xFFDDD6FE)
+                    : const Color(0xFF5B21B6),
               ),
             ),
           ),

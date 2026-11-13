@@ -66,7 +66,9 @@ class ThemeProvider extends ChangeNotifier {
     }
     clean = clean.toUpperCase();
     final color = _parseColor(clean);
-    final finalHex = clean.startsWith('#') && clean.length == 7 ? clean : '#2563EB';
+    final finalHex = clean.startsWith('#') && clean.length == 7
+        ? clean
+        : '#2563EB';
     await setAccentColor(color, hexCode: finalHex);
   }
 

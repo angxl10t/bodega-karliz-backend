@@ -207,11 +207,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   _plan = info.plan;
                 }
                 _diasRestantesPlan = dias;
-                final esPlanPro = info.plan.toUpperCase() == 'PRO' || info.plan.toUpperCase() == 'CORPORATIVO';
+                final esPlanPro =
+                    info.plan.toUpperCase() == 'PRO' ||
+                    info.plan.toUpperCase() == 'CORPORATIVO';
                 if (esPlanPro && info.colorPrimario.isNotEmpty) {
-                  context.read<ThemeProvider>().setAccentColorFromHex(info.colorPrimario);
+                  context.read<ThemeProvider>().setAccentColorFromHex(
+                    info.colorPrimario,
+                  );
                 } else if (!esPlanPro) {
-                  context.read<ThemeProvider>().setAccentColorFromHex('#2563EB');
+                  context.read<ThemeProvider>().setAccentColorFromHex(
+                    '#2563EB',
+                  );
                 }
               });
             }
@@ -644,19 +650,27 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.pop(bottomSheetContext);
                               ConfiguracionMarcaModal.show(
                                 context,
-                                isPro: _plan.toUpperCase() == 'PRO' || _plan.toUpperCase() == 'CORPORATIVO',
+                                isPro:
+                                    _plan.toUpperCase() == 'PRO' ||
+                                    _plan.toUpperCase() == 'CORPORATIVO',
                                 onSaved: _cargarDatosUsuario,
                               );
                             },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
                               decoration: BoxDecoration(
-                                color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
+                                color: isDark
+                                    ? AppTheme.cardDarkHighlight
+                                    : const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                                  color: Theme.of(context).colorScheme.primary
+                                      .withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Row(
@@ -664,19 +678,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Icon(
                                       LucideIcons.palette,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
                                       size: 18,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
@@ -685,22 +705,34 @@ class _HomeScreenState extends State<HomeScreen> {
                                               style: GoogleFonts.outfit(
                                                 fontSize: 13.5,
                                                 fontWeight: FontWeight.w700,
-                                                color: isDark ? Colors.white : AppTheme.textDark,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : AppTheme.textDark,
                                               ),
                                             ),
                                             const SizedBox(width: 6),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-                                                borderRadius: BorderRadius.circular(6),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
                                               ),
                                               child: Text(
                                                 'PRO',
                                                 style: GoogleFonts.outfit(
                                                   fontSize: 9.5,
                                                   fontWeight: FontWeight.w800,
-                                                  color: Theme.of(context).colorScheme.primary,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
                                                 ),
                                               ),
                                             ),
@@ -710,7 +742,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           'Elige tu color preferido para la app y tu catálogo web',
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11,
-                                            color: isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B),
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : const Color(0xFF64748B),
                                           ),
                                         ),
                                       ],
@@ -719,7 +753,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Icon(
                                     LucideIcons.chevronRight,
                                     size: 18,
-                                    color: isDark ? Colors.white54 : const Color(0xFF94A3B8),
+                                    color: isDark
+                                        ? Colors.white54
+                                        : const Color(0xFF94A3B8),
                                   ),
                                 ],
                               ),

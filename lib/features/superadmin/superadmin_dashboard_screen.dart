@@ -1749,11 +1749,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         ),
                         Tab(
                           icon: const Icon(LucideIcons.sparkles, size: 18),
-                          text: 'Sugerencias Globales (${_sugerenciasSuperadmin.length})',
+                          text:
+                              'Sugerencias Globales (${_sugerenciasSuperadmin.length})',
                         ),
                         Tab(
                           icon: const Icon(LucideIcons.packagePlus, size: 18),
-                          text: 'Preset Starter Pack (${_starterPackItems.length})',
+                          text:
+                              'Preset Starter Pack (${_starterPackItems.length})',
                         ),
                         const Tab(
                           icon: Icon(LucideIcons.server, size: 18),
@@ -2414,10 +2416,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _parseHexToColor(b.colorPrimario).withValues(alpha: 0.15),
+                  color: _parseHexToColor(b.colorPrimario)
+                      .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: _parseHexToColor(b.colorPrimario).withValues(alpha: 0.5),
+                    color: _parseHexToColor(b.colorPrimario)
+                        .withValues(alpha: 0.5),
                     width: 1,
                   ),
                 ),
@@ -2596,7 +2600,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   ),
                   icon: const Icon(LucideIcons.globe, size: 14),
                   label: const Text('Web Online'),
-                  onPressed: () => context.push('/catalogo?tienda=${b.idBodega}'),
+                  onPressed: () =>
+                      context.push('/catalogo?tienda=${b.idBodega}'),
                 ),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
@@ -3997,7 +4002,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       fontWeight: FontWeight.w600,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Buscar por producto, código de barras o marca...',
+                      hintText:
+                          'Buscar por producto, código de barras o marca...',
                       hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         color: AppTheme.getAdaptiveHintText(isDark),
@@ -4062,7 +4068,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   ),
                   elevation: 0,
                 ),
-                onPressed: () => _mostrarModalCrearEditarPreset(context, isDark),
+                onPressed: () =>
+                    _mostrarModalCrearEditarPreset(context, isDark),
               ),
             ],
           ),
@@ -4229,13 +4236,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     );
   }
 
-  Widget _buildStarterPackItemCard(
-    StarterPackPresetItem item,
-    bool isDark,
-  ) {
+  Widget _buildStarterPackItemCard(StarterPackPresetItem item, bool isDark) {
     final margenPorcentaje = item.precioVenta > 0
         ? (((item.precioVenta - item.precioCosto) / item.precioVenta) * 100)
-            .toStringAsFixed(0)
+              .toStringAsFixed(0)
         : '0';
 
     return Container(
@@ -4244,8 +4248,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
-              ? (item.activo ? const Color(0xFF334155) : const Color(0xFF1E293B))
-              : (item.activo ? const Color(0xFFE2E8F0) : const Color(0xFFF1F5F9)),
+              ? (item.activo
+                    ? const Color(0xFF334155)
+                    : const Color(0xFF1E293B))
+              : (item.activo
+                    ? const Color(0xFFE2E8F0)
+                    : const Color(0xFFF1F5F9)),
         ),
         boxShadow: [
           BoxShadow(
@@ -4309,8 +4317,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             fontWeight: FontWeight.w700,
                             fontSize: 14.5,
                             color: item.activo
-                                ? (isDark ? Colors.white : const Color(0xFF0F172A))
-                                : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                                ? (isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A))
+                                : (isDark
+                                      ? const Color(0xFF64748B)
+                                      : const Color(0xFF94A3B8)),
                             decoration: item.activo
                                 ? null
                                 : TextDecoration.lineThrough,
@@ -4359,7 +4371,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+                          color: const Color(0xFF7C3AED)
+                              .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -4456,7 +4469,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           vertical: 1.5,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                          color: const Color(0xFF10B981)
+                              .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -4521,13 +4535,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(LucideIcons.send, size: 16, color: Color(0xFF7C3AED)),
-                      tooltip: 'Sugerir precio o datos a bodegas',
-                      onPressed: () => _mostrarModalSugerirABodegas(
-                        context,
-                        isDark,
-                        item,
+                      icon: const Icon(
+                        LucideIcons.send,
+                        size: 16,
+                        color: Color(0xFF7C3AED),
                       ),
+                      tooltip: 'Sugerir precio o datos a bodegas',
+                      onPressed: () =>
+                          _mostrarModalSugerirABodegas(context, isDark, item),
                     ),
                     IconButton(
                       icon: const Icon(LucideIcons.pencil, size: 16),
@@ -4545,11 +4560,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         color: Color(0xFFEF4444),
                       ),
                       tooltip: 'Eliminar del preset',
-                      onPressed: () => _confirmarEliminarPresetItem(
-                        context,
-                        isDark,
-                        item,
-                      ),
+                      onPressed: () =>
+                          _confirmarEliminarPresetItem(context, isDark, item),
                     ),
                   ],
                 ),
@@ -4650,13 +4662,17 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         controller: codigoCtrl,
                         decoration: InputDecoration(
                           labelText: 'Código de Barras (EAN-13 / SKU) *',
-                          prefixIcon: const Icon(LucideIcons.scanBarcode, size: 18),
+                          prefixIcon: const Icon(
+                            LucideIcons.scanBarcode,
+                            size: 18,
+                          ),
                           suffixIcon: IconButton(
                             tooltip: 'Generar EAN aleatorio',
                             icon: const Icon(LucideIcons.shuffle, size: 16),
                             onPressed: () {
                               final rnd = math.Random();
-                              final ean = '775${List.generate(10, (_) => rnd.nextInt(10)).join()}';
+                              final ean =
+                                  '775${List.generate(10, (_) => rnd.nextInt(10)).join()}';
                               codigoCtrl.text = ean;
                             },
                           ),
@@ -4694,7 +4710,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               controller: marcaCtrl,
                               decoration: InputDecoration(
                                 labelText: 'Marca (Opcional)',
-                                prefixIcon: const Icon(LucideIcons.tag, size: 18),
+                                prefixIcon: const Icon(
+                                  LucideIcons.tag,
+                                  size: 18,
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -4707,8 +4726,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               controller: categoriaCtrl,
                               decoration: InputDecoration(
                                 labelText: 'Categoría *',
-                                prefixIcon:
-                                    const Icon(LucideIcons.layers, size: 18),
+                                prefixIcon: const Icon(
+                                  LucideIcons.layers,
+                                  size: 18,
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -4728,9 +4749,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           Expanded(
                             child: TextFormField(
                               controller: precioVentaCtrl,
-                              keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
                               decoration: InputDecoration(
                                 labelText: 'Precio Venta (S/) *',
                                 prefixText: 'S/ ',
@@ -4740,7 +4762,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               ),
                               validator: (v) {
                                 final n = double.tryParse(v ?? '');
-                                if (n == null || n < 0) return 'Precio inválido';
+                                if (n == null || n < 0)
+                                  return 'Precio inválido';
                                 return null;
                               },
                             ),
@@ -4749,9 +4772,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           Expanded(
                             child: TextFormField(
                               controller: precioCostoCtrl,
-                              keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
                               decoration: InputDecoration(
                                 labelText: 'Precio Costo (S/) *',
                                 prefixText: 'S/ ',
@@ -4830,7 +4854,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         ),
                         value: difundirSugerenciaVal,
                         activeTrackColor: const Color(0xFF7C3AED),
-                        onChanged: (v) => setDlgState(() => difundirSugerenciaVal = v),
+                        onChanged: (v) =>
+                            setDlgState(() => difundirSugerenciaVal = v),
                       ),
                     ],
                   ),
@@ -4878,8 +4903,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               ? marcaCtrl.text.trim()
                               : null,
                           'categoria': categoriaCtrl.text.trim().toUpperCase(),
-                          'precioVenta': double.parse(precioVentaCtrl.text.trim()),
-                          'precioCosto': double.parse(precioCostoCtrl.text.trim()),
+                          'precioVenta': double.parse(
+                            precioVentaCtrl.text.trim(),
+                          ),
+                          'precioCosto': double.parse(
+                            precioCostoCtrl.text.trim(),
+                          ),
                           'imagenUrl': imagenUrlCtrl.text.trim().isNotEmpty
                               ? imagenUrlCtrl.text.trim()
                               : null,
@@ -4893,26 +4922,38 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               payload,
                             );
                           } else {
-                            await _bodegaService.crearStarterPackPreset(payload);
+                            await _bodegaService.crearStarterPackPreset(
+                              payload,
+                            );
                           }
 
                           int difundidas = 0;
                           if (difundirSugerenciaVal) {
                             try {
-                              difundidas = await _bodegaService.difundirSugerenciaPrecio({
-                                'codigoBarras': codigoCtrl.text.trim(),
-                                'precioVentaSugerido': double.parse(precioVentaCtrl.text.trim()),
-                                'precioCostoSugerido': double.tryParse(precioCostoCtrl.text.trim()),
-                                'nombreSugerido': nombreCtrl.text.trim(),
-                                'marcaSugerida': marcaCtrl.text.trim().isNotEmpty ? marcaCtrl.text.trim() : null,
-                                'motivo': 'Actualización sugerida por el SuperAdmin desde el Preset Starter Pack',
-                              });
+                              difundidas = await _bodegaService
+                                  .difundirSugerenciaPrecio({
+                                    'codigoBarras': codigoCtrl.text.trim(),
+                                    'precioVentaSugerido': double.parse(
+                                      precioVentaCtrl.text.trim(),
+                                    ),
+                                    'precioCostoSugerido': double.tryParse(
+                                      precioCostoCtrl.text.trim(),
+                                    ),
+                                    'nombreSugerido': nombreCtrl.text.trim(),
+                                    'marcaSugerida':
+                                        marcaCtrl.text.trim().isNotEmpty
+                                        ? marcaCtrl.text.trim()
+                                        : null,
+                                    'motivo': 'Actualización sugerida por el SuperAdmin desde el Preset Starter Pack',
+                                  });
                             } catch (_) {}
                           }
 
                           if (context.mounted) {
                             Navigator.pop(dlgCtx);
-                            final msgDifusion = difundidas > 0 ? ' y sugerido a $difundidas bodegas' : '';
+                            final msgDifusion = difundidas > 0
+                                ? ' y sugerido a $difundidas bodegas'
+                                : '';
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -4967,13 +5008,16 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     bool enviando = false;
 
     // Consultar conteo en segundo plano
-    _bodegaService.contarBodegasConProducto(item.codigoBarras).then((count) {
-      bodegasCount = count;
-      cargandoConteo = false;
-    }).catchError((_) {
-      bodegasCount = 0;
-      cargandoConteo = false;
-    });
+    _bodegaService
+        .contarBodegasConProducto(item.codigoBarras)
+        .then((count) {
+          bodegasCount = count;
+          cargandoConteo = false;
+        })
+        .catchError((_) {
+          bodegasCount = 0;
+          cargandoConteo = false;
+        });
 
     await showDialog(
       context: context,
@@ -5034,12 +5078,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                        color: isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         children: [
-                          const Icon(LucideIcons.scanBarcode, size: 18, color: Color(0xFF7C3AED)),
+                          const Icon(
+                            LucideIcons.scanBarcode,
+                            size: 18,
+                            color: Color(0xFF7C3AED),
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Column(
@@ -5056,16 +5106,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                   'EAN: ${item.codigoBarras}',
                                   style: GoogleFonts.jetBrainsMono(
                                     fontSize: 11,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                              color: const Color(0xFF7C3AED)
+                                  .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -5088,7 +5144,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       'Esta propuesta llegará a las bodegas como una sugerencia. Cada bodega podrá aceptarla o rechazarla de forma autónoma.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -5099,7 +5157,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         Expanded(
                           child: TextFormField(
                             controller: precioVentaCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Precio Venta Sugerido *',
                               prefixText: 'S/ ',
@@ -5113,7 +5173,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         Expanded(
                           child: TextFormField(
                             controller: precioCostoCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Precio Costo Sugerido',
                               prefixText: 'S/ ',
@@ -5158,7 +5220,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       maxLines: 2,
                       decoration: InputDecoration(
                         labelText: 'Motivo / Mensaje para las Bodegas',
-                        prefixIcon: const Icon(LucideIcons.messageSquare, size: 18),
+                        prefixIcon: const Icon(
+                          LucideIcons.messageSquare,
+                          size: 18,
+                        ),
                         hintText: 'Ej. Incremento sugerido por proveedor / Corrección de catálogo',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -5181,13 +5246,19 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                 ),
                 icon: enviando
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(LucideIcons.send, size: 16),
                 label: Text(enviando ? 'Enviando...' : 'Enviar Sugerencia'),
@@ -5198,7 +5269,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         if (v == null || v <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Ingresa un precio de venta válido mayor a 0.'),
+                              content: Text(
+                                'Ingresa un precio de venta válido mayor a 0.',
+                              ),
                               backgroundColor: AppTheme.alertRed,
                             ),
                           );
@@ -5208,14 +5281,23 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         setDlgState(() => enviando = true);
 
                         try {
-                          final notificadas = await _bodegaService.difundirSugerenciaPrecio({
-                            'codigoBarras': item.codigoBarras,
-                            'precioVentaSugerido': v,
-                            'precioCostoSugerido': double.tryParse(precioCostoCtrl.text.trim()),
-                            'nombreSugerido': nombreCtrl.text.trim().isNotEmpty ? nombreCtrl.text.trim() : null,
-                            'marcaSugerida': marcaCtrl.text.trim().isNotEmpty ? marcaCtrl.text.trim() : null,
-                            'motivo': motivoCtrl.text.trim(),
-                          });
+                          final notificadas = await _bodegaService
+                              .difundirSugerenciaPrecio({
+                                'codigoBarras': item.codigoBarras,
+                                'precioVentaSugerido': v,
+                                'precioCostoSugerido': double.tryParse(
+                                  precioCostoCtrl.text.trim(),
+                                ),
+                                'nombreSugerido':
+                                    nombreCtrl.text.trim().isNotEmpty
+                                    ? nombreCtrl.text.trim()
+                                    : null,
+                                'marcaSugerida':
+                                    marcaCtrl.text.trim().isNotEmpty
+                                    ? marcaCtrl.text.trim()
+                                    : null,
+                                'motivo': motivoCtrl.text.trim(),
+                              });
 
                           if (context.mounted) {
                             Navigator.pop(dlgCtx);
@@ -5233,7 +5315,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Error al difundir sugerencia: $e'),
+                                content: Text(
+                                  'Error al difundir sugerencia: $e',
+                                ),
                                 backgroundColor: AppTheme.alertRed,
                               ),
                             );
@@ -5413,7 +5497,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   // HELPER DE COLORES & BRANDING DINÁMICO
   // ===========================================================================
 
-  Color _parseHexToColor(String? hexString, [Color defaultColor = const Color(0xFF2563EB)]) {
+  Color _parseHexToColor(
+    String? hexString, [
+    Color defaultColor = const Color(0xFF2563EB),
+  ]) {
     if (hexString == null || hexString.isEmpty) return defaultColor;
     try {
       String hex = hexString.replaceAll('#', '').trim();
@@ -5452,8 +5539,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             final currentColor = _parseHexToColor(selectedHex);
 
             return AlertDialog(
-              backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              backgroundColor: isDark
+                  ? AppTheme.cardDarkElevated
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Row(
                 children: [
                   Container(
@@ -5462,7 +5553,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                       color: currentColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(LucideIcons.palette, color: currentColor, size: 20),
+                    child: Icon(
+                      LucideIcons.palette,
+                      color: currentColor,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -5503,7 +5598,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         decoration: BoxDecoration(
                           color: currentColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: currentColor.withValues(alpha: 0.4)),
+                          border: Border.all(
+                            color: currentColor.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -5531,14 +5628,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                     style: GoogleFonts.plusJakartaSans(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
-                                      color: isDark ? Colors.white : Colors.black87,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
                                     ),
                                   ),
                                   Text(
                                     'Afectará la app POS móvil y la tienda web online de la bodega.',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
-                                      color: isDark ? Colors.white60 : Colors.black54,
+                                      color: isDark
+                                          ? Colors.white60
+                                          : Colors.black54,
                                     ),
                                   ),
                                 ],
@@ -5561,7 +5662,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         runSpacing: 8,
                         children: presets.map((preset) {
                           final pColor = _parseHexToColor(preset['hex']!);
-                          final isSelected = selectedHex.toUpperCase() == preset['hex']!.toUpperCase();
+                          final isSelected =
+                              selectedHex.toUpperCase() ==
+                              preset['hex']!.toUpperCase();
                           return InkWell(
                             borderRadius: BorderRadius.circular(10),
                             onTap: () {
@@ -5571,14 +5674,23 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               });
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? pColor.withValues(alpha: 0.2)
-                                    : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04)),
+                                    : (isDark
+                                          ? Colors.white10
+                                          : Colors.black.withValues(
+                                              alpha: 0.04,
+                                            )),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: isSelected ? pColor : Colors.transparent,
+                                  color: isSelected
+                                      ? pColor
+                                      : Colors.transparent,
                                   width: isSelected ? 2 : 1,
                                 ),
                               ),
@@ -5598,7 +5710,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                     preset['nombre']!,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
-                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.normal,
                                     ),
                                   ),
                                 ],
@@ -5623,8 +5737,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                           prefixIcon: const Icon(LucideIcons.hash, size: 16),
                           hintText: '#2563EB',
                           isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         onChanged: (val) {
                           String clean = val.trim();
@@ -5649,13 +5768,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: currentColor,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   icon: isSaving
                       ? const SizedBox(
                           width: 14,
                           height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(LucideIcons.check, size: 16),
                   label: const Text('Guardar Color'),
@@ -5780,7 +5904,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   color: AppTheme.alertRed.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.alertOctagon, color: AppTheme.alertRed, size: 18),
+                child: const Icon(
+                  LucideIcons.alertOctagon,
+                  color: AppTheme.alertRed,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 10),
               Text(
@@ -5813,7 +5941,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 color: Colors.amber.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(LucideIcons.clock, color: Colors.amber.shade800, size: 18),
+              child: Icon(
+                LucideIcons.clock,
+                color: Colors.amber.shade800,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 10),
             Text(
@@ -5834,12 +5966,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               color: isDark ? AppTheme.cardDarkElevated : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? AppTheme.borderDarkElevated : Colors.grey.shade200,
+                color: isDark
+                    ? AppTheme.borderDarkElevated
+                    : Colors.grey.shade200,
               ),
             ),
             child: Row(
               children: [
-                const Icon(LucideIcons.checkCircle2, color: AppTheme.accentGreen, size: 24),
+                const Icon(
+                  LucideIcons.checkCircle2,
+                  color: AppTheme.accentGreen,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -5908,7 +6046,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             decoration: BoxDecoration(
               color: bodegaColor.withValues(alpha: 0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: bodegaColor.withValues(alpha: 0.6), width: 1.5),
+              border: Border.all(
+                color: bodegaColor.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
             ),
             child: Center(
               child: Icon(LucideIcons.store, color: bodegaColor, size: 22),
@@ -5936,7 +6077,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: vencido
                             ? AppTheme.alertRed.withValues(alpha: 0.15)
@@ -5944,11 +6088,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        vencido ? 'Venció hace ${dias.abs()}d' : 'Vence en ${dias}d',
+                        vencido
+                            ? 'Venció hace ${dias.abs()}d'
+                            : 'Vence en ${dias}d',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: vencido ? AppTheme.alertRed : Colors.amber.shade900,
+                          color: vencido
+                              ? AppTheme.alertRed
+                              : Colors.amber.shade900,
                         ),
                       ),
                     ),
@@ -5967,9 +6115,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     ),
                     if (telefono.isNotEmpty) ...[
                       const SizedBox(width: 8),
-                      Text('•', style: TextStyle(color: isDark ? Colors.white38 : Colors.black26)),
+                      Text(
+                        '•',
+                        style: TextStyle(
+                          color: isDark ? Colors.white38 : Colors.black26,
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Icon(LucideIcons.phone, size: 12, color: isDark ? Colors.white54 : Colors.black45),
+                      Icon(
+                        LucideIcons.phone,
+                        size: 12,
+                        color: isDark ? Colors.white54 : Colors.black45,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         telefono,
@@ -5994,8 +6151,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF25D366),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     elevation: 0,
                   ),
                   icon: const Icon(LucideIcons.messageCircle, size: 16),
@@ -6003,7 +6165,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   onPressed: () async {
                     final uri = Uri.parse(whatsappUrl);
                     if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
                     }
                   },
                 ),
@@ -6032,17 +6197,21 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   }
 
   Widget _buildTabSugerenciasGlobales(bool isDark) {
-    final total = _estadisticasSugerencias['totalSugerencias']?.toString() ?? '0';
-    final pendientes = _estadisticasSugerencias['pendientes']?.toString() ?? '0';
+    final total =
+        _estadisticasSugerencias['totalSugerencias']?.toString() ?? '0';
+    final pendientes =
+        _estadisticasSugerencias['pendientes']?.toString() ?? '0';
     final aceptadas = _estadisticasSugerencias['aceptadas']?.toString() ?? '0';
-    final rechazadas = _estadisticasSugerencias['rechazadas']?.toString() ?? '0';
+    final rechazadas =
+        _estadisticasSugerencias['rechazadas']?.toString() ?? '0';
     final tasa = _estadisticasSugerencias['tasaAceptacionPorcentaje'] != null
         ? '${_estadisticasSugerencias['tasaAceptacionPorcentaje']}%'
         : '0%';
 
     final filtradas = _sugerenciasSuperadmin.where((s) {
       if (_filtroEstadoSugerenciaSuperadmin != 'TODOS') {
-        if (s.estado.toUpperCase() != _filtroEstadoSugerenciaSuperadmin) return false;
+        if (s.estado.toUpperCase() != _filtroEstadoSugerenciaSuperadmin)
+          return false;
       }
       final query = _searchSugerenciaCtrl.text.trim().toLowerCase();
       if (query.isNotEmpty) {
@@ -6050,7 +6219,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         final sug = (s.nombreSugerido ?? '').toLowerCase();
         final bodega = (s.nombreBodega ?? '').toLowerCase();
         final codigo = s.codigoBarras.toLowerCase();
-        if (!prod.contains(query) && !sug.contains(query) && !bodega.contains(query) && !codigo.contains(query)) {
+        if (!prod.contains(query) &&
+            !sug.contains(query) &&
+            !bodega.contains(query) &&
+            !codigo.contains(query)) {
           return false;
         }
       }
@@ -6112,8 +6284,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   hintText: 'Buscar por producto, bodega o código de barras...',
                   prefixIcon: const Icon(LucideIcons.search, size: 18),
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   suffixIcon: _searchSugerenciaCtrl.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(LucideIcons.x, size: 16),
@@ -6133,8 +6310,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.brandPrimary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               icon: const Icon(LucideIcons.sparkles, size: 16),
               label: const Text('Nueva Sugerencia'),
@@ -6205,14 +6387,19 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       },
       selectedColor: AppTheme.brandPrimary,
       labelStyle: GoogleFonts.plusJakartaSans(
-        color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+        color: isSelected
+            ? Colors.white
+            : (isDark ? Colors.white70 : Colors.black87),
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         fontSize: 12,
       ),
     );
   }
 
-  Widget _buildSugerenciaSuperadminCard(SugerenciaPrecioItem item, bool isDark) {
+  Widget _buildSugerenciaSuperadminCard(
+    SugerenciaPrecioItem item,
+    bool isDark,
+  ) {
     Color badgeColor;
     IconData badgeIcon;
     String badgeText;
@@ -6270,7 +6457,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         child: Image.network(
                           item.imagenUrl!,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(LucideIcons.package, size: 24),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(LucideIcons.package, size: 24),
                         ),
                       )
                     : const Icon(LucideIcons.package, size: 24),
@@ -6302,7 +6490,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         ),
                         if (item.nombreBodega != null) ...[
                           const SizedBox(width: 8),
-                          Text('•', style: TextStyle(color: isDark ? Colors.white38 : Colors.black26)),
+                          Text(
+                            '•',
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.black26,
+                            ),
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Bodega: ${item.nombreBodega}',
@@ -6321,7 +6514,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
               // Badge Estado
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: badgeColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -6357,7 +6553,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey.shade50,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.04)
+                        : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Column(
@@ -6365,7 +6563,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     children: [
                       Text(
                         'Precio Actual',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: isDark ? Colors.white60 : Colors.black54),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -6389,7 +6590,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   decoration: BoxDecoration(
                     color: AppTheme.brandPrimary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.brandPrimary.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -6419,7 +6622,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                             style: GoogleFonts.firaCode(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              color: diff >= 0 ? AppTheme.accentGreen : AppTheme.alertRed,
+                              color: diff >= 0
+                                  ? AppTheme.accentGreen
+                                  : AppTheme.alertRed,
                             ),
                           ),
                         ],

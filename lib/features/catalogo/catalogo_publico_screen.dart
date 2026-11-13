@@ -430,11 +430,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 color: _colorMarca.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                LucideIcons.store,
-                color: _colorMarca,
-                size: 20,
-              ),
+              child: Icon(LucideIcons.store, color: _colorMarca, size: 20),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -676,9 +672,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       Icon(
                         LucideIcons.mapPin,
                         size: 15,
-                        color: isDark
-                            ? const Color(0xFF93C5FD)
-                            : _colorMarca,
+                        color: isDark ? const Color(0xFF93C5FD) : _colorMarca,
                       ),
                       const SizedBox(width: 6),
                       Flexible(
@@ -751,11 +745,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                LucideIcons.sparkles,
-                size: 16,
-                color: _colorMarca,
-              ),
+              Icon(LucideIcons.sparkles, size: 16, color: _colorMarca),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -764,9 +754,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     fontSize: isTablet ? 12 : 11,
                     fontWeight: FontWeight.w900,
                     letterSpacing: isTablet ? 0.8 : 0.5,
-                    color: isDark
-                        ? const Color(0xFF93C5FD)
-                        : _colorMarca,
+                    color: isDark ? const Color(0xFF93C5FD) : _colorMarca,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -974,9 +962,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         Container(
                           padding: EdgeInsets.all(isTablet ? 12 : 10),
                           decoration: BoxDecoration(
-                            color: _colorMarca.withValues(
-                              alpha: 0.12,
-                            ),
+                            color: _colorMarca.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(
                               isTablet ? 16 : 14,
                             ),
@@ -1629,9 +1615,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }) {
     final isSelected =
         _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
-    final chipColor = esOferta
-        ? const Color(0xFF1D4ED8)
-        : _colorMarca;
+    final chipColor = esOferta ? const Color(0xFF1D4ED8) : _colorMarca;
 
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
@@ -2218,9 +2202,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _colorMarca.withValues(
-                                    alpha: 0.12,
-                                  ),
+                                  color: _colorMarca.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -3445,9 +3427,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               Container(
                                 padding: EdgeInsets.all(isTablet ? 10 : 8),
                                 decoration: BoxDecoration(
-                                  color: _colorMarca.withValues(
-                                    alpha: 0.12,
-                                  ),
+                                  color: _colorMarca.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -3552,9 +3532,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   // En pantallas tablet hay espacio para ambos botones completos
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: isDark
-                          ? Colors.white
-                          : _colorMarca,
+                      foregroundColor: isDark ? Colors.white : _colorMarca,
                       side: BorderSide(
                         color: isDark
                             ? const Color(0xFF334155)
