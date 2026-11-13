@@ -700,14 +700,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                       children: [
                                         Row(
                                           children: [
-                                            Text(
-                                              'Personalizar Colores de Tienda',
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 13.5,
-                                                fontWeight: FontWeight.w700,
-                                                color: isDark
-                                                    ? Colors.white
-                                                    : AppTheme.textDark,
+                                            Flexible(
+                                              child: Text(
+                                                'Personalizar Colores de Tienda',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : AppTheme.textDark,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                             const SizedBox(width: 6),

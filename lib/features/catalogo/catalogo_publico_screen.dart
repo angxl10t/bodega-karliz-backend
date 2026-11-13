@@ -475,13 +475,31 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 16,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(3.0),
+          child: Container(
+            height: 3.0,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  _colorMarca,
+                  _colorMarca.withValues(alpha: 0.15),
+                ],
+              ),
+            ),
+          ),
+        ),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: _colorMarca.withValues(alpha: 0.12),
+                color: _colorMarca.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _colorMarca.withValues(alpha: 0.35),
+                  width: 1.0,
+                ),
               ),
               child: Icon(LucideIcons.store, color: _colorMarca, size: 20),
             ),
@@ -999,38 +1017,78 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: isDark
-                        ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                        : [Colors.white, const Color(0xFFF1F5F9)],
+                        ? [
+                            _colorMarca.withValues(alpha: 0.22),
+                            const Color(0xFF1E293B),
+                            const Color(0xFF0F172A),
+                          ]
+                        : [
+                            _colorMarca.withValues(alpha: 0.12),
+                            Colors.white,
+                            const Color(0xFFF8FAFC),
+                          ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
                   border: Border.all(
                     color: isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFCBD5E1),
+                        ? _colorMarca.withValues(alpha: 0.35)
+                        : _colorMarca.withValues(alpha: 0.28),
+                    width: 1.2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      color: _colorMarca.withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Container(
+                      height: 3.5,
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            _colorMarca,
+                            _colorMarca.withValues(alpha: 0.15),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: EdgeInsets.all(isTablet ? 12 : 10),
+                          padding: EdgeInsets.all(isTablet ? 13 : 11),
                           decoration: BoxDecoration(
-                            color: _colorMarca.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(
-                              isTablet ? 16 : 14,
+                            gradient: LinearGradient(
+                              colors: [
+                                _colorMarca.withValues(alpha: 0.22),
+                                _colorMarca.withValues(alpha: 0.08),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
+                            borderRadius: BorderRadius.circular(
+                              isTablet ? 18 : 15,
+                            ),
+                            border: Border.all(
+                              color: _colorMarca.withValues(alpha: 0.50),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _colorMarca.withValues(alpha: 0.22),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: Icon(
                             LucideIcons.store,
@@ -1062,21 +1120,36 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   const SizedBox(width: 6),
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: isTablet ? 8 : 6,
-                                      vertical: isTablet ? 3 : 2,
+                                      horizontal: isTablet ? 8 : 7,
+                                      vertical: isTablet ? 3 : 2.5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF059669)
-                                          .withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      'PRO ONLINE',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: isTablet ? 11 : 9.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFF059669),
+                                      color: _colorMarca.withValues(alpha: 0.14),
+                                      borderRadius: BorderRadius.circular(7),
+                                      border: Border.all(
+                                        color: _colorMarca.withValues(alpha: 0.35),
+                                        width: 0.9,
                                       ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          LucideIcons.badgeCheck,
+                                          size: isTablet ? 13 : 11,
+                                          color: _colorMarca,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'PRO ONLINE',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: isTablet ? 11 : 9.5,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.5,
+                                            color: _colorMarca,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -1290,6 +1363,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             color: isDark
                                 ? const Color(0xFF334155)
                                 : const Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            isTablet ? 16 : 14,
+                          ),
+                          borderSide: BorderSide(
+                            color: _colorMarca,
+                            width: 1.8,
                           ),
                         ),
                       ),
@@ -1710,7 +1792,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   : const Color(0xFF1E2436))
             : (esOferta
                   ? _colorPromocion.withValues(alpha: 0.08)
-                  : Colors.white),
+                  : _colorMarca.withValues(alpha: 0.04)),
         side: BorderSide(
           color: isSelected
               ? chipColor
@@ -1718,7 +1800,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     ? _colorPromocion.withValues(alpha: 0.45)
                     : (isDark
                           ? const Color(0xFF262E44)
-                          : const Color(0xFFCBD5E1))),
+                          : _colorMarca.withValues(alpha: 0.18))),
           width: isSelected ? 1.4 : 1.0,
         ),
         shape: RoundedRectangleBorder(
@@ -1777,6 +1859,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final double precio = (prod['precioVenta'] is num)
         ? (prod['precioVenta'] as num).toDouble()
         : 0.0;
+    final double? promoPrice = (prod['precioPromocional'] is num)
+        ? (prod['precioPromocional'] as num).toDouble()
+        : null;
+    final bool tienePromoValida = prod['tienePromocion'] == true &&
+        promoPrice != null &&
+        promoPrice < precio;
+    final int descuentoPct = (tienePromoValida && precio > 0)
+        ? (((precio - promoPrice) / precio) * 100).round()
+        : 0;
     final int cantidadEnCarrito = _carrito[id] ?? 0;
     final bool isTablet = config.isTablet;
 
@@ -1787,12 +1878,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         border: Border.all(
           color: cantidadEnCarrito > 0
               ? _colorMarca
-              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-          width: cantidadEnCarrito > 0 ? 1.8 : 1.0,
+              : (isDark
+                    ? const Color(0xFF334155)
+                    : _colorMarca.withValues(alpha: 0.14)),
+          width: cantidadEnCarrito > 0 ? 2.0 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: cantidadEnCarrito > 0
+                ? _colorMarca.withValues(alpha: 0.18)
+                : _colorMarca.withValues(alpha: 0.04),
             blurRadius: isTablet ? 12 : 8,
             offset: const Offset(0, 3),
           ),
@@ -2028,35 +2123,63 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           SizedBox(height: isTablet ? 6 : 4),
-                          if (prod['tienePromocion'] == true &&
-                              prod['precioPromocional'] != null &&
-                              (prod['precioPromocional'] as num).toDouble() <
-                                  precio) ...[
+                          if (tienePromoValida) ...[
                             Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
                                   'S/ ${precio.toStringAsFixed(2)}',
                                   style: GoogleFonts.outfit(
-                                    fontSize: config.precioFontSize * 0.74,
+                                    fontSize: (config.precioFontSize * 0.68)
+                                        .clamp(9.5, 13.0),
                                     fontWeight: FontWeight.w700,
                                     decoration: TextDecoration.lineThrough,
                                     color: isDark
-                                        ? const Color(0xFFCBD5E1)
-                                        : const Color(0xFF475569),
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  'S/ ${(prod['precioPromocional'] as num).toDouble().toStringAsFixed(2)}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: config.precioFontSize,
-                                    fontWeight: FontWeight.w900,
-                                    color: _colorPromocion,
+                                if (descuentoPct > 0) ...[
+                                  const SizedBox(width: 5),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4.5,
+                                      vertical: 1.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _colorPromocion.withValues(
+                                        alpha: 0.14,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4.5),
+                                      border: Border.all(
+                                        color: _colorPromocion.withValues(
+                                          alpha: 0.35,
+                                        ),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '-$descuentoPct%',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: (config.precioFontSize * 0.52)
+                                            .clamp(8.5, 11.0),
+                                        fontWeight: FontWeight.w900,
+                                        color: _colorPromocion,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              'S/ ${promoPrice.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: config.precioFontSize,
+                                fontWeight: FontWeight.w900,
+                                color: _colorPromocion,
+                                letterSpacing: -0.3,
+                              ),
                             ),
                           ] else ...[
                             Text(
@@ -2064,7 +2187,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: config.precioFontSize,
                                 fontWeight: FontWeight.w900,
-                                color: _colorMarca,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
+                                letterSpacing: -0.3,
                               ),
                             ),
                           ],
@@ -2179,6 +2305,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final double precio = (prod['precioVenta'] is num)
         ? (prod['precioVenta'] as num).toDouble()
         : 0.0;
+    final double? promoPrice = (prod['precioPromocional'] is num)
+        ? (prod['precioPromocional'] as num).toDouble()
+        : null;
+    final bool tienePromoValida = prod['tienePromocion'] == true &&
+        promoPrice != null &&
+        promoPrice < precio;
+    final int descuentoPct = (tienePromoValida && precio > 0)
+        ? (((precio - promoPrice) / precio) * 100).round()
+        : 0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
@@ -2223,12 +2358,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         // Barra de arrastre superior
                         Center(
                           child: Container(
-                            width: 44,
+                            width: 46,
                             height: 5,
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF334155)
-                                  : const Color(0xFFE2E8F0),
+                              gradient: LinearGradient(
+                                colors: [
+                                  _colorMarca,
+                                  _colorMarca.withValues(alpha: 0.4),
+                                ],
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
@@ -2419,10 +2557,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         const SizedBox(height: 16),
 
                         // Precio y Banner de Promoción
-                        if (prod['tienePromocion'] == true &&
-                            prod['precioPromocional'] != null &&
-                            (prod['precioPromocional'] as num).toDouble() <
-                                precio) ...[
+                        if (tienePromoValida) ...[
                           Container(
                             margin: const EdgeInsets.symmetric(horizontal: 14),
                             padding: const EdgeInsets.symmetric(
@@ -2467,31 +2602,67 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           ),
                           const SizedBox(height: 10),
                           Center(
-                            child: Row(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
                               children: [
-                                Text(
-                                  'S/ ${precio.toStringAsFixed(2)}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: TextDecoration.lineThrough,
-                                    color: isDark
-                                        ? const Color(0xFFCBD5E1)
-                                        : const Color(0xFF475569),
-                                  ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      'S/ ${precio.toStringAsFixed(2)}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        decoration:
+                                            TextDecoration.lineThrough,
+                                        color: isDark
+                                            ? const Color(0xFF94A3B8)
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'S/ ${promoPrice.toStringAsFixed(2)}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.w900,
+                                        color: _colorPromocion,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'S/ ${(prod['precioPromocional'] as num).toDouble().toStringAsFixed(2)}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xFF16A34A),
+                                if (descuentoPct > 0) ...[
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _colorPromocion.withValues(
+                                        alpha: 0.14,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: _colorPromocion.withValues(
+                                          alpha: 0.35,
+                                        ),
+                                        width: 0.9,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Ahorras S/ ${(precio - promoPrice).toStringAsFixed(2)} (-$descuentoPct%)',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
+                                        color: _colorPromocion,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -2502,7 +2673,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w900,
-                                color: _colorMarca,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
                               ),
                             ),
                           ),
@@ -3452,14 +3625,22 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.14),
+            color: _colorMarca.withValues(alpha: 0.12),
             blurRadius: 18,
             offset: const Offset(0, -4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
           ),
         ],
         border: Border(
           top: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            color: isDark
+                ? _colorMarca.withValues(alpha: 0.35)
+                : _colorMarca.withValues(alpha: 0.25),
+            width: 1.2,
           ),
         ),
       ),

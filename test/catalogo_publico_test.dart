@@ -362,5 +362,64 @@ void main() {
           CatalogoPublicoScreen.generarColorSecundarioPromocion(customGreen);
       expect(promoColor, equals(const Color(0xFFE11D48)));
     });
+
+    testWidgets(
+      'Promotional pricing hierarchy renders base price with strikethrough and promo hero price with savings badge',
+      (tester) async {
+        final mockClient = MockClient((request) async {
+          final data = {
+            'esPro': true,
+            'mensaje': null,
+            'bodega': {
+              'idBodega': 99,
+              'nombreComercial': 'Bodega Ofertas',
+              'telefono': '999888777',
+              'plan': 'PRO',
+              'esPro': true,
+              'colorMarca': '#2563EB',
+            },
+            'categorias': ['Bebidas'],
+            'productos': [
+              {
+                'idProducto': 901,
+                'nombre': 'Six Pack Cerveza Pilsen',
+                'precioVenta': 25.00,
+                'precioPromocional': 20.00,
+                'tienePromocion': true,
+                'tituloPromocion': 'Promo Fin de Semana',
+                'badgePromocion': '🔥 20% OFF',
+                'categoria': 'Bebidas',
+                'imagenUrl': '',
+                'disponible': true,
+              },
+            ],
+          };
+          return http.Response(
+            jsonEncode(data),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        });
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CatalogoPublicoScreen(
+              tiendaSlug: 'bodega-ofertas',
+              httpClient: mockClient,
+            ),
+          ),
+        );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        // Verifies the promotional hero price is shown
+        expect(find.text('S/ 20.00'), findsOneWidget);
+        // Verifies the crossed out regular base price is shown
+        expect(find.text('S/ 25.00'), findsOneWidget);
+        // Verifies the discount percentage pill (-20%) is rendered
+        expect(find.text('-20%'), findsOneWidget);
+      },
+    );
   });
 }
