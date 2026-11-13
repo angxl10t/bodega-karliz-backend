@@ -67,6 +67,25 @@ class KarlizSoundService {
     }
   }
 
+  /// Emite sonido y feedback de cobro o confirmación exitosa
+  Future<void> playCashChime() async {
+    HapticFeedback.heavyImpact();
+    SystemSound.play(SystemSoundType.click);
+
+    try {
+      if (_beepPlayer == null) {
+        await init();
+      }
+      await _beepPlayer?.stop();
+      await _beepPlayer?.play(
+        AssetSource('audio/barcode_beep.wav'),
+        mode: PlayerMode.lowLatency,
+      );
+    } catch (_) {
+      // Fallback silencioso
+    }
+  }
+
   /// Libera recursos al cerrar
   void dispose() {
     _beepPlayer?.dispose();

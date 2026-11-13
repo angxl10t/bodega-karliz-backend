@@ -42,10 +42,12 @@ class OfflineSyncManager {
   final ApiClient _apiClient = ApiClient();
 
   static const String _keyPrefixQueue = 'cajaya_offline_sales_queue_';
+  static const String _keyForceOffline = 'cajaya_pos_force_offline_mode';
 
   final List<OfflineVenta> _queue = [];
   bool _isInitialized = false;
   bool _isSyncing = false;
+  bool _forceOffline = false;
   Timer? _autoSyncTimer;
 
   // Notificadores reactivos para la UI
@@ -53,11 +55,33 @@ class OfflineSyncManager {
       ValueNotifier<List<OfflineVenta>>([]);
   final ValueNotifier<bool> isSyncingNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<bool> isOfflineNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> forceOfflineNotifier = ValueNotifier<bool>(false);
   final ValueNotifier<DateTime?> lastSyncSuccessNotifier =
       ValueNotifier<DateTime?>(null);
 
+  bool get isForceOffline => _forceOffline;
   int get pendingCount => _queue.length;
   double get pendingTotal => _queue.fold(0.0, (acc, v) => acc + v.total);
+
+  /// Alterna o fuerza el Modo Offline Blindado (100% local, cero latencia de red)
+  Future<void> setForceOffline(bool forzar) async {
+    _forceOffline = forzar;
+    forceOfflineNotifier.value = forzar;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyForceOffline, forzar);
+    } catch (_) {}
+
+    if (forzar) {
+      isOfflineNotifier.value = true;
+    } else {
+      final reachable = await checkServerReachable();
+      isOfflineNotifier.value = !reachable;
+      if (reachable && _queue.isNotEmpty) {
+        syncPendingSales(isManual: false);
+      }
+    }
+  }
 
   /// Inicializa el SyncManager y carga la cola persistente desde disco
   Future<void> init() async {
@@ -77,6 +101,11 @@ class OfflineSyncManager {
     try {
       final tenant = await _getTenantId();
       final prefs = await SharedPreferences.getInstance();
+      _forceOffline = prefs.getBool(_keyForceOffline) ?? false;
+      forceOfflineNotifier.value = _forceOffline;
+      if (_forceOffline) {
+        isOfflineNotifier.value = true;
+      }
       final key = '$_keyPrefixQueue$tenant';
 
       if (prefs.containsKey(key)) {
@@ -295,6 +324,7 @@ class OfflineSyncManager {
   void startAutoSync({Duration interval = const Duration(seconds: 25)}) {
     _autoSyncTimer?.cancel();
     _autoSyncTimer = Timer.periodic(interval, (_) async {
+      if (_forceOffline) return;
       if (_queue.isNotEmpty && !_isSyncing) {
         syncPendingSales();
       }
@@ -321,6 +351,13 @@ class OfflineSyncManager {
         _notifyQueueChanged();
       });
     }
+  }
+
+  /// Limpia la cola tanto en memoria como en almacenamiento para testing
+  Future<void> clearQueueForTesting() async {
+    _queue.clear();
+    await _saveQueue();
+    _notifyQueueChanged();
   }
 
   /// Descarta o elimina una venta offline fallida de la cola local

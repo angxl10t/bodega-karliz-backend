@@ -14,6 +14,7 @@ import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
+import '../../core/karliz_sound_service.dart';
 import '../../core/widgets/pago_yape_modal.dart';
 import '../auth/auth_service.dart';
 import '../home/bodega_service.dart';
@@ -56,6 +57,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
   final TextEditingController _searchPagoCtrl = TextEditingController();
   String _filtroBilleteraPago = 'TODOS';
+  String _filtroEstadoPago = 'TODOS';
 
   final TextEditingController _searchStarterPackCtrl = TextEditingController();
   String _filtroCategoriaStarterPack = 'TODOS';
@@ -633,6 +635,27 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       setState(() {
         final idx = _pagos.indexWhere((x) => x.idPago == p.idPago);
         if (idx != -1) _pagos[idx] = actualizado;
+
+        if (nuevoEstado == 'CONFIRMADO' && p.idBodega != null) {
+          final bIdx = _bodegas.indexWhere((b) => b.idBodega == p.idBodega);
+          if (bIdx != -1) {
+            final b = _bodegas[bIdx];
+            final now = DateTime.now();
+            DateTime baseDate = now;
+            if (b.fechaVencimientoPlan != null) {
+              final parsed = DateTime.tryParse(b.fechaVencimientoPlan!);
+              if (parsed != null && parsed.isAfter(now)) {
+                baseDate = parsed;
+              }
+            }
+            _bodegas[bIdx] = b.copyWith(
+              plan: p.plan.isNotEmpty ? p.plan : 'PRO',
+              fechaVencimientoPlan:
+                  baseDate.add(const Duration(days: 30)).toIso8601String(),
+              estado: true,
+            );
+          }
+        }
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -655,6 +678,179 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           ),
         );
       }
+    }
+  }
+
+  /// Aprobación ultrarrápida 1-Click de un pago de suscripción con feedback háptico
+  Future<void> _aprobarPago1Click(PagoSuscripcionItem p) async {
+    HapticFeedback.heavyImpact();
+    try {
+      final actualizado = await _bodegaService.cambiarEstadoPago(
+        p.idPago,
+        'CONFIRMADO',
+      );
+      setState(() {
+        final idx = _pagos.indexWhere((x) => x.idPago == p.idPago);
+        if (idx != -1) _pagos[idx] = actualizado;
+
+        if (p.idBodega != null) {
+          final bIdx = _bodegas.indexWhere((b) => b.idBodega == p.idBodega);
+          if (bIdx != -1) {
+            final b = _bodegas[bIdx];
+            final now = DateTime.now();
+            DateTime baseDate = now;
+            if (b.fechaVencimientoPlan != null) {
+              final parsed = DateTime.tryParse(b.fechaVencimientoPlan!);
+              if (parsed != null && parsed.isAfter(now)) {
+                baseDate = parsed;
+              }
+            }
+            _bodegas[bIdx] = b.copyWith(
+              plan: p.plan.isNotEmpty ? p.plan : 'PRO',
+              fechaVencimientoPlan:
+                  baseDate.add(const Duration(days: 30)).toIso8601String(),
+              estado: true,
+            );
+          }
+        }
+      });
+
+      if (mounted) {
+        KarlizSoundService.instance.playCashChime();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(LucideIcons.badgeCheck, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '⚡ ¡Pago #${p.codigoOperacion} Aprobado 1-Click! Plan ${p.plan} activado para ${p.nombreBodega ?? "Bodega"}.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.accentGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al aprobar pago: $e'),
+            backgroundColor: AppTheme.alertRed,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Aprobación masiva en 1 toque de todos los pagos de suscripción pendientes
+  Future<void> _aprobarTodosLosPagosPendientes() async {
+    final pendientes = _pagos
+        .where((p) => p.estado.toUpperCase() == 'PENDIENTE')
+        .toList();
+    if (pendientes.isEmpty) return;
+
+    final totalMonto =
+        pendientes.fold<double>(0.0, (acc, p) => acc + p.monto);
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dlgCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            const Icon(LucideIcons.zap, color: AppTheme.accentGreen, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              'Aprobación 1-Click Masiva',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w800,
+                fontSize: 17,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          '¿Deseas aprobar de inmediato los ${pendientes.length} pagos pendientes por un total de S/ ${totalMonto.toStringAsFixed(2)}?',
+          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dlgCtx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accentGreen,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(dlgCtx, true),
+            child: const Text('Aprobar Todos'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    HapticFeedback.heavyImpact();
+    for (final p in pendientes) {
+      try {
+        final actualizado = await _bodegaService.cambiarEstadoPago(
+          p.idPago,
+          'CONFIRMADO',
+        );
+        final idx = _pagos.indexWhere((x) => x.idPago == p.idPago);
+        if (idx != -1) _pagos[idx] = actualizado;
+
+        if (p.idBodega != null) {
+          final bIdx = _bodegas.indexWhere((b) => b.idBodega == p.idBodega);
+          if (bIdx != -1) {
+            final b = _bodegas[bIdx];
+            final now = DateTime.now();
+            DateTime baseDate = now;
+            if (b.fechaVencimientoPlan != null) {
+              final parsed = DateTime.tryParse(b.fechaVencimientoPlan!);
+              if (parsed != null && parsed.isAfter(now)) {
+                baseDate = parsed;
+              }
+            }
+            _bodegas[bIdx] = b.copyWith(
+              plan: p.plan.isNotEmpty ? p.plan : 'PRO',
+              fechaVencimientoPlan:
+                  baseDate.add(const Duration(days: 30)).toIso8601String(),
+              estado: true,
+            );
+          }
+        }
+      } catch (_) {}
+    }
+
+    setState(() {});
+    if (mounted) {
+      KarlizSoundService.instance.playCashChime();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '⚡ ¡Se aprobaron ${pendientes.length} pagos de suscripción exitosamente!',
+          ),
+          backgroundColor: AppTheme.accentGreen,
+        ),
+      );
     }
   }
 
@@ -2880,6 +3076,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
 
   Widget _buildTabPagos(bool isDark) {
     final query = _searchPagoCtrl.text.trim().toLowerCase();
+    final pendientes = _pagos
+        .where((p) => p.estado.toUpperCase() == 'PENDIENTE')
+        .toList();
+    final totalPendienteMonto =
+        pendientes.fold<double>(0.0, (acc, p) => acc + p.monto);
 
     final filtrados = _pagos.where((p) {
       if (query.isNotEmpty) {
@@ -2892,13 +3093,103 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         if (p.billetera.toUpperCase() != _filtroBilleteraPago) return false;
       }
 
+      if (_filtroEstadoPago != 'TODOS') {
+        if (p.estado.toUpperCase() != _filtroEstadoPago) return false;
+      }
+
       return true;
     }).toList();
 
     return Column(
       children: [
+        // Banner superior 1-Click masivo cuando hay pagos pendientes
+        if (pendientes.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF064E3B), const Color(0xFF065F46)]
+                    : [const Color(0xFFECFDF5), const Color(0xFFD1FAE5)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF059669)
+                    : const Color(0xFFA7F3D0),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.zap,
+                    color: AppTheme.accentGreen,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '⚡ ${pendientes.length} PAGO(S) POR CONFIRMAR',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w900,
+                          color: isDark ? Colors.white : const Color(0xFF065F46),
+                        ),
+                      ),
+                      Text(
+                        'Total acumulado: S/ ${totalPendienteMonto.toStringAsFixed(2)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? const Color(0xFFA7F3D0)
+                              : const Color(0xFF047857),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _aprobarTodosLosPagosPendientes,
+                  icon: const Icon(LucideIcons.checkCheck, size: 15),
+                  label: Text(
+                    'Aprobar Todos',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accentGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
             children: [
               Expanded(
@@ -2939,8 +3230,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           ),
         ),
 
-        // Filtro por Billetera
-        Padding(
+        // Filtro por Billetera y Estado
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
@@ -2963,6 +3255,40 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 'PLIN',
                 _filtroBilleteraPago,
                 (v) => setState(() => _filtroBilleteraPago = v),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                height: 18,
+                width: 1,
+                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+              ),
+              const SizedBox(width: 10),
+              _buildFilterChip(
+                'Estado:',
+                'TODOS',
+                _filtroEstadoPago,
+                (v) => setState(() => _filtroEstadoPago = v),
+              ),
+              const SizedBox(width: 4),
+              _buildFilterChip(
+                '',
+                'PENDIENTE',
+                _filtroEstadoPago,
+                (v) => setState(() => _filtroEstadoPago = v),
+              ),
+              const SizedBox(width: 4),
+              _buildFilterChip(
+                '',
+                'CONFIRMADO',
+                _filtroEstadoPago,
+                (v) => setState(() => _filtroEstadoPago = v),
+              ),
+              const SizedBox(width: 4),
+              _buildFilterChip(
+                '',
+                'RECHAZADO',
+                _filtroEstadoPago,
+                (v) => setState(() => _filtroEstadoPago = v),
               ),
             ],
           ),
@@ -3012,203 +3338,282 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               : const Color(0xFFE2E8F0),
                         ),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: walletColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              p.billetera.toUpperCase(),
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                color: walletColor,
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: walletColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  p.billetera.toUpperCase(),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    color: walletColor,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Flexible(
-                                      child: Text(
-                                        'Op: ${p.codigoOperacion}',
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            'Op: ${p.codigoOperacion}',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        InkWell(
+                                          onTap: () {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: p.codigoOperacion,
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Código ${p.codigoOperacion} copiado',
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Icon(
+                                            LucideIcons.copy,
+                                            size: 13,
+                                            color: AppTheme.getAdaptiveMutedText(
+                                              isDark,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      'Tienda: ${p.nombreBodega ?? "Bodega #${p.idBodega ?? ''}"} • Plan ${p.plan}',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (p.fechaPago != null) ...[
+                                      const SizedBox(height: 1),
+                                      Text(
+                                        _formatearFechaIso(p.fechaPago!),
                                         style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w800,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF334155),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    InkWell(
-                                      onTap: () {
-                                        Clipboard.setData(
-                                          ClipboardData(
-                                            text: p.codigoOperacion,
-                                          ),
-                                        );
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              'Código ${p.codigoOperacion} copiado',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Icon(
-                                        LucideIcons.copy,
-                                        size: 13,
-                                        color: AppTheme.getAdaptiveMutedText(
-                                          isDark,
-                                        ),
-                                      ),
-                                    ),
+                                    ],
                                   ],
                                 ),
-                                const SizedBox(height: 1),
-                                Text(
-                                  'Tienda: ${p.nombreBodega ?? "Bodega #${p.idBodega ?? ''}"} • Plan ${p.plan}',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF334155),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                if (p.fechaPago != null) ...[
-                                  const SizedBox(height: 1),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
                                   Text(
-                                    _formatearFechaIso(p.fechaPago!),
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                'S/ ${p.monto.toStringAsFixed(2)}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.accentGreen,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: p.estado == 'CONFIRMADO'
-                                      ? AppTheme.accentGreen.withValues(
-                                          alpha: 0.15,
-                                        )
-                                      : (p.estado == 'RECHAZADO'
-                                            ? AppTheme.alertRed.withValues(
-                                                alpha: 0.15,
-                                              )
-                                            : Colors.amber.withValues(
-                                                alpha: 0.15,
-                                              )),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  p.estado,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: p.estado == 'CONFIRMADO'
-                                        ? AppTheme.accentGreen
-                                        : (p.estado == 'RECHAZADO'
-                                              ? AppTheme.alertRed
-                                              : Colors.amber.shade800),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 6),
-                          PopupMenuButton<String>(
-                            tooltip: 'Gestionar Estado del Pago',
-                            icon: Icon(
-                              LucideIcons.ellipsisVertical,
-                              size: 16,
-                              color: AppTheme.getAdaptiveMutedText(isDark),
-                            ),
-                            onSelected: (val) => _cambiarEstadoPago(p, val),
-                            itemBuilder: (context) => const [
-                              PopupMenuItem(
-                                value: 'CONFIRMADO',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      LucideIcons.checkCheck,
-                                      size: 16,
+                                    'S/ ${p.monto.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
                                       color: AppTheme.accentGreen,
                                     ),
-                                    SizedBox(width: 8),
-                                    Text('Aprobar / Confirmar'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'RECHAZADO',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      LucideIcons.circleX,
-                                      size: 16,
-                                      color: AppTheme.alertRed,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 2,
                                     ),
-                                    SizedBox(width: 8),
-                                    Text('Rechazar Pago'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'PENDIENTE',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      LucideIcons.clock,
-                                      size: 16,
-                                      color: Colors.amber,
+                                    decoration: BoxDecoration(
+                                      color: p.estado == 'CONFIRMADO'
+                                          ? AppTheme.accentGreen.withValues(
+                                              alpha: 0.15,
+                                            )
+                                          : (p.estado == 'RECHAZADO'
+                                                ? AppTheme.alertRed.withValues(
+                                                    alpha: 0.15,
+                                                  )
+                                                : Colors.amber.withValues(
+                                                    alpha: 0.15,
+                                                  )),
+                                      borderRadius: BorderRadius.circular(6),
                                     ),
-                                    SizedBox(width: 8),
-                                    Text('Marcar Pendiente'),
-                                  ],
+                                    child: Text(
+                                      p.estado,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: p.estado == 'CONFIRMADO'
+                                            ? AppTheme.accentGreen
+                                            : (p.estado == 'RECHAZADO'
+                                                  ? AppTheme.alertRed
+                                                  : Colors.amber.shade800),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 6),
+                              PopupMenuButton<String>(
+                                tooltip: 'Gestionar Estado del Pago',
+                                icon: Icon(
+                                  LucideIcons.ellipsisVertical,
+                                  size: 16,
+                                  color: AppTheme.getAdaptiveMutedText(isDark),
                                 ),
+                                onSelected: (val) => _cambiarEstadoPago(p, val),
+                                itemBuilder: (context) => const [
+                                  PopupMenuItem(
+                                    value: 'CONFIRMADO',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.checkCheck,
+                                          size: 16,
+                                          color: AppTheme.accentGreen,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text('Aprobar / Confirmar'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'RECHAZADO',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.circleX,
+                                          size: 16,
+                                          color: AppTheme.alertRed,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text('Rechazar Pago'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'PENDIENTE',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.clock,
+                                          size: 16,
+                                          color: Colors.amber,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text('Marcar Pendiente'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
+                          if (p.estado.toUpperCase() == 'PENDIENTE') ...[
+                            const SizedBox(height: 10),
+                            Divider(
+                              height: 1,
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () => _aprobarPago1Click(p),
+                                    icon: const Icon(
+                                      LucideIcons.zap,
+                                      size: 15,
+                                    ),
+                                    label: Text(
+                                      '⚡ Aprobar 1-Click (S/ ${p.monto.toStringAsFixed(2)})',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.accentGreen,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 9,
+                                        horizontal: 8,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton.icon(
+                                  onPressed: () =>
+                                      _cambiarEstadoPago(p, 'RECHAZADO'),
+                                  icon: const Icon(
+                                    LucideIcons.circleX,
+                                    size: 14,
+                                  ),
+                                  label: Text(
+                                    'Rechazar',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.alertRed,
+                                    side: const BorderSide(
+                                      color: AppTheme.alertRed,
+                                      width: 1.2,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 9,
+                                      horizontal: 10,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     );

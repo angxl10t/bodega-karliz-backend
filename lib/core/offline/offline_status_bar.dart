@@ -20,163 +20,178 @@ class OfflineStatusBar extends StatelessWidget {
         return ValueListenableBuilder<bool>(
           valueListenable: syncManager.isOfflineNotifier,
           builder: (context, isOffline, _) {
-            final tienePendientes = ventas.isNotEmpty;
-            if (!isOffline && !tienePendientes) {
-              return const SizedBox.shrink();
-            }
+            return ValueListenableBuilder<bool>(
+              valueListenable: syncManager.forceOfflineNotifier,
+              builder: (context, isForced, _) {
+                final tienePendientes = ventas.isNotEmpty;
+                if (!isOffline && !tienePendientes && !isForced) {
+                  return const SizedBox.shrink();
+                }
 
-            final totalMonto = ventas.fold(0.0, (acc, v) => acc + v.total);
+                final totalMonto =
+                    ventas.fold(0.0, (acc, v) => acc + v.total);
 
-            return Container(
-              width: double.infinity,
-              margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF271B0A)
-                    : const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark
-                      ? const Color(0xFF92400E)
-                      : const Color(0xFFFBBF24),
-                  width: 1.2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFD97706).withValues(alpha: 0.12),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD97706).withValues(alpha: 0.18),
-                      shape: BoxShape.circle,
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF271B0A)
+                        : const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF92400E)
+                          : const Color(0xFFFBBF24),
+                      width: 1.2,
                     ),
-                    child: Icon(
-                      tienePendientes
-                          ? LucideIcons.cloudOff
-                          : LucideIcons.wifiOff,
-                      size: 16,
-                      color: const Color(0xFFD97706),
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFD97706).withValues(alpha: 0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD97706).withValues(alpha: 0.18),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isForced
+                              ? LucideIcons.shieldCheck
+                              : (tienePendientes
+                                  ? LucideIcons.cloudOff
+                                  : LucideIcons.wifiOff),
+                          size: 16,
+                          color: const Color(0xFFD97706),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              isOffline
-                                  ? 'MODO OFFLINE (SIN RED)'
-                                  : 'VENTAS PENDIENTES DE ENVÍO',
-                              style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFFD97706),
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                            if (tienePendientes) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 1,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD97706),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${ventas.length}',
+                            Row(
+                              children: [
+                                Text(
+                                  isForced
+                                      ? '🛡️ MODO OFFLINE BLINDADO'
+                                      : (isOffline
+                                          ? 'MODO OFFLINE (SIN RED)'
+                                          : 'VENTAS PENDIENTES DE ENVÍO'),
                                   style: GoogleFonts.outfit(
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w900,
-                                    color: Colors.white,
+                                    color: const Color(0xFFD97706),
+                                    letterSpacing: 0.3,
                                   ),
                                 ),
+                                if (tienePendientes) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFD97706),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${ventas.length}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              isForced
+                                  ? (tienePendientes
+                                      ? '${ventas.length} ventas en cola local (S/ ${totalMonto.toStringAsFixed(2)}). 0ms latencia.'
+                                      : 'Cobro 100% local activado (0ms latencia, sin esperas de red).')
+                                  : (tienePendientes
+                                      ? '${ventas.length} venta(s) guardadas localmente (S/ ${totalMonto.toStringAsFixed(2)})'
+                                      : 'Catálogo local activo. Las ventas se guardarán de forma segura.'),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFFFDE68A)
+                                    : const Color(0xFF92400E),
                               ),
-                            ],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 1),
-                        Text(
-                          tienePendientes
-                              ? '${ventas.length} venta(s) guardadas localmente (S/ ${totalMonto.toStringAsFixed(2)})'
-                              : 'Catálogo local activo. Las ventas se guardarán de forma segura.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? const Color(0xFFFDE68A)
-                                : const Color(0xFF92400E),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ValueListenableBuilder<bool>(
-                    valueListenable: syncManager.isSyncingNotifier,
-                    builder: (context, isSyncing, _) {
-                      return InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () => OfflineQueueSheet.show(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD97706),
+                      ),
+                      const SizedBox(width: 8),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: syncManager.isSyncingNotifier,
+                        builder: (context, isSyncing, _) {
+                          return InkWell(
                             borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (isSyncing)
-                                const SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              else
-                                const Icon(
-                                  LucideIcons.refreshCw,
-                                  size: 12,
-                                  color: Colors.white,
-                                ),
-                              const SizedBox(width: 4),
-                              Text(
-                                isSyncing ? 'Enviando...' : 'Ver Cola',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
+                            onTap: () => OfflineQueueSheet.show(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
                               ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD97706),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isSyncing)
+                                    const SizedBox(
+                                      width: 12,
+                                      height: 12,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  else
+                                    const Icon(
+                                      LucideIcons.refreshCw,
+                                      size: 12,
+                                      color: Colors.white,
+                                    ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    isSyncing ? 'Enviando...' : 'Ver Cola',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );

@@ -92,6 +92,17 @@ class Producto {
         nom.contains('arroz') ||
         nom.contains('azucar') ||
         nom.contains('azúcar') ||
+        nom.contains('lenteja') ||
+        nom.contains('frijol') ||
+        nom.contains('alimento') ||
+        nom.contains('croqueta') ||
+        nom.contains('aceituna') ||
+        nom.contains('harina') ||
+        nom.contains('pescado') ||
+        nom.contains('limon') ||
+        nom.contains('limón') ||
+        nom.contains('tomate') ||
+        nom.contains('cebolla') ||
         cod.startsWith('20') ||
         cod.startsWith('21');
   }

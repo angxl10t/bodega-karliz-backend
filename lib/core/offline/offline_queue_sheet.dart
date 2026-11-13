@@ -123,6 +123,104 @@ class OfflineQueueSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
 
+                  // Switch de Modo Offline Blindado
+                  ValueListenableBuilder<bool>(
+                    valueListenable: syncManager.forceOfflineNotifier,
+                    builder: (context, forceOffline, _) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: forceOffline
+                              ? (isDark
+                                    ? const Color(0xFF3B1E08)
+                                    : const Color(0xFFFEF3C7))
+                              : (isDark
+                                    ? AppTheme.cardDark
+                                    : const Color(0xFFF8FAFC)),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: forceOffline
+                                ? const Color(0xFFD97706)
+                                : (isDark
+                                      ? AppTheme.borderDark
+                                      : const Color(0xFFE2E8F0)),
+                            width: forceOffline ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: forceOffline
+                                    ? const Color(0xFFD97706)
+                                          .withValues(alpha: 0.2)
+                                    : (isDark
+                                          ? AppTheme.cardDarkElevated
+                                          : const Color(0xFFE2E8F0)),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                forceOffline
+                                    ? LucideIcons.shieldCheck
+                                    : LucideIcons.wifi,
+                                size: 18,
+                                color: forceOffline
+                                    ? const Color(0xFFD97706)
+                                    : (isDark
+                                          ? Colors.white70
+                                          : const Color(0xFF64748B)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Modo Offline Blindado',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: forceOffline
+                                          ? const Color(0xFFD97706)
+                                          : (isDark
+                                                ? Colors.white
+                                                : const Color(0xFF1E293B)),
+                                    ),
+                                  ),
+                                  Text(
+                                    forceOffline
+                                        ? 'Activo: 100% cobro local, 0ms latencia, sin esperas de red.'
+                                        : 'Desactivado: sincroniza automáticamente cada venta si hay red.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: forceOffline,
+                              activeTrackColor: const Color(0xFFD97706),
+                              onChanged: (val) {
+                                syncManager.setForceOffline(val);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
                   // Resumen Financiero de la Cola
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -375,11 +473,11 @@ class OfflineQueueSheet extends StatelessWidget {
                               : const Icon(LucideIcons.refreshCw, size: 16),
                           label: Text(
                             isSyncing
-                                ? 'Sincronizando con la nube...'
-                                : 'Sincronizar Ahora',
+                                ? 'Sincronizando lote en la nube...'
+                                : '⚡ Sincronizar en Lote (${ventas.length} ventas)',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),

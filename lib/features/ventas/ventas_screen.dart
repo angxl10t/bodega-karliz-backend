@@ -34,6 +34,7 @@ import '../../core/offline/offline_models.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_status_bar.dart';
 import '../../core/offline/uuid_helper.dart';
+import '../../core/balanza_barcode_helper.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../home/configuracion_ticket_modal.dart';
 import '../fiscal/monitor_nuevo_rus_modal.dart';
@@ -901,13 +902,35 @@ class _VentasScreenState extends State<VentasScreen>
     });
   }
 
+  void _abrirModalBalanzaOEditar(Producto p) {
+    HapticFeedback.selectionClick();
+    final cartIdx = _carrito.indexWhere(
+      (it) => it.producto.idProducto == p.idProducto,
+    );
+    if (cartIdx != -1) {
+      _editarCantidadDirecta(cartIdx);
+    } else {
+      _agregarAlCarrito(p, cantidad: 1.0);
+      final newIdx = _carrito.indexWhere(
+        (it) => it.producto.idProducto == p.idProducto,
+      );
+      if (newIdx != -1) {
+        _editarCantidadDirecta(newIdx);
+      }
+    }
+  }
+
   void _incrementarCantidad(int index) {
     final item = _carrito[index];
-    if (item.cantidad < item.producto.stockActual) {
+    final inc = item.producto.esPesableOGranel ? 0.25 : 1.0;
+    if (item.cantidad + inc <= item.producto.stockActual) {
       HapticFeedback.selectionClick();
       final totalAnterior = _totalVenta;
       setState(() {
-        item.cantidad += 1;
+        item.cantidad += inc;
+        if (item.producto.esPesableOGranel) {
+          item.cantidad = double.parse(item.cantidad.toStringAsFixed(3));
+        }
         _actualizarMontoExactoSiCorresponde(totalAnterior);
       });
     } else {
@@ -927,10 +950,20 @@ class _VentasScreenState extends State<VentasScreen>
     HapticFeedback.selectionClick();
     final totalAnterior = _totalVenta;
     setState(() {
-      if (_carrito[index].cantidad > 1) {
-        _carrito[index].cantidad -= 1;
+      final item = _carrito[index];
+      if (item.producto.esPesableOGranel) {
+        if (item.cantidad > 0.25) {
+          item.cantidad =
+              double.parse((item.cantidad - 0.25).toStringAsFixed(3));
+        } else {
+          _carrito.removeAt(index);
+        }
       } else {
-        _carrito.removeAt(index);
+        if (_carrito[index].cantidad > 1) {
+          _carrito[index].cantidad -= 1;
+        } else {
+          _carrito.removeAt(index);
+        }
       }
       _actualizarMontoExactoSiCorresponde(totalAnterior);
     });
@@ -2941,14 +2974,13 @@ class _VentasScreenState extends State<VentasScreen>
     // 3. Decodificador Inteligente de Balanza Electrónica (Estándar GS1 in-store 13 dígitos)
     // Prefijo (2 dígitos: 20 ó 21) + SKU Producto (4 ó 5 dígitos) + Peso en gramos (5 dígitos) + Checksum (1 dígito)
     if (productoEncontrado == null &&
-        codeClean.length == 13 &&
-        (codeClean.startsWith('20') || codeClean.startsWith('21'))) {
-      final prodSku5 = codeClean.substring(2, 7);
-      final prodSku4 = codeClean.substring(2, 6);
-      final rawWeight = int.tryParse(codeClean.substring(7, 12)) ?? 0;
+        BalanzaBarcodeHelper.esCodigoBalanza(codeClean)) {
+      final parsed = BalanzaBarcodeHelper.parse(codeClean);
+      if (parsed != null && parsed.pesoKg > 0) {
+        final prodSku5 = parsed.sku5;
+        final prodSku4 = parsed.sku4;
+        cantidadPesada = parsed.pesoKg;
 
-      if (rawWeight > 0) {
-        cantidadPesada = rawWeight / 1000.0;
         for (final p in _safeDisponibles) {
           if (_coincideCodigoBalanza(p, prodSku5, prodSku4)) {
             productoEncontrado = p;
@@ -4892,20 +4924,32 @@ class _VentasScreenState extends State<VentasScreen>
                                             padding: const EdgeInsets.all(8),
                                             minimumSize: const Size(36, 36),
                                           ),
-                                          icon: const Icon(
-                                            LucideIcons.plus,
+                                          icon: Icon(
+                                            p.esPesableOGranel
+                                                ? LucideIcons.scale
+                                                : LucideIcons.plus,
                                             size: 16,
                                           ),
                                           onPressed: () {
-                                            _agregarAlCarrito(p);
-                                            setModalState(() {});
+                                            if (p.esPesableOGranel) {
+                                              Navigator.pop(ctx);
+                                              _abrirModalBalanzaOEditar(p);
+                                            } else {
+                                              _agregarAlCarrito(p);
+                                              setModalState(() {});
+                                            }
                                           },
                                         ),
                                       ],
                                     ),
                                     onTap: () {
-                                      _agregarAlCarrito(p);
-                                      setModalState(() {});
+                                      if (p.esPesableOGranel) {
+                                        Navigator.pop(ctx);
+                                        _abrirModalBalanzaOEditar(p);
+                                      } else {
+                                        _agregarAlCarrito(p);
+                                        setModalState(() {});
+                                      }
                                     },
                                   );
                                 },
@@ -7037,6 +7081,24 @@ class _VentasScreenState extends State<VentasScreen>
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  if (item.producto.esPesableOGranel) ...[
+                                    IconButton(
+                                      style: IconButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: const Size(26, 26),
+                                        foregroundColor:
+                                            const Color(0xFFD97706),
+                                      ),
+                                      icon: const Icon(
+                                        LucideIcons.scale,
+                                        size: 14,
+                                      ),
+                                      tooltip: 'Pesar en balanza',
+                                      onPressed: () =>
+                                          _editarCantidadDirecta(idx),
+                                    ),
+                                    const SizedBox(width: 2),
+                                  ],
                                   IconButton.filledTonal(
                                     style: IconButton.styleFrom(
                                       backgroundColor: isDark
@@ -8228,7 +8290,11 @@ class _VentasScreenState extends State<VentasScreen>
                           borderRadius: BorderRadius.circular(16),
                           onTap: () {
                             HapticFeedback.selectionClick();
-                            _agregarAlCarrito(p);
+                            if (p.esPesableOGranel) {
+                              _abrirModalBalanzaOEditar(p);
+                            } else {
+                              _agregarAlCarrito(p);
+                            }
                           },
                           onLongPress: () {
                             if (cartIdx != -1) {
@@ -8277,39 +8343,85 @@ class _VentasScreenState extends State<VentasScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // Fila Superior: Stock & Badge en carrito
+                                // Fila Superior: Stock & Badge Balanza & Badge en carrito
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isLowStock
-                                            ? AppTheme.alertRed.withValues(
-                                                alpha: 0.15,
-                                              )
-                                            : (isDark
-                                                  ? const Color(0xFF134E4A)
-                                                        .withValues(alpha: 0.5)
-                                                  : const Color(0xFFCCFBF1)),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        '${_formatStock(p.stockActual)} u.',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 9.5,
-                                          fontWeight: FontWeight.w800,
-                                          color: isLowStock
-                                              ? AppTheme.alertRed
-                                              : (isDark
-                                                    ? const Color(0xFF2DD4BF)
-                                                    : const Color(0xFF0F766E)),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isLowStock
+                                                ? AppTheme.alertRed.withValues(
+                                                    alpha: 0.15,
+                                                  )
+                                                : (isDark
+                                                      ? const Color(0xFF134E4A)
+                                                            .withValues(alpha: 0.5)
+                                                      : const Color(0xFFCCFBF1)),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            p.esPesableOGranel
+                                                ? '${_formatStock(p.stockActual)} kg'
+                                                : '${_formatStock(p.stockActual)} u.',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: isLowStock
+                                                  ? AppTheme.alertRed
+                                                  : (isDark
+                                                        ? const Color(0xFF2DD4BF)
+                                                        : const Color(0xFF0F766E)),
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        if (p.esPesableOGranel) ...[
+                                          const SizedBox(width: 4),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 1.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.amber.withValues(alpha: 0.18),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: Colors.amber.shade700
+                                                    .withValues(alpha: 0.4),
+                                                width: 0.8,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  LucideIcons.scale,
+                                                  size: 9,
+                                                  color: Colors.amber.shade900,
+                                                ),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  'Balanza',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 8.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: Colors.amber.shade900,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
                                     if (inCart)
                                       Container(
@@ -8333,7 +8445,9 @@ class _VentasScreenState extends State<VentasScreen>
                                             ),
                                             const SizedBox(width: 2),
                                             Text(
-                                              'x${inCartQty.toInt()}',
+                                              p.esPesableOGranel
+                                                  ? 'x${_formatCantidad(inCartQty)}kg'
+                                                  : 'x${inCartQty.toInt()}',
                                               style: GoogleFonts.outfit(
                                                 fontSize: 9.5,
                                                 fontWeight: FontWeight.w900,
@@ -8827,6 +8941,25 @@ class _VentasScreenState extends State<VentasScreen>
                           ),
 
                           // Steppers compactos táctiles
+                          if (item.producto.esPesableOGranel) ...[
+                            InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => _editarCantidadDirecta(idx),
+                              child: Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.scale,
+                                  size: 14,
+                                  color: Color(0xFFD97706),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
                           Container(
                             decoration: BoxDecoration(
                               color: isDark

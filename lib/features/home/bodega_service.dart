@@ -52,6 +52,58 @@ class BodegaInfo {
     this.limiteAlcanzado = false,
   }) : esNuevoRus = esNuevoRus ?? (regimenTributario == 'NUEVO_RUS');
 
+  BodegaInfo copyWith({
+    int? idBodega,
+    String? nombreComercial,
+    String? rucDni,
+    String? direccion,
+    String? telefono,
+    String? logoUrl,
+    String? colorPrimario,
+    String? lemaComercial,
+    String? plan,
+    bool? estado,
+    String? fechaVencimientoPlan,
+    bool? facturacionSunatActiva,
+    String? regimenTributario,
+    bool? esNuevoRus,
+    String? sunatProveedor,
+    String? sunatRucEmisor,
+    String? sunatUsuarioSol,
+    String? serieBoleta,
+    String? serieFactura,
+    int? limiteProductos,
+    int? totalProductosActivos,
+    bool? limiteAlcanzado,
+  }) {
+    return BodegaInfo(
+      idBodega: idBodega ?? this.idBodega,
+      nombreComercial: nombreComercial ?? this.nombreComercial,
+      rucDni: rucDni ?? this.rucDni,
+      direccion: direccion ?? this.direccion,
+      telefono: telefono ?? this.telefono,
+      logoUrl: logoUrl ?? this.logoUrl,
+      colorPrimario: colorPrimario ?? this.colorPrimario,
+      lemaComercial: lemaComercial ?? this.lemaComercial,
+      plan: plan ?? this.plan,
+      estado: estado ?? this.estado,
+      fechaVencimientoPlan: fechaVencimientoPlan ?? this.fechaVencimientoPlan,
+      facturacionSunatActiva:
+          facturacionSunatActiva ?? this.facturacionSunatActiva,
+      regimenTributario: regimenTributario ?? this.regimenTributario,
+      esNuevoRus: esNuevoRus ?? this.esNuevoRus,
+      sunatProveedor: sunatProveedor ?? this.sunatProveedor,
+      sunatRucEmisor: sunatRucEmisor ?? this.sunatRucEmisor,
+      sunatUsuarioSol: sunatUsuarioSol ?? this.sunatUsuarioSol,
+      serieBoleta: serieBoleta ?? this.serieBoleta,
+      serieFactura: serieFactura ?? this.serieFactura,
+      limiteProductos: limiteProductos ?? this.limiteProductos,
+      totalProductosActivos:
+          totalProductosActivos ?? this.totalProductosActivos,
+      limiteAlcanzado: limiteAlcanzado ?? this.limiteAlcanzado,
+    );
+  }
+
   factory BodegaInfo.fromJson(Map<String, dynamic> json) {
     final reg = json['regimenTributario'] as String? ?? 'NUEVO_RUS';
     final isRus = json['esNuevoRus'] == true || reg == 'NUEVO_RUS';
