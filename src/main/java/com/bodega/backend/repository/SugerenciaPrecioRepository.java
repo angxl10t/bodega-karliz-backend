@@ -21,6 +21,8 @@ public interface SugerenciaPrecioRepository extends JpaRepository<SugerenciaPrec
 
     long countByBodega_IdBodegaAndEstado(Long idBodega, String estado);
 
+    long countByEstado(String estado);
+
     @EntityGraph(attributePaths = {"bodega", "producto"})
     List<SugerenciaPrecioSuperadmin> findAllByOrderByFechaCreacionDesc();
 

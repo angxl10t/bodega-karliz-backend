@@ -125,6 +125,20 @@ public class BodegaController {
         return ResponseEntity.ok(bodegaService.cambiarPlanBodega(id, plan, dias));
     }
 
+    @PutMapping("/{id}/color")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<BodegaDTO> actualizarColorBodega(
+            @PathVariable Long id,
+            @RequestParam String colorPrimario) {
+        return ResponseEntity.ok(bodegaService.actualizarColorBodega(id, colorPrimario));
+    }
+
+    @GetMapping("/finanzas-saas")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<java.util.Map<String, Object>> obtenerMonitorFinancieroSaaS() {
+        return ResponseEntity.ok(bodegaService.obtenerMonitorFinancieroSaaS());
+    }
+
     @GetMapping("/metricas-sistema")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<java.util.Map<String, Object>> obtenerMetricasSistema() {

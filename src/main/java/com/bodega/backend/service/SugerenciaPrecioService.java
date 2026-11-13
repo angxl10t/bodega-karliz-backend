@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -105,6 +107,25 @@ public class SugerenciaPrecioService {
     public long contarBodegasConProducto(String codigoBarras) {
         if (codigoBarras == null || codigoBarras.isBlank()) return 0;
         return sugerenciaPrecioRepository.countBodegasConProducto(codigoBarras.trim());
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> obtenerEstadisticas() {
+        long total = sugerenciaPrecioRepository.count();
+        long pendientes = sugerenciaPrecioRepository.countByEstado("PENDIENTE");
+        long aceptadas = sugerenciaPrecioRepository.countByEstado("ACEPTADA");
+        long rechazadas = sugerenciaPrecioRepository.countByEstado("RECHAZADA");
+        double tasaAceptacion = (aceptadas + rechazadas > 0)
+                ? (double) aceptadas / (aceptadas + rechazadas) * 100.0
+                : 0.0;
+
+        Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("totalSugerencias", total);
+        stats.put("totalPendientes", pendientes);
+        stats.put("totalAceptadas", aceptadas);
+        stats.put("totalRechazadas", rechazadas);
+        stats.put("tasaAceptacion", Math.round(tasaAceptacion * 10.0) / 10.0);
+        return stats;
     }
 
     @Transactional(readOnly = true)

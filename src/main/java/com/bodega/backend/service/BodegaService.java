@@ -16,6 +16,9 @@ import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -1496,6 +1499,74 @@ public class BodegaService {
 
 
 
+    }
+
+    @Transactional
+    public BodegaDTO actualizarColorBodega(Long idBodega, String colorPrimario) {
+        Bodega bodega = bodegaRepository.findByIdForUpdate(idBodega)
+                .or(() -> bodegaRepository.findById(idBodega))
+                .orElseThrow(() -> new RuntimeException("Bodega con ID " + idBodega + " no encontrada"));
+
+        String color = (colorPrimario != null && !colorPrimario.isBlank()) ? colorPrimario.trim() : "#2563EB";
+        bodega.setColorPrimario(color);
+        Bodega guardada = bodegaRepository.save(bodega);
+        evictCacheBodega(guardada, bodega);
+        return mapToDTO(guardada);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> obtenerMonitorFinancieroSaaS() {
+        List<Bodega> todas = bodegaRepository.findAll();
+        long totalBodegas = todas.size();
+        long activas = todas.stream().filter(b -> Boolean.TRUE.equals(b.getEstado())).count();
+        long proCount = todas.stream().filter(b -> Boolean.TRUE.equals(b.getEstado()) && "PRO".equalsIgnoreCase(b.getPlan())).count();
+        long corporativoCount = todas.stream().filter(b -> Boolean.TRUE.equals(b.getEstado()) && "CORPORATIVO".equalsIgnoreCase(b.getPlan())).count();
+        long basicoCount = Math.max(0, activas - proCount - corporativoCount);
+
+        BigDecimal mrrPro = new BigDecimal("49.90").multiply(BigDecimal.valueOf(proCount));
+        BigDecimal mrrCorp = new BigDecimal("149.00").multiply(BigDecimal.valueOf(corporativoCount));
+        BigDecimal mrrTotal = mrrPro.add(mrrCorp);
+
+        OffsetDateTime ahora = OffsetDateTime.now();
+        List<Map<String, Object>> porVencer = new java.util.ArrayList<>();
+        List<Map<String, Object>> vencidas = new java.util.ArrayList<>();
+
+        for (Bodega b : todas) {
+            if (!Boolean.TRUE.equals(b.getEstado())) continue;
+            if (b.getFechaVencimientoPlan() != null) {
+                long diasRestantes = java.time.temporal.ChronoUnit.DAYS.between(ahora, b.getFechaVencimientoPlan());
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("idBodega", b.getIdBodega());
+                item.put("nombreComercial", b.getNombreComercial());
+                item.put("plan", b.getPlan());
+                item.put("telefono", b.getTelefono() != null ? b.getTelefono() : "");
+                item.put("colorPrimario", b.getColorPrimario() != null ? b.getColorPrimario() : "#2563EB");
+                item.put("fechaVencimiento", b.getFechaVencimientoPlan().toString());
+                item.put("diasRestantes", diasRestantes);
+
+                String tel = b.getTelefono() != null ? b.getTelefono().replaceAll("[^0-9]", "") : "";
+                String msj = "Hola " + b.getNombreComercial() + ", te saludamos de CajaYa POS. Tu suscripción al Plan " 
+                        + b.getPlan() + " está próxima a vencer. Puedes renovarla fácilmente por Yape o transferencia para seguir disfrutando de todas las funciones sin interrupciones.";
+                item.put("whatsappUrl", tel.length() >= 9 ? "https://wa.me/51" + tel + "?text=" + java.net.URLEncoder.encode(msj, java.nio.charset.StandardCharsets.UTF_8) : "");
+
+                if (diasRestantes < 0) {
+                    vencidas.add(item);
+                } else if (diasRestantes <= 7) {
+                    porVencer.add(item);
+                }
+            }
+        }
+
+        Map<String, Object> resp = new LinkedHashMap<>();
+        resp.put("totalBodegas", totalBodegas);
+        resp.put("bodegasActivas", activas);
+        resp.put("bodegasPro", proCount);
+        resp.put("bodegasCorporativo", corporativoCount);
+        resp.put("bodegasBasico", basicoCount);
+        resp.put("mrrTotal", mrrTotal);
+        resp.put("bodegasPorVencer", porVencer);
+        resp.put("bodegasVencidas", vencidas);
+        return resp;
     }
 
 

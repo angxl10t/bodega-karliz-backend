@@ -52,6 +52,12 @@ public class SugerenciaPrecioController {
         ));
     }
 
+    @GetMapping("/api/superadmin/sugerencias-precio/estadisticas")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<Map<String, Object>> obtenerEstadisticas() {
+        return ResponseEntity.ok(sugerenciaPrecioService.obtenerEstadisticas());
+    }
+
     // =========================================================================
     // ENDPOINTS BODEGA TENANT
     // =========================================================================

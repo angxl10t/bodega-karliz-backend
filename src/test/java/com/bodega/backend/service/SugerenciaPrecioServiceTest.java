@@ -214,4 +214,21 @@ class SugerenciaPrecioServiceTest {
 
         assertThrows(IllegalStateException.class, () -> sugerenciaPrecioService.aceptarSugerencia(99L));
     }
+
+    @Test
+    void testObtenerEstadisticas() {
+        when(sugerenciaPrecioRepository.count()).thenReturn(10L);
+        when(sugerenciaPrecioRepository.countByEstado("PENDIENTE")).thenReturn(3L);
+        when(sugerenciaPrecioRepository.countByEstado("ACEPTADA")).thenReturn(5L);
+        when(sugerenciaPrecioRepository.countByEstado("RECHAZADA")).thenReturn(2L);
+
+        java.util.Map<String, Object> stats = sugerenciaPrecioService.obtenerEstadisticas();
+
+        assertEquals(10L, stats.get("totalSugerencias"));
+        assertEquals(3L, stats.get("totalPendientes"));
+        assertEquals(5L, stats.get("totalAceptadas"));
+        assertEquals(2L, stats.get("totalRechazadas"));
+        // 5 / (5 + 2) * 100 = 71.4%
+        assertEquals(71.4, (Double) stats.get("tasaAceptacion"), 0.1);
+    }
 }
