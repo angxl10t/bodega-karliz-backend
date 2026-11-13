@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -15,6 +14,7 @@ import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
+import '../../core/widgets/water_drop_theme_transition.dart';
 import '../../core/cajaya_vectors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -281,38 +281,18 @@ class _LoginScreenState extends State<LoginScreen> {
             Positioned(
               top: 14,
               right: 16,
-              child: IconButton.filledTonal(
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? AppTheme.cardDarkElevated
-                      : Colors.white,
-                  foregroundColor: isDark
-                      ? const Color(0xFFFACC15)
-                      : const Color(0xFF475569),
-                  padding: const EdgeInsets.all(8),
-                  minimumSize: const Size(38, 38),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: isDark
-                          ? AppTheme.borderDark
-                          : AppTheme.borderLight,
-                      width: 1,
-                    ),
-                  ),
-                  elevation: 1,
-                ),
-                tooltip: isDark
-                    ? 'Cambiar a Modo Claro Pro (Porcelana)'
-                    : 'Cambiar a Modo Oscuro (Warm Titanium)',
-                icon: Icon(
-                  isDark ? LucideIcons.sun : LucideIcons.moon,
-                  size: 18,
-                ),
-                onPressed: () {
-                  HapticFeedback.selectionClick();
-                  context.read<ThemeProvider>().toggleTheme();
-                },
+              child: WaterDropThemeButton(
+                isDark: isDark,
+                onToggle: () => context.read<ThemeProvider>().toggleTheme(),
+                iconSize: 18,
+                padding: const EdgeInsets.all(8),
+                borderRadius: 12,
+                backgroundColor: isDark
+                    ? AppTheme.cardDarkElevated
+                    : Colors.white,
+                borderColor: isDark
+                    ? AppTheme.borderDark
+                    : AppTheme.borderLight,
               ),
             ),
           ],

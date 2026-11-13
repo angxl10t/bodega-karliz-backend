@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
+import '../../core/widgets/water_drop_theme_transition.dart';
 import '../../core/api_constants.dart';
 import '../../core/secure_storage_service.dart';
 import '../../core/karliz_sound_service.dart';
@@ -1777,17 +1778,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   onPressed: _cargarTodo,
                 ),
 
-                // Conmutador de Tema
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  tooltip: 'Cambiar Modo Oscuro/Claro',
-                  icon: Icon(
-                    themeProvider.isDarkMode
-                        ? LucideIcons.sun
-                        : LucideIcons.moon,
-                    size: 17,
-                  ),
-                  onPressed: () => themeProvider.toggleTheme(),
+                // Conmutador de Tema con efecto de gota de agua líquida
+                WaterDropThemeButton(
+                  isDark: themeProvider.isDarkMode,
+                  onToggle: () => themeProvider.toggleTheme(),
+                  iconSize: 16,
+                  padding: const EdgeInsets.all(6),
+                  borderRadius: 8,
                 ),
 
                 // Cerrar Sesión

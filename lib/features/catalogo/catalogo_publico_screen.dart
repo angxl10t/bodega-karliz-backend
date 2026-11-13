@@ -15,6 +15,9 @@ import '../../core/cajaya_vectors.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
+import 'package:provider/provider.dart';
+import '../../core/theme_provider.dart';
+import '../../core/widgets/water_drop_theme_transition.dart';
 import 'pedido_web_service.dart';
 
 class CatalogoPublicoScreen extends StatefulWidget {
@@ -550,11 +553,26 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           ],
         ),
         actions: [
+          WaterDropThemeButton(
+            isDark: isDark,
+            onToggle: () => context.read<ThemeProvider>().toggleTheme(),
+            iconSize: 18,
+            padding: const EdgeInsets.all(7),
+            borderRadius: 10,
+            backgroundColor: isDark
+                ? const Color(0xFF1E293B)
+                : const Color(0xFFF1F5F9),
+            borderColor: isDark
+                ? const Color(0xFF334155)
+                : const Color(0xFFE2E8F0),
+          ),
+          const SizedBox(width: 6),
           IconButton(
             icon: const Icon(LucideIcons.refreshCw, size: 18),
             tooltip: 'Actualizar',
             onPressed: _cargarCatalogo,
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _buildBody(isDark),

@@ -14,6 +14,7 @@ import '../ventas/ventas_screen.dart';
 import '../ventas/caja_ventas_screen.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
+import '../../core/widgets/water_drop_theme_transition.dart';
 import '../../core/update_service.dart';
 import '../../core/cajaya_vectors.dart';
 import '../../core/lock_service.dart';
@@ -1978,41 +1979,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-              // Botón rápido de alternancia de tema (Modo Claro Pro <-> Warm Titanium)
+              // Botón rápido de alternancia de tema con efecto de gota de agua líquida
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: Center(
-                  child: IconButton.filledTonal(
-                    style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? AppTheme.cardDarkElevated
-                          : const Color(0xFFF1F5F9),
-                      foregroundColor: isDark
-                          ? const Color(0xFFFACC15)
-                          : const Color(0xFF475569),
-                      padding: const EdgeInsets.all(8),
-                      minimumSize: const Size(36, 36),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: isDark
-                              ? AppTheme.borderDark
-                              : const Color(0xFFCBD5E1),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    tooltip: isDark
-                        ? 'Cambiar a Modo Claro Pro (Porcelana)'
-                        : 'Cambiar a Modo Oscuro (Warm Titanium)',
-                    icon: Icon(
-                      isDark ? LucideIcons.sun : LucideIcons.moon,
-                      size: 18,
-                    ),
-                    onPressed: () {
-                      HapticFeedback.selectionClick();
-                      context.read<ThemeProvider>().toggleTheme();
-                    },
+                  child: WaterDropThemeButton(
+                    isDark: isDark,
+                    onToggle: () => context.read<ThemeProvider>().toggleTheme(),
+                    iconSize: 18,
+                    padding: const EdgeInsets.all(8),
+                    borderRadius: 12,
+                    backgroundColor: isDark
+                        ? AppTheme.cardDarkElevated
+                        : const Color(0xFFF1F5F9),
+                    borderColor: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFCBD5E1),
                   ),
                 ),
               ),
