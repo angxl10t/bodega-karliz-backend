@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-
 /// Controlador y animador del efecto "Gota de Agua Líquida" (Water Ripple Shockwave).
 ///
 /// Simula la onda expansiva transparente generada por una gota al tocar la superficie:
-/// ondas concéntricas translúcidas con tensión superficial, refracción cristalina y eco
-/// líquido que recorren la pantalla SIN ocultar ni tapar los elementos de la interfaz.
+/// aros concéntricos cristalinos de agua nítidos y 100% transparentes con tensión
+/// superficial y refracción, SIN ningún tipo de relleno, difuminado ni nublado que
+/// tape o nuble la visibilidad de la pantalla.
 class WaterDropThemeTransition {
   static bool _isAnimating = false;
 
@@ -17,15 +17,15 @@ class WaterDropThemeTransition {
 
   /// Dispara la onda líquida desde [origin] expandiéndose por toda la pantalla.
   ///
-  /// La pantalla permanece 100% visible en todo momento. El cambio de tema se efectúa
-  /// al instante y la onda recorre la pantalla decorando la transición.
+  /// La pantalla permanece 100% visible, transparente y nítida en todo momento.
+  /// El cambio de tema se efectúa al instante y los aros recorren la pantalla.
   static Future<void> animate(
     BuildContext context, {
     required Offset origin,
     required bool targetIsDark,
     required Future<void> Function() onToggleTheme,
     Color? customRippleColor,
-    Duration duration = const Duration(milliseconds: 420),
+    Duration duration = const Duration(milliseconds: 380),
   }) async {
     if (_isAnimating) return;
 
@@ -44,7 +44,6 @@ class WaterDropThemeTransition {
     _isAnimating = true;
 
     // Disparamos el cambio de tema de inmediato para que la UI responda instantáneamente
-    // sin ningún retraso ni bloqueo
     await onToggleTheme();
 
     late OverlayEntry entry;
@@ -86,7 +85,7 @@ class WaterDropThemeTransition {
           math.max(dTopLeft, dTopRight),
           math.max(dBottomLeft, dBottomRight),
         ) +
-        30.0;
+        20.0;
   }
 }
 
@@ -125,7 +124,7 @@ class _WaterDropOverlayWidgetState extends State<_WaterDropOverlayWidget>
       duration: widget.duration,
     );
 
-    // Curva expansiva ágil y orgánica: nace rápido como una gota y se expande suavemente
+    // Curva expansiva ágil y orgánica: nace rápido como una gota y se propaga naturalmente
     _expandAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOutCubic,
@@ -134,7 +133,7 @@ class _WaterDropOverlayWidgetState extends State<_WaterDropOverlayWidget>
     // Desvanecimiento suave en el tramo final
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.60, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.65, 1.0, curve: Curves.easeOut),
     );
 
     _controller.addStatusListener((status) {
@@ -177,9 +176,10 @@ class _WaterDropOverlayWidgetState extends State<_WaterDropOverlayWidget>
   }
 }
 
-/// Pintor translúcido de onda líquida (Ripple Shockwave).
+/// Pintor 100% cristalino y translúcido de onda líquida (Clean Ripple Rings).
 ///
-/// Dibuja ondas concéntricas de agua cristalina sin tapar ni oscurecer la interfaz.
+/// Dibuja aros de onda de agua transparentes SIN relleno ni blur, garantizando
+/// que todo el contenido de la pantalla permanezca perfectamente visible y nítido.
 class _WaterDropRipplePainter extends CustomPainter {
   final Offset center;
   final double progress;
@@ -201,66 +201,57 @@ class _WaterDropRipplePainter extends CustomPainter {
 
     final currentRadius = maxRadius * progress;
 
-    // Desvanecimiento general de la onda a medida que se aleja del centro
-    final waveFade = (1.0 - (progress * 0.45)).clamp(0.0, 1.0) * opacity;
+    // Desvanecimiento de la onda a medida que se propaga hacia los bordes
+    final waveFade = (1.0 - (progress * 0.50)).clamp(0.0, 1.0) * opacity;
     if (waveFade <= 0.01) return;
 
-    // 1. Halo sutil y vítreo en la zona recién tocada por el agua (ultra tenue, 100% legible)
-    if (progress < 0.60) {
-      final innerGlowFade = (1.0 - (progress / 0.60)) * 0.06 * opacity;
-      if (innerGlowFade > 0.005) {
-        final glowPaint = Paint()
-          ..color = rippleColor.withValues(alpha: innerGlowFade)
-          ..style = PaintingStyle.fill;
-        canvas.drawCircle(center, currentRadius, glowPaint);
-      }
-    }
-
-    // 2. Cresta frontal de la onda de agua (Anillo principal con glow difuso)
-    final mainStrokeWidth = math.max(2.5, 7.0 * (1.0 - (progress * 0.6)));
-    final haloPaint = Paint()
-      ..color = rippleColor.withValues(alpha: (0.40 * waveFade).clamp(0.0, 1.0))
+    // 1. Anillo primario de la onda de agua (aro fino cristalino, 100% transparente)
+    final mainRingPaint = Paint()
+      ..color = rippleColor.withValues(alpha: (0.50 * waveFade).clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = mainStrokeWidth + 4.0
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+      ..strokeWidth = math.max(1.2, 2.2 * (1.0 - (progress * 0.4)));
 
-    canvas.drawCircle(center, currentRadius, haloPaint);
+    canvas.drawCircle(center, currentRadius, mainRingPaint);
 
-    // 3. Tensión superficial cristalina (Línea nítida de refracción sobre la cresta)
-    final crestPaint = Paint()
-      ..color = Colors.white.withValues(alpha: (0.55 * waveFade).clamp(0.0, 1.0))
+    // 2. Filamento de refracción luminosa (brillo blanco nítido, sin blur)
+    final lightRefractionPaint = Paint()
+      ..color = Colors.white.withValues(alpha: (0.45 * waveFade).clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, 2.0 * (1.0 - (progress * 0.5)));
+      ..strokeWidth = 1.0;
 
-    canvas.drawCircle(center, currentRadius, crestPaint);
+    canvas.drawCircle(
+      center,
+      math.max(0.0, currentRadius - 1.5),
+      lightRefractionPaint,
+    );
 
-    // 4. Onda secundaria concéntrica (Eco líquido característico al caer una gota)
-    if (progress > 0.10) {
-      final secProgress = ((progress - 0.10) / 0.90).clamp(0.0, 1.0);
-      final secRadius = currentRadius * 0.82;
-      final secFade = (1.0 - secProgress).clamp(0.0, 1.0) * waveFade * 0.50;
+    // 3. Onda secundaria concéntrica (eco líquido característico de gotas de agua)
+    if (progress > 0.12) {
+      final secProgress = ((progress - 0.12) / 0.88).clamp(0.0, 1.0);
+      final secRadius = currentRadius * 0.84;
+      final secFade = (1.0 - secProgress).clamp(0.0, 1.0) * waveFade * 0.40;
 
       if (secFade > 0.01) {
         final secPaint = Paint()
           ..color = rippleColor.withValues(alpha: secFade)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = math.max(1.0, 2.5 * (1.0 - secProgress));
+          ..strokeWidth = math.max(1.0, 1.6 * (1.0 - (secProgress * 0.4)));
 
         canvas.drawCircle(center, secRadius, secPaint);
       }
     }
 
-    // 5. Tercer eco concéntrico sutil (Micro-splash líquido en las fases intermedias)
-    if (progress > 0.25) {
-      final thirdProgress = ((progress - 0.25) / 0.75).clamp(0.0, 1.0);
-      final thirdRadius = currentRadius * 0.64;
-      final thirdFade = (1.0 - thirdProgress).clamp(0.0, 1.0) * waveFade * 0.30;
+    // 4. Tercer micro-anillo concéntrico (eco sutil de gota)
+    if (progress > 0.28) {
+      final thirdProgress = ((progress - 0.28) / 0.72).clamp(0.0, 1.0);
+      final thirdRadius = currentRadius * 0.68;
+      final thirdFade = (1.0 - thirdProgress).clamp(0.0, 1.0) * waveFade * 0.25;
 
       if (thirdFade > 0.01) {
         final thirdPaint = Paint()
           ..color = rippleColor.withValues(alpha: thirdFade)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2;
+          ..strokeWidth = 1.0;
 
         canvas.drawCircle(center, thirdRadius, thirdPaint);
       }
