@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -57,6 +59,48 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       _userRol.toUpperCase() == 'ADMIN' ||
       _userRol.toUpperCase() == 'SUPERADMIN';
   double? _efectivoContado;
+  final Map<double, int> _conteoBilletes = {
+    200.0: 0,
+    100.0: 0,
+    50.0: 0,
+    20.0: 0,
+    10.0: 0,
+    5.0: 0,
+    2.0: 0,
+    1.0: 0,
+    0.50: 0,
+    0.20: 0,
+    0.10: 0,
+  };
+
+  void _ajustarDenominacion(double valor, int delta) {
+    final actual = _conteoBilletes[valor] ?? 0;
+    final nuevo = actual + delta;
+    if (nuevo >= 0) {
+      setState(() {
+        _conteoBilletes[valor] = nuevo;
+        final total = _conteoBilletes.entries.fold(
+          0.0,
+          (acc, e) => acc + (e.key * e.value),
+        );
+        _efectivoContado = total > 0 ? total : null;
+        _conteoFisicoController.text = total > 0
+            ? total.toStringAsFixed(2)
+            : '';
+      });
+    }
+  }
+
+  void _limpiarConteoBilletes() {
+    setState(() {
+      for (final k in _conteoBilletes.keys.toList()) {
+        _conteoBilletes[k] = 0;
+      }
+      _efectivoContado = null;
+      _conteoFisicoController.clear();
+    });
+  }
+
   String _nombreBodega = 'CajaYa POS';
   String _rucBodega = '';
   String _direccionBodega = '';
@@ -682,6 +726,156 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           ),
         );
       }
+    }
+  }
+
+  Future<void> _imprimirTicketArqueo() async {
+    final c = _cierreCaja;
+    final totalVendido = c?.totalVentas ?? 0.0;
+    final totalEfectivo = c?.totalEfectivo ?? 0.0;
+    final totalYape = c?.totalYape ?? 0.0;
+    final totalPlin = c?.totalPlin ?? 0.0;
+    final totalTarjeta = c?.totalTarjeta ?? 0.0;
+    final totalCredito = c?.totalCredito ?? 0.0;
+    final cantidadVentas = c?.cantidadVentas ?? 0;
+    final fondoInicial = c?.fondoInicial ?? 0.0;
+    final totalEgresos = c?.totalEgresos ?? 0.0;
+    final totalAbonosEf = c?.totalAbonosEfectivo ?? 0.0;
+    final totalEsperado =
+        c?.totalEfectivoEsperado ??
+        (fondoInicial + totalEfectivo + totalAbonosEf - totalEgresos);
+
+    final sb = StringBuffer();
+    sb.writeln(ThermalTicketService.center(_nombreBodega.toUpperCase()));
+    if (_rucBodega.isNotEmpty) {
+      sb.writeln(ThermalTicketService.center('RUC: $_rucBodega'));
+    }
+    sb.writeln(ThermalTicketService.divider());
+    sb.writeln(ThermalTicketService.center('REPORTE Z - CIERRE DE TURNO'));
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Fecha:',
+        '${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}',
+      ),
+    );
+    sb.writeln(ThermalTicketService.twoColumns('Cajero:', _username));
+    sb.writeln(ThermalTicketService.divider());
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Base Inicial:',
+        'S/ ${fondoInicial.toStringAsFixed(2)}',
+      ),
+    );
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Ventas Efectivo:',
+        'S/ ${totalEfectivo.toStringAsFixed(2)}',
+      ),
+    );
+    if (totalAbonosEf > 0) {
+      sb.writeln(
+        ThermalTicketService.twoColumns(
+          'Cobro Fiados (Ef):',
+          'S/ ${totalAbonosEf.toStringAsFixed(2)}',
+        ),
+      );
+    }
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Egresos Caja:',
+        '-S/ ${totalEgresos.toStringAsFixed(2)}',
+      ),
+    );
+    sb.writeln(ThermalTicketService.divider());
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'EFECTIVO ESPERADO:',
+        'S/ ${totalEsperado.toStringAsFixed(2)}',
+      ),
+    );
+    if (_efectivoContado != null) {
+      sb.writeln(
+        ThermalTicketService.twoColumns(
+          'Efectivo Contado:',
+          'S/ ${_efectivoContado!.toStringAsFixed(2)}',
+        ),
+      );
+      final dif = _efectivoContado! - totalEsperado;
+      final difStr = dif.abs() < 0.01
+          ? 'S/ 0.00 (CUADRADO)'
+          : (dif > 0
+                ? '+S/ ${dif.toStringAsFixed(2)} (SOBRANTE)'
+                : '-S/ ${dif.abs().toStringAsFixed(2)} (FALTANTE)');
+      sb.writeln(ThermalTicketService.twoColumns('Diferencia:', difStr));
+    }
+    sb.writeln(ThermalTicketService.divider());
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Total Yape:',
+        'S/ ${totalYape.toStringAsFixed(2)}',
+      ),
+    );
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Total Plin:',
+        'S/ ${totalPlin.toStringAsFixed(2)}',
+      ),
+    );
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Total Tarjeta:',
+        'S/ ${totalTarjeta.toStringAsFixed(2)}',
+      ),
+    );
+    if (totalCredito > 0) {
+      sb.writeln(
+        ThermalTicketService.twoColumns(
+          'Total Fiados:',
+          'S/ ${totalCredito.toStringAsFixed(2)}',
+        ),
+      );
+    }
+    sb.writeln(ThermalTicketService.divider());
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'TOTAL VENDIDO:',
+        'S/ ${totalVendido.toStringAsFixed(2)}',
+      ),
+    );
+    sb.writeln(
+      ThermalTicketService.twoColumns(
+        'Transacciones:',
+        '$cantidadVentas ventas',
+      ),
+    );
+    sb.writeln(ThermalTicketService.divider());
+    sb.writeln(ThermalTicketService.center('CajaYa POS • Sistema en la Nube'));
+
+    final receiptText = sb.toString();
+    final cfg = ConfiguracionTicketService.actual;
+    final List<int> escPosBytes = [];
+    if (cfg.abrirGaveta) {
+      escPosBytes.addAll(ThermalTicketService.openDrawerBytes);
+    }
+    escPosBytes.addAll([0x1B, 0x40]); // ESC @
+    escPosBytes.addAll([0x1B, 0x61, 0x00]); // Alineación izquierda
+    escPosBytes.addAll(utf8.encode(receiptText));
+    escPosBytes.addAll([0x1B, 0x64, 0x04]); // Avance 4 líneas
+    escPosBytes.addAll(ThermalTicketService.cutPaperBytes);
+
+    final res = await ThermalTicketService.imprimirTicketDirecto(
+      escPosBytes: escPosBytes,
+      receiptText: receiptText,
+      config: cfg,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res.mensaje),
+          backgroundColor: res.exito ? AppTheme.accentGreen : AppTheme.alertRed,
+        ),
+      );
     }
   }
 
@@ -1698,19 +1892,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   }
 
   void _mostrarCalculadoraConteoBilletes(double esperado) {
-    final Map<double, int> conteo = {
-      200.0: 0,
-      100.0: 0,
-      50.0: 0,
-      20.0: 0,
-      10.0: 0,
-      5.0: 0,
-      2.0: 0,
-      1.0: 0,
-      0.50: 0,
-      0.20: 0,
-      0.10: 0,
-    };
+    final Map<double, int> conteo = Map<double, int>.from(_conteoBilletes);
 
     showModalBottomSheet(
       context: context,
@@ -2079,6 +2261,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                                   ),
                                   onPressed: () {
                                     setState(() {
+                                      _conteoBilletes.clear();
+                                      _conteoBilletes.addAll(conteo);
                                       _conteoFisicoController.text = total
                                           .toStringAsFixed(2);
                                       _efectivoContado = total;
@@ -2227,6 +2411,119 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                   ? (isDark ? Colors.white : AppTheme.brandPrimary)
                   : AppTheme.textMuted,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactDenominacionCard({
+    required double valor,
+    required int cantidad,
+    required bool esBillete,
+    required bool isDark,
+    required ValueChanged<int> onChanged,
+  }) {
+    final String label = valor >= 1.0
+        ? 'S/ ${valor.toStringAsFixed(0)}'
+        : 'S/ ${valor.toStringAsFixed(2)}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: cantidad > 0
+              ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.5 : 0.4)
+              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: esBillete
+                  ? const Color(0xFF059669)
+                        .withValues(alpha: isDark ? 0.2 : 0.12)
+                  : const Color(0xFFD97706)
+                        .withValues(alpha: isDark ? 0.2 : 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              label,
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: esBillete
+                    ? const Color(0xFF059669)
+                    : const Color(0xFFD97706),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: cantidad > 0 ? () => onChanged(cantidad - 1) : null,
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                  child: Icon(
+                    LucideIcons.minus,
+                    size: 13,
+                    color: cantidad > 0
+                        ? (isDark ? Colors.white : AppTheme.textDark)
+                        : (isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted),
+                  ),
+                ),
+              ),
+              Container(
+                constraints: const BoxConstraints(minWidth: 26),
+                alignment: Alignment.center,
+                child: Text(
+                  '$cantidad',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () => onChanged(cantidad + 1),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppTheme.brandPrimary,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    LucideIcons.plus,
+                    size: 13,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -2602,6 +2899,59 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         )
         .toList();
 
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 900) {
+          return _buildDesktopCierreCockpit(
+            isDark: isDark,
+            c: c,
+            totalVendido: totalVendido,
+            totalEfectivo: totalEfectivo,
+            totalEfectivoRecibido: totalEfectivoRecibido,
+            totalVueltoEntregado: totalVueltoEntregado,
+            totalYape: totalYape,
+            totalPlin: totalPlin,
+            totalTarjeta: totalTarjeta,
+            totalCredito: totalCredito,
+            cantidadVentas: cantidadVentas,
+            esHoy: esHoy,
+            diasPasados: diasPasados,
+          );
+        }
+        return _buildMobileCierreLayout(
+          isDark: isDark,
+          c: c,
+          totalVendido: totalVendido,
+          totalEfectivo: totalEfectivo,
+          totalEfectivoRecibido: totalEfectivoRecibido,
+          totalVueltoEntregado: totalVueltoEntregado,
+          totalYape: totalYape,
+          totalPlin: totalPlin,
+          totalTarjeta: totalTarjeta,
+          totalCredito: totalCredito,
+          cantidadVentas: cantidadVentas,
+          esHoy: esHoy,
+          diasPasados: diasPasados,
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileCierreLayout({
+    required bool isDark,
+    required CierreCaja? c,
+    required double totalVendido,
+    required double totalEfectivo,
+    required double totalEfectivoRecibido,
+    required double totalVueltoEntregado,
+    required double totalYape,
+    required double totalPlin,
+    required double totalTarjeta,
+    required double totalCredito,
+    required int cantidadVentas,
+    required bool esHoy,
+    required List<CierreCaja> diasPasados,
+  }) {
     return RefreshIndicator(
       onRefresh: _cargarDatos,
       color: AppTheme.brandPrimary,
@@ -3120,6 +3470,1653 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // COCKPIT PANORÁMICO DE CONTROL DE CAJA (DESKTOP & WEB >= 900px)
+  // =========================================================================
+
+  Widget _buildDesktopCierreCockpit({
+    required bool isDark,
+    required CierreCaja? c,
+    required double totalVendido,
+    required double totalEfectivo,
+    required double totalEfectivoRecibido,
+    required double totalVueltoEntregado,
+    required double totalYape,
+    required double totalPlin,
+    required double totalTarjeta,
+    required double totalCredito,
+    required int cantidadVentas,
+    required bool esHoy,
+    required List<CierreCaja> diasPasados,
+  }) {
+    final fondo = c?.fondoInicial ?? 0.0;
+    final egresos = c?.totalEgresos ?? 0.0;
+    final abonosEf = c?.totalAbonosEfectivo ?? 0.0;
+    final cantAbonos = c?.cantidadAbonos ?? 0;
+    final esperado =
+        c?.totalEfectivoEsperado ??
+        (fondo + totalEfectivo + abonosEf - egresos);
+    final contado = _efectivoContado;
+    final diferencia = (contado != null) ? (contado - esperado) : null;
+    final listaEgresos = c?.egresos ?? [];
+
+    return RefreshIndicator(
+      onRefresh: _cargarDatos,
+      color: AppTheme.brandPrimary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1440),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. Barra de Control Superior Panorámica
+                _buildDesktopTopToolbar(
+                  isDark: isDark,
+                  esHoy: esHoy,
+                  fondo: fondo,
+                  cantidadVentas: cantidadVentas,
+                ),
+                const SizedBox(height: 20),
+
+                // 2. Cockpit Panorámico en 2 Columnas
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Columna Izquierda: Flujo de Caja, Canales y Operativa (flex: 7)
+                    Expanded(
+                      flex: 7,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Matriz de 4 KPIs de Flujo de Efectivo
+                          _buildDesktopKpiGrid(
+                            isDark: isDark,
+                            fondo: fondo,
+                            totalEfectivo: totalEfectivo,
+                            totalEfectivoRecibido: totalEfectivoRecibido,
+                            abonosEf: abonosEf,
+                            cantAbonos: cantAbonos,
+                            egresos: egresos,
+                            cantEgresos: listaEgresos.length,
+                            ocultarMonto: !_esAdmin && contado == null,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Panel Bento de Canales de Cobro
+                          _buildDesktopCanalesBento(
+                            isDark: isDark,
+                            totalVendido: totalVendido,
+                            cantidadVentas: cantidadVentas,
+                            totalEfectivo: totalEfectivo,
+                            totalEfectivoRecibido: totalEfectivoRecibido,
+                            totalVueltoEntregado: totalVueltoEntregado,
+                            totalYape: totalYape,
+                            totalPlin: totalPlin,
+                            totalTarjeta: totalTarjeta,
+                            totalCredito: totalCredito,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Bitácora de Egresos en Vivo
+                          _buildDesktopBitacoraEgresos(
+                            isDark: isDark,
+                            listaEgresos: listaEgresos,
+                            totalEgresos: egresos,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Histórico de Jornadas Anteriores
+                          _buildDesktopHistoricoSection(
+                            isDark: isDark,
+                            diasPasados: diasPasados,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+
+                    // Columna Derecha: Consola Fija de Arqueo y Cierre Z (flex: 5)
+                    Expanded(
+                      flex: 5,
+                      child: _buildDesktopConsolaArqueo(
+                        isDark: isDark,
+                        fondo: fondo,
+                        totalEfectivo: totalEfectivo,
+                        abonosEf: abonosEf,
+                        egresos: egresos,
+                        esperado: esperado,
+                        contado: contado,
+                        diferencia: diferencia,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopTopToolbar({
+    required bool isDark,
+    required bool esHoy,
+    required double fondo,
+    required int cantidadVentas,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!esHoy) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppTheme.cardDarkHighlight
+                  : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  LucideIcons.history,
+                  size: 18,
+                  color: AppTheme.brandPrimary,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Estás consultando el cierre histórico del ${_formatearFechaCompleta(_fechaSeleccionada)}. Los datos son de solo lectura contable.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    backgroundColor: AppTheme.brandPrimary.withValues(
+                      alpha: 0.12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(
+                    LucideIcons.arrowLeft,
+                    size: 14,
+                    color: AppTheme.brandPrimary,
+                  ),
+                  label: Text(
+                    'Volver al Turno de Hoy',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.brandPrimary,
+                    ),
+                  ),
+                  onPressed: () => _seleccionarFecha(DateTime.now()),
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDark : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.04),
+                blurRadius: 14,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Estado del Turno + Fecha + Ventas
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: esHoy
+                          ? (isDark
+                                ? const Color(0xFF064E3B)
+                                : const Color(0xFFD1FAE5))
+                          : (isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFE0E7FF)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        if (esHoy) ...[
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppTheme.accentGreen,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'TURNO EN CURSO',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? const Color(0xFF6EE7B7)
+                                  : const Color(0xFF065F46),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ] else ...[
+                          const Icon(
+                            LucideIcons.checkCheck,
+                            size: 14,
+                            color: Color(0xFF4338CA),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'TURNO CONCLUIDO',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? const Color(0xFFA5B4FC)
+                                  : const Color(0xFF4338CA),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Row(
+                    children: [
+                      Icon(
+                        LucideIcons.calendar,
+                        size: 16,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _formatearFechaCompleta(_fechaSeleccionada),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '$cantidadVentas ventas registradas',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.brandPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Selector de Fecha Rápido
+              _buildFiltrosFecha(isDark),
+
+              // Acciones Rápidas
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      side: BorderSide(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : AppTheme.borderLight,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(
+                      LucideIcons.wallet,
+                      size: 15,
+                      color: Color(0xFF2563EB),
+                    ),
+                    label: Text(
+                      'Base: S/ ${fondo.toStringAsFixed(2)}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    onPressed: _mostrarModalFondoInicial,
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE11D48),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(LucideIcons.minusCircle, size: 15),
+                    label: Text(
+                      '+ Egreso',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    onPressed: _mostrarModalRegistrarEgreso,
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Imprimir Ticket Térmico de Arqueo',
+                    style: IconButton.styleFrom(
+                      backgroundColor: isDark
+                          ? AppTheme.cardDarkSunken
+                          : const Color(0xFFF1F5F9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(
+                      LucideIcons.printer,
+                      size: 18,
+                      color: AppTheme.brandPrimary,
+                    ),
+                    onPressed: _imprimirTicketArqueo,
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    tooltip: 'Actualizar corte de caja',
+                    style: IconButton.styleFrom(
+                      backgroundColor: isDark
+                          ? AppTheme.cardDarkSunken
+                          : const Color(0xFFF1F5F9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(
+                      LucideIcons.refreshCw,
+                      size: 17,
+                      color: AppTheme.brandPrimary,
+                    ),
+                    onPressed: _cargarDatos,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopKpiGrid({
+    required bool isDark,
+    required double fondo,
+    required double totalEfectivo,
+    required double totalEfectivoRecibido,
+    required double abonosEf,
+    required int cantAbonos,
+    required double egresos,
+    required int cantEgresos,
+    required bool ocultarMonto,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildDesktopKpiCard(
+            titulo: 'Base Inicial',
+            montoTexto: 'S/ ${fondo.toStringAsFixed(2)}',
+            subtitulo: 'Fondo de apertura',
+            icon: LucideIcons.wallet,
+            color: const Color(0xFF2563EB),
+            isDark: isDark,
+            actionLabel: 'Editar',
+            onAction: _mostrarModalFondoInicial,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildDesktopKpiCard(
+            titulo: '(+) Ventas Efectivo',
+            montoTexto: ocultarMonto
+                ? 'S/ ••••'
+                : 'S/ ${totalEfectivo.toStringAsFixed(2)}',
+            subtitulo:
+                'Recibido: S/ ${totalEfectivoRecibido.toStringAsFixed(2)}',
+            icon: LucideIcons.banknote,
+            color: AppTheme.accentGreen,
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildDesktopKpiCard(
+            titulo: '(+) Cobro Fiados',
+            montoTexto: '+S/ ${abonosEf.toStringAsFixed(2)}',
+            subtitulo: '$cantAbonos cobros en efectivo',
+            icon: LucideIcons.handCoins,
+            color: const Color(0xFF0284C7),
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildDesktopKpiCard(
+            titulo: '(-) Egresos / Gastos',
+            montoTexto: ocultarMonto
+                ? 'S/ ••••'
+                : '-S/ ${egresos.toStringAsFixed(2)}',
+            subtitulo: '$cantEgresos salidas de caja',
+            icon: LucideIcons.trendingDown,
+            color: const Color(0xFFE11D48),
+            isDark: isDark,
+            actionLabel: '+ Egreso',
+            onAction: _mostrarModalRegistrarEgreso,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopKpiCard({
+    required String titulo,
+    required String montoTexto,
+    required String subtitulo,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: isDark ? 0.05 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 18, color: color),
+              ),
+              if (actionLabel != null && onAction != null)
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: onAction,
+                  child: Text(
+                    actionLabel,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            titulo,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              montoTexto,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : AppTheme.textDark,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitulo,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppTheme.textDarkSecondary.withValues(alpha: 0.8)
+                  : const Color(0xFF94A3B8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopCanalesBento({
+    required bool isDark,
+    required double totalVendido,
+    required int cantidadVentas,
+    required double totalEfectivo,
+    required double totalEfectivoRecibido,
+    required double totalVueltoEntregado,
+    required double totalYape,
+    required double totalPlin,
+    required double totalTarjeta,
+    required double totalCredito,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brandPrimary.withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header de Total Vendido y Botón Boletas
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'TOTAL RECAUDADO EN EL TURNO',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0.0, end: totalVendido),
+                    duration: const Duration(milliseconds: 750),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, val, _) => Text(
+                      'S/ ${val.toStringAsFixed(2)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                        color: AppTheme.brandPrimary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '$cantidadVentas ventas registradas en todos los canales de pago',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                ),
+                icon: const Icon(
+                  LucideIcons.receipt,
+                  size: 16,
+                  color: AppTheme.brandPrimary,
+                ),
+                label: Text(
+                  'Ver Boletas del Día',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.brandPrimary,
+                  ),
+                ),
+                onPressed: () => _verBoletasDelDia(_fechaSeleccionada),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Divider(
+            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+            height: 1,
+          ),
+          const SizedBox(height: 18),
+
+          // Tarjeta Destacada de Efectivo Físico
+          _buildCanalPagoTile(
+            titulo: 'Efectivo en Caja (Neto)',
+            monto: totalEfectivo,
+            icon: LucideIcons.banknote,
+            color: AppTheme.accentGreen,
+            isDark: isDark,
+            descripcion: totalVueltoEntregado > 0
+                ? 'Cobrado: S/ ${totalEfectivoRecibido.toStringAsFixed(2)} • Vuelto entregado: -S/ ${totalVueltoEntregado.toStringAsFixed(2)}'
+                : 'Dinero físico total disponible en cajón registrador',
+          ),
+          const SizedBox(height: 12),
+
+          // Canales Digitales y POS en Grid
+          LayoutBuilder(
+            builder: (context, c) {
+              final double w =
+                  (c.maxWidth - (totalCredito > 0 ? 30 : 20)) /
+                  (totalCredito > 0 ? 4 : 3);
+              return Row(
+                children: [
+                  _buildCanalPagoTile(
+                    width: w,
+                    titulo: 'Yape Móvil',
+                    monto: totalYape,
+                    icon: LucideIcons.smartphone,
+                    color: const Color(0xFF7C3AED),
+                    isDark: isDark,
+                    descripcion: 'QR / Billetera BCP',
+                  ),
+                  const SizedBox(width: 10),
+                  _buildCanalPagoTile(
+                    width: w,
+                    titulo: 'Plin',
+                    monto: totalPlin,
+                    icon: LucideIcons.smartphone,
+                    color: const Color(0xFF0284C7),
+                    isDark: isDark,
+                    descripcion: 'QR Interbancario',
+                  ),
+                  const SizedBox(width: 10),
+                  _buildCanalPagoTile(
+                    width: w,
+                    titulo: 'Tarjetas / POS',
+                    monto: totalTarjeta,
+                    icon: LucideIcons.creditCard,
+                    color: const Color(0xFF2563EB),
+                    isDark: isDark,
+                    descripcion: 'Izipay / Niubiz',
+                  ),
+                  if (totalCredito > 0) ...[
+                    const SizedBox(width: 10),
+                    _buildCanalPagoTile(
+                      width: w,
+                      titulo: 'Fiados / Crédito',
+                      monto: totalCredito,
+                      icon: LucideIcons.handCoins,
+                      color: const Color(0xFFD97706),
+                      isDark: isDark,
+                      descripcion: 'En Libreta de Fiados',
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopBitacoraEgresos({
+    required bool isDark,
+    required List<EgresoCajaItem> listaEgresos,
+    required double totalEgresos,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE11D48)
+                .withValues(alpha: isDark ? 0.04 : 0.03),
+            blurRadius: 14,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE11D48)
+                          .withValues(alpha: isDark ? 0.2 : 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      LucideIcons.trendingDown,
+                      size: 17,
+                      color: Color(0xFFE11D48),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Bitácora de Egresos y Salidas (${listaEgresos.length})',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE11D48)
+                          .withValues(alpha: isDark ? 0.15 : 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '-S/ ${totalEgresos.toStringAsFixed(2)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFFE11D48),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE11D48)
+                      .withValues(alpha: isDark ? 0.2 : 0.1),
+                  foregroundColor: const Color(0xFFE11D48),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(LucideIcons.plus, size: 14),
+                label: Text(
+                  'Registrar Egreso',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                onPressed: _mostrarModalRegistrarEgreso,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          if (listaEgresos.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppTheme.cardDarkSunken
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.shieldCheck,
+                    size: 22,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'No se han registrado salidas de dinero ni compras menores en este turno. Toda la recaudación física permanece intacta en gaveta.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: listaEgresos.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, idx) {
+                final e = listaEgresos[idx];
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.cardDarkSunken
+                        : const Color(0xFFFFF1F2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFE11D48)
+                          .withValues(alpha: isDark ? 0.2 : 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE11D48)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          e.categoriaGasto,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFFE11D48),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          e.motivo,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '-S/ ${e.monto.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFFE11D48),
+                        ),
+                      ),
+                      if (_esAdmin) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          tooltip: 'Anular egreso',
+                          style: IconButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: const Size(26, 26),
+                          ),
+                          icon: Icon(
+                            LucideIcons.trash2,
+                            size: 15,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF64748B),
+                          ),
+                          onPressed: () => _anularEgreso(e),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopHistoricoSection({
+    required bool isDark,
+    required List<CierreCaja> diasPasados,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Histórico y Auditoría de Días Anteriores',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                  Text(
+                    'Consulta los cierres pasados y el reporte Z de cada jornada',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${diasPasados.length} jornadas guardadas',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.brandPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          if (diasPasados.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  !_esAdmin
+                      ? 'Auditoría histórica reservada para el Administrador.'
+                      : 'No hay jornadas anteriores registradas aún.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: diasPasados.length > 5 ? 5 : diasPasados.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, idx) {
+                final item = diasPasados[idx];
+                final esSeleccionado =
+                    item.fecha != null &&
+                    _esMismoDia(item.fecha!, _fechaSeleccionada);
+                return _buildCardDiaHistorico(item, esSeleccionado, isDark);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopConsolaArqueo({
+    required bool isDark,
+    required double fondo,
+    required double totalEfectivo,
+    required double abonosEf,
+    required double egresos,
+    required double esperado,
+    required double? contado,
+    required double? diferencia,
+  }) {
+    const billetes = [200.0, 100.0, 50.0, 20.0, 10.0];
+    const monedas = [5.0, 2.0, 1.0, 0.50, 0.20, 0.10];
+
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brandPrimary.withValues(alpha: 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header de la Consola
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  LucideIcons.scale,
+                  color: AppTheme.brandPrimary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Consola de Arqueo Físico',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    Text(
+                      'Cuadre en vivo de gaveta vs sistema',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          // Display Gigante de Efectivo Esperado
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F2327) : const Color(0xFFE0F2FE),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'EFECTIVO ESPERADO EN GAVETA',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.brandPrimary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Cálculo Automático',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  (!_esAdmin && contado == null)
+                      ? 'S/ ••••'
+                      : 'S/ ${esperado.toStringAsFixed(2)}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.brandPrimary,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  (!_esAdmin && contado == null)
+                      ? '🔒 Conteo a Ciegas: Ingresa el dinero contado abajo para verificar.'
+                      : 'Fórmula: Base (S/ ${fondo.toStringAsFixed(2)}) + Ventas Ef. (S/ ${totalEfectivo.toStringAsFixed(2)}) + Cobros Fiados (S/ ${abonosEf.toStringAsFixed(2)}) - Egresos (S/ ${egresos.toStringAsFixed(2)})',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Campo de Entrada Directa
+          TextField(
+            controller: _conteoFisicoController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppTheme.textDark,
+            ),
+            decoration: InputDecoration(
+              labelText: 'Dinero físico total contado (S/)',
+              labelStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+              ),
+              hintText: '0.00',
+              prefixText: 'S/ ',
+              prefixStyle: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                color: AppTheme.brandPrimary,
+              ),
+              filled: true,
+              fillColor: isDark
+                  ? AppTheme.cardDarkSunken
+                  : const Color(0xFFF8FAFC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12,
+              ),
+            ),
+            onChanged: (val) {
+              final parsed = double.tryParse(val.replaceAll(',', '.'));
+              setState(() => _efectivoContado = parsed);
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Góndola de Conteo por Billetes y Monedas
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Desglose por Denominación',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: const Icon(
+                  LucideIcons.rotateCcw,
+                  size: 12,
+                  color: Color(0xFFE11D48),
+                ),
+                label: Text(
+                  'Limpiar todo',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFFE11D48),
+                  ),
+                ),
+                onPressed: _limpiarConteoBilletes,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 2 Columnas: Billetes (Izq) y Monedas (Der)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Billetes
+              Expanded(
+                child: Column(
+                  children: billetes.map((val) {
+                    final cant = _conteoBilletes[val] ?? 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _buildCompactDenominacionCard(
+                        valor: val,
+                        cantidad: cant,
+                        esBillete: true,
+                        isDark: isDark,
+                        onChanged: (nuevaCant) {
+                          _ajustarDenominacion(val, nuevaCant - cant);
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // Monedas
+              Expanded(
+                child: Column(
+                  children: monedas.map((val) {
+                    final cant = _conteoBilletes[val] ?? 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: _buildCompactDenominacionCard(
+                        valor: val,
+                        cantidad: cant,
+                        esBillete: false,
+                        isDark: isDark,
+                        onChanged: (nuevaCant) {
+                          _ajustarDenominacion(val, nuevaCant - cant);
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Semáforo Reactivo de Diferencia / Cuadre
+          _buildDesktopSemaforoCuadre(
+            isDark: isDark,
+            contado: contado,
+            diferencia: diferencia,
+          ),
+          const SizedBox(height: 18),
+
+          // Botonera de Acción
+          SizedBox(
+            height: 48,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentGreen,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_plan.toUpperCase() != 'PRO') ...[
+                    const Icon(LucideIcons.lock, size: 13, color: Colors.white),
+                    const SizedBox(width: 4),
+                  ],
+                  const Icon(LucideIcons.send, size: 16),
+                ],
+              ),
+              label: Text(
+                _plan.toUpperCase() != 'PRO'
+                    ? 'Enviar Reporte Z (Exclusivo PRO)'
+                    : 'Enviar Reporte Z al Dueño',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+              ),
+              onPressed: _compartirArqueoWhatsApp,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 44,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(
+                LucideIcons.printer,
+                size: 16,
+                color: AppTheme.brandPrimary,
+              ),
+              label: Text(
+                'Imprimir Ticket de Arqueo (Térmico)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12.5,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              onPressed: _imprimirTicketArqueo,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopSemaforoCuadre({
+    required bool isDark,
+    required double? contado,
+    required double? diferencia,
+  }) {
+    if (contado == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              LucideIcons.helpCircle,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF64748B),
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Ingresa o cuenta el efectivo físico para verificar el cuadre con el sistema.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF475569),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (diferencia == null || diferencia.abs() < 0.01) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF10B981).withValues(alpha: 0.4),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              LucideIcons.checkCircle2,
+              color: Color(0xFF059669),
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '¡CAJA CUADRADA EXACTA! (S/ 0.00)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: isDark
+                          ? const Color(0xFF6EE7B7)
+                          : const Color(0xFF065F46),
+                    ),
+                  ),
+                  Text(
+                    'El dinero físico en gaveta coincide al 100% con lo esperado.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? const Color(0xFFA7F3D0)
+                          : const Color(0xFF047857),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final bool esSobrante = diferencia > 0.01;
+    final Color bg = esSobrante
+        ? (isDark ? const Color(0xFF0C2A4D) : const Color(0xFFE0F2FE))
+        : (isDark ? const Color(0xFF3F1318) : const Color(0xFFFEE2E2));
+    final Color border = esSobrante
+        ? const Color(0xFF0284C7).withValues(alpha: 0.5)
+        : const Color(0xFFEF4444).withValues(alpha: 0.5);
+    final Color textCol = esSobrante
+        ? (isDark ? const Color(0xFF7DD3FC) : const Color(0xFF0369A1))
+        : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C));
+    final Color titleCol = esSobrante
+        ? (isDark ? const Color(0xFFBAE6FD) : const Color(0xFF0C4A6E))
+        : (isDark ? const Color(0xFFFECACA) : const Color(0xFF7F1D1D));
+    final IconData icon = esSobrante
+        ? LucideIcons.arrowUpRight
+        : LucideIcons.alertTriangle;
+    final String title = esSobrante
+        ? 'SOBRANTE DE CAJA: +S/ ${diferencia.toStringAsFixed(2)}'
+        : 'FALTANTE DE CAJA: -S/ ${(-diferencia).toStringAsFixed(2)}';
+    final String sub = esSobrante
+        ? 'Hay más dinero en físico que el registrado en las ventas del sistema.'
+        : 'Falta dinero en físico respecto a lo esperado por el sistema.';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: border),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: textCol, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: titleCol,
+                  ),
+                ),
+                Text(
+                  sub,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: textCol,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

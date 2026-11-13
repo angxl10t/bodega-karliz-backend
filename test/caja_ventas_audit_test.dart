@@ -172,5 +172,46 @@ void main() {
       expect(CsvExporter.escapar(inputPlus), "'+cmd| /C calc");
       expect(CsvExporter.escapar(inputQuotes), '"Pan ""Especial"" Francés"');
     });
+
+    test('Conteo por denominaciones calcula total físico y diferencia contable con precisión', () {
+      final Map<double, int> conteo = {
+        200.0: 1, // S/ 200
+        100.0: 2, // S/ 200
+        50.0: 1,  // S/ 50
+        20.0: 3,  // S/ 60
+        10.0: 4,  // S/ 40
+        5.0: 6,   // S/ 30
+        2.0: 10,  // S/ 20
+        1.0: 15,  // S/ 15
+        0.50: 8,  // S/ 4.00
+        0.20: 10, // S/ 2.00
+        0.10: 10, // S/ 1.00
+      };
+
+      final totalContado = conteo.entries.fold(
+        0.0,
+        (acc, e) => acc + (e.key * e.value),
+      );
+
+      // Suma esperada: 200 + 200 + 50 + 60 + 40 + 30 + 20 + 15 + 4 + 2 + 1 = 622.00
+      expect(totalContado, closeTo(622.00, 0.001));
+
+      // Caso 1: Cuadre perfecto
+      final double esperado1 = 622.00;
+      final dif1 = totalContado - esperado1;
+      expect(dif1.abs() < 0.01, isTrue);
+
+      // Caso 2: Sobrante de caja
+      final double esperado2 = 610.00;
+      final dif2 = totalContado - esperado2;
+      expect(dif2 > 0.01, isTrue);
+      expect(dif2, closeTo(12.00, 0.001));
+
+      // Caso 3: Faltante de caja
+      final double esperado3 = 635.50;
+      final dif3 = totalContado - esperado3;
+      expect(dif3 < -0.01, isTrue);
+      expect(dif3, closeTo(-13.50, 0.001));
+    });
   });
 }
