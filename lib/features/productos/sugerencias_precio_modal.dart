@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme.dart';
 import '../home/bodega_service.dart';
+import '../productos/producto_service.dart';
 
 class SugerenciasPrecioModal extends StatefulWidget {
   final VoidCallback? onActualizado;
@@ -13,13 +14,19 @@ class SugerenciasPrecioModal extends StatefulWidget {
   static Future<void> show(
     BuildContext context, {
     VoidCallback? onActualizado,
-  }) {
-    return showModalBottomSheet(
+  }) async {
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SugerenciasPrecioModal(onActualizado: onActualizado),
     );
+    // Refresco total de la ventana y el catálogo al cerrarse el modal
+    ProductoService.invalidateCache();
+    onActualizado?.call();
+    try {
+      await BodegaService().contarMisSugerenciasPendientes();
+    } catch (_) {}
   }
 
   @override
@@ -49,6 +56,7 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
           _sugerencias = items;
           _isLoading = false;
         });
+        BodegaService.sugerenciasPendientesNotifier.value = items.length;
       }
     } catch (e) {
       if (mounted) {
@@ -59,11 +67,13 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
 
   Future<void> _aceptarIndividual(SugerenciaPrecioItem item) async {
     try {
+      ProductoService.invalidateCache();
       await _bodegaService.aceptarSugerenciaPrecio(item.idSugerencia);
       if (!mounted) return;
       setState(() {
         _sugerencias.removeWhere((s) => s.idSugerencia == item.idSugerencia);
       });
+      BodegaService.sugerenciasPendientesNotifier.value = _sugerencias.length;
       widget.onActualizado?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -73,6 +83,13 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
           backgroundColor: AppTheme.accentGreen,
         ),
       );
+      if (_sugerencias.isEmpty) {
+        Future.delayed(const Duration(milliseconds: 650), () {
+          if (mounted && _sugerencias.isEmpty) {
+            Navigator.of(context).maybePop();
+          }
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,6 +108,7 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
       setState(() {
         _sugerencias.removeWhere((s) => s.idSugerencia == item.idSugerencia);
       });
+      BodegaService.sugerenciasPendientesNotifier.value = _sugerencias.length;
       widget.onActualizado?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -99,6 +117,13 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
           ),
         ),
       );
+      if (_sugerencias.isEmpty) {
+        Future.delayed(const Duration(milliseconds: 650), () {
+          if (mounted && _sugerencias.isEmpty) {
+            Navigator.of(context).maybePop();
+          }
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,12 +139,14 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
     if (_sugerencias.isEmpty) return;
     setState(() => _isProcessingBatch = true);
     try {
+      ProductoService.invalidateCache();
       final total = await _bodegaService.aceptarTodasSugerenciasPrecio();
       if (!mounted) return;
       setState(() {
         _sugerencias.clear();
         _isProcessingBatch = false;
       });
+      BodegaService.sugerenciasPendientesNotifier.value = 0;
       widget.onActualizado?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -127,6 +154,11 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
           backgroundColor: AppTheme.accentGreen,
         ),
       );
+      Future.delayed(const Duration(milliseconds: 650), () {
+        if (mounted && _sugerencias.isEmpty) {
+          Navigator.of(context).maybePop();
+        }
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessingBatch = false);
@@ -149,10 +181,16 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
         _sugerencias.clear();
         _isProcessingBatch = false;
       });
+      BodegaService.sugerenciasPendientesNotifier.value = 0;
       widget.onActualizado?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Se descartaron $total sugerencias.')),
       );
+      Future.delayed(const Duration(milliseconds: 650), () {
+        if (mounted && _sugerencias.isEmpty) {
+          Navigator.of(context).maybePop();
+        }
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() => _isProcessingBatch = false);

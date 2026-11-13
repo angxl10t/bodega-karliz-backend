@@ -100,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     OfflineSyncManager.instance.init();
+    BodegaService.sugerenciasPendientesNotifier.addListener(_onSugerenciasNotifierChanged);
     _cargarDatosUsuario();
     _resetInactivityTimer();
     _screens = [
@@ -117,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    BodegaService.sugerenciasPendientesNotifier.removeListener(_onSugerenciasNotifierChanged);
     _inactivityTimer?.cancel();
     _activeTabNotifier.dispose();
     super.dispose();
@@ -246,6 +248,14 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         });
       }
+    }
+  }
+
+  void _onSugerenciasNotifierChanged() {
+    if (mounted) {
+      setState(() {
+        _sugerenciasPendientes = BodegaService.sugerenciasPendientesNotifier.value;
+      });
     }
   }
 
@@ -2114,8 +2124,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   _anuncioGlobal.isNotEmpty &&
                   _anuncioGlobal['activo'] == true)
                 _buildAnuncioGlobalBanner(context, isDark),
-              if (_sugerenciasPendientes > 0)
-                _buildSugerenciasAlertBanner(context, isDark),
+              ValueListenableBuilder<int>(
+                valueListenable: BodegaService.sugerenciasPendientesNotifier,
+                builder: (context, pendientes, _) {
+                  if (pendientes <= 0) return const SizedBox.shrink();
+                  return _buildSugerenciasAlertBanner(context, isDark, pendientes);
+                },
+              ),
               if (_userRol == 'ADMIN' &&
                   _diasRestantesPlan != null &&
                   _diasRestantesPlan! <= 5)
@@ -2508,7 +2523,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSugerenciasAlertBanner(BuildContext context, bool isDark) {
+  Widget _buildSugerenciasAlertBanner(BuildContext context, bool isDark, [int? countOverride]) {
+    final count = countOverride ?? _sugerenciasPendientes;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -2540,7 +2556,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Tienes $_sugerenciasPendientes sugerencia(s) de precios y catálogo del SuperAdmin.',
+              'Tienes $count sugerencia(s) de precios y catálogo del SuperAdmin.',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
@@ -2570,10 +2586,13 @@ class _HomeScreenState extends State<HomeScreen> {
               'Revisar',
               style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
             ),
-            onPressed: () => SugerenciasPrecioModal.show(
-              context,
-              onActualizado: _verificarSugerenciasSuperadmin,
-            ),
+            onPressed: () async {
+              await SugerenciasPrecioModal.show(
+                context,
+                onActualizado: _verificarSugerenciasSuperadmin,
+              );
+              _verificarSugerenciasSuperadmin();
+            },
           ),
         ],
       ),

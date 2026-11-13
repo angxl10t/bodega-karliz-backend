@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import '../productos/producto_service.dart';
 import 'dart:convert';
 
 import '../../core/api_client.dart';
@@ -137,6 +139,9 @@ class BodegaInfo {
 }
 
 class BodegaService {
+  /// Notificador reactivo compartido del conteo de sugerencias pendientes del SuperAdmin
+  static final ValueNotifier<int> sugerenciasPendientesNotifier = ValueNotifier<int>(0);
+
   static const Duration _cacheTtl = Duration(seconds: 30);
   static bool _cleanupRegistered = false;
   static BodegaInfo? _cachedMiBodega;
@@ -685,10 +690,12 @@ class BodegaService {
       );
       if (response.statusCode == 200) {
         final json = jsonDecode(utf8.decode(response.bodyBytes));
-        return (json['pendientes'] as num?)?.toInt() ?? 0;
+        final count = (json['pendientes'] as num?)?.toInt() ?? 0;
+        sugerenciasPendientesNotifier.value = count;
+        return count;
       }
     } catch (_) {}
-    return 0;
+    return sugerenciasPendientesNotifier.value;
   }
 
   /// Aceptar sugerencia de precio para la bodega actual
@@ -698,6 +705,10 @@ class BodegaService {
       {},
     );
     if (response.statusCode == 200) {
+      ProductoService.invalidateCache();
+      if (sugerenciasPendientesNotifier.value > 0) {
+        sugerenciasPendientesNotifier.value--;
+      }
       final json = jsonDecode(utf8.decode(response.bodyBytes));
       return SugerenciaPrecioItem.fromJson(json);
     }
@@ -717,6 +728,9 @@ class BodegaService {
       {},
     );
     if (response.statusCode == 200) {
+      if (sugerenciasPendientesNotifier.value > 0) {
+        sugerenciasPendientesNotifier.value--;
+      }
       final json = jsonDecode(utf8.decode(response.bodyBytes));
       return SugerenciaPrecioItem.fromJson(json);
     }
@@ -734,6 +748,8 @@ class BodegaService {
       {},
     );
     if (response.statusCode == 200) {
+      ProductoService.invalidateCache();
+      sugerenciasPendientesNotifier.value = 0;
       final json = jsonDecode(utf8.decode(response.bodyBytes));
       return (json['totalAceptadas'] as num?)?.toInt() ?? 0;
     }
@@ -751,6 +767,7 @@ class BodegaService {
       {},
     );
     if (response.statusCode == 200) {
+      sugerenciasPendientesNotifier.value = 0;
       final json = jsonDecode(utf8.decode(response.bodyBytes));
       return (json['totalRechazadas'] as num?)?.toInt() ?? 0;
     }

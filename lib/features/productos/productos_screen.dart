@@ -97,6 +97,7 @@ class _ProductosScreenState extends State<ProductosScreen>
   void initState() {
     super.initState();
     initTabVisibilityListener();
+    BodegaService.sugerenciasPendientesNotifier.addListener(_onSugerenciasNotifierChanged);
     _todosProductos = [];
     _productosFiltrados = [];
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
@@ -106,6 +107,7 @@ class _ProductosScreenState extends State<ProductosScreen>
 
   @override
   void dispose() {
+    BodegaService.sugerenciasPendientesNotifier.removeListener(_onSugerenciasNotifierChanged);
     disposeTabVisibilityListener();
     _searchDebounce?.cancel();
     ProductoService.productosRevision.removeListener(
@@ -122,6 +124,14 @@ class _ProductosScreenState extends State<ProductosScreen>
 
   void _onProductosRevisionChanged() {
     runWhenTabVisible(() => _cargarProductos(forceRefresh: true));
+  }
+
+  void _onSugerenciasNotifierChanged() {
+    if (mounted) {
+      setState(() {
+        _sugerenciasPendientes = BodegaService.sugerenciasPendientesNotifier.value;
+      });
+    }
   }
 
   Future<void> _verificarSugerencias() async {
@@ -492,7 +502,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                         ],
                       ),
                     ),
-                    onSelected: (val) {
+                    onSelected: (val) async {
                       HapticFeedback.selectionClick();
                       if (val == 'vencimientos') {
                         Navigator.push(
@@ -556,13 +566,15 @@ class _ProductosScreenState extends State<ProductosScreen>
                           ),
                         );
                       } else if (val == 'sugerencias') {
-                        SugerenciasPrecioModal.show(
+                        await SugerenciasPrecioModal.show(
                           context,
                           onActualizado: () {
                             _cargarProductos(forceRefresh: true);
                             _verificarSugerencias();
                           },
                         );
+                        _cargarProductos(forceRefresh: true);
+                        _verificarSugerencias();
                       }
                     },
                     itemBuilder: (ctx) => [
@@ -1116,8 +1128,13 @@ class _ProductosScreenState extends State<ProductosScreen>
               ),
             ),
 
-            if (_sugerenciasPendientes > 0)
-              _buildSugerenciasBanner(context, isDark),
+            ValueListenableBuilder<int>(
+              valueListenable: BodegaService.sugerenciasPendientesNotifier,
+              builder: (context, pendientes, _) {
+                if (pendientes <= 0) return const SizedBox.shrink();
+                return _buildSugerenciasBanner(context, isDark, pendientes);
+              },
+            ),
 
             _buildFifoAlertBanner(context, isDark),
 
@@ -2979,7 +2996,8 @@ class _ProductosScreenState extends State<ProductosScreen>
     );
   }
 
-  Widget _buildSugerenciasBanner(BuildContext context, bool isDark) {
+  Widget _buildSugerenciasBanner(BuildContext context, bool isDark, [int? countOverride]) {
+    final count = countOverride ?? _sugerenciasPendientes;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -2998,7 +3016,7 @@ class _ProductosScreenState extends State<ProductosScreen>
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Tienes $_sugerenciasPendientes sugerencia(s) de precios y catálogo del SuperAdmin.',
+              'Tienes $count sugerencia(s) de precios y catálogo del SuperAdmin.',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
@@ -3026,13 +3044,17 @@ class _ProductosScreenState extends State<ProductosScreen>
               'Revisar',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            onPressed: () => SugerenciasPrecioModal.show(
-              context,
-              onActualizado: () {
-                _cargarProductos(forceRefresh: true);
-                _verificarSugerencias();
-              },
-            ),
+            onPressed: () async {
+              await SugerenciasPrecioModal.show(
+                context,
+                onActualizado: () {
+                  _cargarProductos(forceRefresh: true);
+                  _verificarSugerencias();
+                },
+              );
+              _cargarProductos(forceRefresh: true);
+              _verificarSugerencias();
+            },
           ),
         ],
       ),
