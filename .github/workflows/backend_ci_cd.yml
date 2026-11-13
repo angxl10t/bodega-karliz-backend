@@ -59,6 +59,9 @@ jobs:
 
       - name: Ejecución de Suite de Pruebas Automatizadas e Integración PostgreSQL
         env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/cajaya_test
+          SPRING_DATASOURCE_USERNAME: cajaya_test
+          SPRING_DATASOURCE_PASSWORD: cajaya_test_password
           POSTGRES_TEST_URL: jdbc:postgresql://localhost:5432/cajaya_test
           POSTGRES_TEST_USER: cajaya_test
           POSTGRES_TEST_PASSWORD: cajaya_test_password
