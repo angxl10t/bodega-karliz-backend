@@ -28,11 +28,36 @@ import '../movimientos/mermas_screen.dart';
 import '../movimientos/vencimientos_screen.dart';
 import '../movimientos/auditoria_ciega_screen.dart';
 
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../home/mi_bodega_online_modal.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
 import '../promociones/promociones_screen.dart';
+
+class _OperacionItem {
+  final String id;
+  final String categoria; // 'almacen', 'ventas', 'gestion', 'mostrador'
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final bool isLocked;
+  final bool requiresAdmin;
+  final VoidCallback onTap;
+
+  const _OperacionItem({
+    required this.id,
+    required this.categoria,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    this.isLocked = false,
+    this.requiresAdmin = false,
+    required this.onTap,
+  });
+}
 
 class DashboardScreen extends StatefulWidget {
   final Function(int tabIndex) onNavigateTab;
@@ -85,6 +110,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   String _direccion = '';
   bool _isLoading = true;
   double _metaDiaria = 1000.0;
+  int _tabOperaciones =
+      0; // 0 = Favoritos, 1 = Almacén, 2 = Ventas & Web, 3 = Gestión
+  List<String> _favoritosIds = [
+    'nuevo_producto',
+    'compras',
+    'bodega_online',
+    'impresora',
+  ];
 
   @override
   void initState() {
@@ -93,7 +126,43 @@ class _DashboardScreenState extends State<DashboardScreen>
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
     VentaService.ventasRevision.addListener(_onVentasRevisionChanged);
     _cargarMetaDiaria();
+    _cargarFavoritos();
     _cargarDatos();
+  }
+
+  Future<void> _cargarFavoritos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList('cajaya_operaciones_favoritas');
+      if (list != null && list.isNotEmpty) {
+        if (mounted) setState(() => _favoritosIds = list);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFavorito(String opId) async {
+    HapticFeedback.selectionClick();
+    final updated = List<String>.from(_favoritosIds);
+    if (updated.contains(opId)) {
+      if (updated.length <= 1) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Debes mantener al menos un acceso favorito.'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+      updated.remove(opId);
+    } else {
+      updated.add(opId);
+    }
+    setState(() => _favoritosIds = updated);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('cajaya_operaciones_favoritas', updated);
+    } catch (_) {}
   }
 
   @override
@@ -945,411 +1014,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     _buildBiBanner(isDark),
                     const SizedBox(height: 24),
 
-                    // Accesos Rápidos Inteligentes
-                    Text(
-                      'Operaciones Principales',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final bool isDesktop = constraints.maxWidth >= 850;
-                        final double btnWidth = isDesktop
-                            ? (constraints.maxWidth - 20) / 3
-                            : (constraints.maxWidth - 10) / 2;
-
-                        return Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Cobrar en POS',
-                              subtitle: 'Terminal de Venta',
-                              icon: LucideIcons.shoppingBag,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              isPrimaryHero: true,
-                              onTap: () => widget.onNavigateTab(1), // Tab POS
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Arqueo de Caja',
-                              subtitle: 'Corte & Historial',
-                              icon: LucideIcons.banknote,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () => widget.onNavigateTab(2), // Tab Caja
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Libreta de Fiados',
-                              subtitle: 'Cobros & WhatsApp',
-                              icon: LucideIcons.bookUser,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () {
-                                widget.onNavigateTab(4);
-                                ClientesScreen.cambiarPestana(0);
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Garantía Botellas',
-                              subtitle: 'Envases & Devolución',
-                              icon: LucideIcons.wine,
-                              color: const Color(0xFF2563EB),
-                              isDark: isDark,
-                              onTap: () {
-                                widget.onNavigateTab(4);
-                                ClientesScreen.cambiarPestana(1);
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Ver Inventario',
-                              subtitle: 'Stock & Filtros',
-                              icon: LucideIcons.boxes,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () => widget.onNavigateTab(3), // Tab Stock
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Compras & Lotes',
-                              subtitle: 'Ingreso Proveedores',
-                              icon: LucideIcons.truck,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ComprasScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Control Vencimientos',
-                              subtitle: 'Semáforo de Caducidad',
-                              icon: LucideIcons.calendarClock,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const VencimientosScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Registro de Mermas',
-                              subtitle: 'Bajas & Pérdidas',
-                              icon: LucideIcons.trash2,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const MermasScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Mi Bodega Online',
-                              subtitle: 'Catálogo Web & WhatsApp',
-                              icon: LucideIcons.globe,
-                              color: const Color(0xFF16A34A),
-                              isDark: isDark,
-                              isLocked: _plan.toUpperCase() != 'PRO',
-                              onTap: () {
-                                if (_plan.toUpperCase() != 'PRO') {
-                                  PlanUpgradeModal.show(
-                                    context,
-                                    featureName: 'Mi Bodega Online',
-                                    featureDescription: 'Obtén tu propio enlace web oficial (cajaya-pos.onrender.com/#/catalogo?tienda=tu-bodega) para compartir en redes sociales y recibir pedidos directos en tu WhatsApp sin comisiones.',
-                                    icon: LucideIcons.globe,
-                                    onPlanUpdated: _cargarDatos,
-                                  );
-                                  return;
-                                }
-                                MiBodegaOnlineModal.show(
-                                  context,
-                                  nombreBodega: _nombreBodega,
-                                  telefonoBodega: _telefono,
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Detector Stock Hueso',
-                              subtitle: 'Dinero Inmovilizado',
-                              icon: LucideIcons.archive,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              isLocked: _plan.toUpperCase() != 'PRO',
-                              onTap: () {
-                                if (_plan.toUpperCase() != 'PRO') {
-                                  PlanUpgradeModal.show(
-                                    context,
-                                    featureName: 'Detector de Productos Hueso',
-                                    featureDescription: 'Identifica qué productos llevan más de 30 días sin ventas para armar combos, liquidar ofertas y recuperar tu capital de trabajo inmovilizado en góndola.',
-                                    icon: LucideIcons.archive,
-                                    onPlanUpdated: _cargarDatos,
-                                  );
-                                  return;
-                                }
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const DashboardBiScreen(
-                                      initialTabRotacion: 1,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Promociones & Combos',
-                              subtitle: 'Descuentos & Huesos',
-                              icon: LucideIcons.tag,
-                              color: AppTheme.brandDark,
-                              isDark: isDark,
-                              isLocked: _plan.toUpperCase() != 'PRO',
-                              onTap: () {
-                                if (_plan.toUpperCase() != 'PRO') {
-                                  PlanUpgradeModal.show(
-                                    context,
-                                    featureName: 'Promociones y Descuentos',
-                                    featureDescription: 'Configura descuentos por marcas, categorías y combos estratégicos para liquidar productos estancados en tu catálogo online.',
-                                    icon: LucideIcons.tag,
-                                    onPlanUpdated: _cargarDatos,
-                                  );
-                                  return;
-                                }
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => PromocionesScreen(
-                                      isPro: true,
-                                      nombreBodega: _nombreBodega,
-                                      onPlanUpdated: _cargarDatos,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Horas Punta',
-                              subtitle: 'Afluencia & Horarios Pico',
-                              icon: LucideIcons.clock,
-                              color: const Color(0xFF8B5CF6),
-                              isDark: isDark,
-                              isLocked: _plan.toUpperCase() != 'PRO',
-                              onTap: () {
-                                if (_plan.toUpperCase() != 'PRO') {
-                                  PlanUpgradeModal.show(
-                                    context,
-                                    featureName: 'Mapa de Horas Punta',
-                                    featureDescription: 'Analiza tus 24 horas para conocer las horas de mayor afluencia de clientes y picos de venta, optimizando tus compras y horarios de atención.',
-                                    icon: LucideIcons.clock,
-                                    onPlanUpdated: _cargarDatos,
-                                  );
-                                  return;
-                                }
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const DashboardBiScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Auditoría Ciega',
-                              subtitle: 'Conteo Rápido (Anti-Robo)',
-                              icon: LucideIcons.clipboardCheck,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              isLocked: _plan.toUpperCase() != 'PRO',
-                              onTap: () {
-                                if (_plan.toUpperCase() != 'PRO') {
-                                  PlanUpgradeModal.show(
-                                    context,
-                                    featureName: 'Auditoría Rápida por Pasillo',
-                                    featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal, detectando mermas y robo hormiga a tiempo.',
-                                    icon: LucideIcons.clipboardCheck,
-                                    onPlanUpdated: _cargarDatos,
-                                  );
-                                  return;
-                                }
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const AuditoriaCiegaScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Kardex Auditoría',
-                              subtitle: 'Historial de Movimientos',
-                              icon: LucideIcons.fileSpreadsheet,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const KardexScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Analítica & BI',
-                              subtitle: 'Márgenes & Picos',
-                              icon: LucideIcons.trendingUp,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              isLocked: _plan.toUpperCase() != 'PRO',
-                              onTap: () {
-                                if (_plan.toUpperCase() != 'PRO') {
-                                  PlanUpgradeModal.show(
-                                    context,
-                                    featureName: 'Analítica de Negocio & BI',
-                                    featureDescription: 'Calcula tu margen bruto real en soles y porcentaje restando el costo de compra en cada venta, conociendo tu rentabilidad exacta sin estimaciones.',
-                                    icon: LucideIcons.trendingUp,
-                                    onPlanUpdated: _cargarDatos,
-                                  );
-                                  return;
-                                }
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const DashboardBiScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: '+ Nuevo Producto',
-                              subtitle: 'Crear en Catálogo',
-                              icon: LucideIcons.plusCircle,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () {
-                                final esBasico = _plan.toUpperCase() != 'PRO';
-                                if (esBasico && _productos.length >= 150) {
-                                  PlanUpgradeModal.show(
-                                    context,
-                                    featureName:
-                                        'Catálogo de Productos Ilimitado',
-                                    featureDescription: 'Has alcanzado el límite de 150 productos activos para el Plan Bodega Básico. Actualiza al Plan Minimarket PRO para registrar productos ilimitados.',
-                                    icon: LucideIcons.boxes,
-                                    onPlanUpdated: _cargarDatos,
-                                  );
-                                  return;
-                                }
-                                NuevoProductoSheet.show(context, _cargarDatos);
-                              },
-                            ),
-                            _buildQuickActionBtn(
-                              width: btnWidth,
-                              title: 'Impresora Térmica',
-                              subtitle: 'Tickets & Gaveta ESC/POS',
-                              icon: LucideIcons.printer,
-                              color: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () =>
-                                  ConfiguracionTicketModal.show(context),
-                            ),
-                            if (_userRol == 'ADMIN' ||
-                                _userRol == 'SUPERADMIN') ...[
-                              _buildQuickActionBtn(
-                                width: btnWidth,
-                                title: 'Personal & Cajeros',
-                                subtitle: 'Turnos & Accesos del Equipo',
-                                icon: LucideIcons.users,
-                                color: AppTheme.brandPrimary,
-                                isDark: isDark,
-                                onTap: () => PlanYPersonalSheet.show(
-                                  context,
-                                  nombreBodega: _nombreBodega,
-                                  plan: _plan,
-                                  currentUsername: _username,
-                                  userRol: _userRol,
-                                  seccionInicial: PlanSheetSeccion.personal,
-                                  onPlanUpdated: () =>
-                                      _cargarDatos(forceRefresh: true),
-                                ),
-                              ),
-                              _buildQuickActionBtn(
-                                width: btnWidth,
-                                title: 'Mi Suscripción',
-                                subtitle: _plan == 'PRO'
-                                    ? 'Plan Minimarket Pro • Ilimitado'
-                                    : 'Plan Bodega Básico • Renovar',
-                                icon: LucideIcons.crown,
-                                color: const Color(0xFF0D9488),
-                                isDark: isDark,
-                                onTap: () => PlanYPersonalSheet.show(
-                                  context,
-                                  nombreBodega: _nombreBodega,
-                                  plan: _plan,
-                                  currentUsername: _username,
-                                  userRol: _userRol,
-                                  seccionInicial: PlanSheetSeccion.suscripcion,
-                                  onPlanUpdated: () =>
-                                      _cargarDatos(forceRefresh: true),
-                                ),
-                              ),
-                              _buildQuickActionBtn(
-                                width: btnWidth,
-                                title: 'Marketing de Barrio',
-                                subtitle: 'Afiche Vitrina & Volante QR',
-                                icon: LucideIcons.megaphone,
-                                color: const Color(0xFFD97706),
-                                isDark: isDark,
-                                onTap: () {
-                                  KitMarketingBarrioModal.show(
-                                    context,
-                                    nombreBodega: _nombreBodega,
-                                    telefono: _telefono.isNotEmpty
-                                        ? _telefono
-                                        : null,
-                                    slugOrId:
-                                        KitMarketingBarrioModal.normalizarSlug(
-                                          _nombreBodega,
-                                        ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ],
-                        );
-                      },
-                    ),
+                    // Hub de Operaciones & Herramientas con Pestañas y Favoritos Personalizables
+                    _buildHubOperaciones(isDark),
+                    const SizedBox(height: 26),
                     const SizedBox(height: 26),
 
                     // Alertas de Reposición
@@ -2559,6 +2226,972 @@ class _DashboardScreenState extends State<DashboardScreen>
     return card;
   }
 
+  Widget _buildHubOperaciones(bool isDark) {
+    final todas = _obtenerTodasLasOperaciones(isDark);
+    final esAdmin = _userRol == 'ADMIN' || _userRol == 'SUPERADMIN';
+
+    // Filtrar operaciones de la pestaña seleccionada
+    List<_OperacionItem> activas = [];
+    if (_tabOperaciones == 0) {
+      // Favoritos: en el orden exacto configurado por el usuario
+      for (final id in _favoritosIds) {
+        final match = todas.firstWhere(
+          (op) => op.id == id,
+          orElse: () => todas.first,
+        );
+        if ((!match.requiresAdmin || esAdmin) && !activas.contains(match)) {
+          activas.add(match);
+        }
+      }
+    } else if (_tabOperaciones == 1) {
+      activas = todas
+          .where(
+            (op) => op.categoria == 'almacen' && (!op.requiresAdmin || esAdmin),
+          )
+          .toList();
+    } else if (_tabOperaciones == 2) {
+      activas = todas
+          .where(
+            (op) => op.categoria == 'ventas' && (!op.requiresAdmin || esAdmin),
+          )
+          .toList();
+    } else if (_tabOperaciones == 3) {
+      activas = todas
+          .where(
+            (op) => op.categoria == 'gestion' && (!op.requiresAdmin || esAdmin),
+          )
+          .toList();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Cabecera con título y botón para gestionar favoritos
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Operaciones & Herramientas',
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+            ),
+            InkWell(
+              onTap: () => _mostrarModalGestionFavoritos(context, isDark),
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      LucideIcons.star,
+                      size: 14,
+                      color: Color(0xFFF59E0B),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Personalizar ⭐',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFF59E0B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Barra de pestañas / chips segmentados
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildTabPill(
+                index: 0,
+                label: 'Favoritos',
+                icon: LucideIcons.star,
+                badge: '${_favoritosIds.length}',
+                isDark: isDark,
+              ),
+              const SizedBox(width: 8),
+              _buildTabPill(
+                index: 1,
+                label: 'Almacén',
+                icon: LucideIcons.boxes,
+                isDark: isDark,
+              ),
+              const SizedBox(width: 8),
+              _buildTabPill(
+                index: 2,
+                label: 'Ventas & Web',
+                icon: LucideIcons.trendingUp,
+                isDark: isDark,
+              ),
+              const SizedBox(width: 8),
+              _buildTabPill(
+                index: 3,
+                label: 'Gestión',
+                icon: LucideIcons.settings,
+                isDark: isDark,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Cuadrícula de botones
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final bool isDesktop = constraints.maxWidth >= 850;
+            final double btnWidth = isDesktop
+                ? (constraints.maxWidth - 20) / 3
+                : (constraints.maxWidth - 10) / 2;
+
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                ...activas.map((op) {
+                  final bool esFav = _favoritosIds.contains(op.id);
+                  return _buildQuickActionBtn(
+                    width: btnWidth,
+                    opId: op.id,
+                    isFavorite: esFav,
+                    onToggleFavorite: () => _toggleFavorito(op.id),
+                    title: op.title,
+                    subtitle: op.subtitle,
+                    icon: op.icon,
+                    color: op.color,
+                    isDark: isDark,
+                    isLocked: op.isLocked,
+                    onTap: op.onTap,
+                  );
+                }),
+                // Si está en la pestaña de favoritos, tarjeta dashed para agregar o editar
+                if (_tabOperaciones == 0)
+                  _buildAddFavoriteDashedCard(
+                    width: btnWidth,
+                    isDark: isDark,
+                    onTap: () => _mostrarModalGestionFavoritos(context, isDark),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabPill({
+    required int index,
+    required String label,
+    required IconData icon,
+    String? badge,
+    required bool isDark,
+  }) {
+    final isSelected = _tabOperaciones == index;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _tabOperaciones = index);
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7.5),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppTheme.brandPrimary
+                : (isDark ? AppTheme.cardDark : const Color(0xFFF1F5F9)),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected
+                  ? AppTheme.brandPrimary
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+              width: 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.28),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected
+                    ? (index == 0 ? const Color(0xFFFDE047) : Colors.white)
+                    : (index == 0
+                          ? const Color(0xFFF59E0B)
+                          : (isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF64748B))),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155)),
+                ),
+              ),
+              if (badge != null) ...[
+                const SizedBox(width: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.25)
+                        : const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    badge,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFFF59E0B),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddFavoriteDashedCard({
+    required double width,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          width: width,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppTheme.cardDark.withValues(alpha: 0.35)
+                : const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFFF59E0B).withValues(alpha: 0.35)
+                  : const Color(0xFFF59E0B).withValues(alpha: 0.45),
+              width: 1.2,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      LucideIcons.plus,
+                      color: Color(0xFFF59E0B),
+                      size: 18,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'EDITAR',
+                      style: GoogleFonts.outfit(
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFF59E0B),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '+ Añadir Favorito',
+                style: GoogleFonts.outfit(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Personalizar accesos ⭐',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFFF59E0B),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _mostrarModalGestionFavoritos(BuildContext context, bool isDark) {
+    final todas = _obtenerTodasLasOperaciones(isDark);
+    final esAdmin = _userRol == 'ADMIN' || _userRol == 'SUPERADMIN';
+    final disponibles = todas
+        .where((op) => !op.requiresAdmin || esAdmin)
+        .toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.82,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Manija de arrastre
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 38,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // Cabecera
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 16, 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF59E0B)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            LucideIcons.star,
+                            color: Color(0xFFF59E0B),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Personalizar Accesos Favoritos',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                '${_favoritosIds.length} operaciones fijadas en tu pantalla principal',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(LucideIcons.x, size: 20),
+                          tooltip: 'Cerrar',
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  // Lista de operaciones agrupadas por sección
+                  Flexible(
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      children: [
+                        _buildModalGrupo(
+                          'Mostrador & Caja Rápida',
+                          disponibles
+                              .where((o) => o.categoria == 'mostrador')
+                              .toList(),
+                          isDark,
+                          setModalState,
+                        ),
+                        _buildModalGrupo(
+                          'Gestión de Almacén & Stock',
+                          disponibles
+                              .where((o) => o.categoria == 'almacen')
+                              .toList(),
+                          isDark,
+                          setModalState,
+                        ),
+                        _buildModalGrupo(
+                          'Ventas, Web & BI',
+                          disponibles
+                              .where((o) => o.categoria == 'ventas')
+                              .toList(),
+                          isDark,
+                          setModalState,
+                        ),
+                        _buildModalGrupo(
+                          'Administración & Hardware',
+                          disponibles
+                              .where((o) => o.categoria == 'gestion')
+                              .toList(),
+                          isDark,
+                          setModalState,
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Botonera inferior
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.cardDark
+                          : const Color(0xFFF8FAFC),
+                      border: Border(
+                        top: BorderSide(
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              setModalState(() {
+                                _favoritosIds = [
+                                  'nuevo_producto',
+                                  'compras',
+                                  'bodega_online',
+                                  'impresora',
+                                ];
+                              });
+                              setState(() {});
+                              SharedPreferences.getInstance().then((p) {
+                                p.setStringList(
+                                  'cajaya_operaciones_favoritas',
+                                  _favoritosIds,
+                                );
+                              });
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Restablecer',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.brandPrimary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Guardar (${_favoritosIds.length})',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildModalGrupo(
+    String titulo,
+    List<_OperacionItem> items,
+    bool isDark,
+    void Function(void Function()) setModalState,
+  ) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 14, bottom: 6, left: 4),
+          child: Text(
+            titulo.toUpperCase(),
+            style: GoogleFonts.outfit(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF64748B),
+              letterSpacing: 0.6,
+            ),
+          ),
+        ),
+        ...items.map((item) {
+          final isFav = _favoritosIds.contains(item.id);
+          return Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            decoration: BoxDecoration(
+              color: isFav
+                  ? (isDark
+                        ? const Color(0xFFF59E0B).withValues(alpha: 0.10)
+                        : const Color(0xFFFFFBEB))
+                  : (isDark ? AppTheme.cardDark : Colors.white),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isFav
+                    ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
+                    : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                width: 1.0,
+              ),
+            ),
+            child: ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 2,
+              ),
+              leading: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: item.color.withValues(alpha: isDark ? 0.20 : 0.10),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(item.icon, color: item.color, size: 18),
+              ),
+              title: Text(
+                item.title,
+                style: GoogleFonts.outfit(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              subtitle: Text(
+                item.subtitle,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+              ),
+              trailing: Switch.adaptive(
+                value: isFav,
+                activeTrackColor: const Color(0xFFF59E0B),
+                onChanged: (val) {
+                  setModalState(() {
+                    _toggleFavorito(item.id);
+                  });
+                },
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  List<_OperacionItem> _obtenerTodasLasOperaciones(bool isDark) {
+    final bool esPro = _plan.toUpperCase() == 'PRO';
+
+    return [
+      // --- ALMACÉN ---
+      _OperacionItem(
+        id: 'nuevo_producto',
+        categoria: 'almacen',
+        title: '+ Nuevo Producto',
+        subtitle: 'Crear en Catálogo',
+        icon: LucideIcons.plusCircle,
+        color: AppTheme.brandPrimary,
+        onTap: () {
+          final esBasico = !esPro;
+          if (esBasico && _productos.length >= 150) {
+            PlanUpgradeModal.show(
+              context,
+              featureName: 'Catálogo de Productos Ilimitado',
+              featureDescription: 'Has alcanzado el límite de 150 productos activos para el Plan Bodega Básico. Actualiza al Plan Minimarket PRO para registrar productos ilimitados.',
+              icon: LucideIcons.boxes,
+              onPlanUpdated: _cargarDatos,
+            );
+            return;
+          }
+          NuevoProductoSheet.show(context, _cargarDatos);
+        },
+      ),
+      _OperacionItem(
+        id: 'compras',
+        categoria: 'almacen',
+        title: 'Compras & Lotes',
+        subtitle: 'Ingreso Proveedores',
+        icon: LucideIcons.truck,
+        color: AppTheme.brandPrimary,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ComprasScreen()),
+          );
+        },
+      ),
+      _OperacionItem(
+        id: 'vencimientos',
+        categoria: 'almacen',
+        title: 'Control Vencimientos',
+        subtitle: 'Semáforo de Caducidad FIFO',
+        icon: LucideIcons.calendarClock,
+        color: AppTheme.brandPrimary,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const VencimientosScreen()),
+          );
+        },
+      ),
+      _OperacionItem(
+        id: 'mermas',
+        categoria: 'almacen',
+        title: 'Registro de Mermas',
+        subtitle: 'Bajas & Pérdidas',
+        icon: LucideIcons.trash2,
+        color: AppTheme.brandPrimary,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MermasScreen()),
+          );
+        },
+      ),
+      _OperacionItem(
+        id: 'auditoria_ciega',
+        categoria: 'almacen',
+        title: 'Auditoría Ciega',
+        subtitle: 'Conteo Rápido (Anti-Robo)',
+        icon: LucideIcons.clipboardCheck,
+        color: AppTheme.brandPrimary,
+        isLocked: !esPro,
+        onTap: () {
+          if (!esPro) {
+            PlanUpgradeModal.show(
+              context,
+              featureName: 'Auditoría Rápida por Pasillo',
+              featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal, detectando mermas y robo hormiga a tiempo.',
+              icon: LucideIcons.clipboardCheck,
+              onPlanUpdated: _cargarDatos,
+            );
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
+          );
+        },
+      ),
+      _OperacionItem(
+        id: 'kardex',
+        categoria: 'almacen',
+        title: 'Kardex Auditoría',
+        subtitle: 'Historial de Movimientos',
+        icon: LucideIcons.fileSpreadsheet,
+        color: AppTheme.brandPrimary,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const KardexScreen()),
+          );
+        },
+      ),
+
+      // --- VENTAS & WEB ---
+      _OperacionItem(
+        id: 'bodega_online',
+        categoria: 'ventas',
+        title: 'Mi Bodega Online',
+        subtitle: 'Catálogo Web & WhatsApp',
+        icon: LucideIcons.globe,
+        color: const Color(0xFF16A34A),
+        isLocked: !esPro,
+        onTap: () {
+          if (!esPro) {
+            PlanUpgradeModal.show(
+              context,
+              featureName: 'Mi Bodega Online',
+              featureDescription: 'Obtén tu propio enlace web oficial (cajaya-pos.onrender.com/#/catalogo?tienda=tu-bodega) para compartir en redes sociales y recibir pedidos directos en tu WhatsApp sin comisiones.',
+              icon: LucideIcons.globe,
+              onPlanUpdated: _cargarDatos,
+            );
+            return;
+          }
+          MiBodegaOnlineModal.show(
+            context,
+            nombreBodega: _nombreBodega,
+            telefonoBodega: _telefono,
+          );
+        },
+      ),
+      _OperacionItem(
+        id: 'promociones',
+        categoria: 'ventas',
+        title: 'Promociones & Combos',
+        subtitle: 'Descuentos & Huesos',
+        icon: LucideIcons.tag,
+        color: AppTheme.brandDark,
+        isLocked: !esPro,
+        onTap: () {
+          if (!esPro) {
+            PlanUpgradeModal.show(
+              context,
+              featureName: 'Promociones y Descuentos',
+              featureDescription: 'Configura descuentos por marcas, categorías y combos estratégicos para liquidar productos estancados en tu catálogo online.',
+              icon: LucideIcons.tag,
+              onPlanUpdated: _cargarDatos,
+            );
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PromocionesScreen(
+                isPro: true,
+                nombreBodega: _nombreBodega,
+                onPlanUpdated: _cargarDatos,
+              ),
+            ),
+          );
+        },
+      ),
+      _OperacionItem(
+        id: 'analitica_bi',
+        categoria: 'ventas',
+        title: 'Analítica & Rentabilidad',
+        subtitle: 'Márgenes, Horas & Stock',
+        icon: LucideIcons.trendingUp,
+        color: const Color(0xFF8B5CF6),
+        isLocked: !esPro,
+        onTap: () {
+          if (!esPro) {
+            PlanUpgradeModal.show(
+              context,
+              featureName: 'Analítica de Negocio & BI',
+              featureDescription: 'Calcula tu margen bruto real en soles y porcentaje restando el costo de compra en cada venta, conociendo tu rentabilidad exacta sin estimaciones.',
+              icon: LucideIcons.trendingUp,
+              onPlanUpdated: _cargarDatos,
+            );
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const DashboardBiScreen()),
+          );
+        },
+      ),
+      _OperacionItem(
+        id: 'marketing',
+        categoria: 'ventas',
+        title: 'Marketing de Barrio',
+        subtitle: 'Afiche Vitrina & Volante QR',
+        icon: LucideIcons.megaphone,
+        color: const Color(0xFFD97706),
+        requiresAdmin: true,
+        onTap: () {
+          KitMarketingBarrioModal.show(
+            context,
+            nombreBodega: _nombreBodega,
+            telefono: _telefono.isNotEmpty ? _telefono : null,
+            slugOrId: KitMarketingBarrioModal.normalizarSlug(_nombreBodega),
+          );
+        },
+      ),
+
+      // --- GESTIÓN & HARDWARE ---
+      _OperacionItem(
+        id: 'impresora',
+        categoria: 'gestion',
+        title: 'Impresora Térmica',
+        subtitle: 'Tickets & Gaveta ESC/POS',
+        icon: LucideIcons.printer,
+        color: AppTheme.brandPrimary,
+        onTap: () => ConfiguracionTicketModal.show(context),
+      ),
+      _OperacionItem(
+        id: 'personal',
+        categoria: 'gestion',
+        title: 'Personal & Cajeros',
+        subtitle: 'Turnos & Accesos del Equipo',
+        icon: LucideIcons.users,
+        color: AppTheme.brandPrimary,
+        requiresAdmin: true,
+        onTap: () => PlanYPersonalSheet.show(
+          context,
+          nombreBodega: _nombreBodega,
+          plan: _plan,
+          currentUsername: _username,
+          userRol: _userRol,
+          seccionInicial: PlanSheetSeccion.personal,
+          onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+        ),
+      ),
+      _OperacionItem(
+        id: 'suscripcion',
+        categoria: 'gestion',
+        title: 'Mi Suscripción',
+        subtitle: _plan == 'PRO'
+            ? 'Plan Minimarket Pro • Ilimitado'
+            : 'Plan Bodega Básico • Renovar',
+        icon: LucideIcons.crown,
+        color: const Color(0xFF0D9488),
+        requiresAdmin: true,
+        onTap: () => PlanYPersonalSheet.show(
+          context,
+          nombreBodega: _nombreBodega,
+          plan: _plan,
+          currentUsername: _username,
+          userRol: _userRol,
+          seccionInicial: PlanSheetSeccion.suscripcion,
+          onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+        ),
+      ),
+
+      // --- ACCESOS DE MOSTRADOR (Disponibles para agregar a favoritos) ---
+      _OperacionItem(
+        id: 'cobrar_pos',
+        categoria: 'mostrador',
+        title: 'Cobrar en POS',
+        subtitle: 'Terminal de Venta Rápida',
+        icon: LucideIcons.shoppingBag,
+        color: AppTheme.brandPrimary,
+        onTap: () => widget.onNavigateTab(1),
+      ),
+      _OperacionItem(
+        id: 'arqueo_caja',
+        categoria: 'mostrador',
+        title: 'Arqueo de Caja',
+        subtitle: 'Corte, Historial & Cuadre',
+        icon: LucideIcons.banknote,
+        color: AppTheme.brandPrimary,
+        onTap: () => widget.onNavigateTab(2),
+      ),
+      _OperacionItem(
+        id: 'fiados',
+        categoria: 'mostrador',
+        title: 'Libreta de Fiados',
+        subtitle: 'Cobros & WhatsApp',
+        icon: LucideIcons.bookUser,
+        color: const Color(0xFFD97706),
+        onTap: () {
+          widget.onNavigateTab(4);
+          ClientesScreen.cambiarPestana(0);
+        },
+      ),
+      _OperacionItem(
+        id: 'garantias',
+        categoria: 'mostrador',
+        title: 'Garantía Botellas',
+        subtitle: 'Envases & Devolución Retornable',
+        icon: LucideIcons.wine,
+        color: const Color(0xFF2563EB),
+        onTap: () {
+          widget.onNavigateTab(4);
+          ClientesScreen.cambiarPestana(1);
+        },
+      ),
+    ];
+  }
+
   Widget _buildQuickActionBtn({
     required String title,
     required String subtitle,
@@ -2566,6 +3199,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     required Color color,
     required bool isDark,
     required VoidCallback onTap,
+    String? opId,
+    bool isFavorite = false,
+    VoidCallback? onToggleFavorite,
     double? width,
     bool isBanner = false,
     bool isPrimaryHero = false,
@@ -2741,61 +3377,87 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                           child: Icon(icon, color: iconColor, size: 18),
                         ),
-                        if (isPrimaryHero)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.brandPrimary,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text(
-                              'PRINCIPAL',
-                              style: GoogleFonts.outfit(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
-                          )
-                        else if (isLocked)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD97706)
-                                  .withValues(alpha: isDark ? 0.22 : 0.12),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: const Color(0xFFD97706)
-                                    .withValues(alpha: 0.4),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  LucideIcons.lock,
-                                  size: 9.5,
-                                  color: Color(0xFFD97706),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isPrimaryHero)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 2,
                                 ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  lockedBadge ?? 'PRO',
+                                decoration: BoxDecoration(
+                                  color: AppTheme.brandPrimary,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  'PRINCIPAL',
                                   style: GoogleFonts.outfit(
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w900,
-                                    color: const Color(0xFFD97706),
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              )
+                            else if (isLocked)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD97706)
+                                      .withValues(alpha: isDark ? 0.22 : 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFFD97706)
+                                        .withValues(alpha: 0.4),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.lock,
+                                      size: 9.5,
+                                      color: Color(0xFFD97706),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      lockedBadge ?? 'PRO',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 8.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: const Color(0xFFD97706),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (onToggleFavorite != null) ...[
+                              const SizedBox(width: 4),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: onToggleFavorite,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2),
+                                  child: Icon(
+                                    isFavorite
+                                        ? LucideIcons.star
+                                        : LucideIcons.star,
+                                    size: 16,
+                                    color: isFavorite
+                                        ? const Color(0xFFF59E0B)
+                                        : (isDark
+                                              ? const Color(0xFF64748B)
+                                              : const Color(0xFFCBD5E1)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
