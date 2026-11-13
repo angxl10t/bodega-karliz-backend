@@ -140,18 +140,21 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (_) {}
   }
 
-  Future<void> _toggleFavorito(String opId) async {
-    HapticFeedback.selectionClick();
+  Future<void> _toggleFavorito(String opId, [String? opTitle]) async {
+    HapticFeedback.mediumImpact();
     final updated = List<String>.from(_favoritosIds);
-    if (updated.contains(opId)) {
+    final bool removing = updated.contains(opId);
+    if (removing) {
       if (updated.length <= 1) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Debes mantener al menos un acceso favorito.'),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Debes mantener al menos un acceso favorito.'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
         return;
       }
       updated.remove(opId);
@@ -163,6 +166,46 @@ class _DashboardScreenState extends State<DashboardScreen>
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList('cajaya_operaciones_favoritas', updated);
     } catch (_) {}
+
+    if (mounted) {
+      final String nombre = opTitle ?? 'Operación';
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                removing
+                    ? LucideIcons.bookmarkMinus
+                    : LucideIcons.bookmarkCheck,
+                color: Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  removing
+                      ? 'Se quitó "$nombre" de tus accesos directos'
+                      : '¡"$nombre" agregado a tus accesos directos!',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: removing
+              ? const Color(0xFF475569)
+              : AppTheme.brandPrimary,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -2279,25 +2322,26 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
             InkWell(
-              onTap: () => _mostrarModalGestionFavoritos(context, isDark),
+              onTap: () =>
+                  _mostrarModalInstruccionPersonalizar(context, isDark),
               borderRadius: BorderRadius.circular(10),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      LucideIcons.star,
+                      LucideIcons.slidersHorizontal,
                       size: 14,
-                      color: Color(0xFFF59E0B),
+                      color: AppTheme.brandPrimary,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 5),
                     Text(
-                      'Personalizar ⭐',
+                      'Personalizar',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
+                        fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFFF59E0B),
+                        color: AppTheme.brandPrimary,
                       ),
                     ),
                   ],
@@ -2316,7 +2360,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               _buildTabPill(
                 index: 0,
                 label: 'Favoritos',
-                icon: LucideIcons.star,
+                icon: LucideIcons.bookmarkCheck,
                 badge: '${_favoritosIds.length}',
                 isDark: isDark,
               ),
@@ -2359,12 +2403,10 @@ class _DashboardScreenState extends State<DashboardScreen>
               runSpacing: 10,
               children: [
                 ...activas.map((op) {
-                  final bool esFav = _favoritosIds.contains(op.id);
                   return _buildQuickActionBtn(
                     width: btnWidth,
                     opId: op.id,
-                    isFavorite: esFav,
-                    onToggleFavorite: () => _toggleFavorito(op.id),
+                    onLongPress: () => _toggleFavorito(op.id, op.title),
                     title: op.title,
                     subtitle: op.subtitle,
                     icon: op.icon,
@@ -2379,7 +2421,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                   _buildAddFavoriteDashedCard(
                     width: btnWidth,
                     isDark: isDark,
-                    onTap: () => _mostrarModalGestionFavoritos(context, isDark),
+                    onTap: () =>
+                        _mostrarModalInstruccionPersonalizar(context, isDark),
                   ),
               ],
             );
@@ -2436,12 +2479,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                 icon,
                 size: 14,
                 color: isSelected
-                    ? (index == 0 ? const Color(0xFFFDE047) : Colors.white)
-                    : (index == 0
-                          ? const Color(0xFFF59E0B)
-                          : (isDark
-                                ? AppTheme.textDarkSecondary
-                                : const Color(0xFF64748B))),
+                    ? Colors.white
+                    : (isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B)),
               ),
               const SizedBox(width: 6),
               Text(
@@ -2466,7 +2507,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withValues(alpha: 0.25)
-                        : const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                        : AppTheme.brandPrimary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -2474,9 +2515,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFFF59E0B),
+                      color: isSelected ? Colors.white : AppTheme.brandPrimary,
                     ),
                   ),
                 ),
@@ -2508,9 +2547,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 : const Color(0xFFF8FAFC),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark
-                  ? const Color(0xFFF59E0B).withValues(alpha: 0.35)
-                  : const Color(0xFFF59E0B).withValues(alpha: 0.45),
+              color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
               width: 1.2,
             ),
           ),
@@ -2523,12 +2560,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       LucideIcons.plus,
-                      color: Color(0xFFF59E0B),
+                      color: AppTheme.brandPrimary,
                       size: 18,
                     ),
                   ),
@@ -2538,15 +2575,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      'EDITAR',
+                      'AJUSTES',
                       style: GoogleFonts.outfit(
                         fontSize: 8.5,
                         fontWeight: FontWeight.w900,
-                        color: const Color(0xFFF59E0B),
+                        color: AppTheme.brandPrimary,
                       ),
                     ),
                   ),
@@ -2565,11 +2602,13 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
               const SizedBox(height: 2),
               Text(
-                'Personalizar accesos ⭐',
+                'Mantén presionado para fijar',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFFF59E0B),
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -2581,309 +2620,178 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  void _mostrarModalGestionFavoritos(BuildContext context, bool isDark) {
-    final todas = _obtenerTodasLasOperaciones(isDark);
-    final esAdmin = _userRol == 'ADMIN' || _userRol == 'SUPERADMIN';
-    final disponibles = todas
-        .where((op) => !op.requiresAdmin || esAdmin)
-        .toList();
+  Widget _buildPasoItem({
+    required String numero,
+    required String texto,
+    required bool isDark,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            numero,
+            style: GoogleFonts.outfit(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.brandPrimary,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            texto,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : const Color(0xFF334155),
+              height: 1.35,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
+  void _mostrarModalInstruccionPersonalizar(BuildContext context, bool isDark) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.82,
-              ),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Manija de arrastre
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 38,
-                    height: 4.5,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white24 : Colors.black12,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  // Cabecera
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 16, 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF59E0B)
-                                .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            LucideIcons.star,
-                            color: Color(0xFFF59E0B),
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Personalizar Accesos Favoritos',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
-                                ),
-                              ),
-                              Text(
-                                '${_favoritosIds.length} operaciones fijadas en tu pantalla principal',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(LucideIcons.x, size: 20),
-                          tooltip: 'Cerrar',
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  // Lista de operaciones agrupadas por sección
-                  Flexible(
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      children: [
-                        _buildModalGrupo(
-                          'Mostrador & Caja Rápida',
-                          disponibles
-                              .where((o) => o.categoria == 'mostrador')
-                              .toList(),
-                          isDark,
-                          setModalState,
-                        ),
-                        _buildModalGrupo(
-                          'Gestión de Almacén & Stock',
-                          disponibles
-                              .where((o) => o.categoria == 'almacen')
-                              .toList(),
-                          isDark,
-                          setModalState,
-                        ),
-                        _buildModalGrupo(
-                          'Ventas, Web & BI',
-                          disponibles
-                              .where((o) => o.categoria == 'ventas')
-                              .toList(),
-                          isDark,
-                          setModalState,
-                        ),
-                        _buildModalGrupo(
-                          'Administración & Hardware',
-                          disponibles
-                              .where((o) => o.categoria == 'gestion')
-                              .toList(),
-                          isDark,
-                          setModalState,
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Botonera inferior
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.cardDark
-                          : const Color(0xFFF8FAFC),
-                      border: Border(
-                        top: BorderSide(
-                          color: isDark
-                              ? AppTheme.borderDark
-                              : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () {
-                              setModalState(() {
-                                _favoritosIds = [
-                                  'nuevo_producto',
-                                  'compras',
-                                  'bodega_online',
-                                  'impresora',
-                                ];
-                              });
-                              setState(() {});
-                              SharedPreferences.getInstance().then((p) {
-                                p.setStringList(
-                                  'cajaya_operaciones_favoritas',
-                                  _favoritosIds,
-                                );
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Restablecer',
-                              style: GoogleFonts.outfit(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.brandPrimary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Guardar (${_favoritosIds.length})',
-                              style: GoogleFonts.outfit(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildModalGrupo(
-    String titulo,
-    List<_OperacionItem> items,
-    bool isDark,
-    void Function(void Function()) setModalState,
-  ) {
-    if (items.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 14, bottom: 6, left: 4),
-          child: Text(
-            titulo.toUpperCase(),
-            style: GoogleFonts.outfit(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: isDark
-                  ? AppTheme.textDarkSecondary
-                  : const Color(0xFF64748B),
-              letterSpacing: 0.6,
-            ),
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-        ),
-        ...items.map((item) {
-          final isFav = _favoritosIds.contains(item.id);
-          return Container(
-            margin: const EdgeInsets.only(bottom: 6),
-            decoration: BoxDecoration(
-              color: isFav
-                  ? (isDark
-                        ? const Color(0xFFF59E0B).withValues(alpha: 0.10)
-                        : const Color(0xFFFFFBEB))
-                  : (isDark ? AppTheme.cardDark : Colors.white),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isFav
-                    ? const Color(0xFFF59E0B).withValues(alpha: 0.4)
-                    : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
-                width: 1.0,
-              ),
-            ),
-            child: ListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 2,
-              ),
-              leading: Container(
-                padding: const EdgeInsets.all(7),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Manija de arrastre
+              Container(
+                width: 38,
+                height: 4.5,
                 decoration: BoxDecoration(
-                  color: item.color.withValues(alpha: isDark ? 0.20 : 0.10),
-                  borderRadius: BorderRadius.circular(8),
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                child: Icon(item.icon, color: item.color, size: 18),
               ),
-              title: Text(
-                item.title,
+              const SizedBox(height: 16),
+
+              // Icono táctil
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.hand,
+                  color: AppTheme.brandPrimary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Texto requerido
+              Text(
+                'Mantén apretada una operación para agregar a acceso directo',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.outfit(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.w800,
                   color: isDark ? Colors.white : AppTheme.textDark,
+                  height: 1.25,
                 ),
               ),
-              subtitle: Text(
-                item.subtitle,
+              const SizedBox(height: 8),
+
+              Text(
+                'Para personalizar qué operaciones aparecen en tu pantalla de inicio, ve a cualquier categoría (Almacén, Ventas & Web o Gestión) y mantén presionado el dedo sobre cualquier tarjeta durante un segundo.',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
+                  fontSize: 12.5,
                   color: isDark
                       ? AppTheme.textDarkSecondary
                       : const Color(0xFF64748B),
+                  height: 1.4,
                 ),
               ),
-              trailing: Switch.adaptive(
-                value: isFav,
-                activeTrackColor: const Color(0xFFF59E0B),
-                onChanged: (val) {
-                  setModalState(() {
-                    _toggleFavorito(item.id);
-                  });
-                },
+              const SizedBox(height: 16),
+
+              // Pasos claros
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.cardDark : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _buildPasoItem(
+                      numero: '1',
+                      texto: 'Entra a la pestaña que desees (ej: Almacén o Ventas).',
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPasoItem(
+                      numero: '2',
+                      texto: 'Mantén pulsada la tarjeta por 1 segundo.',
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPasoItem(
+                      numero: '3',
+                      texto:
+                          '¡Listo! Quedará fijada o removida de tus Favoritos.',
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }),
-      ],
+              const SizedBox(height: 18),
+
+              // Botón de acción principal
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'Entendido, ¡voy a probarlo!',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -3199,9 +3107,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     required Color color,
     required bool isDark,
     required VoidCallback onTap,
+    VoidCallback? onLongPress,
     String? opId,
-    bool isFavorite = false,
-    VoidCallback? onToggleFavorite,
     double? width,
     bool isBanner = false,
     bool isPrimaryHero = false,
@@ -3235,6 +3142,9 @@ class _DashboardScreenState extends State<DashboardScreen>
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         onTap: onTap,
+        onLongPress:
+            onLongPress ??
+            (opId != null ? () => _toggleFavorito(opId, title) : null),
         borderRadius: BorderRadius.circular(18),
         child: Container(
           width: width,
@@ -3435,27 +3345,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   ],
                                 ),
                               ),
-                            if (onToggleFavorite != null) ...[
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: onToggleFavorite,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(2),
-                                  child: Icon(
-                                    isFavorite
-                                        ? LucideIcons.star
-                                        : LucideIcons.star,
-                                    size: 16,
-                                    color: isFavorite
-                                        ? const Color(0xFFF59E0B)
-                                        : (isDark
-                                              ? const Color(0xFF64748B)
-                                              : const Color(0xFFCBD5E1)),
-                                  ),
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                       ],

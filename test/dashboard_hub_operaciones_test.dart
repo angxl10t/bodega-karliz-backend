@@ -38,7 +38,7 @@ void main() {
 
       // Verificar cabecera del hub y selector de favoritos
       expect(find.text('Operaciones & Herramientas'), findsOneWidget);
-      expect(find.text('Personalizar ⭐'), findsOneWidget);
+      expect(find.text('Personalizar'), findsOneWidget);
 
       // Verificar las 4 pestañas de categorías tipo píldora
       expect(find.text('Favoritos'), findsOneWidget);
@@ -76,13 +76,37 @@ void main() {
 
       expect(find.text('Impresora Térmica'), findsOneWidget);
 
-      // Abrir modal de personalización de favoritos
-      await tester.tap(find.text('Personalizar ⭐'));
+      // Abrir modal de instrucción de personalización
+      await tester.tap(find.text('Personalizar'));
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Personalizar Accesos Favoritos'), findsOneWidget);
-      expect(find.text('Restablecer'), findsOneWidget);
+      expect(
+        find.text(
+          'Mantén apretada una operación para agregar a acceso directo',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Entendido, ¡voy a probarlo!'), findsOneWidget);
+
+      await tester.tap(find.text('Entendido, ¡voy a probarlo!'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Regresar a Favoritos y probar mantener presionado (Long Press) para togglear
+      await tester.tap(find.text('Favoritos'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Compras & Lotes'));
+      await tester.pump();
+
+      expect(
+        find.textContaining(
+          'Se quitó "Compras & Lotes" de tus accesos directos',
+        ),
+        findsOneWidget,
+      );
     },
   );
 }
