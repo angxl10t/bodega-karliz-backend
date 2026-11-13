@@ -3,45 +3,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Transición de tema oficial basada en el Icono Real de CajaYa.
+/// Transición oficial de tema de CajaYa basada en la formación de la "C":
 ///
-/// Al presionar el botón de modo claro/oscuro, emerge el icono real tridimensional
-/// de CajaYa desde el origen, proyectando un bañado de color translúcido con la silueta
-/// de su squircle y su "C-Check" líquida, cubriendo la pantalla de forma cristalina
-/// SIN tapar ni ocultar los elementos de la interfaz.
+/// El bañado de color se arma desde la parte derecha de la "C" y gira hacia la izquierda,
+/// acompañando la formación en tiempo real del trazo del isotipo de CajaYa con una
+/// cabeza luminosa y un barrido angular translúcido que tiñe la pantalla con el nuevo
+/// tema SIN tapar ni ocultar los elementos de la interfaz.
 class WaterDropThemeTransition {
   static bool _isAnimating = false;
 
   /// Retorna si hay una animación en curso para evitar dobles clics accidentales.
   static bool get isAnimating => _isAnimating;
 
-  /// Dispara la transición con el icono real de CajaYa desde [origin] expandiéndose por toda la pantalla.
+  /// Dispara la transición de tema en abanico girando desde la derecha hacia la izquierda.
   static Future<void> animate(
     BuildContext context, {
     required Offset origin,
     required bool targetIsDark,
     required Future<void> Function() onToggleTheme,
     Color? customRippleColor,
-    Duration duration = const Duration(milliseconds: 460),
+    Duration duration = const Duration(milliseconds: 520),
   }) async {
     if (_isAnimating) return;
 
     final overlayState = Overlay.of(context, rootOverlay: true);
     final screenSize = MediaQuery.of(context).size;
 
-    // Precargar el icono real si no está en memoria
-    try {
-      precacheImage(const AssetImage('assets/images/cajaya_icon.png'), context);
-    } catch (_) {}
-
     // Calcular el radio máximo necesario para cubrir la esquina más lejana desde el origen
     final double maxRadius = _calcularRadioMaximo(origin, screenSize);
 
-    // Color del resplandor de la onda según el modo de destino
-    final Color rippleColor = customRippleColor ??
+    // Colores del bañado según el modo de destino
+    final Color themeColor = targetIsDark
+        ? const Color(0xFF1E3A8A) // Azul zafiro cobalto nocturno
+        : const Color(0xFF93C5FD); // Azul cielo perla luminoso
+
+    final Color accentColor = customRippleColor ??
         (targetIsDark
-            ? const Color(0xFF38BDF8) // Aqua zafiro luminoso para onda hacia oscuro
-            : const Color(0xFF2563EB)); // Cobalto oficial CajaYa para onda hacia claro
+            ? const Color(0xFF38BDF8) // Aqua zafiro luminoso
+            : const Color(0xFF2563EB)); // Cobalto oficial CajaYa
 
     _isAnimating = true;
 
@@ -50,10 +49,11 @@ class WaterDropThemeTransition {
 
     late OverlayEntry entry;
     entry = OverlayEntry(
-      builder: (ctx) => _CajaYaRealIconThemeOverlay(
+      builder: (ctx) => _CajaYaSweepThemeOverlay(
         origin: origin,
         maxRadius: maxRadius,
-        rippleColor: rippleColor,
+        themeColor: themeColor,
+        accentColor: accentColor,
         targetIsDark: targetIsDark,
         duration: duration,
         onCompleted: () {
@@ -88,41 +88,40 @@ class WaterDropThemeTransition {
           math.max(dTopLeft, dTopRight),
           math.max(dBottomLeft, dBottomRight),
         ) +
-        30.0;
+        50.0;
   }
 }
 
-/// Overlay que combina el icono real de CajaYa con el bañado de ondas translúcidas.
-class _CajaYaRealIconThemeOverlay extends StatefulWidget {
+/// Overlay que ejecuta la animación del barrido angular de derecha a izquierda formando la "C".
+class _CajaYaSweepThemeOverlay extends StatefulWidget {
   final Offset origin;
   final double maxRadius;
-  final Color rippleColor;
+  final Color themeColor;
+  final Color accentColor;
   final bool targetIsDark;
   final Duration duration;
   final VoidCallback onCompleted;
 
-  const _CajaYaRealIconThemeOverlay({
+  const _CajaYaSweepThemeOverlay({
     required this.origin,
     required this.maxRadius,
-    required this.rippleColor,
+    required this.themeColor,
+    required this.accentColor,
     required this.targetIsDark,
     required this.duration,
     required this.onCompleted,
   });
 
   @override
-  State<_CajaYaRealIconThemeOverlay> createState() =>
-      _CajaYaRealIconThemeOverlayState();
+  State<_CajaYaSweepThemeOverlay> createState() =>
+      _CajaYaSweepThemeOverlayState();
 }
 
-class _CajaYaRealIconThemeOverlayState
-    extends State<_CajaYaRealIconThemeOverlay>
+class _CajaYaSweepThemeOverlayState extends State<_CajaYaSweepThemeOverlay>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _iconPopAnim;
-  late Animation<double> _iconFadeAnim;
-  late Animation<double> _waveExpandAnim;
-  late Animation<double> _waveFadeAnim;
+  late Animation<double> _sweepAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -132,28 +131,16 @@ class _CajaYaRealIconThemeOverlayState
       duration: widget.duration,
     );
 
-    // 1. Aparición elástica del icono real de CajaYa (pop inicial)
-    _iconPopAnim = CurvedAnimation(
+    // El barrido y la formación de la C avanzan suavemente de derecha a izquierda
+    _sweepAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.0, 0.40, curve: Curves.easeOutBack),
+      curve: const Interval(0.0, 0.88, curve: Curves.easeInOutCubic),
     );
 
-    // 2. Desvanecimiento suave del icono central
-    _iconFadeAnim = CurvedAnimation(
+    // Desvanecimiento suave en el tramo final
+    _fadeAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.45, 0.85, curve: Curves.easeOut),
-    );
-
-    // 3. Expansión fluida del bañado de color hacia toda la pantalla
-    _waveExpandAnim = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.10, 0.95, curve: Curves.easeOutCubic),
-    );
-
-    // 4. Desvanecimiento de las ondas en las esquinas
-    _waveFadeAnim = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.65, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.80, 1.0, curve: Curves.easeOut),
     );
 
     _controller.addStatusListener((status) {
@@ -173,76 +160,24 @@ class _CajaYaRealIconThemeOverlayState
 
   @override
   Widget build(BuildContext context) {
-    const double baseIconSize = 54.0;
-
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          final waveProgress = _waveExpandAnim.value;
-          final waveOpacity = (1.0 - _waveFadeAnim.value).clamp(0.0, 1.0);
+          final progress = _sweepAnimation.value;
+          final opacity = (1.0 - _fadeAnimation.value).clamp(0.0, 1.0);
 
-          final iconScale = _iconPopAnim.value;
-          final iconOpacity = (1.0 - _iconFadeAnim.value).clamp(0.0, 1.0);
-
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              // 1. Bañado de color translúcido con patrón de Squircle y C de CajaYa
-              CustomPaint(
-                size: Size.infinite,
-                painter: _CajaYaRealIconPatternPainter(
-                  center: widget.origin,
-                  progress: waveProgress,
-                  maxRadius: widget.maxRadius,
-                  rippleColor: widget.rippleColor,
-                  targetIsDark: widget.targetIsDark,
-                  opacity: waveOpacity,
-                ),
-              ),
-
-              // 2. Icono Real 3D de CajaYa que emerge elásticamente en el origen
-              if (iconOpacity > 0.01 && iconScale > 0.01)
-                Positioned(
-                  left: widget.origin.dx - (baseIconSize / 2),
-                  top: widget.origin.dy - (baseIconSize / 2),
-                  width: baseIconSize,
-                  height: baseIconSize,
-                  child: Transform.scale(
-                    scale: iconScale,
-                    child: Opacity(
-                      opacity: iconOpacity,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                            baseIconSize * 0.28,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: widget.rippleColor.withValues(
-                                alpha: (0.45 * iconOpacity).clamp(0.0, 1.0),
-                              ),
-                              blurRadius: 18,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            baseIconSize * 0.28,
-                          ),
-                          child: Image.asset(
-                            'assets/images/cajaya_icon.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (ctx, err, stack) =>
-                                const SizedBox.shrink(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          return CustomPaint(
+            size: Size.infinite,
+            painter: _CajaYaSweepThemePainter(
+              center: widget.origin,
+              progress: progress,
+              maxRadius: widget.maxRadius,
+              themeColor: widget.themeColor,
+              accentColor: widget.accentColor,
+              targetIsDark: widget.targetIsDark,
+              opacity: opacity,
+            ),
           );
         },
       ),
@@ -250,20 +185,23 @@ class _CajaYaRealIconThemeOverlayState
   }
 }
 
-/// Pintor que proyecta el bañado de color siguiendo el patrón squircle y "C-Check" de CajaYa.
-class _CajaYaRealIconPatternPainter extends CustomPainter {
+/// Pintor que genera el bañado de color naciendo desde la derecha de la "C"
+/// y girando hacia la izquierda mientras dibuja la "C" de CajaYa con una cabeza de luz.
+class _CajaYaSweepThemePainter extends CustomPainter {
   final Offset center;
   final double progress;
   final double maxRadius;
-  final Color rippleColor;
+  final Color themeColor;
+  final Color accentColor;
   final bool targetIsDark;
   final double opacity;
 
-  _CajaYaRealIconPatternPainter({
+  _CajaYaSweepThemePainter({
     required this.center,
     required this.progress,
     required this.maxRadius,
-    required this.rippleColor,
+    required this.themeColor,
+    required this.accentColor,
     required this.targetIsDark,
     this.opacity = 1.0,
   });
@@ -272,79 +210,201 @@ class _CajaYaRealIconPatternPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (progress <= 0.0 || opacity <= 0.0) return;
 
-    final currentRadius = maxRadius * progress;
-    final waveFade = (1.0 - (progress * 0.45)).clamp(0.0, 1.0) * opacity;
-    if (waveFade <= 0.01) return;
+    // 1. Parámetros del barrido angular (Sweep Reveal)
+    // Inicia en la parte derecha de la "C" (~ -1.0 radianes / ~-57 grados)
+    const double startAngle = -1.02;
+    // Gira hacia la izquierda en sentido antihorario (negativo) completando la vuelta
+    final double sweepAngle = -2.0 * math.pi * progress;
 
-    // 1. Bañado en Squircle redondeado oficial de CajaYa (creciendo hacia los bordes)
-    final squircleSize = currentRadius * 2.1;
-    final squircleCorner = squircleSize * 0.28;
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: center,
-        width: squircleSize,
-        height: squircleSize,
-      ),
-      Radius.circular(squircleCorner),
+    // El radio se expande desde el botón cubriendo toda la pantalla
+    final double currentRadius = math.min(
+      maxRadius,
+      maxRadius * (0.28 + 0.72 * progress),
     );
 
-    // Halo vítreo muy tenue del Squircle de CajaYa (ultra translúcido, 100% visible el contenido)
-    final fillAlpha = (0.07 * (1.0 - (progress * 0.70))).clamp(0.0, 1.0) * opacity;
+    // 2. Bañado de color translúcido en abanico (Sweep Sector)
+    // El sector cubre exactamente la zona recorrida de derecha a izquierda
+    final sweepSectorPath = Path()
+      ..moveTo(center.dx, center.dy)
+      ..arcTo(
+        Rect.fromCircle(center: center, radius: currentRadius),
+        startAngle,
+        sweepAngle,
+        false,
+      )
+      ..close();
+
+    // Relleno suave translúcido (12% a 15% de opacidad, 100% visible el fondo)
+    final fillAlpha = (0.13 * (1.0 - (progress * 0.35))).clamp(0.0, 1.0) * opacity;
     if (fillAlpha > 0.005) {
-      final fillPaint = Paint()
-        ..color = (targetIsDark
-                ? const Color(0xFF1E3A8A) // Azul zafiro translúcido
-                : const Color(0xFF60A5FA)) // Azul cielo translúcido
-            .withValues(alpha: fillAlpha)
+      final sweepFillPaint = Paint()
+        ..color = themeColor.withValues(alpha: fillAlpha)
         ..style = PaintingStyle.fill;
-      canvas.drawRRect(rrect, fillPaint);
+      canvas.drawPath(sweepSectorPath, sweepFillPaint);
     }
 
-    // Borde de onda del Squircle de CajaYa
-    final squircleBorderPaint = Paint()
-      ..color = rippleColor.withValues(alpha: (0.45 * waveFade).clamp(0.0, 1.0))
+    // Arco perimetral del barrido con resplandor
+    final arcBorderPaint = Paint()
+      ..color = accentColor.withValues(
+        alpha: (0.45 * (1.0 - progress * 0.35)).clamp(0.0, 1.0) * opacity,
+      )
       ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, 2.5 * (1.0 - (progress * 0.4)));
-    canvas.drawRRect(rrect, squircleBorderPaint);
+      ..strokeWidth = math.max(1.5, 3.0 * (1.0 - progress * 0.4));
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: currentRadius),
+      startAngle,
+      sweepAngle,
+      false,
+      arcBorderPaint,
+    );
 
-    // 2. Trazo proyectado de la "C-Check" oficial de CajaYa
-    const baseIconRef = 100.0;
-    final iconScale = 0.25 + (progress * (maxRadius / (baseIconRef * 0.45)));
-    final rotationAngle = progress * 0.38 * (targetIsDark ? 1.0 : -1.0);
+    // Filamento de avance en la cabeza de giro (línea radial que barre hacia la izquierda)
+    final headAngle = startAngle + sweepAngle;
+    final headX = center.dx + currentRadius * math.cos(headAngle);
+    final headY = center.dy + currentRadius * math.sin(headAngle);
+    final headEdgePaint = Paint()
+      ..color = Colors.white.withValues(
+        alpha: (0.50 * (1.0 - progress * 0.3)).clamp(0.0, 1.0) * opacity,
+      )
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.0, 2.0 * (1.0 - progress * 0.4));
+    canvas.drawLine(center, Offset(headX, headY), headEdgePaint);
+
+    // 3. Formación en tiempo real del Isotipo Oficial "C-Check" de CajaYa
+    // El trazo se forma desde la derecha de la "C" y gira hacia la izquierda
+    final double iconSize = 78.0 + (progress * 32.0);
+    final double cSize = iconSize * 0.62;
+
+    // Badge squircle oficial de CajaYa en el centro
+    final badgeOpacity =
+        (0.85 * (1.0 - progress * 0.35)).clamp(0.0, 1.0) * opacity;
+    if (badgeOpacity > 0.01) {
+      final iconRect = Rect.fromCenter(
+        center: center,
+        width: iconSize,
+        height: iconSize,
+      );
+      final squircleRRect = RRect.fromRectAndRadius(
+        iconRect,
+        Radius.circular(iconSize * 0.28),
+      );
+
+      // Sombra suave del badge
+      canvas.drawRRect(
+        squircleRRect.shift(const Offset(0, 3)),
+        Paint()
+          ..color =
+              const Color(0xFF1E3A8A).withValues(alpha: 0.22 * badgeOpacity)
+          ..style = PaintingStyle.fill,
+      );
+
+      // Gradiente azul cobalto / zafiro característico de CajaYa
+      final badgePaint = Paint()
+        ..shader = const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ).createShader(iconRect)
+        ..style = PaintingStyle.fill;
+      canvas.drawRRect(squircleRRect, badgePaint);
+
+      // Borde cristalino sutil
+      canvas.drawRRect(
+        squircleRRect,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.25 * badgeOpacity)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+    }
+
+    // Dibujado del isotipo "C" revelándose desde la derecha hacia la izquierda
+    final cPath = _crearCajaYaPath(cSize);
+    final cCenterline = _crearCajaYaCenterline(cSize);
 
     canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(rotationAngle);
-    canvas.scale(iconScale);
-    canvas.translate(-baseIconRef * 0.52, -baseIconRef * 0.56);
+    // Centramos la C con respecto al badge en el botón
+    canvas.translate(
+      center.dx - (cSize * 0.52),
+      center.dy - (cSize * 0.56),
+    );
 
-    final swooshPath = _crearCajaYaPath(baseIconRef);
+    // Sector angular de desocultamiento de la C (sincronizado con el giro a la izquierda)
+    final clampedSweep = sweepAngle.clamp(-1.999 * math.pi, -0.01);
+    final cClipSector = Path()
+      ..moveTo(cSize * 0.52, cSize * 0.56)
+      ..arcTo(
+        Rect.fromCircle(
+          center: Offset(cSize * 0.52, cSize * 0.56),
+          radius: cSize * 1.5,
+        ),
+        startAngle,
+        clampedSweep,
+        false,
+      )
+      ..close();
 
-    // Filamento blanco nítido de la "C" de CajaYa
-    final whitePaint = Paint()
-      ..color = Colors.white.withValues(alpha: (0.80 * waveFade).clamp(0.0, 1.0))
+    // Dibujamos el cuerpo sólido de la cinta blanca 3D de CajaYa
+    canvas.save();
+    if (progress < 0.98) {
+      canvas.clipPath(cClipSector);
+    }
+
+    // Cuerpo blanco nítido del icono oficial
+    final cFillPaint = Paint()
+      ..color = Colors.white.withValues(alpha: (0.95 * opacity).clamp(0.0, 1.0))
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(cPath, cFillPaint);
+
+    // Sombreado 3D satinado de la cinta
+    final cStrokePaint = Paint()
+      ..color = const Color(0xFF93C5FD)
+          .withValues(alpha: (0.45 * opacity).clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(0.7, 1.8 * (1.0 - (progress * 0.45)));
-    canvas.drawPath(swooshPath, whitePaint);
-
-    // Halo azul cobalto exterior del trazo
-    final haloPaint = Paint()
-      ..color = rippleColor.withValues(alpha: (0.50 * waveFade).clamp(0.0, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.0, 3.2 * (1.0 - (progress * 0.45)));
-    canvas.drawPath(swooshPath, haloPaint);
-
+      ..strokeWidth = 1.0;
+    canvas.drawPath(cPath, cStrokePaint);
     canvas.restore();
 
-    // 3. Aro exterior concéntrico de agua cristalina
-    final outerRingPaint = Paint()
-      ..color = Colors.white.withValues(alpha: (0.35 * waveFade).clamp(0.0, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.0, 1.8 * (1.0 - (progress * 0.5)));
-    canvas.drawCircle(center, currentRadius, outerRingPaint);
+    // Línea guía y cabeza de luz que lidera la formación desde la derecha hacia la izquierda
+    final clMetrics = cCenterline.computeMetrics().toList();
+    if (clMetrics.isNotEmpty) {
+      final clMetric = clMetrics.first;
+      final currentLength = clMetric.length * progress.clamp(0.0, 1.0);
+      final partialCenterline = clMetric.extractPath(0.0, currentLength);
+
+      // Halo luminoso del trazo
+      final strokePaint = Paint()
+        ..color = Colors.white
+            .withValues(alpha: (0.85 * (1.0 - progress * 0.2)).clamp(0.0, 1.0) * opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = math.max(1.5, 3.2 * (1.0 - progress * 0.3));
+      canvas.drawPath(partialCenterline, strokePaint);
+
+      // Cabeza luminosa / Chispa guiadora en el frente de avance
+      final tangent = clMetric.getTangentForOffset(currentLength);
+      if (tangent != null && progress < 0.98) {
+        final headPos = tangent.position;
+
+        // Aura cobalto
+        final glowPaint = Paint()
+          ..color = accentColor.withValues(alpha: (0.80 * opacity).clamp(0.0, 1.0))
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(headPos, 6.0, glowPaint);
+
+        // Chispa blanca brillante
+        final sparklePaint = Paint()
+          ..color = Colors.white.withValues(alpha: opacity)
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(headPos, 3.0, sparklePaint);
+      }
+    }
+
+    canvas.restore();
   }
 
-  /// Geometría exacta del Isotipo "Fluid C-Velocity Swoosh" oficial de CajaYa
+  /// Trazo Oficial Definitivo: "Fluid C-Velocity Swoosh" de CajaYa
+  /// Comienza en la derecha: (0.64, 0.35) y gira hacia la izquierda formando la C
   static Path _crearCajaYaPath(double size) {
     final w = size;
     final h = size;
@@ -361,8 +421,20 @@ class _CajaYaRealIconPatternPainter extends CustomPainter {
       ..close();
   }
 
+  /// Línea media guía para el trazado de la C desde la parte derecha hacia la izquierda
+  static Path _crearCajaYaCenterline(double size) {
+    final w = size;
+    final h = size;
+    return Path()
+      ..moveTo(w * 0.62, h * 0.34)
+      ..cubicTo(w * 0.50, h * 0.23, w * 0.34, h * 0.23, w * 0.24, h * 0.38)
+      ..cubicTo(w * 0.16, h * 0.50, w * 0.16, h * 0.68, w * 0.26, h * 0.80)
+      ..cubicTo(w * 0.36, h * 0.90, w * 0.55, h * 0.88, w * 0.66, h * 0.75)
+      ..cubicTo(w * 0.74, h * 0.65, w * 0.83, h * 0.48, w * 0.89, h * 0.31);
+  }
+
   @override
-  bool shouldRepaint(covariant _CajaYaRealIconPatternPainter oldDelegate) {
+  bool shouldRepaint(covariant _CajaYaSweepThemePainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.opacity != opacity ||
         oldDelegate.center != center ||
@@ -370,7 +442,7 @@ class _CajaYaRealIconPatternPainter extends CustomPainter {
   }
 }
 
-/// Botón estilizado reutilizable que dispara la animación del icono real de CajaYa automáticamente.
+/// Botón estilizado reutilizable que dispara la animación del barrido angular de la "C" de CajaYa.
 class WaterDropThemeButton extends StatelessWidget {
   final bool isDark;
   final Future<void> Function() onToggle;
