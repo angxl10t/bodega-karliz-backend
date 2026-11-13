@@ -58,6 +58,9 @@ jobs:
     needs: quality-and-tests
     if: (github.ref == 'refs/heads/flutter-app' || github.ref == 'refs/heads/master') && github.event_name == 'push'
     runs-on: ubuntu-latest
+    concurrency:
+      group: gh-pages-deployment
+      cancel-in-progress: false
 
     steps:
       - name: Checkout de Código
