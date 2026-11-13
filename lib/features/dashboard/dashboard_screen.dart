@@ -937,18 +937,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   children: [
                     // Banner Ejecutivo Rebrandeado CajaYa con badge sutil de stock
                     _buildGreetingBanner(isDark, productosCriticos),
-                    if (productosVencidosFIFO.isNotEmpty ||
-                        productosCriticosFIFO.isNotEmpty ||
-                        productosAtencionFIFO.isNotEmpty) ...[
-                      const SizedBox(height: 14),
-                      _buildFifoDashboardCard(
-                        isDark,
-                        vencidos: productosVencidosFIFO.length,
-                        criticos: productosCriticosFIFO.length,
-                        atencion: productosAtencionFIFO.length,
-                      ),
-                    ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
 
                     // Título de Métricas
                     Row(
@@ -1051,16 +1040,28 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                     // Termómetro de Meta Diaria de Venta (PRO)
                     _buildTermometroMetaDiaria(isDark),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 22),
+
+                    // Hub de Operaciones & Herramientas con Pestañas y Favoritos Personalizables
+                    _buildHubOperaciones(isDark),
+                    const SizedBox(height: 22),
 
                     // Banner de Inteligencia de Negocio & BI
                     _buildBiBanner(isDark),
                     const SizedBox(height: 24),
 
-                    // Hub de Operaciones & Herramientas con Pestañas y Favoritos Personalizables
-                    _buildHubOperaciones(isDark),
-                    const SizedBox(height: 26),
-                    const SizedBox(height: 26),
+                    // Control de Vencimientos FIFO (Semáforo de Lotes Críticos)
+                    if (productosVencidosFIFO.isNotEmpty ||
+                        productosCriticosFIFO.isNotEmpty ||
+                        productosAtencionFIFO.isNotEmpty) ...[
+                      _buildFifoDashboardCard(
+                        isDark,
+                        vencidos: productosVencidosFIFO.length,
+                        criticos: productosCriticosFIFO.length,
+                        atencion: productosAtencionFIFO.length,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
 
                     // Alertas de Reposición
                     Row(
