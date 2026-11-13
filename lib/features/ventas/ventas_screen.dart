@@ -7428,11 +7428,13 @@ class _VentasScreenState extends State<VentasScreen>
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // En tablets y pantallas de mostrador fijamos el ancho del ticket al estándar ergonómico POS (385dp)
+        // En tablets y pantallas de mostrador fijamos el ancho del ticket al estándar ergonómico POS (385dp - 415dp)
         // permitiendo que el catálogo se expanda fluidamente con 4 a 6 columnas sin espacios muertos
-        final ticketWidth = constraints.maxWidth >= 1050
-            ? 385.0
-            : (constraints.maxWidth * 0.38).clamp(330.0, 420.0);
+        final ticketWidth = constraints.maxWidth >= 1200
+            ? 415.0
+            : (constraints.maxWidth >= 1050
+                  ? 385.0
+                  : (constraints.maxWidth * 0.38).clamp(330.0, 420.0));
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
@@ -8262,13 +8264,16 @@ class _VentasScreenState extends State<VentasScreen>
                   )
                 : GridView.builder(
                     padding: const EdgeInsets.only(bottom: 6),
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 165,
-                          childAspectRatio: 0.74,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                        ),
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: ResponsiveLayout.isDesktop(context)
+                          ? 185.0
+                          : 165.0,
+                      childAspectRatio: ResponsiveLayout.isDesktop(context)
+                          ? 0.72
+                          : 0.74,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
                     itemCount: productos.length,
                     itemBuilder: (context, idx) {
                       final p = productos[idx];
@@ -9227,7 +9232,7 @@ class _VentasScreenState extends State<VentasScreen>
               Expanded(
                 child: _buildCobrarButton(
                   isDark: isDark,
-                  height: 46,
+                  height: ResponsiveLayout.isDesktop(context) ? 54.0 : 46.0,
                   isTablet: true,
                 ),
               ),
@@ -11203,13 +11208,20 @@ class _VentasScreenState extends State<VentasScreen>
                   HapticFeedback.mediumImpact();
                   KarlizSoundService.instance.playBarcodeBeep();
                 },
-                icon: const Icon(LucideIcons.zap, size: 18),
+                icon: Icon(
+                  LucideIcons.zap,
+                  size: isTablet
+                      ? (ResponsiveLayout.isDesktop(context) ? 22 : 18)
+                      : 18,
+                ),
                 label: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
                     'COBRAR EXACTO • S/ ${_totalVenta.toStringAsFixed(2)}',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: isTablet ? 12.5 : 13.5,
+                      fontSize: isTablet
+                          ? (ResponsiveLayout.isDesktop(context) ? 14.5 : 12.5)
+                          : 13.5,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -11263,13 +11275,20 @@ class _VentasScreenState extends State<VentasScreen>
             height: height,
             child: ElevatedButton.icon(
               onPressed: _procesarVenta,
-              icon: const Icon(LucideIcons.checkCheck, size: 18),
+              icon: Icon(
+                LucideIcons.checkCheck,
+                size: isTablet
+                    ? (ResponsiveLayout.isDesktop(context) ? 22 : 18)
+                    : 18,
+              ),
               label: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   labelText,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: isTablet ? 12.5 : 13.5,
+                    fontSize: isTablet
+                        ? (ResponsiveLayout.isDesktop(context) ? 14.5 : 12.5)
+                        : 13.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
                   ),
@@ -11327,13 +11346,18 @@ class _VentasScreenState extends State<VentasScreen>
                   ? _mostrarSelectorCliente
                   : _procesarVenta)
             : null,
-        icon: Icon(btnIcon, size: 18),
+        icon: Icon(
+          btnIcon,
+          size: isTablet ? (ResponsiveLayout.isDesktop(context) ? 22 : 18) : 18,
+        ),
         label: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
             btnLabel,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: isTablet ? 12.5 : 13.5,
+              fontSize: isTablet
+                  ? (ResponsiveLayout.isDesktop(context) ? 14.5 : 12.5)
+                  : 13.5,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.2,
             ),

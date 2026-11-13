@@ -22,6 +22,18 @@ class ResponsiveLayout {
   static bool isTabletOrLarger(BuildContext context) =>
       MediaQuery.sizeOf(context).width >= mobileBreakpoint;
 
+  /// Factor de escala visual para pantallas de mostrador / PC (+20% en desktop)
+  static double getScale(BuildContext context) =>
+      isDesktop(context) ? 1.20 : 1.0;
+
+  /// Retorna un tamaño de icono ampliado en un ~20% para pantallas de PC/Desktop
+  static double iconSize(BuildContext context, {double base = 20.0}) =>
+      isDesktop(context) ? (base * 1.20).roundToDouble() : base;
+
+  /// Retorna un tamaño de tipografía adaptado a pantalla de mostrador PC
+  static double fontSize(BuildContext context, {required double base}) =>
+      isDesktop(context) ? (base * 1.12) : base;
+
   /// Detecta si el dispositivo es físicamente una tablet usando el estándar de Android / iOS (sw600dp)
   static bool isPhysicalTablet(BuildContext context) =>
       MediaQuery.sizeOf(context).shortestSide >= physicalTabletShortestSide;

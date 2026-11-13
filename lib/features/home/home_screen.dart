@@ -1731,6 +1731,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = context.watch<ThemeProvider>().isDarkMode;
     final screenWidth = MediaQuery.of(context).size.width;
     final isWideScreen = screenWidth >= 760;
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
     return Listener(
       behavior: HitTestBehavior.translucent,
@@ -2279,6 +2280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         labelType: _railCollapsed
                             ? NavigationRailLabelType.none
                             : NavigationRailLabelType.all,
+                        minWidth: isDesktop ? 84.0 : 72.0,
                         backgroundColor: isDark
                             ? AppTheme.cardDark
                             : Colors.white,
@@ -2286,23 +2288,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         indicatorShape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        selectedIconTheme: const IconThemeData(
+                        selectedIconTheme: IconThemeData(
                           color: Colors.white,
-                          size: 21,
+                          size: isDesktop ? 25.0 : 21.0,
                         ),
                         unselectedIconTheme: IconThemeData(
                           color: isDark
                               ? AppTheme.textDarkSecondary
                               : const Color(0xFF475569),
-                          size: 20,
+                          size: isDesktop ? 24.0 : 20.0,
                         ),
                         selectedLabelTextStyle: GoogleFonts.outfit(
-                          fontSize: 11.5,
+                          fontSize: isDesktop ? 12.5 : 11.5,
                           fontWeight: FontWeight.w800,
                           color: isDark ? Colors.white : AppTheme.brandPrimary,
                         ),
                         unselectedLabelTextStyle: GoogleFonts.outfit(
-                          fontSize: 11,
+                          fontSize: isDesktop ? 12.0 : 11.0,
                           fontWeight: FontWeight.w600,
                           color: isDark
                               ? AppTheme.textDarkSecondary

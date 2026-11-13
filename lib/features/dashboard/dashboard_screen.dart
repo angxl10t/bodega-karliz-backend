@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/widgets/tab_deferred_refresh.dart';
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
@@ -2207,7 +2208,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                 width: 1,
               ),
             ),
-            child: Icon(icon, color: displayAccent, size: 22),
+            child: Icon(
+              icon,
+              color: displayAccent,
+              size: ResponsiveLayout.iconSize(context, base: 22),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -2217,7 +2222,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Text(
                   title,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.5,
+                    fontSize: ResponsiveLayout.fontSize(context, base: 12.5),
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.1,
                     color: titleColor,
@@ -2232,7 +2237,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   child: Text(
                     value,
                     style: GoogleFonts.outfit(
-                      fontSize: 19.0,
+                      fontSize: ResponsiveLayout.fontSize(context, base: 19.0),
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.3,
                       color: isDark ? Colors.white : AppTheme.textDark,
@@ -2243,7 +2248,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Text(
                   subtitle,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
+                    fontSize: ResponsiveLayout.fontSize(context, base: 11.5),
                     fontWeight: FontWeight.w700,
                     color: displayAccent,
                   ),
@@ -3166,7 +3171,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                         color: iconBg,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(icon, color: iconColor, size: 20),
+                      child: Icon(
+                        icon,
+                        color: iconColor,
+                        size: ResponsiveLayout.iconSize(context, base: 20),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -3179,7 +3188,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                               Text(
                                 title,
                                 style: GoogleFonts.outfit(
-                                  fontSize: 13.5,
+                                  fontSize: ResponsiveLayout.fontSize(
+                                    context,
+                                    base: 13.5,
+                                  ),
                                   fontWeight: FontWeight.w800,
                                   color: isDark
                                       ? Colors.white
@@ -3286,7 +3298,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                             color: iconBg,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Icon(icon, color: iconColor, size: 18),
+                          child: Icon(
+                            icon,
+                            color: iconColor,
+                            size: ResponsiveLayout.iconSize(context, base: 18),
+                          ),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -3354,7 +3370,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Text(
                       title,
                       style: GoogleFonts.outfit(
-                        fontSize: 13.5,
+                        fontSize: ResponsiveLayout.fontSize(
+                          context,
+                          base: 13.5,
+                        ),
                         fontWeight: FontWeight.w800,
                         color: isDark ? Colors.white : AppTheme.textDark,
                       ),
@@ -3365,7 +3384,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Text(
                       subtitle,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
+                        fontSize: ResponsiveLayout.fontSize(
+                          context,
+                          base: 11.5,
+                        ),
                         fontWeight: FontWeight.w600,
                         color: isDark
                             ? AppTheme.textDarkSecondary
