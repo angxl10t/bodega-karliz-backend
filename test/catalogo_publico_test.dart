@@ -309,4 +309,58 @@ void main() {
       expect(find.text('S/ 3.50'), findsOneWidget);
     },
   );
+
+  group('Secondary Promotional Color Tests', () {
+    test(
+        'Cobalt brand produces warm coral/orange secondary promotional color',
+        () {
+      const primary = Color(0xFF2563EB); // Cobalto FinTech
+      final promoColor =
+          CatalogoPublicoScreen.generarColorSecundarioPromocion(primary);
+      expect(promoColor, equals(const Color(0xFFEA580C)));
+    });
+
+    test(
+        'Green & Emerald brands produce vibrant Ruby/Crimson secondary promotional color (never green-on-green)',
+        () {
+      const verdeRetail = Color(0xFF059669);
+      const esmeralda = Color(0xFF0D9488);
+      expect(
+        CatalogoPublicoScreen.generarColorSecundarioPromocion(verdeRetail),
+        equals(const Color(0xFFE11D48)),
+      );
+      expect(
+        CatalogoPublicoScreen.generarColorSecundarioPromocion(esmeralda),
+        equals(const Color(0xFFE11D48)),
+      );
+    });
+
+    test(
+        'Ruby brand produces warm Golden Amber secondary promotional color (avoids green clash)',
+        () {
+      const rubi = Color(0xFFE11D48);
+      expect(
+        CatalogoPublicoScreen.generarColorSecundarioPromocion(rubi),
+        equals(const Color(0xFFD97706)),
+      );
+    });
+
+    test('Violet brand produces warm electric Amber secondary promotional color',
+        () {
+      const violeta = Color(0xFF7C3AED);
+      expect(
+        CatalogoPublicoScreen.generarColorSecundarioPromocion(violeta),
+        equals(const Color(0xFFF59E0B)),
+      );
+    });
+
+    test(
+        'Custom green hue via HSV fallback never outputs green for promotions',
+        () {
+      const customGreen = Color(0xFF22C55E); // Green 500
+      final promoColor =
+          CatalogoPublicoScreen.generarColorSecundarioPromocion(customGreen);
+      expect(promoColor, equals(const Color(0xFFE11D48)));
+    });
+  });
 }

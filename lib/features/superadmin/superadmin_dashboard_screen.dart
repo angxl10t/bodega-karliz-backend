@@ -1881,9 +1881,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     required IconData icon,
     required Color color,
     required bool isDark,
+    double? width,
   }) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 160, maxWidth: 220),
+      width: width,
+      constraints: width != null
+          ? null
+          : const BoxConstraints(minWidth: 160, maxWidth: 220),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
@@ -1929,15 +1933,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  value,
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : AppTheme.textDark,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                    maxLines: 1,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   subtitle,
@@ -1946,7 +1953,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     fontWeight: FontWeight.w600,
                     color: color,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -2567,23 +2574,6 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   icon: const Icon(LucideIcons.sparkles, size: 14),
                   label: const Text('Gestionar Plan'),
                   onPressed: () => _abrirModalCambiarPlan(b),
-                ),
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _parseHexToColor(b.colorPrimario),
-                    side: BorderSide(color: _parseHexToColor(b.colorPrimario)),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  icon: const Icon(LucideIcons.palette, size: 14),
-                  label: const Text('Color'),
-                  onPressed: () => _abrirModalCambiarColorBodega(b),
                 ),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
@@ -5512,321 +5502,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     }
   }
 
-  void _abrirModalCambiarColorBodega(BodegaInfo b) {
-    String selectedHex = b.colorPrimario;
-    final hexController = TextEditingController(text: selectedHex);
-    bool isSaving = false;
-
-    final presets = [
-      {'nombre': 'Cobalto Clásico', 'hex': '#2563EB'},
-      {'nombre': 'Esmeralda', 'hex': '#059669'},
-      {'nombre': 'Púrpura Neón', 'hex': '#7C3AED'},
-      {'nombre': 'Ámbar Cálido', 'hex': '#D97706'},
-      {'nombre': 'Carmesí', 'hex': '#E11D48'},
-      {'nombre': 'Turquesa Mar', 'hex': '#0D9488'},
-      {'nombre': 'Índigo Real', 'hex': '#4F46E5'},
-      {'nombre': 'Azul Medianoche', 'hex': '#1E293B'},
-      {'nombre': 'Naranja Sol', 'hex': '#EA580C'},
-      {'nombre': 'Fucsia Moderno', 'hex': '#C026D3'},
-    ];
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (dialogCtx, setDialogState) {
-            final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-            final currentColor = _parseHexToColor(selectedHex);
-
-            return AlertDialog(
-              backgroundColor: isDark
-                  ? AppTheme.cardDarkElevated
-                  : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: currentColor.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      LucideIcons.palette,
-                      color: currentColor,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Personalizar Color de Tienda',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          b.nombreComercial,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            color: isDark ? Colors.white60 : Colors.black54,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                width: 440,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Preview Badge
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: currentColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: currentColor.withValues(alpha: 0.4),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: currentColor,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: currentColor.withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Color Seleccionado: $selectedHex',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Afectará la app POS móvil y la tienda web online de la bodega.',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      color: isDark
-                                          ? Colors.white60
-                                          : Colors.black54,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Paleta de Colores Recomendados:',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: presets.map((preset) {
-                          final pColor = _parseHexToColor(preset['hex']!);
-                          final isSelected =
-                              selectedHex.toUpperCase() ==
-                              preset['hex']!.toUpperCase();
-                          return InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: () {
-                              setDialogState(() {
-                                selectedHex = preset['hex']!;
-                                hexController.text = preset['hex']!;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? pColor.withValues(alpha: 0.2)
-                                    : (isDark
-                                          ? Colors.white10
-                                          : Colors.black.withValues(
-                                              alpha: 0.04,
-                                            )),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? pColor
-                                      : Colors.transparent,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 14,
-                                    height: 14,
-                                    decoration: BoxDecoration(
-                                      color: pColor,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    preset['nombre']!,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w700
-                                          : FontWeight.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Código HEX Personalizado (#RRGGBB):',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: hexController,
-                        textCapitalization: TextCapitalization.characters,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(LucideIcons.hash, size: 16),
-                          hintText: '#2563EB',
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        onChanged: (val) {
-                          String clean = val.trim();
-                          if (!clean.startsWith('#')) clean = '#$clean';
-                          if (RegExp(r'^#([0-9a-fA-F]{6})$').hasMatch(clean)) {
-                            setDialogState(() {
-                              selectedHex = clean.toUpperCase();
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancelar'),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: currentColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  icon: isSaving
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(LucideIcons.check, size: 16),
-                  label: const Text('Guardar Color'),
-                  onPressed: isSaving
-                      ? null
-                      : () async {
-                          setDialogState(() => isSaving = true);
-                          try {
-                            await _bodegaService.cambiarColorBodegaSuperadmin(
-                              idBodega: b.idBodega,
-                              colorPrimario: selectedHex,
-                            );
-                            if (ctx.mounted) Navigator.pop(ctx);
-                            _cargarTodo();
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Color de "${b.nombreComercial}" actualizado a $selectedHex.',
-                                  ),
-                                  backgroundColor: AppTheme.accentGreen,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            setDialogState(() => isSaving = false);
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error al cambiar color: $e'),
-                                  backgroundColor: AppTheme.alertRed,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   // ===========================================================================
-  // PESTAÑA 4: FINANZAS SAAS & COBRANZAS DE CLIENTES
+  // PESTAÑA 4: FINANZAS SAAS & COBRANZAS DE CLIENTES (RESPONSIVE)
   // ===========================================================================
 
   Widget _buildTabFinanzasSaaS(bool isDark) {
@@ -5849,157 +5526,182 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final porVencer = (_finanzasSaaS['porVencer'] as List<dynamic>?) ?? [];
     final vencidas = (_finanzasSaaS['vencidas'] as List<dynamic>?) ?? [];
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Tarjetas de Métricas MRR
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        int kpiColumns = 1;
+        if (availableWidth >= 1100) {
+          kpiColumns = 4;
+        } else if (availableWidth >= 750) {
+          kpiColumns = 2;
+        } else if (availableWidth >= 480) {
+          kpiColumns = 2;
+        } else {
+          kpiColumns = 1; // 100% de ancho en móvil celular
+        }
+        final double kpiSpacing = 12;
+        final double kpiCardWidth =
+            (availableWidth - ((kpiColumns - 1) * kpiSpacing)) / kpiColumns;
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            _buildKpiCard(
-              title: 'MRR RECURRENTE TOTAL',
-              value: 'S/ $mrrTotal',
-              icon: LucideIcons.trendingUp,
-              color: AppTheme.brandPrimary,
-              subtitle: 'Proyección mensual SaaS',
-              isDark: isDark,
-            ),
-            _buildKpiCard(
-              title: 'MRR PLAN PRO',
-              value: 'S/ $mrrPro',
-              icon: LucideIcons.crown,
-              color: const Color(0xFFF59E0B),
-              subtitle: '$proCount bodegas × S/ 49.90',
-              isDark: isDark,
-            ),
-            _buildKpiCard(
-              title: 'MRR CORPORATIVO',
-              value: 'S/ $mrrCorp',
-              icon: LucideIcons.building2,
-              color: const Color(0xFF7C3AED),
-              subtitle: '$corpCount cadenas × S/ 149.00',
-              isDark: isDark,
-            ),
-            _buildKpiCard(
-              title: 'DISTRIBUCIÓN CLIENTES',
-              value: '$activas / $totalBodegas Activas',
-              icon: LucideIcons.store,
-              color: AppTheme.accentGreen,
-              subtitle: '$basicoCount Básico • $proCount PRO • $corpCount Corp',
-              isDark: isDark,
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 24),
-
-        // Sección: Suscripciones Vencidas (Acción Inmediata)
-        if (vencidas.isNotEmpty) ...[
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppTheme.alertRed.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.alertOctagon,
-                  color: AppTheme.alertRed,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Suscripciones Vencidas (${vencidas.length})',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.alertRed,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ...vencidas.map(
-            (item) => _buildCobranzaCard(
-              item as Map<String, dynamic>,
-              isDark,
-              vencido: true,
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-
-        // Sección: Suscripciones por vencer en los próximos 7 días
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                LucideIcons.clock,
-                color: Colors.amber.shade800,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Próximas a Vencer (<= 7 días) (${porVencer.length})',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (porVencer.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.cardDarkElevated : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark
-                    ? AppTheme.borderDarkElevated
-                    : Colors.grey.shade200,
-              ),
-            ),
-            child: Row(
+            // Tarjetas de Métricas MRR Responsivas (Llenan 100% en celular)
+            Wrap(
+              spacing: kpiSpacing,
+              runSpacing: kpiSpacing,
               children: [
-                const Icon(
-                  LucideIcons.checkCircle2,
-                  color: AppTheme.accentGreen,
-                  size: 24,
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'MRR RECURRENTE TOTAL',
+                  value: 'S/ $mrrTotal',
+                  icon: LucideIcons.trendingUp,
+                  color: AppTheme.brandPrimary,
+                  subtitle: 'Proyección mensual SaaS',
+                  isDark: isDark,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '¡Excelente! No hay bodegas con suscripciones próximas a vencer en los próximos 7 días.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      color: isDark ? Colors.white70 : Colors.black87,
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'MRR PLAN PRO',
+                  value: 'S/ $mrrPro',
+                  icon: LucideIcons.crown,
+                  color: const Color(0xFFF59E0B),
+                  subtitle: '$proCount bodegas × S/ 49.90',
+                  isDark: isDark,
+                ),
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'MRR CORPORATIVO',
+                  value: 'S/ $mrrCorp',
+                  icon: LucideIcons.building2,
+                  color: const Color(0xFF7C3AED),
+                  subtitle: '$corpCount cadenas × S/ 149.00',
+                  isDark: isDark,
+                ),
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'DISTRIBUCIÓN CLIENTES',
+                  value: '$activas / $totalBodegas Activas',
+                  icon: LucideIcons.store,
+                  color: AppTheme.accentGreen,
+                  subtitle:
+                      '$basicoCount Básico • $proCount PRO • $corpCount Corp',
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // Sección: Suscripciones Vencidas (Acción Inmediata)
+            if (vencidas.isNotEmpty) ...[
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.alertRed.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
                     ),
+                    child: const Icon(
+                      LucideIcons.alertOctagon,
+                      color: AppTheme.alertRed,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Suscripciones Vencidas (${vencidas.length})',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.alertRed,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ...vencidas.map(
+                (item) => _buildCobranzaCard(
+                  item as Map<String, dynamic>,
+                  isDark,
+                  vencido: true,
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Sección: Suscripciones por vencer en los próximos 7 días
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    LucideIcons.clock,
+                    color: Colors.amber.shade800,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Próximas a Vencer (<= 7 días) (${porVencer.length})',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ],
             ),
-          )
-        else
-          ...porVencer.map(
-            (item) => _buildCobranzaCard(
-              item as Map<String, dynamic>,
-              isDark,
-              vencido: false,
-            ),
-          ),
-      ],
+            const SizedBox(height: 10),
+            if (porVencer.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? AppTheme.cardDarkElevated : Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? AppTheme.borderDarkElevated
+                        : Colors.grey.shade200,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      LucideIcons.checkCircle2,
+                      color: AppTheme.accentGreen,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '¡Excelente! No hay bodegas con suscripciones próximas a vencer en los próximos 7 días.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ...porVencer.map(
+                (item) => _buildCobranzaCard(
+                  item as Map<String, dynamic>,
+                  isDark,
+                  vencido: false,
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -6016,171 +5718,196 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final colorPrimario = item['colorPrimario']?.toString() ?? '#2563EB';
     final bodegaColor = _parseHexToColor(colorPrimario);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: vencido
-              ? AppTheme.alertRed.withValues(alpha: 0.5)
-              : Colors.amber.withValues(alpha: 0.5),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Avatar de Tienda con su color
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: bodegaColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: bodegaColor.withValues(alpha: 0.6),
-                width: 1.5,
-              ),
-            ),
-            child: Center(
-              child: Icon(LucideIcons.store, color: bodegaColor, size: 22),
-            ),
-          ),
-          const SizedBox(width: 14),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 560;
 
-          // Info de la Tienda
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        final avatarWidget = Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: bodegaColor.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: bodegaColor.withValues(alpha: 0.6),
+              width: 1.5,
+            ),
+          ),
+          child: Center(
+            child: Icon(LucideIcons.store, color: bodegaColor, size: 22),
+          ),
+        );
+
+        final vencidoChip = Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 2.5,
+          ),
+          decoration: BoxDecoration(
+            color: vencido
+                ? AppTheme.alertRed.withValues(alpha: 0.15)
+                : Colors.amber.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            vencido ? 'Venció hace ${dias.abs()}d' : 'Vence en ${dias}d',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: vencido ? AppTheme.alertRed : Colors.amber.shade900,
+            ),
+          ),
+        );
+
+        final infoWidget = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        nombre,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                Expanded(
+                  child: Text(
+                    nombre,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: vencido
-                            ? AppTheme.alertRed.withValues(alpha: 0.15)
-                            : Colors.amber.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        vencido
-                            ? 'Venció hace ${dias.abs()}d'
-                            : 'Vence en ${dias}d',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: vencido
-                              ? AppTheme.alertRed
-                              : Colors.amber.shade900,
-                        ),
-                      ),
-                    ),
-                  ],
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      'Plan $plan',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white70 : Colors.black54,
-                      ),
+                const SizedBox(width: 8),
+                vencidoChip,
+              ],
+            ),
+            const SizedBox(height: 5),
+            Wrap(
+              spacing: 6,
+              runSpacing: 2,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Plan $plan',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+                if (telefono.isNotEmpty) ...[
+                  Text(
+                    '•',
+                    style: TextStyle(
+                      color: isDark ? Colors.white38 : Colors.black26,
                     ),
-                    if (telefono.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        '•',
-                        style: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.black26,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        LucideIcons.phone,
-                        size: 12,
-                        color: isDark ? Colors.white54 : Colors.black45,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        telefono,
-                        style: GoogleFonts.firaCode(
-                          fontSize: 11.5,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
+                  ),
+                  Icon(
+                    LucideIcons.phone,
+                    size: 12,
+                    color: isDark ? Colors.white54 : Colors.black45,
+                  ),
+                  Text(
+                    telefono,
+                    style: GoogleFonts.firaCode(
+                      fontSize: 11.5,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        );
+
+        final whatsappButton = whatsappUrl.isNotEmpty
+            ? ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF25D366),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: isMobile ? 12 : 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(LucideIcons.messageCircle, size: 16),
+                label: const Text(
+                  'Cobrar por WhatsApp',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                onPressed: () async {
+                  final uri = Uri.parse(whatsappUrl);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(
+                      uri,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  }
+                },
+              )
+            : const SizedBox.shrink();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: vencido
+                  ? AppTheme.alertRed.withValues(alpha: 0.5)
+                  : Colors.amber.withValues(alpha: 0.5),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: isMobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        avatarWidget,
+                        const SizedBox(width: 12),
+                        Expanded(child: infoWidget),
+                      ],
+                    ),
+                    if (whatsappUrl.isNotEmpty) ...[
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: whatsappButton,
                       ),
                     ],
                   ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    avatarWidget,
+                    const SizedBox(width: 14),
+                    Expanded(child: infoWidget),
+                    const SizedBox(width: 14),
+                    whatsappButton,
+                  ],
                 ),
-              ],
-            ),
-          ),
-
-          // Botones de Acción
-          Wrap(
-            spacing: 8,
-            children: [
-              if (whatsappUrl.isNotEmpty)
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 0,
-                  ),
-                  icon: const Icon(LucideIcons.messageCircle, size: 16),
-                  label: const Text('Cobrar por WhatsApp'),
-                  onPressed: () async {
-                    final uri = Uri.parse(whatsappUrl);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    }
-                  },
-                ),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   // ===========================================================================
-  // PESTAÑA 5: SUGERENCIAS GLOBALES & MONITOREO DE PRECIOS
+  // PESTAÑA 5: SUGERENCIAS GLOBALES & MONITOREO DE PRECIOS (RESPONSIVE)
   // ===========================================================================
 
   void _abrirModalSugerirPrecioGlobal() {
@@ -6229,59 +5956,79 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       return true;
     }).toList();
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Métricas de Sugerencias
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            _buildKpiCard(
-              title: 'TOTAL SUGERENCIAS',
-              value: total,
-              icon: LucideIcons.sparkles,
-              color: AppTheme.brandPrimary,
-              subtitle: 'Propuestas emitidas a la red',
-              isDark: isDark,
-            ),
-            _buildKpiCard(
-              title: 'PENDIENTES',
-              value: pendientes,
-              icon: LucideIcons.clock,
-              color: const Color(0xFFF59E0B),
-              subtitle: 'Esperando respuesta de bodegas',
-              isDark: isDark,
-            ),
-            _buildKpiCard(
-              title: 'ACEPTADAS',
-              value: aceptadas,
-              icon: LucideIcons.checkCircle2,
-              color: AppTheme.accentGreen,
-              subtitle: 'Precios adoptados con éxito',
-              isDark: isDark,
-            ),
-            _buildKpiCard(
-              title: 'TASA DE ADOPCIÓN',
-              value: tasa,
-              icon: LucideIcons.percent,
-              color: const Color(0xFF7C3AED),
-              subtitle: '$rechazadas rechazadas por bodegas',
-              isDark: isDark,
-            ),
-          ],
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        int kpiColumns = 1;
+        if (availableWidth >= 1100) {
+          kpiColumns = 4;
+        } else if (availableWidth >= 750) {
+          kpiColumns = 2;
+        } else if (availableWidth >= 480) {
+          kpiColumns = 2;
+        } else {
+          kpiColumns = 1; // 100% de ancho en móvil celular
+        }
+        final double kpiSpacing = 12;
+        final double kpiCardWidth =
+            (availableWidth - ((kpiColumns - 1) * kpiSpacing)) / kpiColumns;
+        final isMobile = availableWidth < 550;
 
-        const SizedBox(height: 20),
-
-        // Barra de Búsqueda y Filtros
-        Row(
+        return ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            Expanded(
-              child: TextField(
+            // Métricas de Sugerencias Responsivas (100% ancho en celulares)
+            Wrap(
+              spacing: kpiSpacing,
+              runSpacing: kpiSpacing,
+              children: [
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'TOTAL SUGERENCIAS',
+                  value: total,
+                  icon: LucideIcons.sparkles,
+                  color: AppTheme.brandPrimary,
+                  subtitle: 'Propuestas emitidas a la red',
+                  isDark: isDark,
+                ),
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'PENDIENTES',
+                  value: pendientes,
+                  icon: LucideIcons.clock,
+                  color: const Color(0xFFF59E0B),
+                  subtitle: 'Esperando respuesta de bodegas',
+                  isDark: isDark,
+                ),
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'ACEPTADAS',
+                  value: aceptadas,
+                  icon: LucideIcons.checkCircle2,
+                  color: AppTheme.accentGreen,
+                  subtitle: 'Precios adoptados con éxito',
+                  isDark: isDark,
+                ),
+                _buildKpiCard(
+                  width: kpiCardWidth,
+                  title: 'TASA DE ADOPCIÓN',
+                  value: tasa,
+                  icon: LucideIcons.percent,
+                  color: const Color(0xFF7C3AED),
+                  subtitle: '$rechazadas rechazadas por bodegas',
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Barra de Búsqueda y Botón Nueva Sugerencia Responsivos
+            if (isMobile) ...[
+              TextField(
                 controller: _searchSugerenciaCtrl,
                 decoration: InputDecoration(
-                  hintText: 'Buscar por producto, bodega o código de barras...',
+                  hintText: 'Buscar por producto, bodega o código...',
                   prefixIcon: const Icon(LucideIcons.search, size: 18),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
@@ -6304,72 +6051,127 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 ),
                 onChanged: (_) => setState(() {}),
               ),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.brandPrimary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(LucideIcons.sparkles, size: 16),
+                  label: const Text(
+                    'Nueva Sugerencia Global',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () => _abrirModalSugerirPrecioGlobal(),
                 ),
               ),
-              icon: const Icon(LucideIcons.sparkles, size: 16),
-              label: const Text('Nueva Sugerencia'),
-              onPressed: () => _abrirModalSugerirPrecioGlobal(),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
-
-        // Filtro por Estado
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildFiltroSugerenciaChip('TODOS', 'Todas', isDark),
-              const SizedBox(width: 8),
-              _buildFiltroSugerenciaChip('PENDIENTE', 'Pendientes', isDark),
-              const SizedBox(width: 8),
-              _buildFiltroSugerenciaChip('ACEPTADA', 'Aceptadas', isDark),
-              const SizedBox(width: 8),
-              _buildFiltroSugerenciaChip('RECHAZADA', 'Rechazadas', isDark),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        if (filtradas.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(40),
-            alignment: Alignment.center,
-            child: Column(
-              children: [
-                Icon(
-                  LucideIcons.inbox,
-                  size: 48,
-                  color: isDark ? Colors.white24 : Colors.black26,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'No hay sugerencias que coincidan con los filtros.',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    color: isDark ? Colors.white60 : Colors.black54,
+            ] else ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchSugerenciaCtrl,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Buscar por producto, bodega o código de barras...',
+                        prefixIcon: const Icon(LucideIcons.search, size: 18),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        suffixIcon: _searchSugerenciaCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(LucideIcons.x, size: 16),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchSugerenciaCtrl.clear();
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.brandPrimary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(LucideIcons.sparkles, size: 16),
+                    label: const Text('Nueva Sugerencia'),
+                    onPressed: () => _abrirModalSugerirPrecioGlobal(),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 12),
+
+            // Filtro por Estado
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFiltroSugerenciaChip('TODOS', 'Todas', isDark),
+                  const SizedBox(width: 8),
+                  _buildFiltroSugerenciaChip('PENDIENTE', 'Pendientes', isDark),
+                  const SizedBox(width: 8),
+                  _buildFiltroSugerenciaChip('ACEPTADA', 'Aceptadas', isDark),
+                  const SizedBox(width: 8),
+                  _buildFiltroSugerenciaChip('RECHAZADA', 'Rechazadas', isDark),
+                ],
+              ),
             ),
-          )
-        else
-          ...filtradas.map((s) => _buildSugerenciaSuperadminCard(s, isDark)),
-      ],
+
+            const SizedBox(height: 16),
+
+            if (filtradas.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(40),
+                alignment: Alignment.center,
+                child: Column(
+                  children: [
+                    Icon(
+                      LucideIcons.inbox,
+                      size: 48,
+                      color: isDark ? Colors.white24 : Colors.black26,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No hay sugerencias que coincidan con los filtros.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        color: isDark ? Colors.white60 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ...filtradas
+                  .map((s) => _buildSugerenciaSuperadminCard(s, isDark)),
+          ],
+        );
+      },
     );
   }
 
@@ -6427,228 +6229,263 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         ? ((diff / item.precioVentaActual) * 100).toStringAsFixed(1)
         : '0.0';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppTheme.borderDarkElevated : Colors.grey.shade200,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 450;
+
+        final badgeWidget = Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 9,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: badgeColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(badgeIcon, size: 12, color: badgeColor),
+              const SizedBox(width: 5),
+              Text(
+                badgeText,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: badgeColor,
+                ),
+              ),
+            ],
+          ),
+        );
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDarkElevated : Colors.grey.shade200,
+            ),
+          ),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Mini foto de producto o icono
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white10 : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: item.imagenUrl != null && item.imagenUrl!.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          item.imagenUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(LucideIcons.package, size: 24),
-                        ),
-                      )
-                    : const Icon(LucideIcons.package, size: 24),
-              ),
-              const SizedBox(width: 14),
-
-              // Título y código
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.nombreActual,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.5,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Mini foto de producto o icono
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white10 : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(height: 2),
-                    Row(
+                    child: item.imagenUrl != null && item.imagenUrl!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              item.imagenUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(LucideIcons.package, size: 24),
+                            ),
+                          )
+                        : const Icon(LucideIcons.package, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Título, bodega y código
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Código: ${item.codigoBarras}',
-                          style: GoogleFonts.firaCode(
-                            fontSize: 11,
-                            color: isDark ? Colors.white54 : Colors.black45,
-                          ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.nombreActual,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.5,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ),
+                            if (!isNarrow) ...[
+                              const SizedBox(width: 8),
+                              badgeWidget,
+                            ],
+                          ],
                         ),
-                        if (item.nombreBodega != null) ...[
-                          const SizedBox(width: 8),
+                        if (isNarrow) ...[
+                          const SizedBox(height: 6),
+                          badgeWidget,
+                        ],
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 2,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              'Cód: ${item.codigoBarras}',
+                              style: GoogleFonts.firaCode(
+                                fontSize: 11,
+                                color: isDark ? Colors.white54 : Colors.black45,
+                              ),
+                            ),
+                            if (item.nombreBodega != null) ...[
+                              Text(
+                                '•',
+                                style: TextStyle(
+                                  color: isDark ? Colors.white38 : Colors.black26,
+                                ),
+                              ),
+                              Text(
+                                'Bodega: ${item.nombreBodega}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.brandPrimary,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+
+              // Comparativa de Precios Responsiva
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            '•',
-                            style: TextStyle(
-                              color: isDark ? Colors.white38 : Colors.black26,
+                            'Precio Actual',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: isDark ? Colors.white60 : Colors.black54,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'S/ ${item.precioVentaActual.toStringAsFixed(2)}',
+                              style: GoogleFonts.firaCode(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Icon(
+                      LucideIcons.arrowRight,
+                      size: 16,
+                      color: isDark ? Colors.white38 : Colors.grey,
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            'Bodega: ${item.nombreBodega}',
+                            'Precio Sugerido',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.brandPrimary,
                             ),
                           ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Badge Estado
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(badgeIcon, size: 12, color: badgeColor),
-                    const SizedBox(width: 5),
-                    Text(
-                      badgeText,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: badgeColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-
-          // Comparativa de Precios
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.04)
-                        : Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Precio Actual',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: isDark ? Colors.white60 : Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'S/ ${item.precioVentaActual.toStringAsFixed(2)}',
-                        style: GoogleFonts.firaCode(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Icon(LucideIcons.arrowRight, size: 16, color: Colors.grey),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.brandPrimary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Precio Sugerido',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.brandPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Text(
-                            'S/ ${item.precioVentaSugerido.toStringAsFixed(2)}',
-                            style: GoogleFonts.firaCode(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.brandPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '(${diff >= 0 ? '+' : ''}$diffPorcentaje%)',
-                            style: GoogleFonts.firaCode(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: diff >= 0
-                                  ? AppTheme.accentGreen
-                                  : AppTheme.alertRed,
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'S/ ${item.precioVentaSugerido.toStringAsFixed(2)}',
+                                  style: GoogleFonts.firaCode(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.brandPrimary,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '(${diff >= 0 ? '+' : ''}$diffPorcentaje%)',
+                                  style: GoogleFonts.firaCode(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: diff >= 0
+                                        ? AppTheme.accentGreen
+                                        : AppTheme.alertRed,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                  ),
+                ],
+              ),
+
+              if (item.motivo != null && item.motivo!.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Motivo: ${item.motivo}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: isDark ? Colors.white70 : Colors.black54,
                   ),
                 ),
-              ),
+              ],
             ],
           ),
-
-          if (item.motivo != null && item.motivo!.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              'Motivo: ${item.motivo}',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-                color: isDark ? Colors.white70 : Colors.black54,
-              ),
-            ),
-          ],
-        ],
-      ),
+        );
+      },
     );
   }
 }

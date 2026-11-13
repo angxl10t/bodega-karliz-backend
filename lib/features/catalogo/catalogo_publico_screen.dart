@@ -27,6 +27,56 @@ class CatalogoPublicoScreen extends StatefulWidget {
     this.httpClient,
   });
 
+  /// Deriva un color de promoción secundario armónico y de alto contraste a partir del color de marca de la tienda
+  static Color generarColorSecundarioPromocion(Color primary) {
+    // 1. Mapeo armónico curado para los 11 presets de identidad de CajaYa
+    final int value = primary.toARGB32() & 0x00FFFFFF;
+    switch (value) {
+      case 0x2563EB: // Cobalto FinTech -> Naranja Fuego / Coral promocional de alto impacto
+        return const Color(0xFFEA580C);
+      case 0x0D9488: // Esmeralda Boutique -> Rubí Carmesí
+        return const Color(0xFFE11D48);
+      case 0x059669: // Verde Retail -> Rubí Carmesí vibrante
+        return const Color(0xFFE11D48);
+      case 0x4F46E5: // Índigo Real -> Ámbar Dorado brillante
+        return const Color(0xFFF59E0B);
+      case 0x7C3AED: // Violeta SaaS -> Ámbar Eléctrico
+        return const Color(0xFFF59E0B);
+      case 0xE11D48: // Rubí Moderno -> Ámbar Cálido
+        return const Color(0xFFD97706);
+      case 0xD97706: // Ámbar Dinámico -> Rubí Carmesí
+        return const Color(0xFFE11D48);
+      case 0x06B6D4: // Turquesa Neón -> Rosa Frambuesa
+        return const Color(0xFFF43F5E);
+      case 0x78350F: // Cacao Artesanal -> Ámbar Cálido
+        return const Color(0xFFD97706);
+      case 0xC026D3: // Fucsia Vibrante -> Ámbar Dorado
+        return const Color(0xFFF59E0B);
+      case 0x334155: // Pizarra Minimal -> Cobalto Moderno
+        return const Color(0xFF2563EB);
+    }
+
+    // 2. Fallback algorítmico dinámico para colores HEX personalizados usando HSV
+    final hsv = HSVColor.fromColor(primary);
+    final hue = hsv.hue;
+    if (hue >= 70 && hue <= 165) {
+      // Para tiendas con tonos verdes: usar rubí/carmesí para evitar que todo sea verde
+      return const Color(0xFFE11D48);
+    }
+    if (hue >= 340 || hue <= 25) {
+      // Para tiendas con tonos rojos/rosas: usar ámbar cálido para evitar choque cromático
+      return const Color(0xFFD97706);
+    }
+    if (hue >= 190 && hue <= 310) {
+      // Para tiendas con tonos azules/violetas: usar naranja coral para pop llamativo
+      return const Color(0xFFEA580C);
+    }
+
+    // Para cualquier otro tono personalizado, calcular color contrastante armónico
+    final targetHue = (hue + 180) % 360;
+    return HSVColor.fromAHSV(1.0, targetHue, 0.85, 0.90).toColor();
+  }
+
   @override
   State<CatalogoPublicoScreen> createState() => _CatalogoPublicoScreenState();
 }
@@ -67,6 +117,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     }
     return AppTheme.brandPrimary;
   }
+
+  Color get _colorPromocion =>
+      CatalogoPublicoScreen.generarColorSecundarioPromocion(_colorMarca);
 
   @override
   void initState() {
@@ -721,12 +774,22 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }
 
   Color _parseColorBadge(dynamic hex) {
-    if (hex == null) return const Color(0xFFEF4444);
+    if (hex == null) return _colorPromocion;
     try {
       final s = hex.toString().replaceAll('#', '0xFF');
-      return Color(int.parse(s));
+      final c = Color(int.parse(s));
+      final rgb = c.toARGB32() & 0x00FFFFFF;
+      // Si era el verde genérico heredado (#16A34A, #10B981, #059669, #047857),
+      // o si la tienda tiene marca verde, adoptar el color de promociones dinámico
+      if (rgb == 0x16A34A ||
+          rgb == 0x10B981 ||
+          rgb == 0x059669 ||
+          rgb == 0x047857) {
+        return _colorPromocion;
+      }
+      return c;
     } catch (_) {
-      return const Color(0xFFEF4444);
+      return _colorPromocion;
     }
   }
 
@@ -745,7 +808,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.sparkles, size: 16, color: _colorMarca),
+              Icon(LucideIcons.sparkles, size: 16, color: _colorPromocion),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -754,7 +817,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     fontSize: isTablet ? 12 : 11,
                     fontWeight: FontWeight.w900,
                     letterSpacing: isTablet ? 0.8 : 0.5,
-                    color: isDark ? const Color(0xFF93C5FD) : _colorMarca,
+                    color: isDark
+                        ? _colorPromocion.withValues(alpha: 0.9)
+                        : _colorPromocion,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -860,7 +925,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             Icon(
                               LucideIcons.chevronRight,
                               size: 16,
-                              color: _colorMarca,
+                              color: _colorPromocion,
                             ),
                           ],
                         ),
@@ -1615,7 +1680,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }) {
     final isSelected =
         _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
-    final chipColor = esOferta ? const Color(0xFF1D4ED8) : _colorMarca;
+    final chipColor = esOferta ? _colorPromocion : _colorMarca;
 
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
@@ -1629,8 +1694,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 ? Colors.white
                 : (esOferta
                       ? (isDark
-                            ? const Color(0xFF93C5FD)
-                            : const Color(0xFF1D4ED8))
+                            ? _colorPromocion.withValues(alpha: 0.95)
+                            : _colorPromocion)
                       : (isDark ? Colors.white : const Color(0xFF0F172A))),
           ),
         ),
@@ -1641,14 +1706,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         selectedColor: chipColor,
         backgroundColor: isDark
             ? (esOferta
-                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                  ? _colorPromocion.withValues(alpha: 0.2)
                   : const Color(0xFF1E2436))
-            : (esOferta ? const Color(0xFFEFF6FF) : Colors.white),
+            : (esOferta
+                  ? _colorPromocion.withValues(alpha: 0.08)
+                  : Colors.white),
         side: BorderSide(
           color: isSelected
               ? chipColor
               : (esOferta
-                    ? const Color(0xFF2563EB).withValues(alpha: 0.4)
+                    ? _colorPromocion.withValues(alpha: 0.45)
                     : (isDark
                           ? const Color(0xFF262E44)
                           : const Color(0xFFCBD5E1))),
@@ -1827,7 +1894,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF16A34A),
+                                    color: _colorMarca,
                                     borderRadius: BorderRadius.circular(6),
                                     boxShadow: [
                                       BoxShadow(
@@ -1986,7 +2053,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: config.precioFontSize,
                                     fontWeight: FontWeight.w900,
-                                    color: const Color(0xFF16A34A),
+                                    color: _colorPromocion,
                                   ),
                                 ),
                               ],
@@ -2618,7 +2685,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   height: 48,
                                   child: ElevatedButton.icon(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF16A34A),
+                                      backgroundColor: _colorMarca,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(14),
@@ -2816,14 +2883,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF16A34A)
-                                    .withValues(alpha: 0.12),
+                                color: _colorMarca.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 LucideIcons.shoppingCart,
                                 size: 20,
-                                color: Color(0xFF16A34A),
+                                color: _colorMarca,
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -2855,7 +2921,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF16A34A),
+                                          color: _colorMarca,
                                           borderRadius: BorderRadius.circular(
                                             10,
                                           ),
@@ -3045,7 +3111,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               style: GoogleFonts.outfit(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w800,
-                                                color: const Color(0xFF16A34A),
+                                                color: _colorPromocion,
                                               ),
                                             ),
                                           ] else ...[
@@ -3236,7 +3302,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF16A34A),
+                                      color: _colorPromocion,
                                     ),
                                   ),
                                   Text(
@@ -3244,7 +3310,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 13.5,
                                       fontWeight: FontWeight.w900,
-                                      color: const Color(0xFF16A34A),
+                                      color: _colorPromocion,
                                     ),
                                   ),
                                 ],
@@ -3441,8 +3507,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 right: -4,
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF16A34A),
+                                  decoration: BoxDecoration(
+                                    color: _colorMarca,
                                     shape: BoxShape.circle,
                                   ),
                                   constraints: const BoxConstraints(
@@ -3513,7 +3579,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w800,
-                                      color: const Color(0xFF16A34A),
+                                      color: _colorPromocion,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -3586,7 +3652,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   // En móviles: Botón directo para Ver Pedido y finalizar por WhatsApp
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF16A34A),
+                      backgroundColor: _colorMarca,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(
