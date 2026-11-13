@@ -785,6 +785,25 @@ class _DashboardScreenState extends State<DashboardScreen>
           p.stockActual <= umbralMinimo;
     }).toList();
     final int totalAlertas = productosCriticos.length + productosBajos.length;
+    final List<Producto> productosVencidosFIFO = _productos.where((p) {
+      return p.controlaVencimiento &&
+          p.fechaVencimiento != null &&
+          (p.diasParaVencer ?? 999) <= 0;
+    }).toList();
+    final List<Producto> productosCriticosFIFO = _productos.where((p) {
+      final dias = p.diasParaVencer ?? 999;
+      return p.controlaVencimiento &&
+          p.fechaVencimiento != null &&
+          dias > 0 &&
+          dias <= 7;
+    }).toList();
+    final List<Producto> productosAtencionFIFO = _productos.where((p) {
+      final dias = p.diasParaVencer ?? 999;
+      return p.controlaVencimiento &&
+          p.fechaVencimiento != null &&
+          dias > 7 &&
+          dias <= 30;
+    }).toList();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -806,6 +825,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                   children: [
                     // Banner Ejecutivo Rebrandeado CajaYa con badge sutil de stock
                     _buildGreetingBanner(isDark, productosCriticos),
+                    if (productosVencidosFIFO.isNotEmpty ||
+                        productosCriticosFIFO.isNotEmpty ||
+                        productosAtencionFIFO.isNotEmpty) ...[
+                      const SizedBox(height: 14),
+                      _buildFifoDashboardCard(
+                        isDark,
+                        vencidos: productosVencidosFIFO.length,
+                        criticos: productosCriticosFIFO.length,
+                        atencion: productosAtencionFIFO.length,
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     // Título de Métricas
@@ -2800,5 +2830,231 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     if (width != null) return card;
     return Expanded(child: card);
+  }
+
+  Widget _buildFifoDashboardCard(
+    bool isDark, {
+    required int vencidos,
+    required int criticos,
+    required int atencion,
+  }) {
+    final int totalRiesgo = vencidos + criticos + atencion;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? (vencidos > 0
+                ? const Color(0xFF450A0A).withValues(alpha: 0.6)
+                : const Color(0xFF422006).withValues(alpha: 0.5))
+            : (vencidos > 0
+                ? const Color(0xFFFEF2F2)
+                : const Color(0xFFFFFBEB)),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: vencidos > 0
+              ? const Color(0xFFEF4444).withValues(alpha: 0.45)
+              : const Color(0xFFF59E0B).withValues(alpha: 0.45),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (vencidos > 0
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFFD97706))
+                      .withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  vencidos > 0
+                      ? LucideIcons.alertTriangle
+                      : LucideIcons.calendarClock,
+                  color: vencidos > 0
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFFD97706),
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'Control de Vencimientos FIFO',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? Colors.white
+                                  : (vencidos > 0
+                                      ? const Color(0xFF991B1B)
+                                      : const Color(0xFF92400E)),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (vencidos > 0
+                                    ? const Color(0xFFEF4444)
+                                    : const Color(0xFFD97706))
+                                .withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '$totalRiesgo en riesgo',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: vencidos > 0
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFFD97706),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Lotes prioritarios para rotar en repisa o retirar del mostrador.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    if (vencidos > 0)
+                      _buildFifoDashboardBadge(
+                        label: '$vencidos Vencidos (Retirar)',
+                        color: const Color(0xFFEF4444),
+                        isDark: isDark,
+                      ),
+                    if (criticos > 0)
+                      _buildFifoDashboardBadge(
+                        label: '$criticos Críticos (≤ 7d - Liquidar)',
+                        color: const Color(0xFFEA580C),
+                        isDark: isDark,
+                      ),
+                    if (atencion > 0)
+                      _buildFifoDashboardBadge(
+                        label: '$atencion En Rotación (≤ 30d)',
+                        color: const Color(0xFFD97706),
+                        isDark: isDark,
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const VencimientosScreen(),
+                    ),
+                  ).then((_) => _cargarDatos(forceRefresh: true));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: vencidos > 0
+                      ? const Color(0xFFEF4444)
+                      : primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(LucideIcons.arrowUpRight, size: 13),
+                label: Text(
+                  'Revisar Lotes',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFifoDashboardBadge({
+    required String label,
+    required Color color,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.22 : 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: color.withValues(alpha: 0.35),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

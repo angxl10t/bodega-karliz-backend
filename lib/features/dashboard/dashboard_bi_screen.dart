@@ -7,6 +7,8 @@ import '../../core/widgets/product_image_widget.dart';
 import 'dashboard_bi_model.dart';
 import 'dashboard_bi_service.dart';
 import '../auth/auth_service.dart';
+import '../../core/permisos_cajero_service.dart';
+import '../../core/widgets/solicitar_pin_dialog.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
 import '../promociones/promociones_screen.dart';
 
@@ -49,6 +51,20 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     final auth = AuthService();
     final plan = await auth.getPlanBodega();
     final rol = await auth.getUserRole();
+    if (rol.toUpperCase() == 'CAJERO' && !PermisosCajeroService.puedeVerFinanzas) {
+      if (mounted) {
+        final ok = await SolicitarPinDialog.mostrar(
+          context,
+          titulo: 'Finanzas Protegidas',
+          mensaje:
+              'Se requiere PIN de Administrador para consultar reportes de rentabilidad y métricas de negocio.',
+        );
+        if (!ok) {
+          if (mounted) Navigator.maybePop(context);
+          return;
+        }
+      }
+    }
     final pro =
         plan.toUpperCase() == 'PRO' || rol.toUpperCase() == 'SUPERADMIN';
     if (!pro) {

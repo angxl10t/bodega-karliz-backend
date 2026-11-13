@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'auth_service.dart';
+import '../../core/permisos_cajero_service.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 
@@ -68,6 +69,7 @@ class _SplashScreenState extends State<SplashScreen>
     final isLoggedIn = await AuthService().isLoggedIn();
     if (mounted) {
       if (isLoggedIn) {
+        await PermisosCajeroService.obtenerPermisos();
         final colorHex = await AuthService().getColorPrimario();
         if (colorHex.isNotEmpty && mounted) {
           context.read<ThemeProvider>().setAccentColorFromHex(colorHex);

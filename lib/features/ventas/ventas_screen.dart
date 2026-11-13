@@ -45,6 +45,7 @@ import '../../core/widgets/solicitar_pin_dialog.dart';
 import '../movimientos/movimiento_service.dart';
 import '../auth/auth_service.dart';
 import 'hardware_mostrador_modal.dart';
+import '../../core/permisos_cajero_service.dart';
 import '../../core/widgets/tab_deferred_refresh.dart';
 
 class PromoAplicada {
@@ -935,13 +936,36 @@ class _VentasScreenState extends State<VentasScreen>
     });
   }
 
-  void _eliminarDelCarrito(int index) {
+  Future<void> _eliminarDelCarrito(int index) async {
+    if (AuthService.esCajero && !PermisosCajeroService.puedeAnularSinPin) {
+      final autorizado = await SolicitarPinDialog.mostrar(
+        context,
+        titulo: 'Autorizar Eliminación de Ítem',
+        mensaje:
+            'Se requiere PIN de Administrador para eliminar productos de una venta iniciada.',
+      );
+      if (!mounted || autorizado != true) return;
+    }
     HapticFeedback.lightImpact();
     final totalAnterior = _totalVenta;
     setState(() {
       _carrito.removeAt(index);
       _actualizarMontoExactoSiCorresponde(totalAnterior);
     });
+  }
+
+  Future<void> _vaciarCarritoManual() async {
+    if (_carrito.isEmpty) return;
+    if (AuthService.esCajero && !PermisosCajeroService.puedeAnularSinPin) {
+      final autorizado = await SolicitarPinDialog.mostrar(
+        context,
+        titulo: 'Autorizar Cancelación de Venta',
+        mensaje:
+            'Se requiere PIN de Administrador para vaciar la canasta o anular la venta en curso.',
+      );
+      if (!mounted || autorizado != true) return;
+    }
+    _vaciarCarrito();
   }
 
   void _vaciarCarrito() {
@@ -2040,7 +2064,7 @@ class _VentasScreenState extends State<VentasScreen>
       return;
     }
 
-    if (AuthService.esCajero) {
+    if (AuthService.esCajero && !PermisosCajeroService.puedeAplicarDescuentos) {
       final autorizado = await SolicitarPinDialog.mostrar(
         context,
         titulo: 'Autorización de Descuento',
@@ -6894,7 +6918,7 @@ class _VentasScreenState extends State<VentasScreen>
                                   tapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                 ),
-                                onPressed: _vaciarCarrito,
+                                onPressed: _vaciarCarritoManual,
                                 child: Text(
                                   'Vaciar',
                                   style: GoogleFonts.plusJakartaSans(
@@ -7615,7 +7639,7 @@ class _VentasScreenState extends State<VentasScreen>
             _carrito.isEmpty
                 ? null
                 : () {
-                    _vaciarCarrito();
+                    _vaciarCarritoManual();
                   },
           ),
           const SizedBox(width: 8),
@@ -8660,7 +8684,7 @@ class _VentasScreenState extends State<VentasScreen>
                         ),
                         minimumSize: Size.zero,
                       ),
-                      onPressed: _vaciarCarrito,
+                      onPressed: _vaciarCarritoManual,
                       child: Text(
                         'Vaciar',
                         style: GoogleFonts.plusJakartaSans(

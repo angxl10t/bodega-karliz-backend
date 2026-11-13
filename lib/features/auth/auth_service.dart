@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../core/api_client.dart';
 import '../../core/api_constants.dart';
 import '../../core/offline/offline_catalog_service.dart';
+import '../../core/permisos_cajero_service.dart';
 import '../../core/secure_storage_service.dart';
 import '../catalogo/pedido_web_service.dart';
 import '../categorias/categoria_service.dart';
@@ -59,6 +60,7 @@ class AuthService {
   static void clearAllSessionState() {
     _cachedRol = 'CAJERO';
     clearTenantCaches();
+    PermisosCajeroService.resetMemory();
   }
 
   Future<AuthResult> login(String username, String password) async {
@@ -89,6 +91,9 @@ class AuthService {
           await SecureStorageService.write(
             'id_bodega',
             data['idBodega'].toString(),
+          );
+          await PermisosCajeroService.obtenerPermisos(
+            bodegaId: data['idBodega'].toString(),
           );
         }
         if (data['nombreBodega'] != null) {
@@ -331,6 +336,9 @@ class AuthService {
           await SecureStorageService.write(
             'id_bodega',
             data['idBodega'].toString(),
+          );
+          await PermisosCajeroService.obtenerPermisos(
+            bodegaId: data['idBodega'].toString(),
           );
         }
         if (data['nombreBodega'] != null) {

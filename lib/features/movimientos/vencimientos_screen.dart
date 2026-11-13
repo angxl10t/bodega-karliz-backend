@@ -107,16 +107,25 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
     // Métricas para KPIs
+    final vencidos = _todosProductos
+        .where((p) => (p.diasParaVencer ?? 999) <= 0)
+        .toList();
     final criticos = _todosProductos
-        .where((p) => p.semaforoVencimiento == SemaforoVencimiento.critico)
+        .where((p) =>
+            (p.diasParaVencer ?? 999) > 0 && (p.diasParaVencer ?? 999) <= 7)
         .toList();
     final enRiesgo = _todosProductos
-        .where((p) => p.semaforoVencimiento == SemaforoVencimiento.atencion)
+        .where((p) =>
+            (p.diasParaVencer ?? 999) > 7 && (p.diasParaVencer ?? 999) <= 30)
         .toList();
     final vigentes = _todosProductos
-        .where((p) => p.semaforoVencimiento == SemaforoVencimiento.vigente)
+        .where((p) => (p.diasParaVencer ?? 999) > 30)
         .toList();
 
+    double valorVencidoSoles = vencidos.fold(
+      0.0,
+      (acc, p) => acc + (p.stockActual * p.precioVenta),
+    );
     double valorCriticoSoles = criticos.fold(
       0.0,
       (acc, p) => acc + (p.stockActual * p.precioVenta),
@@ -134,12 +143,16 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
           (p.codigoBarras ?? '').contains(_filtroTexto);
 
       bool matchesSemaforo = true;
-      if (_filtroSemaforo == 'CRITICO') {
-        matchesSemaforo = p.semaforoVencimiento == SemaforoVencimiento.critico;
+      if (_filtroSemaforo == 'VENCIDOS') {
+        matchesSemaforo = (p.diasParaVencer ?? 999) <= 0;
+      } else if (_filtroSemaforo == 'CRITICO' || _filtroSemaforo == 'CRITICOS') {
+        matchesSemaforo =
+            (p.diasParaVencer ?? 999) > 0 && (p.diasParaVencer ?? 999) <= 7;
       } else if (_filtroSemaforo == 'ATENCION') {
-        matchesSemaforo = p.semaforoVencimiento == SemaforoVencimiento.atencion;
-      } else if (_filtroSemaforo == 'VIGENTE') {
-        matchesSemaforo = p.semaforoVencimiento == SemaforoVencimiento.vigente;
+        matchesSemaforo =
+            (p.diasParaVencer ?? 999) > 7 && (p.diasParaVencer ?? 999) <= 30;
+      } else if (_filtroSemaforo == 'VIGENTE' || _filtroSemaforo == 'VIGENTES') {
+        matchesSemaforo = (p.diasParaVencer ?? 999) > 30;
       }
 
       return matchesText && matchesSemaforo;
@@ -200,74 +213,134 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
             )
           : Column(
               children: [
-                // 1. Panel Superior de Métricas Semáforo
+                // 1. Panel Superior de Métricas Semáforo FIFO
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 12,
+                    vertical: 10,
                   ),
                   color: cardBg,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 140,
+                          child: _buildKpiCard(
+                            titulo: 'Vencidos (≤ 0d)',
+                            cantidad: vencidos.length,
+                            montoSoles: valorVencidoSoles,
+                            color: const Color(0xFFDC2626),
+                            icon: LucideIcons.alertOctagon,
+                            isSelected: _filtroSemaforo == 'VENCIDOS',
+                            onTap: () {
+                              setState(() {
+                                _filtroSemaforo =
+                                    _filtroSemaforo == 'VENCIDOS'
+                                        ? 'TODOS'
+                                        : 'VENCIDOS';
+                              });
+                            },
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 140,
+                          child: _buildKpiCard(
+                            titulo: 'Críticos (1-7d)',
+                            cantidad: criticos.length,
+                            montoSoles: valorCriticoSoles,
+                            color: const Color(0xFFEA580C),
+                            icon: LucideIcons.zap,
+                            isSelected: _filtroSemaforo == 'CRITICOS',
+                            onTap: () {
+                              setState(() {
+                                _filtroSemaforo =
+                                    _filtroSemaforo == 'CRITICOS'
+                                        ? 'TODOS'
+                                        : 'CRITICOS';
+                              });
+                            },
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 140,
+                          child: _buildKpiCard(
+                            titulo: 'Rotación (8-30d)',
+                            cantidad: enRiesgo.length,
+                            montoSoles: valorRiesgoSoles,
+                            color: const Color(0xFFD97706),
+                            icon: LucideIcons.rotateCw,
+                            isSelected: _filtroSemaforo == 'ATENCION',
+                            onTap: () {
+                              setState(() {
+                                _filtroSemaforo =
+                                    _filtroSemaforo == 'ATENCION'
+                                        ? 'TODOS'
+                                        : 'ATENCION';
+                              });
+                            },
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 140,
+                          child: _buildKpiCard(
+                            titulo: 'Vigentes (> 30d)',
+                            cantidad: vigentes.length,
+                            montoSoles: null,
+                            color: AppTheme.accentGreen,
+                            icon: LucideIcons.shieldCheck,
+                            isSelected: _filtroSemaforo == 'VIGENTES',
+                            onTap: () {
+                              setState(() {
+                                _filtroSemaforo =
+                                    _filtroSemaforo == 'VIGENTES'
+                                        ? 'TODOS'
+                                        : 'VIGENTES';
+                              });
+                            },
+                            isDark: isDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 6, 16, 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brandPrimary
+                        .withValues(alpha: isDark ? 0.14 : 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.25),
+                    ),
+                  ),
                   child: Row(
                     children: [
-                      // Crítico (< 7 días o vencido)
-                      Expanded(
-                        child: _buildKpiCard(
-                          titulo: 'Críticos (< 7d)',
-                          cantidad: criticos.length,
-                          montoSoles: valorCriticoSoles,
-                          color: const Color(0xFFEF4444),
-                          icon: LucideIcons.alertTriangle,
-                          isSelected: _filtroSemaforo == 'CRITICO',
-                          onTap: () {
-                            setState(() {
-                              _filtroSemaforo = _filtroSemaforo == 'CRITICO'
-                                  ? 'TODOS'
-                                  : 'CRITICO';
-                            });
-                          },
-                          isDark: isDark,
-                        ),
+                      const Icon(
+                        LucideIcons.arrowDownUp,
+                        size: 14,
+                        color: AppTheme.brandPrimary,
                       ),
                       const SizedBox(width: 8),
-
-                      // En Riesgo (15 a 30 días - poner en oferta)
                       Expanded(
-                        child: _buildKpiCard(
-                          titulo: 'En Riesgo (15-30d)',
-                          cantidad: enRiesgo.length,
-                          montoSoles: valorRiesgoSoles,
-                          color: const Color(0xFFF59E0B),
-                          icon: LucideIcons.tag,
-                          isSelected: _filtroSemaforo == 'ATENCION',
-                          onTap: () {
-                            setState(() {
-                              _filtroSemaforo = _filtroSemaforo == 'ATENCION'
-                                  ? 'TODOS'
-                                  : 'ATENCION';
-                            });
-                          },
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // Vigentes (> 60 días)
-                      Expanded(
-                        child: _buildKpiCard(
-                          titulo: 'Vigentes (> 60d)',
-                          cantidad: vigentes.length,
-                          montoSoles: null,
-                          color: AppTheme.accentGreen,
-                          icon: LucideIcons.shieldCheck,
-                          isSelected: _filtroSemaforo == 'VIGENTE',
-                          onTap: () {
-                            setState(() {
-                              _filtroSemaforo = _filtroSemaforo == 'VIGENTE'
-                                  ? 'TODOS'
-                                  : 'VIGENTE';
-                            });
-                          },
-                          isDark: isDark,
+                        child: Text(
+                          'Criterio FIFO Activo: Los productos más próximos a vencer aparecen primero para priorizar su rotación al frente de góndola.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF334155),
+                          ),
                         ),
                       ),
                     ],

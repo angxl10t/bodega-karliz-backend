@@ -26,6 +26,7 @@ import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/product_image_widget.dart';
+import '../../core/permisos_cajero_service.dart';
 import '../../core/widgets/solicitar_pin_dialog.dart';
 import '../../core/widgets/tab_deferred_refresh.dart';
 
@@ -58,7 +59,8 @@ class _ProductosScreenState extends State<ProductosScreen>
   bool _isLoading = true;
   String _filtroTexto = '';
   String _selectedCategoria = 'Todos';
-  String _estadoStockFiltro = 'todos'; // 'todos', 'bajo_stock', 'con_stock'
+  String _estadoStockFiltro = 'todos'; // 'todos', 'bajo_stock', 'con_stock', 'fifo'
+  String _criterioOrden = 'nombre'; // 'nombre', 'fifo'
   String _userRol = 'CAJERO';
   int _sugerenciasPendientes = 0;
   bool get _esAdmin =>
@@ -98,6 +100,7 @@ class _ProductosScreenState extends State<ProductosScreen>
     _todosProductos = [];
     _productosFiltrados = [];
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
+    PermisosCajeroService.permisosRevision.addListener(_onPermisosChanged);
     _inicializarDatos();
   }
 
@@ -108,8 +111,13 @@ class _ProductosScreenState extends State<ProductosScreen>
     ProductoService.productosRevision.removeListener(
       _onProductosRevisionChanged,
     );
+    PermisosCajeroService.permisosRevision.removeListener(_onPermisosChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onPermisosChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onProductosRevisionChanged() {
@@ -206,14 +214,32 @@ class _ProductosScreenState extends State<ProductosScreen>
         final double umbralMinimo = p.stockMinimo > 0 ? p.stockMinimo : 5.0;
         if (_estadoStockFiltro == 'bajo_stock') {
           return p.stockActual <= umbralMinimo;
-        } else if (_estadoStockFiltro == 'vencen_pronto') {
+        } else if (_estadoStockFiltro == 'vencen_pronto' ||
+            _estadoStockFiltro == 'fifo') {
           return p.controlaVencimiento &&
-              p.semaforoVencimiento == SemaforoVencimiento.critico;
+              (p.semaforoVencimiento == SemaforoVencimiento.critico ||
+                  p.semaforoVencimiento == SemaforoVencimiento.atencion);
         } else if (_estadoStockFiltro == 'con_stock') {
           return p.stockActual > umbralMinimo;
         }
         return true;
       }).toList();
+
+      if (_criterioOrden == 'fifo' ||
+          _estadoStockFiltro == 'vencen_pronto' ||
+          _estadoStockFiltro == 'fifo') {
+        _productosFiltrados.sort((a, b) {
+          final aExp = a.controlaVencimiento && a.fechaVencimiento != null;
+          final bExp = b.controlaVencimiento && b.fechaVencimiento != null;
+          if (aExp && !bExp) return -1;
+          if (!aExp && bExp) return 1;
+          if (aExp && bExp) {
+            final cmp = a.fechaVencimiento!.compareTo(b.fechaVencimiento!);
+            if (cmp != 0) return cmp;
+          }
+          return a.nombre.toLowerCase().compareTo(b.nombre.toLowerCase());
+        });
+      }
     });
   }
 
@@ -1024,7 +1050,8 @@ class _ProductosScreenState extends State<ProductosScreen>
                     ),
                   ),
 
-                  if (_esAdmin) ...[
+                  if (_esAdmin ||
+                      PermisosCajeroService.puedeModificarPrecios) ...[
                     const SizedBox(width: 6),
                     Material(
                       color: Colors.transparent,
@@ -1091,6 +1118,8 @@ class _ProductosScreenState extends State<ProductosScreen>
 
             if (_sugerenciasPendientes > 0)
               _buildSugerenciasBanner(context, isDark),
+
+            _buildFifoAlertBanner(context, isDark),
 
             // 2. Toolbar Unificada (Buscador + Carrusel Único de Filtros)
             Container(
@@ -1601,7 +1630,8 @@ class _ProductosScreenState extends State<ProductosScreen>
           ],
         ),
       ),
-      floatingActionButton: _esAdmin
+      floatingActionButton: (_esAdmin ||
+              PermisosCajeroService.puedeModificarPrecios)
           ? FloatingActionButton.extended(
               backgroundColor: AppTheme.brandPrimary,
               foregroundColor: Colors.white,
@@ -1878,6 +1908,11 @@ class _ProductosScreenState extends State<ProductosScreen>
                           ),
                         ],
                       ),
+                      if (p.controlaVencimiento &&
+                          p.fechaVencimiento != null) ...[
+                        const SizedBox(height: 4),
+                        _buildProductCardFifoBadge(p, isDark),
+                      ],
                     ],
                   ),
                 ),
@@ -2208,6 +2243,205 @@ class _ProductosScreenState extends State<ProductosScreen>
                     ],
                   ),
                 ),
+                if (_esAdmin || PermisosCajeroService.puedeVerCostos) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B5CF6)
+                          .withValues(alpha: isDark ? 0.15 : 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.badgePercent,
+                              size: 16,
+                              color: Color(0xFF8B5CF6),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Costo Compra: S/ ${p.costoUnitarioEstimado.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? const Color(0xFFDDD6FE)
+                                    : const Color(0xFF5B21B6),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF8B5CF6)
+                                .withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Margen: ${p.precioVenta > 0 ? (((p.precioVenta - p.costoUnitarioEstimado) / p.precioVenta) * 100).toStringAsFixed(1) : "0.0"}%',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? const Color(0xFFDDD6FE)
+                                  : const Color(0xFF5B21B6),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (p.controlaVencimiento) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: (p.diasParaVencer != null &&
+                              p.diasParaVencer! <= 0)
+                          ? const Color(0xFFEF4444)
+                              .withValues(alpha: isDark ? 0.15 : 0.08)
+                          : (p.diasParaVencer != null &&
+                                  p.diasParaVencer! <= 7)
+                              ? const Color(0xFFEA580C)
+                                  .withValues(alpha: isDark ? 0.15 : 0.08)
+                              : const Color(0xFFD97706)
+                                  .withValues(alpha: isDark ? 0.15 : 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: (p.diasParaVencer != null &&
+                                p.diasParaVencer! <= 0)
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.35)
+                            : (p.diasParaVencer != null &&
+                                    p.diasParaVencer! <= 7)
+                                ? const Color(0xFFEA580C)
+                                    .withValues(alpha: 0.35)
+                                : const Color(0xFFD97706)
+                                    .withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              (p.diasParaVencer != null &&
+                                      p.diasParaVencer! <= 0)
+                                  ? LucideIcons.alertOctagon
+                                  : (p.diasParaVencer != null &&
+                                          p.diasParaVencer! <= 7)
+                                      ? LucideIcons.zap
+                                      : LucideIcons.rotateCw,
+                              size: 16,
+                              color: (p.diasParaVencer != null &&
+                                      p.diasParaVencer! <= 0)
+                                  ? const Color(0xFFEF4444)
+                                  : (p.diasParaVencer != null &&
+                                          p.diasParaVencer! <= 7)
+                                      ? const Color(0xFFEA580C)
+                                      : const Color(0xFFD97706),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                p.fechaVencimiento != null
+                                    ? 'Lote FIFO • Vence: ${p.fechaVencimiento!.day}/${p.fechaVencimiento!.month}/${p.fechaVencimiento!.year} (${p.diasParaVencer != null && p.diasParaVencer! <= 0 ? "Vencido hace ${p.diasParaVencer!.abs()}d" : "En ${p.diasParaVencer} días"})'
+                                    : 'Control FIFO activo (Sin fecha registrada)',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                            ),
+                            if (_esAdmin ||
+                                PermisosCajeroService.puedeModificarPrecios)
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(ctx);
+                                  final now = DateTime.now();
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: p.fechaVencimiento ??
+                                        now.add(const Duration(days: 30)),
+                                    firstDate: now
+                                        .subtract(const Duration(days: 365)),
+                                    lastDate:
+                                        now.add(const Duration(days: 365 * 3)),
+                                    helpText:
+                                        'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
+                                    confirmText: 'GUARDAR',
+                                    cancelText: 'CANCELAR',
+                                  );
+                                  if (picked != null) {
+                                    final actualizado =
+                                        p.copyWith(fechaVencimiento: picked);
+                                    final ok = await _productoService
+                                        .actualizarProducto(actualizado);
+                                    if (ok && mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Lote FIFO de "${p.nombre}" actualizado al ${picked.day}/${picked.month}/${picked.year}',
+                                          ),
+                                          backgroundColor:
+                                              AppTheme.accentGreen,
+                                        ),
+                                      );
+                                      _cargarProductos();
+                                    }
+                                  }
+                                },
+                                child: const Text(
+                                  'Rotar / Fecha',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          (p.diasParaVencer != null &&
+                                  p.diasParaVencer! <= 0)
+                              ? '⚠️ REGLA FIFO: Retirar inmediatamente de exhibición para evitar multas sanitarias. Registrar merma o devolución a proveedor.'
+                              : (p.diasParaVencer != null &&
+                                      p.diasParaVencer! <= 7)
+                                  ? '⚡ REGLA FIFO: Salida prioritaria urgente. Exhibir al frente del mostrador o crear descuento express para liquidar el stock.'
+                                  : '📦 REGLA FIFO: Rotación en repisa. Colocar este lote adelante de los productos que vencen más tarde.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF64748B),
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 SizedBox(
                   width: double.infinity,
@@ -2236,7 +2470,8 @@ class _ProductosScreenState extends State<ProductosScreen>
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    if (_esAdmin) ...[
+                    if (_esAdmin ||
+                        PermisosCajeroService.puedeModificarPrecios) ...[
                       Expanded(
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
@@ -2288,11 +2523,13 @@ class _ProductosScreenState extends State<ProductosScreen>
                           ),
                           onPressed: () async {
                             Navigator.pop(ctx);
-                            if (AuthService.esCajero) {
+                            if (AuthService.esCajero &&
+                                !PermisosCajeroService.puedeModificarPrecios) {
                               final auth = await SolicitarPinDialog.mostrar(
                                 context,
                                 titulo: 'Modo Cajero Protegido',
-                                mensaje: 'Se requiere PIN de Administrador para modificar precios o catálogo.',
+                                mensaje:
+                                    'Se requiere PIN de Administrador para modificar precios o catálogo.',
                               );
                               if (!auth) return;
                             }
@@ -2795,6 +3032,307 @@ class _ProductosScreenState extends State<ProductosScreen>
                 _cargarProductos(forceRefresh: true);
                 _verificarSugerencias();
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFifoAlertBanner(BuildContext context, bool isDark) {
+    final vencidos = _safeTodos
+        .where((p) =>
+            p.controlaVencimiento &&
+            p.fechaVencimiento != null &&
+            (p.diasParaVencer ?? 999) <= 0)
+        .length;
+    final criticos = _safeTodos
+        .where((p) =>
+            p.controlaVencimiento &&
+            p.fechaVencimiento != null &&
+            (p.diasParaVencer ?? 999) > 0 &&
+            (p.diasParaVencer ?? 999) <= 7)
+        .length;
+    final atencion = _safeTodos
+        .where((p) =>
+            p.controlaVencimiento &&
+            p.fechaVencimiento != null &&
+            (p.diasParaVencer ?? 999) > 7 &&
+            (p.diasParaVencer ?? 999) <= 30)
+        .length;
+    final totalRiesgo = vencidos + criticos + atencion;
+    if (totalRiesgo == 0) return const SizedBox.shrink();
+
+    final isFifoActivo = _criterioOrden == 'fifo';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? (vencidos > 0
+                ? const Color(0xFF450A0A).withValues(alpha: 0.6)
+                : const Color(0xFF422006).withValues(alpha: 0.5))
+            : (vencidos > 0
+                ? const Color(0xFFFEF2F2)
+                : const Color(0xFFFFFBEB)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: vencidos > 0
+              ? const Color(0xFFEF4444).withValues(alpha: 0.45)
+              : const Color(0xFFF59E0B).withValues(alpha: 0.45),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: (vencidos > 0
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFFF59E0B))
+                      .withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  vencidos > 0
+                      ? LucideIcons.alertTriangle
+                      : LucideIcons.calendarClock,
+                  color: vencidos > 0
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFFD97706),
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Rotación FIFO: $totalRiesgo producto(s) en seguimiento',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? Colors.white
+                        : (vencidos > 0
+                            ? const Color(0xFF991B1B)
+                            : const Color(0xFF92400E)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              InkWell(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _criterioOrden = isFifoActivo ? 'nombre' : 'fifo';
+                    _aplicarFiltros();
+                  });
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isFifoActivo
+                        ? (vencidos > 0
+                            ? const Color(0xFFEF4444)
+                            : const Color(0xFFD97706))
+                        : (isDark
+                            ? const Color(0xFF1E293B)
+                            : Colors.white),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: vencidos > 0
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFFD97706),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isFifoActivo
+                            ? LucideIcons.check
+                            : LucideIcons.arrowUpDown,
+                        size: 12,
+                        color: isFifoActivo
+                            ? Colors.white
+                            : (vencidos > 0
+                                ? const Color(0xFFEF4444)
+                                : const Color(0xFFD97706)),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isFifoActivo ? 'FIFO Activo' : 'Ordenar FIFO',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          color: isFifoActivo
+                              ? Colors.white
+                              : (vencidos > 0
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFFD97706)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              if (vencidos > 0)
+                _buildFifoPill(
+                  label: '$vencidos Vencidos',
+                  color: const Color(0xFFEF4444),
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const VencimientosScreen(),
+                      ),
+                    ).then((_) => _cargarProductos());
+                  },
+                ),
+              if (criticos > 0)
+                _buildFifoPill(
+                  label: '$criticos Críticos (≤ 7d)',
+                  color: const Color(0xFFEA580C),
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const VencimientosScreen(),
+                      ),
+                    ).then((_) => _cargarProductos());
+                  },
+                ),
+              if (atencion > 0)
+                _buildFifoPill(
+                  label: '$atencion Rotación (≤ 30d)',
+                  color: const Color(0xFFD97706),
+                  isDark: isDark,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const VencimientosScreen(),
+                      ),
+                    ).then((_) => _cargarProductos());
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFifoPill({
+    required String label,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: isDark ? 0.22 : 0.12),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: color.withValues(alpha: 0.4),
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: GoogleFonts.outfit(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Icon(LucideIcons.chevronRight, size: 11, color: color),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductCardFifoBadge(Producto p, bool isDark) {
+    final dias = p.diasParaVencer ?? 999;
+    final Color color = dias <= 0
+        ? const Color(0xFFEF4444)
+        : (dias <= 7
+            ? const Color(0xFFEA580C)
+            : const Color(0xFFD97706));
+    final IconData icon = dias <= 0
+        ? LucideIcons.alertOctagon
+        : (dias <= 7 ? LucideIcons.zap : LucideIcons.rotateCw);
+    final String label = dias < 0
+        ? 'VENCIDO hace ${dias.abs()}d (FIFO: Retirar)'
+        : (dias == 0
+            ? 'VENCE HOY (FIFO: Retirar)'
+            : (dias <= 7
+                ? 'Vence en ${dias}d (FIFO: Liquidar)'
+                : (dias <= 30
+                    ? 'Vence en ${dias}d (FIFO: Rotar)'
+                    : 'Vence: ${p.fechaVencimiento!.day}/${p.fechaVencimiento!.month}/${p.fechaVencimiento!.year}')));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: color.withValues(alpha: 0.45),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.outfit(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

@@ -12,6 +12,7 @@ import 'bodega_service.dart';
 
 import 'configuracion_marca_modal.dart';
 import 'mi_bodega_online_modal.dart';
+import 'permisos_cajero_modal.dart';
 import '../promociones/promociones_screen.dart';
 import '../../core/widgets/pago_yape_modal.dart';
 import '../../core/widgets/plan_comparativa_table.dart';
@@ -2894,6 +2895,124 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                         if (widget.seccionInicial !=
                             PlanSheetSeccion.suscripcion) ...[
                           // Sección de Empleados
+
+                          // Tarjeta de Permisos Granulares de Cajeros
+                          if (_userRol == 'ADMIN' ||
+                              _userRol == 'SUPERADMIN') ...[
+                            InkWell(
+                              onTap: () => PermisosCajeroModal.show(context),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: isDark ? 0.15 : 0.08),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withValues(alpha: 0.3),
+                                    width: 1.0,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Icon(
+                                        LucideIcons.shieldAlert,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  'Permisos Granulares por Cajero',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 13.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : AppTheme.textDark,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 5,
+                                                  vertical: 1.5,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: AppTheme.accentGreen
+                                                      .withValues(alpha: 0.15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                ),
+                                                child: Text(
+                                                  'NUEVO',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppTheme.accentGreen,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Controla costos visibles, anulaciones con PIN y descuentos',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              color: isDark
+                                                  ? AppTheme.textDarkSecondary
+                                                  : const Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(
+                                      LucideIcons.chevronRight,
+                                      size: 18,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,

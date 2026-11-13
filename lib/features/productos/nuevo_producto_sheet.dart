@@ -13,6 +13,8 @@ import '../categorias/categoria_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import 'producto_model.dart';
 import 'producto_service.dart';
+import '../auth/auth_service.dart';
+import '../../core/permisos_cajero_service.dart';
 
 class NuevoProductoSheet extends StatefulWidget {
   final VoidCallback onProductoCreado;
@@ -400,9 +402,11 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
       RegExp(r'[\r\n\t]'),
       '',
     );
-    final costo = double.tryParse(
-      _precioCostoCtrl.text.trim().replaceAll(',', '.'),
-    );
+    final bool puedeVerCostos =
+        AuthService.esAdmin || PermisosCajeroService.puedeVerCostos;
+    final costo = puedeVerCostos
+        ? double.tryParse(_precioCostoCtrl.text.trim().replaceAll(',', '.'))
+        : null;
     final nuevo = Producto(
       idCategoria: _idCategoriaSeleccionada ?? 1,
       codigo: _codigoCtrl.text.trim(),
@@ -1404,55 +1408,58 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                const Icon(
-                                  LucideIcons.tag,
-                                  size: 16,
-                                  color: AppTheme.accentGreen,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Costo de Compra / Proveedor (S/.)',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? Colors.white
-                                        : AppTheme.textDark,
+                            if (AuthService.esAdmin ||
+                                PermisosCajeroService.puedeVerCostos) ...[
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.tag,
+                                    size: 16,
+                                    color: AppTheme.accentGreen,
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _precioCostoCtrl,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Costo de Compra / Proveedor (S/.)',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
                                   ),
-                              decoration: InputDecoration(
-                                hintText:
-                                    'Ej. 2.50 (Opcional, para margen y mermas)',
-                                prefixIcon: const Icon(
-                                  LucideIcons.coins,
-                                  size: 16,
-                                ),
-                                filled: true,
-                                fillColor: isDark
-                                    ? AppTheme.cardDark
-                                    : Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 12,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _precioCostoCtrl,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Ej. 2.50 (Opcional, para margen y mermas)',
+                                  prefixIcon: const Icon(
+                                    LucideIcons.coins,
+                                    size: 16,
+                                  ),
+                                  filled: true,
+                                  fillColor: isDark
+                                      ? AppTheme.cardDark
+                                      : Colors.white,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),
