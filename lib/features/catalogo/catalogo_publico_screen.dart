@@ -1018,29 +1018,50 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [
-                            _colorMarca.withValues(alpha: 0.22),
-                            const Color(0xFF1E293B),
-                            const Color(0xFF0F172A),
+                            const Color(0xFF1C222E), // Base titanio oscuro
+                            const Color(0xFF283142), // Acero cepillado
+                            const Color(0xFF3B485E), // Reflejo especular metálico
+                            _colorMarca.withValues(alpha: 0.26), // Reflejo anodizado de marca
+                            const Color(0xFF232B3A), // Tono metálico intermedio
+                            const Color(0xFF131822), // Sombra de aleación profunda
                           ]
                         : [
-                            _colorMarca.withValues(alpha: 0.12),
-                            Colors.white,
-                            const Color(0xFFF8FAFC),
+                            const Color(0xFFF1F5F9), // Base aluminio platino
+                            const Color(0xFFE2E8F0), // Acero claro cepillado
+                            const Color(0xFFFFFFFF), // Brillo especular blanco plateado
+                            _colorMarca.withValues(alpha: 0.16), // Tinte metálico de marca
+                            const Color(0xFFE5EAF2), // Platino satinado
+                            const Color(0xFFCBD5E1), // Sombra de aleación clara
                           ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    stops: const [0.0, 0.22, 0.48, 0.68, 0.86, 1.0],
+                    begin: const Alignment(-0.95, -0.85),
+                    end: const Alignment(0.95, 0.85),
                   ),
                   borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
                   border: Border.all(
                     color: isDark
-                        ? _colorMarca.withValues(alpha: 0.35)
-                        : _colorMarca.withValues(alpha: 0.28),
-                    width: 1.2,
+                        ? const Color(0xFF64748B).withValues(alpha: 0.55)
+                        : const Color(0xFF94A3B8).withValues(alpha: 0.65),
+                    width: 1.4,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: _colorMarca.withValues(alpha: 0.08),
-                      blurRadius: 16,
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.45)
+                          : const Color(0xFF334155).withValues(alpha: 0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                    BoxShadow(
+                      color: isDark
+                          ? const Color(0xFF94A3B8).withValues(alpha: 0.22)
+                          : Colors.white.withValues(alpha: 0.95),
+                      blurRadius: 1.5,
+                      offset: const Offset(0, -1),
+                    ),
+                    BoxShadow(
+                      color: _colorMarca.withValues(alpha: isDark ? 0.20 : 0.12),
+                      blurRadius: 18,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -1053,12 +1074,31 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       margin: const EdgeInsets.only(bottom: 14),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            _colorMarca,
-                            _colorMarca.withValues(alpha: 0.15),
-                          ],
+                          colors: isDark
+                              ? [
+                                  _colorMarca.withValues(alpha: 0.2),
+                                  _colorMarca,
+                                  Colors.white.withValues(alpha: 0.95),
+                                  _colorMarca,
+                                  _colorMarca.withValues(alpha: 0.2),
+                                ]
+                              : [
+                                  _colorMarca.withValues(alpha: 0.3),
+                                  _colorMarca,
+                                  Colors.white,
+                                  _colorMarca,
+                                  _colorMarca.withValues(alpha: 0.3),
+                                ],
+                          stops: const [0.0, 0.32, 0.50, 0.68, 1.0],
                         ),
                         borderRadius: BorderRadius.circular(2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _colorMarca.withValues(alpha: 0.4),
+                            blurRadius: 6,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                     ),
                     Row(
@@ -1068,10 +1108,20 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           padding: EdgeInsets.all(isTablet ? 13 : 11),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [
-                                _colorMarca.withValues(alpha: 0.22),
-                                _colorMarca.withValues(alpha: 0.08),
-                              ],
+                              colors: isDark
+                                  ? [
+                                      const Color(0xFF475569),
+                                      const Color(0xFF334155),
+                                      _colorMarca.withValues(alpha: 0.45),
+                                      const Color(0xFF1E293B),
+                                    ]
+                                  : [
+                                      const Color(0xFFFFFFFF),
+                                      const Color(0xFFE2E8F0),
+                                      _colorMarca.withValues(alpha: 0.25),
+                                      const Color(0xFFCBD5E1),
+                                    ],
+                              stops: const [0.0, 0.35, 0.70, 1.0],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -1079,21 +1129,30 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               isTablet ? 18 : 15,
                             ),
                             border: Border.all(
-                              color: _colorMarca.withValues(alpha: 0.50),
-                              width: 1.5,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8).withValues(alpha: 0.8)
+                                  : const Color(0xFF94A3B8).withValues(alpha: 0.75),
+                              width: 1.6,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: _colorMarca.withValues(alpha: 0.22),
-                                blurRadius: 10,
+                                color: isDark
+                                    ? Colors.black.withValues(alpha: 0.35)
+                                    : const Color(0xFF64748B).withValues(alpha: 0.22),
+                                blurRadius: 8,
                                 offset: const Offset(0, 3),
+                              ),
+                              BoxShadow(
+                                color: _colorMarca.withValues(alpha: 0.30),
+                                blurRadius: 10,
+                                offset: const Offset(0, 1),
                               ),
                             ],
                           ),
                           child: Icon(
                             LucideIcons.store,
                             size: isTablet ? 30 : 26,
-                            color: _colorMarca,
+                            color: isDark ? Colors.white : _colorMarca,
                           ),
                         ),
                         SizedBox(width: isTablet ? 16 : 14),
@@ -1120,16 +1179,42 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   const SizedBox(width: 6),
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: isTablet ? 8 : 7,
-                                      vertical: isTablet ? 3 : 2.5,
+                                      horizontal: isTablet ? 9 : 8,
+                                      vertical: isTablet ? 3.5 : 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _colorMarca.withValues(alpha: 0.14),
-                                      borderRadius: BorderRadius.circular(7),
-                                      border: Border.all(
-                                        color: _colorMarca.withValues(alpha: 0.35),
-                                        width: 0.9,
+                                      gradient: LinearGradient(
+                                        colors: isDark
+                                            ? [
+                                                const Color(0xFF334155),
+                                                const Color(0xFF1E293B),
+                                                _colorMarca.withValues(alpha: 0.35),
+                                              ]
+                                            : [
+                                                const Color(0xFFFFFFFF),
+                                                const Color(0xFFF1F5F9),
+                                                _colorMarca.withValues(alpha: 0.18),
+                                                const Color(0xFFE2E8F0),
+                                              ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
                                       ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? const Color(0xFF64748B)
+                                            : const Color(0xFF94A3B8),
+                                        width: 1.1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: isDark ? 0.25 : 0.08,
+                                          ),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 1.5),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -1137,7 +1222,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                         Icon(
                                           LucideIcons.badgeCheck,
                                           size: isTablet ? 13 : 11,
-                                          color: _colorMarca,
+                                          color: isDark
+                                              ? const Color(0xFF93C5FD)
+                                              : _colorMarca,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
@@ -1145,8 +1232,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           style: GoogleFonts.outfit(
                                             fontSize: isTablet ? 11 : 9.5,
                                             fontWeight: FontWeight.w900,
-                                            letterSpacing: 0.5,
-                                            color: _colorMarca,
+                                            letterSpacing: 0.6,
+                                            color: isDark
+                                                ? Colors.white
+                                                : const Color(0xFF1E293B),
                                           ),
                                         ),
                                       ],
@@ -1233,13 +1322,35 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       vertical: isTablet ? 4 : 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF16A34A)
-                                          .withValues(alpha: 0.12),
+                                      gradient: LinearGradient(
+                                        colors: isDark
+                                            ? [
+                                                const Color(0xFF064E3B).withValues(alpha: 0.40),
+                                                const Color(0xFF1E293B),
+                                              ]
+                                            : [
+                                                const Color(0xFFDCFCE7),
+                                                const Color(0xFFF1F5F9),
+                                              ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: const Color(0xFF16A34A)
-                                            .withValues(alpha: 0.3),
+                                        color: const Color(0xFF16A34A).withValues(
+                                          alpha: isDark ? 0.55 : 0.45,
+                                        ),
+                                        width: 1.0,
                                       ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: isDark ? 0.20 : 0.06,
+                                          ),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -1339,8 +1450,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             : null,
                         filled: true,
                         fillColor: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF8FAFC),
+                            ? const Color(0xFF0C1019)
+                            : Colors.white,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: isTablet ? 16 : 14,
                           vertical: isTablet ? 14 : 10,
@@ -1351,8 +1462,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           ),
                           borderSide: BorderSide(
                             color: isDark
-                                ? const Color(0xFF334155)
-                                : const Color(0xFFCBD5E1),
+                                ? const Color(0xFF475569)
+                                : const Color(0xFF94A3B8),
+                            width: 1.2,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
@@ -1361,8 +1473,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           ),
                           borderSide: BorderSide(
                             color: isDark
-                                ? const Color(0xFF334155)
-                                : const Color(0xFFCBD5E1),
+                                ? const Color(0xFF475569)
+                                : const Color(0xFF94A3B8),
+                            width: 1.2,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
