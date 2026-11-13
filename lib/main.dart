@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -19,10 +20,12 @@ import 'core/update_service.dart';
 
 import 'core/api_client.dart';
 import 'core/karliz_sound_service.dart';
+import 'core/window/window_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ApiConstants.init();
+  await WindowService.instance.init();
   KarlizSoundService.instance.init();
   UpdateService().checkForUpdatesInBackground();
 
@@ -117,6 +120,20 @@ class BodegaApp extends StatelessWidget {
       darkTheme: themeProvider.darkTheme,
       themeMode: themeProvider.themeMode,
       routerConfig: _router,
+      builder: (context, child) {
+        return Focus(
+          autofocus: true,
+          onKeyEvent: (node, event) {
+            if (event is KeyDownEvent &&
+                event.logicalKey == LogicalKeyboardKey.f11) {
+              WindowService.instance.toggleFullScreen();
+              return KeyEventResult.handled;
+            }
+            return KeyEventResult.ignored;
+          },
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),

@@ -33,6 +33,7 @@ import '../clientes/clientes_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/offline/offline_models.dart';
+import '../../core/window/window_service.dart';
 
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 
@@ -921,6 +922,44 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 10),
+
+                        if (WindowService.instance.isSupported)
+                          ValueListenableBuilder<bool>(
+                            valueListenable:
+                                WindowService.instance.isFullScreenNotifier,
+                            builder: (context, isFullScreen, _) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _buildModalMenuTile(
+                                  isDark: isDark,
+                                  cardBg: cardBg,
+                                  borderColor: borderColor,
+                                  icon: isFullScreen
+                                      ? LucideIcons.minimize
+                                      : LucideIcons.maximize,
+                                  iconColor: AppTheme.brandPrimary,
+                                  iconBg: AppTheme.brandPrimary.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  title: isFullScreen
+                                      ? 'Salir de Pantalla Completa'
+                                      : 'Pantalla Completa Mostrador',
+                                  subtitle:
+                                      'Modo Kiosco POS (Atajo con tecla F11)',
+                                  trailing: Switch.adaptive(
+                                    value: isFullScreen,
+                                    activeThumbColor: AppTheme.brandPrimary,
+                                    onChanged: (val) {
+                                      WindowService.instance.setFullScreen(val);
+                                    },
+                                  ),
+                                  onTap: () {
+                                    WindowService.instance.toggleFullScreen();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
 
                         // Centro de Ayuda & Atajos de Mostrador
                         _buildModalMenuTile(
@@ -2013,6 +2052,66 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+
+              // Botón de Pantalla Completa Mostrador (Windows Desktop & Web PC)
+              if (WindowService.instance.isSupported)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Center(
+                    child: ValueListenableBuilder<bool>(
+                      valueListenable:
+                          WindowService.instance.isFullScreenNotifier,
+                      builder: (context, isFullScreen, _) {
+                        return IconButton.filledTonal(
+                          style: IconButton.styleFrom(
+                            backgroundColor: isDark
+                                ? AppTheme.cardDarkElevated
+                                : const Color(0xFFF1F5F9),
+                            foregroundColor: isFullScreen
+                                ? AppTheme.brandPrimary
+                                : (isDark
+                                      ? Colors.white70
+                                      : const Color(0xFF475569)),
+                            padding: const EdgeInsets.all(8),
+                            minimumSize: const Size(36, 36),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          tooltip: isFullScreen
+                              ? 'Salir de Pantalla Completa (F11)'
+                              : 'Pantalla Completa Mostrador (F11)',
+                          icon: Icon(
+                            isFullScreen
+                                ? LucideIcons.minimize
+                                : LucideIcons.maximize,
+                            size: 18,
+                          ),
+                          onPressed: () async {
+                            final isFull = await WindowService.instance
+                                .toggleFullScreen();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    isFull
+                                        ? 'Modo Pantalla Completa activado (F11)'
+                                        : 'Modo Ventana restaurado',
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
 
               // Botón Oficial de Perfil & Admin en la esquina superior derecha
               Padding(
