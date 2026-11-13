@@ -953,8 +953,9 @@ class _VentasScreenState extends State<VentasScreen>
       final item = _carrito[index];
       if (item.producto.esPesableOGranel) {
         if (item.cantidad > 0.25) {
-          item.cantidad =
-              double.parse((item.cantidad - 0.25).toStringAsFixed(3));
+          item.cantidad = double.parse(
+            (item.cantidad - 0.25).toStringAsFixed(3),
+          );
         } else {
           _carrito.removeAt(index);
         }
@@ -974,8 +975,7 @@ class _VentasScreenState extends State<VentasScreen>
       final autorizado = await SolicitarPinDialog.mostrar(
         context,
         titulo: 'Autorizar Eliminación de Ítem',
-        mensaje:
-            'Se requiere PIN de Administrador para eliminar productos de una venta iniciada.',
+        mensaje: 'Se requiere PIN de Administrador para eliminar productos de una venta iniciada.',
       );
       if (!mounted || autorizado != true) return;
     }
@@ -993,8 +993,7 @@ class _VentasScreenState extends State<VentasScreen>
       final autorizado = await SolicitarPinDialog.mostrar(
         context,
         titulo: 'Autorizar Cancelación de Venta',
-        mensaje:
-            'Se requiere PIN de Administrador para vaciar la canasta o anular la venta en curso.',
+        mensaje: 'Se requiere PIN de Administrador para vaciar la canasta o anular la venta en curso.',
       );
       if (!mounted || autorizado != true) return;
     }
@@ -7086,8 +7085,9 @@ class _VentasScreenState extends State<VentasScreen>
                                       style: IconButton.styleFrom(
                                         padding: EdgeInsets.zero,
                                         minimumSize: const Size(26, 26),
-                                        foregroundColor:
-                                            const Color(0xFFD97706),
+                                        foregroundColor: const Color(
+                                          0xFFD97706,
+                                        ),
                                       ),
                                       icon: const Icon(
                                         LucideIcons.scale,
@@ -8362,11 +8362,15 @@ class _VentasScreenState extends State<VentasScreen>
                                                     alpha: 0.15,
                                                   )
                                                 : (isDark
-                                                      ? const Color(0xFF134E4A)
-                                                            .withValues(alpha: 0.5)
-                                                      : const Color(0xFFCCFBF1)),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
+                                                      ? const Color(
+                                                          0xFF134E4A,
+                                                        ).withValues(alpha: 0.5)
+                                                      : const Color(
+                                                          0xFFCCFBF1,
+                                                        )),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
                                             p.esPesableOGranel
@@ -8378,8 +8382,12 @@ class _VentasScreenState extends State<VentasScreen>
                                               color: isLowStock
                                                   ? AppTheme.alertRed
                                                   : (isDark
-                                                        ? const Color(0xFF2DD4BF)
-                                                        : const Color(0xFF0F766E)),
+                                                        ? const Color(
+                                                            0xFF2DD4BF,
+                                                          )
+                                                        : const Color(
+                                                            0xFF0F766E,
+                                                          )),
                                             ),
                                           ),
                                         ),
@@ -8391,7 +8399,9 @@ class _VentasScreenState extends State<VentasScreen>
                                               vertical: 1.5,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Colors.amber.withValues(alpha: 0.18),
+                                              color: Colors.amber.withValues(
+                                                alpha: 0.18,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                               border: Border.all(
@@ -8414,7 +8424,8 @@ class _VentasScreenState extends State<VentasScreen>
                                                   style: GoogleFonts.outfit(
                                                     fontSize: 8.5,
                                                     fontWeight: FontWeight.w800,
-                                                    color: Colors.amber.shade900,
+                                                    color:
+                                                        Colors.amber.shade900,
                                                   ),
                                                 ),
                                               ],

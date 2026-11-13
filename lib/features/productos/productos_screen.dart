@@ -59,7 +59,8 @@ class _ProductosScreenState extends State<ProductosScreen>
   bool _isLoading = true;
   String _filtroTexto = '';
   String _selectedCategoria = 'Todos';
-  String _estadoStockFiltro = 'todos'; // 'todos', 'bajo_stock', 'con_stock', 'fifo'
+  String _estadoStockFiltro =
+      'todos'; // 'todos', 'bajo_stock', 'con_stock', 'fifo'
   String _criterioOrden = 'nombre'; // 'nombre', 'fifo'
   String _userRol = 'CAJERO';
   int _sugerenciasPendientes = 0;
@@ -97,7 +98,9 @@ class _ProductosScreenState extends State<ProductosScreen>
   void initState() {
     super.initState();
     initTabVisibilityListener();
-    BodegaService.sugerenciasPendientesNotifier.addListener(_onSugerenciasNotifierChanged);
+    BodegaService.sugerenciasPendientesNotifier.addListener(
+      _onSugerenciasNotifierChanged,
+    );
     _todosProductos = [];
     _productosFiltrados = [];
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
@@ -107,7 +110,9 @@ class _ProductosScreenState extends State<ProductosScreen>
 
   @override
   void dispose() {
-    BodegaService.sugerenciasPendientesNotifier.removeListener(_onSugerenciasNotifierChanged);
+    BodegaService.sugerenciasPendientesNotifier.removeListener(
+      _onSugerenciasNotifierChanged,
+    );
     disposeTabVisibilityListener();
     _searchDebounce?.cancel();
     ProductoService.productosRevision.removeListener(
@@ -129,7 +134,8 @@ class _ProductosScreenState extends State<ProductosScreen>
   void _onSugerenciasNotifierChanged() {
     if (mounted) {
       setState(() {
-        _sugerenciasPendientes = BodegaService.sugerenciasPendientesNotifier.value;
+        _sugerenciasPendientes =
+            BodegaService.sugerenciasPendientesNotifier.value;
       });
     }
   }
@@ -1647,8 +1653,8 @@ class _ProductosScreenState extends State<ProductosScreen>
           ],
         ),
       ),
-      floatingActionButton: (_esAdmin ||
-              PermisosCajeroService.puedeModificarPrecios)
+      floatingActionButton:
+          (_esAdmin || PermisosCajeroService.puedeModificarPrecios)
           ? FloatingActionButton.extended(
               backgroundColor: AppTheme.brandPrimary,
               foregroundColor: Colors.white,
@@ -2328,27 +2334,24 @@ class _ProductosScreenState extends State<ProductosScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: (p.diasParaVencer != null &&
-                              p.diasParaVencer! <= 0)
+                      color:
+                          (p.diasParaVencer != null && p.diasParaVencer! <= 0)
                           ? const Color(0xFFEF4444)
-                              .withValues(alpha: isDark ? 0.15 : 0.08)
-                          : (p.diasParaVencer != null &&
-                                  p.diasParaVencer! <= 7)
-                              ? const Color(0xFFEA580C)
-                                  .withValues(alpha: isDark ? 0.15 : 0.08)
-                              : const Color(0xFFD97706)
-                                  .withValues(alpha: isDark ? 0.15 : 0.08),
+                                .withValues(alpha: isDark ? 0.15 : 0.08)
+                          : (p.diasParaVencer != null && p.diasParaVencer! <= 7)
+                          ? const Color(0xFFEA580C)
+                                .withValues(alpha: isDark ? 0.15 : 0.08)
+                          : const Color(0xFFD97706)
+                                .withValues(alpha: isDark ? 0.15 : 0.08),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: (p.diasParaVencer != null &&
-                                p.diasParaVencer! <= 0)
+                        color:
+                            (p.diasParaVencer != null && p.diasParaVencer! <= 0)
                             ? const Color(0xFFEF4444).withValues(alpha: 0.35)
                             : (p.diasParaVencer != null &&
-                                    p.diasParaVencer! <= 7)
-                                ? const Color(0xFFEA580C)
-                                    .withValues(alpha: 0.35)
-                                : const Color(0xFFD97706)
-                                    .withValues(alpha: 0.35),
+                                  p.diasParaVencer! <= 7)
+                            ? const Color(0xFFEA580C).withValues(alpha: 0.35)
+                            : const Color(0xFFD97706).withValues(alpha: 0.35),
                       ),
                     ),
                     child: Column(
@@ -2361,17 +2364,18 @@ class _ProductosScreenState extends State<ProductosScreen>
                                       p.diasParaVencer! <= 0)
                                   ? LucideIcons.alertOctagon
                                   : (p.diasParaVencer != null &&
-                                          p.diasParaVencer! <= 7)
-                                      ? LucideIcons.zap
-                                      : LucideIcons.rotateCw,
+                                        p.diasParaVencer! <= 7)
+                                  ? LucideIcons.zap
+                                  : LucideIcons.rotateCw,
                               size: 16,
-                              color: (p.diasParaVencer != null &&
+                              color:
+                                  (p.diasParaVencer != null &&
                                       p.diasParaVencer! <= 0)
                                   ? const Color(0xFFEF4444)
                                   : (p.diasParaVencer != null &&
-                                          p.diasParaVencer! <= 7)
-                                      ? const Color(0xFFEA580C)
-                                      : const Color(0xFFD97706),
+                                        p.diasParaVencer! <= 7)
+                                  ? const Color(0xFFEA580C)
+                                  : const Color(0xFFD97706),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -2396,20 +2400,23 @@ class _ProductosScreenState extends State<ProductosScreen>
                                   final now = DateTime.now();
                                   final picked = await showDatePicker(
                                     context: context,
-                                    initialDate: p.fechaVencimiento ??
+                                    initialDate:
+                                        p.fechaVencimiento ??
                                         now.add(const Duration(days: 30)),
-                                    firstDate: now
-                                        .subtract(const Duration(days: 365)),
-                                    lastDate:
-                                        now.add(const Duration(days: 365 * 3)),
-                                    helpText:
-                                        'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
+                                    firstDate: now.subtract(
+                                      const Duration(days: 365),
+                                    ),
+                                    lastDate: now.add(
+                                      const Duration(days: 365 * 3),
+                                    ),
+                                    helpText: 'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
                                     confirmText: 'GUARDAR',
                                     cancelText: 'CANCELAR',
                                   );
                                   if (picked != null) {
-                                    final actualizado =
-                                        p.copyWith(fechaVencimiento: picked);
+                                    final actualizado = p.copyWith(
+                                      fechaVencimiento: picked,
+                                    );
                                     final ok = await _productoService
                                         .actualizarProducto(actualizado);
                                     if (ok && mounted) {
@@ -2420,8 +2427,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                                           content: Text(
                                             'Lote FIFO de "${p.nombre}" actualizado al ${picked.day}/${picked.month}/${picked.year}',
                                           ),
-                                          backgroundColor:
-                                              AppTheme.accentGreen,
+                                          backgroundColor: AppTheme.accentGreen,
                                         ),
                                       );
                                       _cargarProductos();
@@ -2440,13 +2446,12 @@ class _ProductosScreenState extends State<ProductosScreen>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          (p.diasParaVencer != null &&
-                                  p.diasParaVencer! <= 0)
+                          (p.diasParaVencer != null && p.diasParaVencer! <= 0)
                               ? '⚠️ REGLA FIFO: Retirar inmediatamente de exhibición para evitar multas sanitarias. Registrar merma o devolución a proveedor.'
                               : (p.diasParaVencer != null &&
-                                      p.diasParaVencer! <= 7)
-                                  ? '⚡ REGLA FIFO: Salida prioritaria urgente. Exhibir al frente del mostrador o crear descuento express para liquidar el stock.'
-                                  : '📦 REGLA FIFO: Rotación en repisa. Colocar este lote adelante de los productos que vencen más tarde.',
+                                    p.diasParaVencer! <= 7)
+                              ? '⚡ REGLA FIFO: Salida prioritaria urgente. Exhibir al frente del mostrador o crear descuento express para liquidar el stock.'
+                              : '📦 REGLA FIFO: Rotación en repisa. Colocar este lote adelante de los productos que vencen más tarde.',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             color: isDark
@@ -2545,8 +2550,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                               final auth = await SolicitarPinDialog.mostrar(
                                 context,
                                 titulo: 'Modo Cajero Protegido',
-                                mensaje:
-                                    'Se requiere PIN de Administrador para modificar precios o catálogo.',
+                                mensaje: 'Se requiere PIN de Administrador para modificar precios o catálogo.',
                               );
                               if (!auth) return;
                             }
@@ -2996,7 +3000,11 @@ class _ProductosScreenState extends State<ProductosScreen>
     );
   }
 
-  Widget _buildSugerenciasBanner(BuildContext context, bool isDark, [int? countOverride]) {
+  Widget _buildSugerenciasBanner(
+    BuildContext context,
+    bool isDark, [
+    int? countOverride,
+  ]) {
     final count = countOverride ?? _sugerenciasPendientes;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 4),
@@ -3063,24 +3071,30 @@ class _ProductosScreenState extends State<ProductosScreen>
 
   Widget _buildFifoAlertBanner(BuildContext context, bool isDark) {
     final vencidos = _safeTodos
-        .where((p) =>
-            p.controlaVencimiento &&
-            p.fechaVencimiento != null &&
-            (p.diasParaVencer ?? 999) <= 0)
+        .where(
+          (p) =>
+              p.controlaVencimiento &&
+              p.fechaVencimiento != null &&
+              (p.diasParaVencer ?? 999) <= 0,
+        )
         .length;
     final criticos = _safeTodos
-        .where((p) =>
-            p.controlaVencimiento &&
-            p.fechaVencimiento != null &&
-            (p.diasParaVencer ?? 999) > 0 &&
-            (p.diasParaVencer ?? 999) <= 7)
+        .where(
+          (p) =>
+              p.controlaVencimiento &&
+              p.fechaVencimiento != null &&
+              (p.diasParaVencer ?? 999) > 0 &&
+              (p.diasParaVencer ?? 999) <= 7,
+        )
         .length;
     final atencion = _safeTodos
-        .where((p) =>
-            p.controlaVencimiento &&
-            p.fechaVencimiento != null &&
-            (p.diasParaVencer ?? 999) > 7 &&
-            (p.diasParaVencer ?? 999) <= 30)
+        .where(
+          (p) =>
+              p.controlaVencimiento &&
+              p.fechaVencimiento != null &&
+              (p.diasParaVencer ?? 999) > 7 &&
+              (p.diasParaVencer ?? 999) <= 30,
+        )
         .length;
     final totalRiesgo = vencidos + criticos + atencion;
     if (totalRiesgo == 0) return const SizedBox.shrink();
@@ -3093,11 +3107,11 @@ class _ProductosScreenState extends State<ProductosScreen>
       decoration: BoxDecoration(
         color: isDark
             ? (vencidos > 0
-                ? const Color(0xFF450A0A).withValues(alpha: 0.6)
-                : const Color(0xFF422006).withValues(alpha: 0.5))
+                  ? const Color(0xFF450A0A).withValues(alpha: 0.6)
+                  : const Color(0xFF422006).withValues(alpha: 0.5))
             : (vencidos > 0
-                ? const Color(0xFFFEF2F2)
-                : const Color(0xFFFFFBEB)),
+                  ? const Color(0xFFFEF2F2)
+                  : const Color(0xFFFFFBEB)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: vencidos > 0
@@ -3114,10 +3128,11 @@ class _ProductosScreenState extends State<ProductosScreen>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: (vencidos > 0
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFFF59E0B))
-                      .withValues(alpha: 0.15),
+                  color:
+                      (vencidos > 0
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFFF59E0B))
+                          .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -3140,8 +3155,8 @@ class _ProductosScreenState extends State<ProductosScreen>
                     color: isDark
                         ? Colors.white
                         : (vencidos > 0
-                            ? const Color(0xFF991B1B)
-                            : const Color(0xFF92400E)),
+                              ? const Color(0xFF991B1B)
+                              : const Color(0xFF92400E)),
                   ),
                 ),
               ),
@@ -3163,11 +3178,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                   decoration: BoxDecoration(
                     color: isFifoActivo
                         ? (vencidos > 0
-                            ? const Color(0xFFEF4444)
-                            : const Color(0xFFD97706))
-                        : (isDark
-                            ? const Color(0xFF1E293B)
-                            : Colors.white),
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFFD97706))
+                        : (isDark ? const Color(0xFF1E293B) : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: vencidos > 0
@@ -3187,8 +3200,8 @@ class _ProductosScreenState extends State<ProductosScreen>
                         color: isFifoActivo
                             ? Colors.white
                             : (vencidos > 0
-                                ? const Color(0xFFEF4444)
-                                : const Color(0xFFD97706)),
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFFD97706)),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -3199,8 +3212,8 @@ class _ProductosScreenState extends State<ProductosScreen>
                           color: isFifoActivo
                               ? Colors.white
                               : (vencidos > 0
-                                  ? const Color(0xFFEF4444)
-                                  : const Color(0xFFD97706)),
+                                    ? const Color(0xFFEF4444)
+                                    : const Color(0xFFD97706)),
                         ),
                       ),
                     ],
@@ -3277,10 +3290,7 @@ class _ProductosScreenState extends State<ProductosScreen>
         decoration: BoxDecoration(
           color: color.withValues(alpha: isDark ? 0.22 : 0.12),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: color.withValues(alpha: 0.4),
-            width: 0.8,
-          ),
+          border: Border.all(color: color.withValues(alpha: 0.4), width: 0.8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -3288,10 +3298,7 @@ class _ProductosScreenState extends State<ProductosScreen>
             Container(
               width: 5,
               height: 5,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 5),
             Text(
@@ -3314,31 +3321,26 @@ class _ProductosScreenState extends State<ProductosScreen>
     final dias = p.diasParaVencer ?? 999;
     final Color color = dias <= 0
         ? const Color(0xFFEF4444)
-        : (dias <= 7
-            ? const Color(0xFFEA580C)
-            : const Color(0xFFD97706));
+        : (dias <= 7 ? const Color(0xFFEA580C) : const Color(0xFFD97706));
     final IconData icon = dias <= 0
         ? LucideIcons.alertOctagon
         : (dias <= 7 ? LucideIcons.zap : LucideIcons.rotateCw);
     final String label = dias < 0
         ? 'VENCIDO hace ${dias.abs()}d (FIFO: Retirar)'
         : (dias == 0
-            ? 'VENCE HOY (FIFO: Retirar)'
-            : (dias <= 7
-                ? 'Vence en ${dias}d (FIFO: Liquidar)'
-                : (dias <= 30
-                    ? 'Vence en ${dias}d (FIFO: Rotar)'
-                    : 'Vence: ${p.fechaVencimiento!.day}/${p.fechaVencimiento!.month}/${p.fechaVencimiento!.year}')));
+              ? 'VENCE HOY (FIFO: Retirar)'
+              : (dias <= 7
+                    ? 'Vence en ${dias}d (FIFO: Liquidar)'
+                    : (dias <= 30
+                          ? 'Vence en ${dias}d (FIFO: Rotar)'
+                          : 'Vence: ${p.fechaVencimiento!.day}/${p.fechaVencimiento!.month}/${p.fechaVencimiento!.year}')));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: isDark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: color.withValues(alpha: 0.45),
-          width: 0.8,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.45), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

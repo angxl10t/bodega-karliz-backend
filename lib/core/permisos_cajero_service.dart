@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../features/auth/auth_service.dart';
 import 'secure_storage_service.dart';
 
@@ -30,38 +32,38 @@ class PermisosCajero {
 
   /// Preset: Máxima Seguridad (Solo cobrar precios exactos, todo lo demás bloqueado)
   factory PermisosCajero.seguridadMaxima() => const PermisosCajero(
-        verCostosYMargen: false,
-        aplicarDescuentosManuales: false,
-        anularVentasSinPin: false,
-        modificarPreciosVenta: false,
-        verReportesFinanzas: false,
-      );
+    verCostosYMargen: false,
+    aplicarDescuentosManuales: false,
+    anularVentasSinPin: false,
+    modificarPreciosVenta: false,
+    verReportesFinanzas: false,
+  );
 
   /// Preset: Estándar Recomendado (Permite aplicar descuentos, pero protege costos y anulaciones)
   factory PermisosCajero.estandarRecomendado() => const PermisosCajero(
-        verCostosYMargen: false,
-        aplicarDescuentosManuales: true,
-        anularVentasSinPin: false,
-        modificarPreciosVenta: false,
-        verReportesFinanzas: false,
-      );
+    verCostosYMargen: false,
+    aplicarDescuentosManuales: true,
+    anularVentasSinPin: false,
+    modificarPreciosVenta: false,
+    verReportesFinanzas: false,
+  );
 
   /// Preset: Cajero de Confianza / Encargado (Permite ver costos y anular)
   factory PermisosCajero.cajeroEncargado() => const PermisosCajero(
-        verCostosYMargen: true,
-        aplicarDescuentosManuales: true,
-        anularVentasSinPin: true,
-        modificarPreciosVenta: true,
-        verReportesFinanzas: false,
-      );
+    verCostosYMargen: true,
+    aplicarDescuentosManuales: true,
+    anularVentasSinPin: true,
+    modificarPreciosVenta: true,
+    verReportesFinanzas: false,
+  );
 
   Map<String, dynamic> toJson() => {
-        'verCostosYMargen': verCostosYMargen,
-        'aplicarDescuentosManuales': aplicarDescuentosManuales,
-        'anularVentasSinPin': anularVentasSinPin,
-        'modificarPreciosVenta': modificarPreciosVenta,
-        'verReportesFinanzas': verReportesFinanzas,
-      };
+    'verCostosYMargen': verCostosYMargen,
+    'aplicarDescuentosManuales': aplicarDescuentosManuales,
+    'anularVentasSinPin': anularVentasSinPin,
+    'modificarPreciosVenta': modificarPreciosVenta,
+    'verReportesFinanzas': verReportesFinanzas,
+  };
 
   factory PermisosCajero.fromJson(Map<String, dynamic> json) {
     return PermisosCajero(
@@ -182,7 +184,10 @@ class PermisosCajeroService {
   }
 
   /// Guarda los permisos para la bodega actual
-  static Future<void> guardarPermisos(PermisosCajero permisos, {String? bodegaId}) async {
+  static Future<void> guardarPermisos(
+    PermisosCajero permisos, {
+    String? bodegaId,
+  }) async {
     String id = bodegaId ?? '';
     if (id.isEmpty) {
       try {

@@ -2909,15 +2909,11 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   vertical: 12,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primary
+                                  color: Theme.of(context).colorScheme.primary
                                       .withValues(alpha: isDark ? 0.15 : 0.08),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary
+                                    color: Theme.of(context).colorScheme.primary
                                         .withValues(alpha: 0.3),
                                     width: 1.0,
                                   ),
@@ -2968,9 +2964,9 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                  horizontal: 5,
-                                                  vertical: 1.5,
-                                                ),
+                                                      horizontal: 5,
+                                                      vertical: 1.5,
+                                                    ),
                                                 decoration: BoxDecoration(
                                                   color: AppTheme.accentGreen
                                                       .withValues(alpha: 0.15),

@@ -2846,11 +2846,11 @@ class _DashboardScreenState extends State<DashboardScreen>
       decoration: BoxDecoration(
         color: isDark
             ? (vencidos > 0
-                ? const Color(0xFF450A0A).withValues(alpha: 0.6)
-                : const Color(0xFF422006).withValues(alpha: 0.5))
+                  ? const Color(0xFF450A0A).withValues(alpha: 0.6)
+                  : const Color(0xFF422006).withValues(alpha: 0.5))
             : (vencidos > 0
-                ? const Color(0xFFFEF2F2)
-                : const Color(0xFFFFFBEB)),
+                  ? const Color(0xFFFEF2F2)
+                  : const Color(0xFFFFFBEB)),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: vencidos > 0
@@ -2867,10 +2867,11 @@ class _DashboardScreenState extends State<DashboardScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (vencidos > 0
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFFD97706))
-                      .withValues(alpha: 0.15),
+                  color:
+                      (vencidos > 0
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFFD97706))
+                          .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -2899,8 +2900,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                               color: isDark
                                   ? Colors.white
                                   : (vencidos > 0
-                                      ? const Color(0xFF991B1B)
-                                      : const Color(0xFF92400E)),
+                                        ? const Color(0xFF991B1B)
+                                        : const Color(0xFF92400E)),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -2913,10 +2914,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                             vertical: 1.5,
                           ),
                           decoration: BoxDecoration(
-                            color: (vencidos > 0
-                                    ? const Color(0xFFEF4444)
-                                    : const Color(0xFFD97706))
-                                .withValues(alpha: 0.18),
+                            color:
+                                (vencidos > 0
+                                        ? const Color(0xFFEF4444)
+                                        : const Color(0xFFD97706))
+                                    .withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -3028,10 +3030,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       decoration: BoxDecoration(
         color: color.withValues(alpha: isDark ? 0.22 : 0.12),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: color.withValues(alpha: 0.35),
-          width: 0.8,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.35), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -3039,10 +3038,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           Container(
             width: 5,
             height: 5,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 4),
           Text(

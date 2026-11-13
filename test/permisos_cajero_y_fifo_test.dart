@@ -29,14 +29,17 @@ void main() {
       expect(p.verReportesFinanzas, isFalse);
     });
 
-    test('Preset Seguridad Máxima restringe todas las operaciones sensibles', () {
-      final p = PermisosCajero.seguridadMaxima();
-      expect(p.verCostosYMargen, isFalse);
-      expect(p.aplicarDescuentosManuales, isFalse);
-      expect(p.anularVentasSinPin, isFalse);
-      expect(p.modificarPreciosVenta, isFalse);
-      expect(p.verReportesFinanzas, isFalse);
-    });
+    test(
+      'Preset Seguridad Máxima restringe todas las operaciones sensibles',
+      () {
+        final p = PermisosCajero.seguridadMaxima();
+        expect(p.verCostosYMargen, isFalse);
+        expect(p.aplicarDescuentosManuales, isFalse);
+        expect(p.anularVentasSinPin, isFalse);
+        expect(p.modificarPreciosVenta, isFalse);
+        expect(p.verReportesFinanzas, isFalse);
+      },
+    );
 
     test('Preset Cajero Encargado otorga mayor autonomía de mostrador', () {
       final p = PermisosCajero.cajeroEncargado();
@@ -59,7 +62,10 @@ void main() {
       final p2 = PermisosCajero.fromJson(json);
 
       expect(p2.verCostosYMargen, equals(p1.verCostosYMargen));
-      expect(p2.aplicarDescuentosManuales, equals(p1.aplicarDescuentosManuales));
+      expect(
+        p2.aplicarDescuentosManuales,
+        equals(p1.aplicarDescuentosManuales),
+      );
       expect(p2.anularVentasSinPin, equals(p1.anularVentasSinPin));
       expect(p2.modificarPreciosVenta, equals(p1.modificarPreciosVenta));
       expect(p2.verReportesFinanzas, equals(p1.verReportesFinanzas));
@@ -71,24 +77,29 @@ void main() {
   });
 
   group('PermisosCajeroService - Persistencia & Reglas de Rol', () {
-    test('Guarda y recupera permisos específicos de bodega en SharedPreferences', () async {
-      const custom = PermisosCajero(
-        verCostosYMargen: true,
-        aplicarDescuentosManuales: false,
-        anularVentasSinPin: true,
-        modificarPreciosVenta: true,
-        verReportesFinanzas: false,
-      );
+    test(
+      'Guarda y recupera permisos específicos de bodega en SharedPreferences',
+      () async {
+        const custom = PermisosCajero(
+          verCostosYMargen: true,
+          aplicarDescuentosManuales: false,
+          anularVentasSinPin: true,
+          modificarPreciosVenta: true,
+          verReportesFinanzas: false,
+        );
 
-      await PermisosCajeroService.guardarPermisos(custom, bodegaId: '99');
-      final recuperado = await PermisosCajeroService.obtenerPermisos(bodegaId: '99');
+        await PermisosCajeroService.guardarPermisos(custom, bodegaId: '99');
+        final recuperado = await PermisosCajeroService.obtenerPermisos(
+          bodegaId: '99',
+        );
 
-      expect(recuperado.verCostosYMargen, isTrue);
-      expect(recuperado.aplicarDescuentosManuales, isFalse);
-      expect(recuperado.anularVentasSinPin, isTrue);
-      expect(recuperado.modificarPreciosVenta, isTrue);
-      expect(recuperado.verReportesFinanzas, isFalse);
-    });
+        expect(recuperado.verCostosYMargen, isTrue);
+        expect(recuperado.aplicarDescuentosManuales, isFalse);
+        expect(recuperado.anularVentasSinPin, isTrue);
+        expect(recuperado.modificarPreciosVenta, isTrue);
+        expect(recuperado.verReportesFinanzas, isFalse);
+      },
+    );
 
     test('Administrador siempre tiene permisos totales sin importar la política de cajero', () {
       AuthService.setCachedRol('ADMIN');
@@ -99,100 +110,118 @@ void main() {
       expect(PermisosCajeroService.puedeVerFinanzas, isTrue);
     });
 
-    test('Cajero respeta los permisos granulares asignados por el Admin', () async {
-      AuthService.setCachedRol('CAJERO');
-      // Con configuración por defecto:
-      await PermisosCajeroService.guardarPermisos(
-        const PermisosCajero(
-          verCostosYMargen: false,
-          aplicarDescuentosManuales: true,
-          anularVentasSinPin: false,
-          modificarPreciosVenta: false,
-          verReportesFinanzas: false,
-        ),
-        bodegaId: '1',
-      );
+    test(
+      'Cajero respeta los permisos granulares asignados por el Admin',
+      () async {
+        AuthService.setCachedRol('CAJERO');
+        // Con configuración por defecto:
+        await PermisosCajeroService.guardarPermisos(
+          const PermisosCajero(
+            verCostosYMargen: false,
+            aplicarDescuentosManuales: true,
+            anularVentasSinPin: false,
+            modificarPreciosVenta: false,
+            verReportesFinanzas: false,
+          ),
+          bodegaId: '1',
+        );
 
-      expect(PermisosCajeroService.puedeVerCostos, isFalse);
-      expect(PermisosCajeroService.puedeAplicarDescuentos, isTrue);
-      expect(PermisosCajeroService.puedeAnularSinPin, isFalse);
-      expect(PermisosCajeroService.puedeModificarPrecios, isFalse);
-      expect(PermisosCajeroService.puedeVerFinanzas, isFalse);
+        expect(PermisosCajeroService.puedeVerCostos, isFalse);
+        expect(PermisosCajeroService.puedeAplicarDescuentos, isTrue);
+        expect(PermisosCajeroService.puedeAnularSinPin, isFalse);
+        expect(PermisosCajeroService.puedeModificarPrecios, isFalse);
+        expect(PermisosCajeroService.puedeVerFinanzas, isFalse);
 
-      // Si el Admin activa verCostosYMargen y anularSinPin:
-      await PermisosCajeroService.guardarPermisos(
-        const PermisosCajero(
-          verCostosYMargen: true,
-          aplicarDescuentosManuales: true,
-          anularVentasSinPin: true,
-          modificarPreciosVenta: false,
-          verReportesFinanzas: false,
-        ),
-        bodegaId: '1',
-      );
+        // Si el Admin activa verCostosYMargen y anularSinPin:
+        await PermisosCajeroService.guardarPermisos(
+          const PermisosCajero(
+            verCostosYMargen: true,
+            aplicarDescuentosManuales: true,
+            anularVentasSinPin: true,
+            modificarPreciosVenta: false,
+            verReportesFinanzas: false,
+          ),
+          bodegaId: '1',
+        );
 
-      expect(PermisosCajeroService.puedeVerCostos, isTrue);
-      expect(PermisosCajeroService.puedeAnularSinPin, isTrue);
-      expect(PermisosCajeroService.puedeModificarPrecios, isFalse);
-    });
+        expect(PermisosCajeroService.puedeVerCostos, isTrue);
+        expect(PermisosCajeroService.puedeAnularSinPin, isTrue);
+        expect(PermisosCajeroService.puedeModificarPrecios, isFalse);
+      },
+    );
   });
 
   group('Control de Vencimiento FIFO - Lógica & Rotación de Góndola', () {
-    test('Clasifica correctamente lotes vencidos, críticos y en rotación FIFO', () {
-      final now = DateTime.now();
+    test(
+      'Clasifica correctamente lotes vencidos, críticos y en rotación FIFO',
+      () {
+        final now = DateTime.now();
 
-      // Producto vencido hace 2 días
-      final vencido = Producto(
-        codigo: 'VENC-01',
-        nombre: 'Leche Fresca Vencida',
-        precioVenta: 5.50,
-        stockActual: 10,
-        controlaVencimiento: true,
-        fechaVencimiento: now.subtract(const Duration(days: 2)),
-      );
+        // Producto vencido hace 2 días
+        final vencido = Producto(
+          codigo: 'VENC-01',
+          nombre: 'Leche Fresca Vencida',
+          precioVenta: 5.50,
+          stockActual: 10,
+          controlaVencimiento: true,
+          fechaVencimiento: now.subtract(const Duration(days: 2)),
+        );
 
-      expect(vencido.diasParaVencer! <= 0, isTrue);
-      expect(vencido.semaforoVencimiento, equals(SemaforoVencimiento.critico));
+        expect(vencido.diasParaVencer! <= 0, isTrue);
+        expect(
+          vencido.semaforoVencimiento,
+          equals(SemaforoVencimiento.critico),
+        );
 
-      // Producto crítico (vence en 3 días)
-      final critico = Producto(
-        codigo: 'CRIT-01',
-        nombre: 'Yogurt Fresa Crítico',
-        precioVenta: 7.00,
-        stockActual: 6,
-        controlaVencimiento: true,
-        fechaVencimiento: now.add(const Duration(days: 3)),
-      );
+        // Producto crítico (vence en 3 días)
+        final critico = Producto(
+          codigo: 'CRIT-01',
+          nombre: 'Yogurt Fresa Crítico',
+          precioVenta: 7.00,
+          stockActual: 6,
+          controlaVencimiento: true,
+          fechaVencimiento: now.add(const Duration(days: 3)),
+        );
 
-      expect(critico.diasParaVencer, inInclusiveRange(1, 7));
-      expect(critico.semaforoVencimiento, equals(SemaforoVencimiento.critico));
+        expect(critico.diasParaVencer, inInclusiveRange(1, 7));
+        expect(
+          critico.semaforoVencimiento,
+          equals(SemaforoVencimiento.critico),
+        );
 
-      // Producto en rotación FIFO (vence en 18 días)
-      final rotacion = Producto(
-        codigo: 'ROTA-01',
-        nombre: 'Galletas Rellenas',
-        precioVenta: 2.00,
-        stockActual: 24,
-        controlaVencimiento: true,
-        fechaVencimiento: now.add(const Duration(days: 18)),
-      );
+        // Producto en rotación FIFO (vence en 18 días)
+        final rotacion = Producto(
+          codigo: 'ROTA-01',
+          nombre: 'Galletas Rellenas',
+          precioVenta: 2.00,
+          stockActual: 24,
+          controlaVencimiento: true,
+          fechaVencimiento: now.add(const Duration(days: 18)),
+        );
 
-      expect(rotacion.diasParaVencer, inInclusiveRange(8, 30));
-      expect(rotacion.semaforoVencimiento, equals(SemaforoVencimiento.atencion));
+        expect(rotacion.diasParaVencer, inInclusiveRange(8, 30));
+        expect(
+          rotacion.semaforoVencimiento,
+          equals(SemaforoVencimiento.atencion),
+        );
 
-      // Producto vigente (> 60 días)
-      final vigente = Producto(
-        codigo: 'VIG-01',
-        nombre: 'Conserva de Atún',
-        precioVenta: 4.80,
-        stockActual: 40,
-        controlaVencimiento: true,
-        fechaVencimiento: now.add(const Duration(days: 90)),
-      );
+        // Producto vigente (> 60 días)
+        final vigente = Producto(
+          codigo: 'VIG-01',
+          nombre: 'Conserva de Atún',
+          precioVenta: 4.80,
+          stockActual: 40,
+          controlaVencimiento: true,
+          fechaVencimiento: now.add(const Duration(days: 90)),
+        );
 
-      expect(vigente.diasParaVencer! > 30, isTrue);
-      expect(vigente.semaforoVencimiento, equals(SemaforoVencimiento.vigente));
-    });
+        expect(vigente.diasParaVencer! > 30, isTrue);
+        expect(
+          vigente.semaforoVencimiento,
+          equals(SemaforoVencimiento.vigente),
+        );
+      },
+    );
 
     test('Ordenamiento FIFO sitúa primero los lotes con menor vida útil', () {
       final now = DateTime.now();
@@ -252,15 +281,13 @@ void main() {
   });
 
   group('PermisosCajeroModal - Renderizado y Ergonomía UI', () {
-    testWidgets('Muestra correctamente los 5 switches y chips de presets', (tester) async {
+    testWidgets('Muestra correctamente los 5 switches y chips de presets', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(800, 1600));
 
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: PermisosCajeroModal(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: PermisosCajeroModal())),
       );
 
       await tester.pump();

@@ -1439,8 +1439,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                       decimal: true,
                                     ),
                                 decoration: InputDecoration(
-                                  hintText:
-                                      'Ej. 2.50 (Opcional, para margen y mermas)',
+                                  hintText: 'Ej. 2.50 (Opcional, para margen y mermas)',
                                   prefixIcon: const Icon(
                                     LucideIcons.coins,
                                     size: 16,

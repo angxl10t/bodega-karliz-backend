@@ -111,12 +111,16 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         .where((p) => (p.diasParaVencer ?? 999) <= 0)
         .toList();
     final criticos = _todosProductos
-        .where((p) =>
-            (p.diasParaVencer ?? 999) > 0 && (p.diasParaVencer ?? 999) <= 7)
+        .where(
+          (p) =>
+              (p.diasParaVencer ?? 999) > 0 && (p.diasParaVencer ?? 999) <= 7,
+        )
         .toList();
     final enRiesgo = _todosProductos
-        .where((p) =>
-            (p.diasParaVencer ?? 999) > 7 && (p.diasParaVencer ?? 999) <= 30)
+        .where(
+          (p) =>
+              (p.diasParaVencer ?? 999) > 7 && (p.diasParaVencer ?? 999) <= 30,
+        )
         .toList();
     final vigentes = _todosProductos
         .where((p) => (p.diasParaVencer ?? 999) > 30)
@@ -145,13 +149,15 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
       bool matchesSemaforo = true;
       if (_filtroSemaforo == 'VENCIDOS') {
         matchesSemaforo = (p.diasParaVencer ?? 999) <= 0;
-      } else if (_filtroSemaforo == 'CRITICO' || _filtroSemaforo == 'CRITICOS') {
+      } else if (_filtroSemaforo == 'CRITICO' ||
+          _filtroSemaforo == 'CRITICOS') {
         matchesSemaforo =
             (p.diasParaVencer ?? 999) > 0 && (p.diasParaVencer ?? 999) <= 7;
       } else if (_filtroSemaforo == 'ATENCION') {
         matchesSemaforo =
             (p.diasParaVencer ?? 999) > 7 && (p.diasParaVencer ?? 999) <= 30;
-      } else if (_filtroSemaforo == 'VIGENTE' || _filtroSemaforo == 'VIGENTES') {
+      } else if (_filtroSemaforo == 'VIGENTE' ||
+          _filtroSemaforo == 'VIGENTES') {
         matchesSemaforo = (p.diasParaVencer ?? 999) > 30;
       }
 
@@ -236,10 +242,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             isSelected: _filtroSemaforo == 'VENCIDOS',
                             onTap: () {
                               setState(() {
-                                _filtroSemaforo =
-                                    _filtroSemaforo == 'VENCIDOS'
-                                        ? 'TODOS'
-                                        : 'VENCIDOS';
+                                _filtroSemaforo = _filtroSemaforo == 'VENCIDOS'
+                                    ? 'TODOS'
+                                    : 'VENCIDOS';
                               });
                             },
                             isDark: isDark,
@@ -257,10 +262,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             isSelected: _filtroSemaforo == 'CRITICOS',
                             onTap: () {
                               setState(() {
-                                _filtroSemaforo =
-                                    _filtroSemaforo == 'CRITICOS'
-                                        ? 'TODOS'
-                                        : 'CRITICOS';
+                                _filtroSemaforo = _filtroSemaforo == 'CRITICOS'
+                                    ? 'TODOS'
+                                    : 'CRITICOS';
                               });
                             },
                             isDark: isDark,
@@ -278,10 +282,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             isSelected: _filtroSemaforo == 'ATENCION',
                             onTap: () {
                               setState(() {
-                                _filtroSemaforo =
-                                    _filtroSemaforo == 'ATENCION'
-                                        ? 'TODOS'
-                                        : 'ATENCION';
+                                _filtroSemaforo = _filtroSemaforo == 'ATENCION'
+                                    ? 'TODOS'
+                                    : 'ATENCION';
                               });
                             },
                             isDark: isDark,
@@ -299,10 +302,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             isSelected: _filtroSemaforo == 'VIGENTES',
                             onTap: () {
                               setState(() {
-                                _filtroSemaforo =
-                                    _filtroSemaforo == 'VIGENTES'
-                                        ? 'TODOS'
-                                        : 'VIGENTES';
+                                _filtroSemaforo = _filtroSemaforo == 'VIGENTES'
+                                    ? 'TODOS'
+                                    : 'VIGENTES';
                               });
                             },
                             isDark: isDark,
@@ -314,10 +316,14 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                 ),
                 Container(
                   margin: const EdgeInsets.fromLTRB(16, 6, 16, 2),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppTheme.brandPrimary
-                        .withValues(alpha: isDark ? 0.14 : 0.08),
+                    color: AppTheme.brandPrimary.withValues(
+                      alpha: isDark ? 0.14 : 0.08,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: AppTheme.brandPrimary.withValues(alpha: 0.25),

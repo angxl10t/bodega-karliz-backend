@@ -237,7 +237,15 @@ void main() {
     testWidgets(
       'DashboardBiScreen renderiza cabecera, selector de días y acciones correctamente',
       (tester) async {
-        SharedPreferences.setMockInitialValues({});
+        FlutterSecureStorage.setMockInitialValues({
+          'jwt_token': 'test_token',
+          'plan_bodega': 'PRO',
+          'user_rol': 'ADMIN',
+        });
+        SharedPreferences.setMockInitialValues({
+          'plan_bodega': 'PRO',
+          'user_rol': 'ADMIN',
+        });
 
         final fakeClient = FakeHttpClient((request) async {
           return http.Response(

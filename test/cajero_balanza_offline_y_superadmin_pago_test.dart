@@ -10,20 +10,23 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('BalanzaBarcodeHelper Tests', () {
-    test('Detecta y decodifica correctamente código GS1 de balanza prefijo 20', () {
-      // 20 [00125] [00350] 4 -> SKU 125, 350 gramos = 0.350 kg
-      const code = '2000125003504';
-      expect(BalanzaBarcodeHelper.esCodigoBalanza(code), isTrue);
+    test(
+      'Detecta y decodifica correctamente código GS1 de balanza prefijo 20',
+      () {
+        // 20 [00125] [00350] 4 -> SKU 125, 350 gramos = 0.350 kg
+        const code = '2000125003504';
+        expect(BalanzaBarcodeHelper.esCodigoBalanza(code), isTrue);
 
-      final result = BalanzaBarcodeHelper.parse(code);
-      expect(result, isNotNull);
-      expect(result!.rawCode, equals(code));
-      expect(result.codigoBase, equals('125'));
-      expect(result.sku5, equals('00125'));
-      expect(result.sku4, equals('0012'));
-      expect(result.pesoKg, closeTo(0.350, 0.0001));
-      expect(result.esPorPeso, isTrue);
-    });
+        final result = BalanzaBarcodeHelper.parse(code);
+        expect(result, isNotNull);
+        expect(result!.rawCode, equals(code));
+        expect(result.codigoBase, equals('125'));
+        expect(result.sku5, equals('00125'));
+        expect(result.sku4, equals('0012'));
+        expect(result.pesoKg, closeTo(0.350, 0.0001));
+        expect(result.esPorPeso, isTrue);
+      },
+    );
 
     test('Detecta y decodifica código de balanza prefijo 21 (1.250 kg)', () {
       // 21 [00999] [01250] 8 -> SKU 999, 1250 gramos = 1.250 kg

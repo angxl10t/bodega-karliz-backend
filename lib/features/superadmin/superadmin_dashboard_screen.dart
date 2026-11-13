@@ -651,8 +651,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             }
             _bodegas[bIdx] = b.copyWith(
               plan: p.plan.isNotEmpty ? p.plan : 'PRO',
-              fechaVencimientoPlan:
-                  baseDate.add(const Duration(days: 30)).toIso8601String(),
+              fechaVencimientoPlan: baseDate
+                  .add(const Duration(days: 30))
+                  .toIso8601String(),
               estado: true,
             );
           }
@@ -708,8 +709,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             }
             _bodegas[bIdx] = b.copyWith(
               plan: p.plan.isNotEmpty ? p.plan : 'PRO',
-              fechaVencimientoPlan:
-                  baseDate.add(const Duration(days: 30)).toIso8601String(),
+              fechaVencimientoPlan: baseDate
+                  .add(const Duration(days: 30))
+                  .toIso8601String(),
               estado: true,
             );
           }
@@ -722,7 +724,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           SnackBar(
             content: Row(
               children: [
-                const Icon(LucideIcons.badgeCheck, color: Colors.white, size: 20),
+                const Icon(
+                  LucideIcons.badgeCheck,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -763,15 +769,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         .toList();
     if (pendientes.isEmpty) return;
 
-    final totalMonto =
-        pendientes.fold<double>(0.0, (acc, p) => acc + p.monto);
+    final totalMonto = pendientes.fold<double>(0.0, (acc, p) => acc + p.monto);
 
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (dlgCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
             const Icon(LucideIcons.zap, color: AppTheme.accentGreen, size: 22),
@@ -832,8 +835,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             }
             _bodegas[bIdx] = b.copyWith(
               plan: p.plan.isNotEmpty ? p.plan : 'PRO',
-              fechaVencimientoPlan:
-                  baseDate.add(const Duration(days: 30)).toIso8601String(),
+              fechaVencimientoPlan: baseDate
+                  .add(const Duration(days: 30))
+                  .toIso8601String(),
               estado: true,
             );
           }
@@ -3076,8 +3080,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final pendientes = _pagos
         .where((p) => p.estado.toUpperCase() == 'PENDIENTE')
         .toList();
-    final totalPendienteMonto =
-        pendientes.fold<double>(0.0, (acc, p) => acc + p.monto);
+    final totalPendienteMonto = pendientes.fold<double>(
+      0.0,
+      (acc, p) => acc + p.monto,
+    );
 
     final filtrados = _pagos.where((p) {
       if (query.isNotEmpty) {
@@ -3141,7 +3147,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                         style: GoogleFonts.outfit(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : const Color(0xFF065F46),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF065F46),
                         ),
                       ),
                       Text(
@@ -3257,7 +3265,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Container(
                 height: 18,
                 width: 1,
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFCBD5E1),
               ),
               const SizedBox(width: 10),
               _buildFilterChip(
@@ -3397,9 +3407,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                           child: Icon(
                                             LucideIcons.copy,
                                             size: 13,
-                                            color: AppTheme.getAdaptiveMutedText(
-                                              isDark,
-                                            ),
+                                            color:
+                                                AppTheme.getAdaptiveMutedText(
+                                                  isDark,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -3551,10 +3562,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: () => _aprobarPago1Click(p),
-                                    icon: const Icon(
-                                      LucideIcons.zap,
-                                      size: 15,
-                                    ),
+                                    icon: const Icon(LucideIcons.zap, size: 15),
                                     label: Text(
                                       '⚡ Aprobar 1-Click (S/ ${p.monto.toStringAsFixed(2)})',
                                       style: GoogleFonts.outfit(
@@ -3570,8 +3578,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                         horizontal: 8,
                                       ),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                       elevation: 0,
                                     ),
@@ -3603,8 +3610,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                       horizontal: 10,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
                                 ),
@@ -6064,8 +6070,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color:
-                      isDark ? AppTheme.cardDarkElevated : Colors.grey.shade50,
+                  color: isDark
+                      ? AppTheme.cardDarkElevated
+                      : Colors.grey.shade50,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isDark
@@ -6141,10 +6148,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         );
 
         final vencidoChip = Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 2.5,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
           decoration: BoxDecoration(
             color: vencido
                 ? AppTheme.alertRed.withValues(alpha: 0.15)
@@ -6243,10 +6247,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 onPressed: () async {
                   final uri = Uri.parse(whatsappUrl);
                   if (await canLaunchUrl(uri)) {
-                    await launchUrl(
-                      uri,
-                      mode: LaunchMode.externalApplication,
-                    );
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
                   }
                 },
               )
@@ -6286,10 +6287,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                     ),
                     if (whatsappUrl.isNotEmpty) ...[
                       const SizedBox(height: 14),
-                      SizedBox(
-                        width: double.infinity,
-                        child: whatsappButton,
-                      ),
+                      SizedBox(width: double.infinity, child: whatsappButton),
                     ],
                   ],
                 )
@@ -6569,8 +6567,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 ),
               )
             else
-              ...filtradas
-                  .map((s) => _buildSugerenciaSuperadminCard(s, isDark)),
+              ...filtradas.map(
+                (s) => _buildSugerenciaSuperadminCard(s, isDark),
+              ),
           ],
         );
       },
@@ -6636,10 +6635,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         final isNarrow = constraints.maxWidth < 450;
 
         final badgeWidget = Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 9,
-            vertical: 4,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
           decoration: BoxDecoration(
             color: badgeColor.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
@@ -6669,7 +6665,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isDark ? AppTheme.borderDarkElevated : Colors.grey.shade200,
+              color: isDark
+                  ? AppTheme.borderDarkElevated
+                  : Colors.grey.shade200,
             ),
           ),
           child: Column(
@@ -6745,7 +6743,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               Text(
                                 '•',
                                 style: TextStyle(
-                                  color: isDark ? Colors.white38 : Colors.black26,
+                                  color: isDark
+                                      ? Colors.white38
+                                      : Colors.black26,
                                 ),
                               ),
                               Text(

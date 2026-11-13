@@ -28,14 +28,15 @@ class OfflineStatusBar extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
 
-                final totalMonto =
-                    ventas.fold(0.0, (acc, v) => acc + v.total);
+                final totalMonto = ventas.fold(0.0, (acc, v) => acc + v.total);
 
                 return Container(
                   width: double.infinity,
                   margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? const Color(0xFF271B0A)
@@ -60,15 +61,16 @@ class OfflineStatusBar extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFD97706).withValues(alpha: 0.18),
+                          color: const Color(0xFFD97706)
+                              .withValues(alpha: 0.18),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           isForced
                               ? LucideIcons.shieldCheck
                               : (tienePendientes
-                                  ? LucideIcons.cloudOff
-                                  : LucideIcons.wifiOff),
+                                    ? LucideIcons.cloudOff
+                                    : LucideIcons.wifiOff),
                           size: 16,
                           color: const Color(0xFFD97706),
                         ),
@@ -85,8 +87,8 @@ class OfflineStatusBar extends StatelessWidget {
                                   isForced
                                       ? '🛡️ MODO OFFLINE BLINDADO'
                                       : (isOffline
-                                          ? 'MODO OFFLINE (SIN RED)'
-                                          : 'VENTAS PENDIENTES DE ENVÍO'),
+                                            ? 'MODO OFFLINE (SIN RED)'
+                                            : 'VENTAS PENDIENTES DE ENVÍO'),
                                   style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w900,
@@ -121,11 +123,11 @@ class OfflineStatusBar extends StatelessWidget {
                             Text(
                               isForced
                                   ? (tienePendientes
-                                      ? '${ventas.length} ventas en cola local (S/ ${totalMonto.toStringAsFixed(2)}). 0ms latencia.'
-                                      : 'Cobro 100% local activado (0ms latencia, sin esperas de red).')
+                                        ? '${ventas.length} ventas en cola local (S/ ${totalMonto.toStringAsFixed(2)}). 0ms latencia.'
+                                        : 'Cobro 100% local activado (0ms latencia, sin esperas de red).')
                                   : (tienePendientes
-                                      ? '${ventas.length} venta(s) guardadas localmente (S/ ${totalMonto.toStringAsFixed(2)})'
-                                      : 'Catálogo local activo. Las ventas se guardarán de forma segura.'),
+                                        ? '${ventas.length} venta(s) guardadas localmente (S/ ${totalMonto.toStringAsFixed(2)})'
+                                        : 'Catálogo local activo. Las ventas se guardarán de forma segura.'),
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,

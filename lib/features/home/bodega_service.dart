@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+
 import '../productos/producto_service.dart';
+
 import 'dart:convert';
 
 import '../../core/api_client.dart';
@@ -140,7 +142,8 @@ class BodegaInfo {
 
 class BodegaService {
   /// Notificador reactivo compartido del conteo de sugerencias pendientes del SuperAdmin
-  static final ValueNotifier<int> sugerenciasPendientesNotifier = ValueNotifier<int>(0);
+  static final ValueNotifier<int> sugerenciasPendientesNotifier =
+      ValueNotifier<int>(0);
 
   static const Duration _cacheTtl = Duration(seconds: 30);
   static bool _cleanupRegistered = false;

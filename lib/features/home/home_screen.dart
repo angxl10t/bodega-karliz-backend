@@ -100,7 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     OfflineSyncManager.instance.init();
-    BodegaService.sugerenciasPendientesNotifier.addListener(_onSugerenciasNotifierChanged);
+    BodegaService.sugerenciasPendientesNotifier.addListener(
+      _onSugerenciasNotifierChanged,
+    );
     _cargarDatosUsuario();
     _resetInactivityTimer();
     _screens = [
@@ -118,7 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    BodegaService.sugerenciasPendientesNotifier.removeListener(_onSugerenciasNotifierChanged);
+    BodegaService.sugerenciasPendientesNotifier.removeListener(
+      _onSugerenciasNotifierChanged,
+    );
     _inactivityTimer?.cancel();
     _activeTabNotifier.dispose();
     super.dispose();
@@ -254,7 +258,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onSugerenciasNotifierChanged() {
     if (mounted) {
       setState(() {
-        _sugerenciasPendientes = BodegaService.sugerenciasPendientesNotifier.value;
+        _sugerenciasPendientes =
+            BodegaService.sugerenciasPendientesNotifier.value;
       });
     }
   }
@@ -2128,7 +2133,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 valueListenable: BodegaService.sugerenciasPendientesNotifier,
                 builder: (context, pendientes, _) {
                   if (pendientes <= 0) return const SizedBox.shrink();
-                  return _buildSugerenciasAlertBanner(context, isDark, pendientes);
+                  return _buildSugerenciasAlertBanner(
+                    context,
+                    isDark,
+                    pendientes,
+                  );
                 },
               ),
               if (_userRol == 'ADMIN' &&
@@ -2523,7 +2532,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSugerenciasAlertBanner(BuildContext context, bool isDark, [int? countOverride]) {
+  Widget _buildSugerenciasAlertBanner(
+    BuildContext context,
+    bool isDark, [
+    int? countOverride,
+  ]) {
     final count = countOverride ?? _sugerenciasPendientes;
     return Container(
       width: double.infinity,

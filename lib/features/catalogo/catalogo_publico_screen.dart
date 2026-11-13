@@ -15,7 +15,9 @@ import '../../core/cajaya_vectors.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/product_image_widget.dart';
+
 import 'package:provider/provider.dart';
+
 import '../../core/theme_provider.dart';
 import '../../core/widgets/water_drop_theme_transition.dart';
 import 'pedido_web_service.dart';
@@ -484,10 +486,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             height: 3.0,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  _colorMarca,
-                  _colorMarca.withValues(alpha: 0.15),
-                ],
+                colors: [_colorMarca, _colorMarca.withValues(alpha: 0.15)],
               ),
             ),
           ),
@@ -1038,16 +1037,26 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         ? [
                             const Color(0xFF1C222E), // Base titanio oscuro
                             const Color(0xFF283142), // Acero cepillado
-                            const Color(0xFF3B485E), // Reflejo especular metálico
-                            _colorMarca.withValues(alpha: 0.26), // Reflejo anodizado de marca
+                            const Color(
+                              0xFF3B485E,
+                            ), // Reflejo especular metálico
+                            _colorMarca.withValues(
+                              alpha: 0.26,
+                            ), // Reflejo anodizado de marca
                             const Color(0xFF232B3A), // Tono metálico intermedio
-                            const Color(0xFF131822), // Sombra de aleación profunda
+                            const Color(
+                              0xFF131822,
+                            ), // Sombra de aleación profunda
                           ]
                         : [
                             const Color(0xFFF1F5F9), // Base aluminio platino
                             const Color(0xFFE2E8F0), // Acero claro cepillado
-                            const Color(0xFFFFFFFF), // Brillo especular blanco plateado
-                            _colorMarca.withValues(alpha: 0.16), // Tinte metálico de marca
+                            const Color(
+                              0xFFFFFFFF,
+                            ), // Brillo especular blanco plateado
+                            _colorMarca.withValues(
+                              alpha: 0.16,
+                            ), // Tinte metálico de marca
                             const Color(0xFFE5EAF2), // Platino satinado
                             const Color(0xFFCBD5E1), // Sombra de aleación clara
                           ],
@@ -1078,7 +1087,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       offset: const Offset(0, -1),
                     ),
                     BoxShadow(
-                      color: _colorMarca.withValues(alpha: isDark ? 0.20 : 0.12),
+                      color: _colorMarca.withValues(
+                        alpha: isDark ? 0.20 : 0.12,
+                      ),
                       blurRadius: 18,
                       offset: const Offset(0, 4),
                     ),
@@ -1148,15 +1159,18 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             ),
                             border: Border.all(
                               color: isDark
-                                  ? const Color(0xFF94A3B8).withValues(alpha: 0.8)
-                                  : const Color(0xFF94A3B8).withValues(alpha: 0.75),
+                                  ? const Color(0xFF94A3B8)
+                                        .withValues(alpha: 0.8)
+                                  : const Color(0xFF94A3B8)
+                                        .withValues(alpha: 0.75),
                               width: 1.6,
                             ),
                             boxShadow: [
                               BoxShadow(
                                 color: isDark
                                     ? Colors.black.withValues(alpha: 0.35)
-                                    : const Color(0xFF64748B).withValues(alpha: 0.22),
+                                    : const Color(0xFF64748B)
+                                          .withValues(alpha: 0.22),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
@@ -1206,12 +1220,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                             ? [
                                                 const Color(0xFF334155),
                                                 const Color(0xFF1E293B),
-                                                _colorMarca.withValues(alpha: 0.35),
+                                                _colorMarca.withValues(
+                                                  alpha: 0.35,
+                                                ),
                                               ]
                                             : [
                                                 const Color(0xFFFFFFFF),
                                                 const Color(0xFFF1F5F9),
-                                                _colorMarca.withValues(alpha: 0.18),
+                                                _colorMarca.withValues(
+                                                  alpha: 0.18,
+                                                ),
                                                 const Color(0xFFE2E8F0),
                                               ],
                                         begin: Alignment.topLeft,
@@ -1343,7 +1361,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       gradient: LinearGradient(
                                         colors: isDark
                                             ? [
-                                                const Color(0xFF064E3B).withValues(alpha: 0.40),
+                                                const Color(0xFF064E3B)
+                                                    .withValues(alpha: 0.40),
                                                 const Color(0xFF1E293B),
                                               ]
                                             : [
@@ -1355,9 +1374,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       ),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: const Color(0xFF16A34A).withValues(
-                                          alpha: isDark ? 0.55 : 0.45,
-                                        ),
+                                        color: const Color(0xFF16A34A)
+                                            .withValues(
+                                              alpha: isDark ? 0.55 : 0.45,
+                                            ),
                                         width: 1.0,
                                       ),
                                       boxShadow: [
@@ -1993,7 +2013,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final double? promoPrice = (prod['precioPromocional'] is num)
         ? (prod['precioPromocional'] as num).toDouble()
         : null;
-    final bool tienePromoValida = prod['tienePromocion'] == true &&
+    final bool tienePromoValida =
+        prod['tienePromocion'] == true &&
         promoPrice != null &&
         promoPrice < precio;
     final int descuentoPct = (tienePromoValida && precio > 0)
@@ -2439,7 +2460,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final double? promoPrice = (prod['precioPromocional'] is num)
         ? (prod['precioPromocional'] as num).toDouble()
         : null;
-    final bool tienePromoValida = prod['tienePromocion'] == true &&
+    final bool tienePromoValida =
+        prod['tienePromocion'] == true &&
         promoPrice != null &&
         promoPrice < precio;
     final int descuentoPct = (tienePromoValida && precio > 0)
@@ -2747,8 +2769,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       style: GoogleFonts.outfit(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w600,
-                                        decoration:
-                                            TextDecoration.lineThrough,
+                                        decoration: TextDecoration.lineThrough,
                                         color: isDark
                                             ? const Color(0xFF94A3B8)
                                             : const Color(0xFF64748B),

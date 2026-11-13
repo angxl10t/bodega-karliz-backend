@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -37,7 +38,8 @@ class WaterDropThemeTransition {
         ? const Color(0xFF1E3A8A) // Azul zafiro cobalto nocturno
         : const Color(0xFF93C5FD); // Azul cielo perla luminoso
 
-    final Color accentColor = customRippleColor ??
+    final Color accentColor =
+        customRippleColor ??
         (targetIsDark
             ? const Color(0xFF38BDF8) // Aqua zafiro luminoso
             : const Color(0xFF2563EB)); // Cobalto oficial CajaYa
@@ -70,9 +72,7 @@ class WaterDropThemeTransition {
 
   /// Calcula la distancia Euclidiana a la esquina más lejana más un margen de seguridad.
   static double _calcularRadioMaximo(Offset origin, Size size) {
-    final dTopLeft = math.sqrt(
-      math.pow(origin.dx, 2) + math.pow(origin.dy, 2),
-    );
+    final dTopLeft = math.sqrt(math.pow(origin.dx, 2) + math.pow(origin.dy, 2));
     final dTopRight = math.sqrt(
       math.pow(size.width - origin.dx, 2) + math.pow(origin.dy, 2),
     );
@@ -126,10 +126,7 @@ class _CajaYaSweepThemeOverlayState extends State<_CajaYaSweepThemeOverlay>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
-    );
+    _controller = AnimationController(vsync: this, duration: widget.duration);
 
     // El barrido y la formación de la C avanzan suavemente de derecha a izquierda
     _sweepAnimation = CurvedAnimation(
@@ -235,7 +232,8 @@ class _CajaYaSweepThemePainter extends CustomPainter {
       ..close();
 
     // Relleno suave translúcido (12% a 15% de opacidad, 100% visible el fondo)
-    final fillAlpha = (0.13 * (1.0 - (progress * 0.35))).clamp(0.0, 1.0) * opacity;
+    final fillAlpha =
+        (0.13 * (1.0 - (progress * 0.35))).clamp(0.0, 1.0) * opacity;
     if (fillAlpha > 0.005) {
       final sweepFillPaint = Paint()
         ..color = themeColor.withValues(alpha: fillAlpha)
@@ -293,8 +291,8 @@ class _CajaYaSweepThemePainter extends CustomPainter {
       canvas.drawRRect(
         squircleRRect.shift(const Offset(0, 3)),
         Paint()
-          ..color =
-              const Color(0xFF1E3A8A).withValues(alpha: 0.22 * badgeOpacity)
+          ..color = const Color(0xFF1E3A8A)
+              .withValues(alpha: 0.22 * badgeOpacity)
           ..style = PaintingStyle.fill,
       );
 
@@ -324,10 +322,7 @@ class _CajaYaSweepThemePainter extends CustomPainter {
 
     canvas.save();
     // Centramos la C con respecto al badge en el botón
-    canvas.translate(
-      center.dx - (cSize * 0.52),
-      center.dy - (cSize * 0.56),
-    );
+    canvas.translate(center.dx - (cSize * 0.52), center.dy - (cSize * 0.56));
 
     // Sector angular de desocultamiento de la C (sincronizado con el giro a la izquierda)
     final clampedSweep = sweepAngle.clamp(-1.999 * math.pi, -0.01);
@@ -374,8 +369,9 @@ class _CajaYaSweepThemePainter extends CustomPainter {
 
       // Halo luminoso del trazo
       final strokePaint = Paint()
-        ..color = Colors.white
-            .withValues(alpha: (0.85 * (1.0 - progress * 0.2)).clamp(0.0, 1.0) * opacity)
+        ..color = Colors.white.withValues(
+          alpha: (0.85 * (1.0 - progress * 0.2)).clamp(0.0, 1.0) * opacity,
+        )
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round
         ..strokeWidth = math.max(1.5, 3.2 * (1.0 - progress * 0.3));
@@ -388,7 +384,9 @@ class _CajaYaSweepThemePainter extends CustomPainter {
 
         // Aura cobalto
         final glowPaint = Paint()
-          ..color = accentColor.withValues(alpha: (0.80 * opacity).clamp(0.0, 1.0))
+          ..color = accentColor.withValues(
+            alpha: (0.80 * opacity).clamp(0.0, 1.0),
+          )
           ..style = PaintingStyle.fill;
         canvas.drawCircle(headPos, 6.0, glowPaint);
 
@@ -488,7 +486,8 @@ class WaterDropThemeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveTooltip = tooltip ??
+    final effectiveTooltip =
+        tooltip ??
         (isDark
             ? 'Cambiar a Modo Claro Pro'
             : 'Cambiar a Modo Oscuro Titanium');
@@ -503,13 +502,13 @@ class WaterDropThemeButton extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: backgroundColor ??
-                  (isDark
-                      ? const Color(0xFF1E293B)
-                      : const Color(0xFFF1F5F9)),
+              color:
+                  backgroundColor ??
+                  (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
-                color: borderColor ??
+                color:
+                    borderColor ??
                     (isDark
                         ? const Color(0xFF334155)
                         : const Color(0xFFE2E8F0)),
@@ -526,10 +525,13 @@ class WaterDropThemeButton extends StatelessWidget {
                 isDark ? LucideIcons.sun : LucideIcons.moon,
                 key: ValueKey<bool>(isDark),
                 size: iconSize,
-                color: iconColor ??
+                color:
+                    iconColor ??
                     (isDark
                         ? const Color(0xFFFBBF24) // Ámbar dorado para el Sol
-                        : const Color(0xFF6366F1)), // Índigo crepuscular para la Luna
+                        : const Color(
+                            0xFF6366F1,
+                          )), // Índigo crepuscular para la Luna
               ),
             ),
           ),

@@ -88,7 +88,11 @@ class _PermisosCajeroModalState extends State<PermisosCajeroModal> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(LucideIcons.shieldCheck, color: Colors.white, size: 20),
+              const Icon(
+                LucideIcons.shieldCheck,
+                color: Colors.white,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -176,7 +180,9 @@ class _PermisosCajeroModalState extends State<PermisosCajeroModal> {
                               style: GoogleFonts.outfit(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : AppTheme.textDark,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -186,10 +192,12 @@ class _PermisosCajeroModalState extends State<PermisosCajeroModal> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
+                                color: const Color(0xFF38BDF8)
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: const Color(0xFF38BDF8).withValues(alpha: 0.4),
+                                  color: const Color(0xFF38BDF8)
+                                      .withValues(alpha: 0.4),
                                   width: 0.8,
                                 ),
                               ),
@@ -246,7 +254,8 @@ class _PermisosCajeroModalState extends State<PermisosCajeroModal> {
                       subtitle: 'Solo cobro exacto',
                       isDark: isDark,
                       primaryColor: primaryColor,
-                      onTap: () => _aplicarPreset(PermisosCajero.seguridadMaxima()),
+                      onTap: () =>
+                          _aplicarPreset(PermisosCajero.seguridadMaxima()),
                     ),
                     const SizedBox(width: 8),
                     _buildPresetChip(
@@ -265,7 +274,8 @@ class _PermisosCajeroModalState extends State<PermisosCajeroModal> {
                       subtitle: 'Mayor autonomía',
                       isDark: isDark,
                       primaryColor: primaryColor,
-                      onTap: () => _aplicarPreset(PermisosCajero.cajeroEncargado()),
+                      onTap: () =>
+                          _aplicarPreset(PermisosCajero.cajeroEncargado()),
                     ),
                   ],
                 ),
@@ -273,112 +283,110 @@ class _PermisosCajeroModalState extends State<PermisosCajeroModal> {
               const SizedBox(height: 16),
 
               // Switch 1: Ver Costos de Compra y Margen
-                _buildSwitchTile(
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  icon: LucideIcons.eye,
-                  activeIconColor: const Color(0xFF8B5CF6),
-                  title: 'Ver Costos de Compra y Margen',
-                  subtitle:
-                      'Permite al cajero ver el precio al por mayor (costo) y el porcentaje de ganancia en el inventario. Desactívalo para proteger la privacidad financiera.',
-                  value: _verCostos,
-                  onChanged: (val) => setState(() => _verCostos = val),
-                ),
-                const SizedBox(height: 10),
+              _buildSwitchTile(
+                isDark: isDark,
+                primaryColor: primaryColor,
+                icon: LucideIcons.eye,
+                activeIconColor: const Color(0xFF8B5CF6),
+                title: 'Ver Costos de Compra y Margen',
+                subtitle: 'Permite al cajero ver el precio al por mayor (costo) y el porcentaje de ganancia en el inventario. Desactívalo para proteger la privacidad financiera.',
+                value: _verCostos,
+                onChanged: (val) => setState(() => _verCostos = val),
+              ),
+              const SizedBox(height: 10),
 
-                // Switch 2: Aplicar Descuentos Manuales en Caja
-                _buildSwitchTile(
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  icon: LucideIcons.badgePercent,
-                  activeIconColor: const Color(0xFF10B981),
-                  title: 'Aplicar Descuentos en Mostrador',
-                  subtitle:
-                      'Permite al cajero aplicar rebajas manuales o de cortesía a los clientes en el carrito sin solicitar el PIN del Administrador.',
-                  value: _aplicarDescuentos,
-                  onChanged: (val) => setState(() => _aplicarDescuentos = val),
-                ),
-                const SizedBox(height: 10),
+              // Switch 2: Aplicar Descuentos Manuales en Caja
+              _buildSwitchTile(
+                isDark: isDark,
+                primaryColor: primaryColor,
+                icon: LucideIcons.badgePercent,
+                activeIconColor: const Color(0xFF10B981),
+                title: 'Aplicar Descuentos en Mostrador',
+                subtitle: 'Permite al cajero aplicar rebajas manuales o de cortesía a los clientes en el carrito sin solicitar el PIN del Administrador.',
+                value: _aplicarDescuentos,
+                onChanged: (val) => setState(() => _aplicarDescuentos = val),
+              ),
+              const SizedBox(height: 10),
 
-                // Switch 3: Anular Ventas y Vaciar Carrito sin PIN
-                _buildSwitchTile(
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  icon: LucideIcons.undo2,
-                  activeIconColor: const Color(0xFFEF4444),
-                  title: 'Anular Ventas sin PIN de Admin',
-                  subtitle:
-                      'Si está desactivado, el cajero deberá solicitar el PIN del Administrador cada vez que quiera vaciar el carrito o cancelar una venta en curso.',
-                  value: _anularSinPin,
-                  onChanged: (val) => setState(() => _anularSinPin = val),
-                ),
-                const SizedBox(height: 10),
+              // Switch 3: Anular Ventas y Vaciar Carrito sin PIN
+              _buildSwitchTile(
+                isDark: isDark,
+                primaryColor: primaryColor,
+                icon: LucideIcons.undo2,
+                activeIconColor: const Color(0xFFEF4444),
+                title: 'Anular Ventas sin PIN de Admin',
+                subtitle: 'Si está desactivado, el cajero deberá solicitar el PIN del Administrador cada vez que quiera vaciar el carrito o cancelar una venta en curso.',
+                value: _anularSinPin,
+                onChanged: (val) => setState(() => _anularSinPin = val),
+              ),
+              const SizedBox(height: 10),
 
-                // Switch 4: Modificar Precios y Catálogo
-                _buildSwitchTile(
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  icon: LucideIcons.tag,
-                  activeIconColor: const Color(0xFFF59E0B),
-                  title: 'Modificar Precios y Catálogo',
-                  subtitle:
-                      'Si está desactivado, el cajero solo puede consultar el inventario para cobrar, pero no puede crear productos ni cambiar precios sin PIN de Admin.',
-                  value: _modificarPrecios,
-                  onChanged: (val) => setState(() => _modificarPrecios = val),
-                ),
-                const SizedBox(height: 10),
+              // Switch 4: Modificar Precios y Catálogo
+              _buildSwitchTile(
+                isDark: isDark,
+                primaryColor: primaryColor,
+                icon: LucideIcons.tag,
+                activeIconColor: const Color(0xFFF59E0B),
+                title: 'Modificar Precios y Catálogo',
+                subtitle: 'Si está desactivado, el cajero solo puede consultar el inventario para cobrar, pero no puede crear productos ni cambiar precios sin PIN de Admin.',
+                value: _modificarPrecios,
+                onChanged: (val) => setState(() => _modificarPrecios = val),
+              ),
+              const SizedBox(height: 10),
 
-                // Switch 5: Ver Reportes Financieros y BI
-                _buildSwitchTile(
-                  isDark: isDark,
-                  primaryColor: primaryColor,
-                  icon: LucideIcons.barChart3,
-                  activeIconColor: const Color(0xFF3B82F6),
-                  title: 'Acceso a Finanzas y Utilidades (BI)',
-                  subtitle:
-                      'Si está desactivado, bloquea el acceso a las pantallas de Inteligencia de Negocios, utilidades netas y métricas de rentabilidad.',
-                  value: _verFinanzas,
-                  onChanged: (val) => setState(() => _verFinanzas = val),
-                ),
-                const SizedBox(height: 20),
+              // Switch 5: Ver Reportes Financieros y BI
+              _buildSwitchTile(
+                isDark: isDark,
+                primaryColor: primaryColor,
+                icon: LucideIcons.barChart3,
+                activeIconColor: const Color(0xFF3B82F6),
+                title: 'Acceso a Finanzas y Utilidades (BI)',
+                subtitle: 'Si está desactivado, bloquea el acceso a las pantallas de Inteligencia de Negocios, utilidades netas y métricas de rentabilidad.',
+                value: _verFinanzas,
+                onChanged: (val) => setState(() => _verFinanzas = val),
+              ),
+              const SizedBox(height: 20),
 
-                // Botón Guardar
-                ElevatedButton.icon(
-                  onPressed: _isSaving ? null : _guardar,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 2,
+              // Botón Guardar
+              ElevatedButton.icon(
+                onPressed: _isSaving ? null : _guardar,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                  elevation: 2,
+                ),
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
                           ),
-                        )
-                      : const Icon(LucideIcons.save, size: 18),
-                  label: Text(
-                    _isSaving ? 'Guardando...' : 'Guardar Configuración de Permisos',
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
+                        ),
+                      )
+                    : const Icon(LucideIcons.save, size: 18),
+                label: Text(
+                  _isSaving
+                      ? 'Guardando...'
+                      : 'Guardar Configuración de Permisos',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
   Widget _buildPresetChip({
     required IconData icon,

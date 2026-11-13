@@ -1093,8 +1093,8 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                               controller: _precioCostoCtrl,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
+                                    decimal: true,
+                                  ),
                               decoration: InputDecoration(
                                 hintText:
                                     'Ej. 2.50 (Opcional, para margen y mermas)',

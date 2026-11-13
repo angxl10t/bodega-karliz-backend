@@ -51,13 +51,13 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     final auth = AuthService();
     final plan = await auth.getPlanBodega();
     final rol = await auth.getUserRole();
-    if (rol.toUpperCase() == 'CAJERO' && !PermisosCajeroService.puedeVerFinanzas) {
+    if (rol.toUpperCase() == 'CAJERO' &&
+        !PermisosCajeroService.puedeVerFinanzas) {
       if (mounted) {
         final ok = await SolicitarPinDialog.mostrar(
           context,
           titulo: 'Finanzas Protegidas',
-          mensaje:
-              'Se requiere PIN de Administrador para consultar reportes de rentabilidad y métricas de negocio.',
+          mensaje: 'Se requiere PIN de Administrador para consultar reportes de rentabilidad y métricas de negocio.',
         );
         if (!ok) {
           if (mounted) Navigator.maybePop(context);

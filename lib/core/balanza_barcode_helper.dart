@@ -53,6 +53,7 @@ class BalanzaBarcodeHelper {
   /// Verifica si un código de barras corresponde a una etiqueta generada por balanza
   static bool esCodigoBalanza(String rawCode) {
     final clean = rawCode.trim();
-    return clean.length == 13 && (clean.startsWith('20') || clean.startsWith('21'));
+    return clean.length == 13 &&
+        (clean.startsWith('20') || clean.startsWith('21'));
   }
 }
