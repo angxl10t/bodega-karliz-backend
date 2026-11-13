@@ -3,34 +3,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-/// Controlador y animador del efecto de transición de tema con el Isotipo oficial de CajaYa
-/// (Fluid C-Velocity Swoosh Theme Wave).
+/// Transición de tema oficial basada en el Icono Real de CajaYa.
 ///
-/// Simula una onda líquida que dibuja el trazo estilizado en forma de "C" blanca de CajaYa,
-/// expandiéndose con giro espiral dinámico y aros concéntricos cristalinos desde el botón,
-/// de forma 100% transparente y sin nublar ni tapar el contenido de la pantalla.
+/// Al presionar el botón de modo claro/oscuro, emerge el icono real tridimensional
+/// de CajaYa desde el origen, proyectando un bañado de color translúcido con la silueta
+/// de su squircle y su "C-Check" líquida, cubriendo la pantalla de forma cristalina
+/// SIN tapar ni ocultar los elementos de la interfaz.
 class WaterDropThemeTransition {
   static bool _isAnimating = false;
 
   /// Retorna si hay una animación en curso para evitar dobles clics accidentales.
   static bool get isAnimating => _isAnimating;
 
-  /// Dispara la transición con el isotipo de CajaYa desde [origin] expandiéndose por toda la pantalla.
-  ///
-  /// La pantalla permanece 100% visible, transparente y nítida en todo momento.
-  /// El cambio de tema se efectúa al instante y el isotipo recorre la pantalla.
+  /// Dispara la transición con el icono real de CajaYa desde [origin] expandiéndose por toda la pantalla.
   static Future<void> animate(
     BuildContext context, {
     required Offset origin,
     required bool targetIsDark,
     required Future<void> Function() onToggleTheme,
     Color? customRippleColor,
-    Duration duration = const Duration(milliseconds: 400),
+    Duration duration = const Duration(milliseconds: 460),
   }) async {
     if (_isAnimating) return;
 
     final overlayState = Overlay.of(context, rootOverlay: true);
     final screenSize = MediaQuery.of(context).size;
+
+    // Precargar el icono real si no está en memoria
+    try {
+      precacheImage(const AssetImage('assets/images/cajaya_icon.png'), context);
+    } catch (_) {}
 
     // Calcular el radio máximo necesario para cubrir la esquina más lejana desde el origen
     final double maxRadius = _calcularRadioMaximo(origin, screenSize);
@@ -48,7 +50,7 @@ class WaterDropThemeTransition {
 
     late OverlayEntry entry;
     entry = OverlayEntry(
-      builder: (ctx) => _CajaYaSwooshOverlayWidget(
+      builder: (ctx) => _CajaYaRealIconThemeOverlay(
         origin: origin,
         maxRadius: maxRadius,
         rippleColor: rippleColor,
@@ -90,8 +92,8 @@ class WaterDropThemeTransition {
   }
 }
 
-/// Widget interno insertado en el Overlay que gestiona la animación de la onda del isotipo CajaYa.
-class _CajaYaSwooshOverlayWidget extends StatefulWidget {
+/// Overlay que combina el icono real de CajaYa con el bañado de ondas translúcidas.
+class _CajaYaRealIconThemeOverlay extends StatefulWidget {
   final Offset origin;
   final double maxRadius;
   final Color rippleColor;
@@ -99,7 +101,7 @@ class _CajaYaSwooshOverlayWidget extends StatefulWidget {
   final Duration duration;
   final VoidCallback onCompleted;
 
-  const _CajaYaSwooshOverlayWidget({
+  const _CajaYaRealIconThemeOverlay({
     required this.origin,
     required this.maxRadius,
     required this.rippleColor,
@@ -109,15 +111,18 @@ class _CajaYaSwooshOverlayWidget extends StatefulWidget {
   });
 
   @override
-  State<_CajaYaSwooshOverlayWidget> createState() =>
-      _CajaYaSwooshOverlayWidgetState();
+  State<_CajaYaRealIconThemeOverlay> createState() =>
+      _CajaYaRealIconThemeOverlayState();
 }
 
-class _CajaYaSwooshOverlayWidgetState extends State<_CajaYaSwooshOverlayWidget>
+class _CajaYaRealIconThemeOverlayState
+    extends State<_CajaYaRealIconThemeOverlay>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _expandAnimation;
-  late Animation<double> _fadeAnimation;
+  late Animation<double> _iconPopAnim;
+  late Animation<double> _iconFadeAnim;
+  late Animation<double> _waveExpandAnim;
+  late Animation<double> _waveFadeAnim;
 
   @override
   void initState() {
@@ -127,16 +132,28 @@ class _CajaYaSwooshOverlayWidgetState extends State<_CajaYaSwooshOverlayWidget>
       duration: widget.duration,
     );
 
-    // Curva expansiva ágil y orgánica: nace rápido como una gota y se propaga naturalmente
-    _expandAnimation = CurvedAnimation(
+    // 1. Aparición elástica del icono real de CajaYa (pop inicial)
+    _iconPopAnim = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutCubic,
+      curve: const Interval(0.0, 0.40, curve: Curves.easeOutBack),
     );
 
-    // Desvanecimiento suave en el tramo final
-    _fadeAnimation = CurvedAnimation(
+    // 2. Desvanecimiento suave del icono central
+    _iconFadeAnim = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.60, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.45, 0.85, curve: Curves.easeOut),
+    );
+
+    // 3. Expansión fluida del bañado de color hacia toda la pantalla
+    _waveExpandAnim = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.10, 0.95, curve: Curves.easeOutCubic),
+    );
+
+    // 4. Desvanecimiento de las ondas en las esquinas
+    _waveFadeAnim = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.65, 1.0, curve: Curves.easeOut),
     );
 
     _controller.addStatusListener((status) {
@@ -156,23 +173,76 @@ class _CajaYaSwooshOverlayWidgetState extends State<_CajaYaSwooshOverlayWidget>
 
   @override
   Widget build(BuildContext context) {
+    const double baseIconSize = 54.0;
+
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          final progress = _expandAnimation.value;
-          final opacity = (1.0 - _fadeAnimation.value).clamp(0.0, 1.0);
+          final waveProgress = _waveExpandAnim.value;
+          final waveOpacity = (1.0 - _waveFadeAnim.value).clamp(0.0, 1.0);
 
-          return CustomPaint(
-            size: Size.infinite,
-            painter: _CajaYaSwooshThemePainter(
-              center: widget.origin,
-              progress: progress,
-              maxRadius: widget.maxRadius,
-              rippleColor: widget.rippleColor,
-              targetIsDark: widget.targetIsDark,
-              opacity: opacity,
-            ),
+          final iconScale = _iconPopAnim.value;
+          final iconOpacity = (1.0 - _iconFadeAnim.value).clamp(0.0, 1.0);
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // 1. Bañado de color translúcido con patrón de Squircle y C de CajaYa
+              CustomPaint(
+                size: Size.infinite,
+                painter: _CajaYaRealIconPatternPainter(
+                  center: widget.origin,
+                  progress: waveProgress,
+                  maxRadius: widget.maxRadius,
+                  rippleColor: widget.rippleColor,
+                  targetIsDark: widget.targetIsDark,
+                  opacity: waveOpacity,
+                ),
+              ),
+
+              // 2. Icono Real 3D de CajaYa que emerge elásticamente en el origen
+              if (iconOpacity > 0.01 && iconScale > 0.01)
+                Positioned(
+                  left: widget.origin.dx - (baseIconSize / 2),
+                  top: widget.origin.dy - (baseIconSize / 2),
+                  width: baseIconSize,
+                  height: baseIconSize,
+                  child: Transform.scale(
+                    scale: iconScale,
+                    child: Opacity(
+                      opacity: iconOpacity,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                            baseIconSize * 0.28,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: widget.rippleColor.withValues(
+                                alpha: (0.45 * iconOpacity).clamp(0.0, 1.0),
+                              ),
+                              blurRadius: 18,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            baseIconSize * 0.28,
+                          ),
+                          child: Image.asset(
+                            'assets/images/cajaya_icon.png',
+                            fit: BoxFit.contain,
+                            errorBuilder: (ctx, err, stack) =>
+                                const SizedBox.shrink(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           );
         },
       ),
@@ -180,9 +250,8 @@ class _CajaYaSwooshOverlayWidgetState extends State<_CajaYaSwooshOverlayWidget>
   }
 }
 
-/// Pintor que dibuja el trazo estilizado del Isotipo CajaYa (Fluid C-Velocity Swoosh)
-/// expandiéndose en espiral líquida transparente sin nublar la pantalla.
-class _CajaYaSwooshThemePainter extends CustomPainter {
+/// Pintor que proyecta el bañado de color siguiendo el patrón squircle y "C-Check" de CajaYa.
+class _CajaYaRealIconPatternPainter extends CustomPainter {
   final Offset center;
   final double progress;
   final double maxRadius;
@@ -190,7 +259,7 @@ class _CajaYaSwooshThemePainter extends CustomPainter {
   final bool targetIsDark;
   final double opacity;
 
-  _CajaYaSwooshThemePainter({
+  _CajaYaRealIconPatternPainter({
     required this.center,
     required this.progress,
     required this.maxRadius,
@@ -207,81 +276,75 @@ class _CajaYaSwooshThemePainter extends CustomPainter {
     final waveFade = (1.0 - (progress * 0.45)).clamp(0.0, 1.0) * opacity;
     if (waveFade <= 0.01) return;
 
-    // 1. Aro exterior de acompañamiento acuoso (fino y cristalino)
-    final ringPaint = Paint()
-      ..color = rippleColor.withValues(alpha: (0.35 * waveFade).clamp(0.0, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.0, 2.0 * (1.0 - (progress * 0.45)));
-    canvas.drawCircle(center, currentRadius, ringPaint);
+    // 1. Bañado en Squircle redondeado oficial de CajaYa (creciendo hacia los bordes)
+    final squircleSize = currentRadius * 2.1;
+    final squircleCorner = squircleSize * 0.28;
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: center,
+        width: squircleSize,
+        height: squircleSize,
+      ),
+      Radius.circular(squircleCorner),
+    );
 
-    // 2. Trazo y silueta de la "C" fluida de CajaYa (Swoosh Icon)
-    const baseSize = 80.0;
-    // Escala del isotipo: nace cerca del botón y se expande cubriendo la pantalla
-    final iconScale = 0.25 + (progress * (maxRadius / (baseSize * 0.42)));
-    final rotationAngle = progress * 0.42 * (targetIsDark ? 1.0 : -1.0);
+    // Halo vítreo muy tenue del Squircle de CajaYa (ultra translúcido, 100% visible el contenido)
+    final fillAlpha = (0.07 * (1.0 - (progress * 0.70))).clamp(0.0, 1.0) * opacity;
+    if (fillAlpha > 0.005) {
+      final fillPaint = Paint()
+        ..color = (targetIsDark
+                ? const Color(0xFF1E3A8A) // Azul zafiro translúcido
+                : const Color(0xFF60A5FA)) // Azul cielo translúcido
+            .withValues(alpha: fillAlpha)
+        ..style = PaintingStyle.fill;
+      canvas.drawRRect(rrect, fillPaint);
+    }
+
+    // Borde de onda del Squircle de CajaYa
+    final squircleBorderPaint = Paint()
+      ..color = rippleColor.withValues(alpha: (0.45 * waveFade).clamp(0.0, 1.0))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.2, 2.5 * (1.0 - (progress * 0.4)));
+    canvas.drawRRect(rrect, squircleBorderPaint);
+
+    // 2. Trazo proyectado de la "C-Check" oficial de CajaYa
+    const baseIconRef = 100.0;
+    final iconScale = 0.25 + (progress * (maxRadius / (baseIconRef * 0.45)));
+    final rotationAngle = progress * 0.38 * (targetIsDark ? 1.0 : -1.0);
 
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(rotationAngle);
     canvas.scale(iconScale);
-    canvas.translate(-baseSize * 0.52, -baseSize * 0.56);
+    canvas.translate(-baseIconRef * 0.52, -baseIconRef * 0.56);
 
-    final swooshPath = _crearCajaYaPath(baseSize);
+    final swooshPath = _crearCajaYaPath(baseIconRef);
 
-    // Capa A: Relleno traslúcido cristalino del icono de CajaYa (ultra tenue, 100% visible el fondo)
-    final fillAlpha = (0.06 * (1.0 - (progress * 0.65))).clamp(0.0, 1.0) * opacity;
-    if (fillAlpha > 0.005) {
-      final fillPaint = Paint()
-        ..color = (targetIsDark ? const Color(0xFF38BDF8) : Colors.white)
-            .withValues(alpha: fillAlpha)
-        ..style = PaintingStyle.fill;
-      canvas.drawPath(swooshPath, fillPaint);
-    }
-
-    // Capa B: Halo cobalto / aqua exterior del isotipo CajaYa
-    final haloStroke = math.max(0.8, 3.2 * (1.0 - (progress * 0.45)));
-    final haloPaint = Paint()
-      ..color = rippleColor.withValues(alpha: (0.55 * waveFade).clamp(0.0, 1.0))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = haloStroke;
-    canvas.drawPath(swooshPath, haloPaint);
-
-    // Capa C: Silueta blanca nítida del icono CajaYa (exacta al icono blanco oficial)
-    final whiteStroke = math.max(0.6, 1.6 * (1.0 - (progress * 0.45)));
+    // Filamento blanco nítido de la "C" de CajaYa
     final whitePaint = Paint()
-      ..color = Colors.white.withValues(alpha: (0.75 * waveFade).clamp(0.0, 1.0))
+      ..color = Colors.white.withValues(alpha: (0.80 * waveFade).clamp(0.0, 1.0))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = whiteStroke;
+      ..strokeWidth = math.max(0.7, 1.8 * (1.0 - (progress * 0.45)));
     canvas.drawPath(swooshPath, whitePaint);
+
+    // Halo azul cobalto exterior del trazo
+    final haloPaint = Paint()
+      ..color = rippleColor.withValues(alpha: (0.50 * waveFade).clamp(0.0, 1.0))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.0, 3.2 * (1.0 - (progress * 0.45)));
+    canvas.drawPath(swooshPath, haloPaint);
 
     canvas.restore();
 
-    // 3. Eco secundario del icono de CajaYa (estela que sigue al swoosh principal)
-    if (progress > 0.14) {
-      final secProgress = ((progress - 0.14) / 0.86).clamp(0.0, 1.0);
-      final secScale = iconScale * 0.84;
-      final secRotation = rotationAngle - (0.12 * (targetIsDark ? 1.0 : -1.0));
-      final secFade = (1.0 - secProgress).clamp(0.0, 1.0) * waveFade * 0.45;
-
-      if (secFade > 0.01) {
-        canvas.save();
-        canvas.translate(center.dx, center.dy);
-        canvas.rotate(secRotation);
-        canvas.scale(secScale);
-        canvas.translate(-baseSize * 0.52, -baseSize * 0.56);
-
-        final secPaint = Paint()
-          ..color = rippleColor.withValues(alpha: secFade)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.1;
-        canvas.drawPath(swooshPath, secPaint);
-
-        canvas.restore();
-      }
-    }
+    // 3. Aro exterior concéntrico de agua cristalina
+    final outerRingPaint = Paint()
+      ..color = Colors.white.withValues(alpha: (0.35 * waveFade).clamp(0.0, 1.0))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.0, 1.8 * (1.0 - (progress * 0.5)));
+    canvas.drawCircle(center, currentRadius, outerRingPaint);
   }
 
-  /// Isotipo Oficial Definitivo CajaYa: "Fluid C-Velocity Swoosh"
+  /// Geometría exacta del Isotipo "Fluid C-Velocity Swoosh" oficial de CajaYa
   static Path _crearCajaYaPath(double size) {
     final w = size;
     final h = size;
@@ -299,7 +362,7 @@ class _CajaYaSwooshThemePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CajaYaSwooshThemePainter oldDelegate) {
+  bool shouldRepaint(covariant _CajaYaRealIconPatternPainter oldDelegate) {
     return oldDelegate.progress != progress ||
         oldDelegate.opacity != opacity ||
         oldDelegate.center != center ||
@@ -307,7 +370,7 @@ class _CajaYaSwooshThemePainter extends CustomPainter {
   }
 }
 
-/// Botón estilizado reutilizable que dispara la animación del isotipo CajaYa automáticamente.
+/// Botón estilizado reutilizable que dispara la animación del icono real de CajaYa automáticamente.
 class WaterDropThemeButton extends StatelessWidget {
   final bool isDark;
   final Future<void> Function() onToggle;
