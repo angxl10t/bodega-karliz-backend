@@ -62,6 +62,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Optional<Producto> findByBodega_IdBodegaAndCodigo(Long idBodega, String codigo);
 
     Optional<Producto> findByCodigoBarras(String codigoBarras);
+    List<Producto> findByCodigoBarrasAndEstadoTrue(String codigoBarras);
     Optional<Producto> findByBodega_IdBodegaAndCodigoBarras(Long idBodega, String codigoBarras);
 
     List<Producto> findByCodigoStartingWith(String prefix);
