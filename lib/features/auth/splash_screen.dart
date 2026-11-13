@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'auth_service.dart';
 import '../../core/theme.dart';
+import '../../core/theme_provider.dart';
 
 /// Pantalla de bienvenida (Splash Screen) profesional inspirada en el minimalismo
 /// de alta gama de Rappi: fondo prístino, tipografía de marca protagónica con gradiente
@@ -66,6 +68,10 @@ class _SplashScreenState extends State<SplashScreen>
     final isLoggedIn = await AuthService().isLoggedIn();
     if (mounted) {
       if (isLoggedIn) {
+        final colorHex = await AuthService().getColorPrimario();
+        if (colorHex.isNotEmpty && mounted) {
+          context.read<ThemeProvider>().setAccentColorFromHex(colorHex);
+        }
         final role = await AuthService().getUserRole();
         if (mounted) {
           if (role.toUpperCase() == 'SUPERADMIN') {

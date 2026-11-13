@@ -86,6 +86,25 @@ void main() {
       },
     );
 
+    test('ThemeProvider setAccentColorFromHex supports hex string with and without #', () async {
+      final provider = ThemeProvider();
+
+      // With hash
+      await provider.setAccentColorFromHex('#059669');
+      expect(provider.accentColor, const Color(0xFF059669));
+      expect(provider.accentColorHex, '#059669');
+
+      // Without hash
+      await provider.setAccentColorFromHex('7C3AED');
+      expect(provider.accentColor, const Color(0xFF7C3AED));
+      expect(provider.accentColorHex, '#7C3AED');
+
+      // Invalid fallback to Cobalt
+      await provider.setAccentColorFromHex('INVALID_HEX');
+      expect(provider.accentColor, const Color(0xFF2563EB));
+      expect(provider.accentColorHex, '#2563EB');
+    });
+
     test('ThermalTicketService includes commercial slogan and tax ID in ticket header', () {
       final receipt = ThermalTicketService.generateReceiptText(
         ticketId: 105,

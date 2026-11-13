@@ -709,6 +709,70 @@ class BodegaService {
     throw Exception(errorMsg);
   }
 
+  /// Listar historial de sugerencias emitidas para la consola SuperAdmin
+  Future<List<SugerenciaPrecioItem>> listarSugerenciasSuperadmin({
+    String? estado,
+  }) async {
+    try {
+      final query = (estado != null && estado.isNotEmpty && estado != 'TODOS')
+          ? '?estado=$estado'
+          : '';
+      final response = await _client.get('/superadmin/sugerencias-precio$query');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data.map((json) => SugerenciaPrecioItem.fromJson(json)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Estadísticas agregadas de sugerencias de precios (Exclusivo Superadmin)
+  Future<Map<String, dynamic>> obtenerEstadisticasSugerencias() async {
+    try {
+      final response = await _client.get(
+        '/superadmin/sugerencias-precio/estadisticas',
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes))
+            as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return {};
+  }
+
+  /// Monitor Financiero SaaS: MRR, bodegas por vencer y enlaces directos de cobranza por WhatsApp
+  Future<Map<String, dynamic>> obtenerMonitorFinancieroSaaS() async {
+    try {
+      final response = await _client.get('/bodegas/finanzas-saas');
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes))
+            as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return {};
+  }
+
+  /// Configurar o restablecer el color de marca de cualquier bodega (Exclusivo Superadmin)
+  Future<BodegaInfo> cambiarColorBodegaSuperadmin({
+    required int idBodega,
+    required String colorPrimario,
+  }) async {
+    final clean = Uri.encodeQueryComponent(colorPrimario.trim());
+    final response = await _client.put(
+      '/bodegas/$idBodega/color?colorPrimario=$clean',
+      {},
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      return BodegaInfo.fromJson(data);
+    }
+    final errorMsg = ApiClient.extractErrorMessage(
+      response,
+      'No se pudo actualizar el color de la bodega',
+    );
+    throw Exception(errorMsg);
+  }
+
   /// Obtiene el monitor y semáforo fiscal del Nuevo RUS (ventas y compras del mes vs límites S/ 5,000 y S/ 8,000)
   Future<ResumenNuevoRus?> obtenerMonitorNuevoRus({int? anio, int? mes}) async {
     try {

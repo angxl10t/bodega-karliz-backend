@@ -20,10 +20,15 @@ class ColorPreset {
 const List<ColorPreset> kColorPresets = [
   ColorPreset('Cobalto FinTech', '#2563EB', Color(0xFF2563EB)),
   ColorPreset('Esmeralda Boutique', '#0D9488', Color(0xFF0D9488)),
+  ColorPreset('Verde Retail', '#059669', Color(0xFF059669)),
   ColorPreset('Índigo Real', '#4F46E5', Color(0xFF4F46E5)),
-  ColorPreset('Rubí Moderno', '#E11D48', Color(0xFFE11D48)),
   ColorPreset('Violeta SaaS', '#7C3AED', Color(0xFF7C3AED)),
+  ColorPreset('Rubí Moderno', '#E11D48', Color(0xFFE11D48)),
   ColorPreset('Ámbar Dinámico', '#D97706', Color(0xFFD97706)),
+  ColorPreset('Turquesa Neón', '#06B6D4', Color(0xFF06B6D4)),
+  ColorPreset('Cacao Artesanal', '#78350F', Color(0xFF78350F)),
+  ColorPreset('Fucsia Vibrante', '#C026D3', Color(0xFFC026D3)),
+  ColorPreset('Pizarra Minimal', '#334155', Color(0xFF334155)),
 ];
 
 class ConfiguracionMarcaModal extends StatefulWidget {
@@ -56,9 +61,12 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
   final _telefonoCtrl = TextEditingController();
   final _lemaCtrl = TextEditingController();
   final _logoUrlCtrl = TextEditingController();
+  final _customHexCtrl = TextEditingController();
 
   final _bodegaService = BodegaService();
   String _selectedHex = '#2563EB';
+  String _initialHex = '#2563EB';
+  bool _guardadoExitoso = false;
   bool _isLoading = true;
   bool _isSaving = false;
   String _errorMessage = '';
@@ -77,6 +85,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
     _telefonoCtrl.dispose();
     _lemaCtrl.dispose();
     _logoUrlCtrl.dispose();
+    _customHexCtrl.dispose();
     super.dispose();
   }
 
@@ -92,9 +101,18 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
         _lemaCtrl.text = info.lemaComercial ?? '';
         _logoUrlCtrl.text = info.logoUrl ?? '';
         _selectedHex = info.colorPrimario;
+        _initialHex = info.colorPrimario;
+        _customHexCtrl.text = info.colorPrimario;
       }
       setState(() => _isLoading = false);
     }
+  }
+
+  void _cancelar() {
+    if (!_guardadoExitoso && mounted) {
+      context.read<ThemeProvider>().setAccentColorFromHex(_initialHex);
+    }
+    Navigator.pop(context);
   }
 
   Future<void> _guardar() async {
@@ -125,6 +143,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
       );
 
       if (mounted) {
+        _guardadoExitoso = true;
         // Actualizar el ThemeProvider con la nueva paleta de acento elegida
         context.read<ThemeProvider>().setAccentColorFromHex(info.colorPrimario);
 
@@ -224,7 +243,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                           ? AppTheme.textDarkSecondary
                           : const Color(0xFF64748B),
                     ),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: _cancelar,
                   ),
                 ],
               ),
@@ -566,7 +585,13 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                     );
                                     return;
                                   }
-                                  setState(() => _selectedHex = preset.hex);
+                                  setState(() {
+                                    _selectedHex = preset.hex;
+                                    _customHexCtrl.text = preset.hex;
+                                  });
+                                  if (widget.isPro || preset.hex.toUpperCase() == '#2563EB') {
+                                    context.read<ThemeProvider>().setAccentColorFromHex(preset.hex);
+                                  }
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: Container(
@@ -640,6 +665,41 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                             }).toList(),
                           ),
 
+                          if (widget.isPro) ...[
+                            const SizedBox(height: 14),
+                            TextFormField(
+                              controller: _customHexCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Color Personalizado (Código HEX)',
+                                hintText: '#0D9488',
+                                prefixIcon: Container(
+                                  margin: const EdgeInsets.all(12),
+                                  width: 18,
+                                  height: 18,
+                                  decoration: BoxDecoration(
+                                    color: _parseHexToColor(_selectedHex),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 1.5),
+                                  ),
+                                ),
+                              ),
+                              onChanged: (val) {
+                                final clean = val.trim();
+                                if (RegExp(r'^#?[0-9a-fA-F]{6}$').hasMatch(clean)) {
+                                  final hex = clean.startsWith('#')
+                                      ? clean.toUpperCase()
+                                      : '#${clean.toUpperCase()}';
+                                  setState(() => _selectedHex = hex);
+                                  context.read<ThemeProvider>().setAccentColorFromHex(hex);
+                                }
+                              },
+                            ),
+                          ],
+
+                          const SizedBox(height: 16),
+                          // Tarjeta de Previsualización en Vivo de Marca
+                          _buildLivePreviewCard(isDark, _parseHexToColor(_selectedHex)),
+
                           const SizedBox(height: 18),
                         ],
                       ),
@@ -654,7 +714,7 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: _isSaving ? null : () => Navigator.pop(context),
+                    onPressed: _isSaving ? null : _cancelar,
                     child: const Text('Cancelar'),
                   ),
                   const SizedBox(width: 10),
@@ -684,6 +744,141 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLivePreviewCard(bool isDark, Color selectedColor) {
+    final nombre = _nombreCtrl.text.trim().isNotEmpty ? _nombreCtrl.text.trim() : 'Tu Bodega';
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF131826) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: selectedColor.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.sparkles, size: 14, color: selectedColor),
+              const SizedBox(width: 6),
+              Text(
+                'PREVISUALIZACIÓN EN VIVO (POS & WEB)',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: selectedColor,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: selectedColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  _selectedHex.toUpperCase(),
+                  style: GoogleFonts.firaCode(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: selectedColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: selectedColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.store, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    nombre,
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    widget.isPro ? 'PLAN PRO' : 'BÁSICO',
+                    style: GoogleFonts.outfit(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  decoration: BoxDecoration(
+                    color: selectedColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'BOTÓN POS • S/ 25.00',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  decoration: BoxDecoration(
+                    color: selectedColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: selectedColor.withValues(alpha: 0.4)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'TIENDA WEB ONLINE',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: selectedColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

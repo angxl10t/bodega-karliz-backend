@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'theme.dart';
+import 'secure_storage_service.dart';
 
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'is_dark_mode';
@@ -9,10 +10,12 @@ class ThemeProvider extends ChangeNotifier {
 
   bool _isDarkMode = false;
   Color _accentColor = AppTheme.brandPrimary;
+  String _accentColorHex = '#2563EB';
 
   bool get isDarkMode => _isDarkMode;
   ThemeMode get themeMode => _isDarkMode ? ThemeMode.dark : ThemeMode.light;
   Color get accentColor => _accentColor;
+  String get accentColorHex => _accentColorHex;
 
   ThemeData get lightTheme =>
       AppTheme.buildLightTheme(primaryColor: _accentColor);
@@ -26,8 +29,12 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> _cargarTemaGuardado() async {
     final prefs = await SharedPreferences.getInstance();
     _isDarkMode = prefs.getBool(_themeKey) ?? false;
-    final colorHex = prefs.getString(_accentColorKey);
+    String? colorHex = prefs.getString(_accentColorKey);
+    if (colorHex == null || colorHex.isEmpty) {
+      colorHex = await SecureStorageService.read('color_primario');
+    }
     if (colorHex != null && colorHex.isNotEmpty) {
+      _accentColorHex = colorHex;
       _accentColor = _parseColor(colorHex);
     }
     notifyListeners();
@@ -42,17 +49,25 @@ class ThemeProvider extends ChangeNotifier {
 
   Future<void> setAccentColor(Color color, {String? hexCode}) async {
     _accentColor = color;
-    notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
     final hex =
         hexCode ??
         '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+    _accentColorHex = hex;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accentColorKey, hex);
+    await SecureStorageService.write('color_primario', hex);
   }
 
   Future<void> setAccentColorFromHex(String hexCode) async {
-    final color = _parseColor(hexCode);
-    await setAccentColor(color, hexCode: hexCode);
+    String clean = hexCode.trim();
+    if (!clean.startsWith('#') && clean.length == 6) {
+      clean = '#$clean';
+    }
+    clean = clean.toUpperCase();
+    final color = _parseColor(clean);
+    final finalHex = clean.startsWith('#') && clean.length == 7 ? clean : '#2563EB';
+    await setAccentColor(color, hexCode: finalHex);
   }
 
   Color _parseColor(String hex) {
@@ -61,7 +76,10 @@ class ThemeProvider extends ChangeNotifier {
       if (clean.length == 6) {
         clean = 'FF$clean';
       }
-      return Color(int.parse(clean, radix: 16));
+      if (clean.length == 8) {
+        return Color(int.parse(clean, radix: 16));
+      }
+      return AppTheme.brandPrimary;
     } catch (_) {
       return AppTheme.brandPrimary;
     }

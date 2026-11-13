@@ -56,6 +56,18 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _notasPedidoCtrl = TextEditingController();
 
+  Color get _colorMarca {
+    final hex = _bodega['colorPrimario']?.toString();
+    if (hex != null && hex.isNotEmpty) {
+      try {
+        String clean = hex.replaceAll('#', '').trim();
+        if (clean.length == 6) clean = 'FF$clean';
+        return Color(int.parse(clean, radix: 16));
+      } catch (_) {}
+    }
+    return AppTheme.brandPrimary;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -415,12 +427,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                color: _colorMarca.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(
+              child: Icon(
                 LucideIcons.store,
-                color: AppTheme.brandPrimary,
+                color: _colorMarca,
                 size: 20,
               ),
             ),
@@ -491,7 +503,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(color: AppTheme.brandPrimary),
+            CircularProgressIndicator(color: _colorMarca),
             const SizedBox(height: 16),
             Text(
               'Cargando catálogo en vivo...',
@@ -547,7 +559,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.brandPrimary,
+                  backgroundColor: _colorMarca,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -666,7 +678,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         size: 15,
                         color: isDark
                             ? const Color(0xFF93C5FD)
-                            : AppTheme.brandPrimary,
+                            : _colorMarca,
                       ),
                       const SizedBox(width: 6),
                       Flexible(
@@ -739,10 +751,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 LucideIcons.sparkles,
                 size: 16,
-                color: AppTheme.brandPrimary,
+                color: _colorMarca,
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -754,7 +766,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     letterSpacing: isTablet ? 0.8 : 0.5,
                     color: isDark
                         ? const Color(0xFF93C5FD)
-                        : AppTheme.brandPrimary,
+                        : _colorMarca,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -857,10 +869,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                             ),
                             const Spacer(),
-                            const Icon(
+                            Icon(
                               LucideIcons.chevronRight,
                               size: 16,
-                              color: AppTheme.brandPrimary,
+                              color: _colorMarca,
                             ),
                           ],
                         ),
@@ -962,7 +974,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         Container(
                           padding: EdgeInsets.all(isTablet ? 12 : 10),
                           decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary.withValues(
+                            color: _colorMarca.withValues(
                               alpha: 0.12,
                             ),
                             borderRadius: BorderRadius.circular(
@@ -972,7 +984,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           child: Icon(
                             LucideIcons.store,
                             size: isTablet ? 30 : 26,
-                            color: AppTheme.brandPrimary,
+                            color: _colorMarca,
                           ),
                         ),
                         SizedBox(width: isTablet ? 16 : 14),
@@ -1038,7 +1050,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       size: isTablet ? 14 : 12,
                                       color: isDark
                                           ? const Color(0xFF93C5FD)
-                                          : AppTheme.brandPrimary,
+                                          : _colorMarca,
                                     ),
                                     const SizedBox(width: 4),
                                     Flexible(
@@ -1183,7 +1195,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         prefixIcon: Icon(
                           LucideIcons.search,
                           size: isTablet ? 20 : 18,
-                          color: AppTheme.brandPrimary,
+                          color: _colorMarca,
                         ),
                         suffixIcon: _filtroBusqueda.isNotEmpty
                             ? IconButton(
@@ -1489,7 +1501,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.brandPrimary,
+                    color: _colorMarca,
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -1505,7 +1517,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.brandPrimary,
+                    color: _colorMarca,
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -1619,7 +1631,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
     final chipColor = esOferta
         ? const Color(0xFF1D4ED8)
-        : AppTheme.brandPrimary;
+        : _colorMarca;
 
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
@@ -1723,7 +1735,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         borderRadius: BorderRadius.circular(isTablet ? 20 : 18),
         border: Border.all(
           color: cantidadEnCarrito > 0
-              ? AppTheme.brandPrimary
+              ? _colorMarca
               : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           width: cantidadEnCarrito > 0 ? 1.8 : 1.0,
         ),
@@ -2001,7 +2013,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: config.precioFontSize,
                                 fontWeight: FontWeight.w900,
-                                color: AppTheme.brandPrimary,
+                                color: _colorMarca,
                               ),
                             ),
                           ],
@@ -2027,7 +2039,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     height: config.botonHeight,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.brandPrimary,
+                        backgroundColor: _colorMarca,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: EdgeInsets.zero,
@@ -2051,10 +2063,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 : Container(
                     height: config.botonHeight,
                     decoration: BoxDecoration(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      color: _colorMarca.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
                       border: Border.all(
-                        color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                        color: _colorMarca.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -2069,7 +2081,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           icon: Icon(
                             LucideIcons.minus,
                             size: config.botonIconSize,
-                            color: AppTheme.brandPrimary,
+                            color: _colorMarca,
                           ),
                           onPressed: () => _modificarCantidad(id, -1),
                         ),
@@ -2078,7 +2090,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: config.botonFontSize + 1,
                             fontWeight: FontWeight.w900,
-                            color: AppTheme.brandPrimary,
+                            color: _colorMarca,
                           ),
                         ),
                         IconButton(
@@ -2090,7 +2102,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           icon: Icon(
                             LucideIcons.plus,
                             size: config.botonIconSize,
-                            color: AppTheme.brandPrimary,
+                            color: _colorMarca,
                           ),
                           onPressed: () => _modificarCantidad(id, 1),
                         ),
@@ -2206,7 +2218,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(
+                                  color: _colorMarca.withValues(
                                     alpha: 0.12,
                                   ),
                                   borderRadius: BorderRadius.circular(8),
@@ -2216,7 +2228,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
-                                    color: AppTheme.brandPrimary,
+                                    color: _colorMarca,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -2441,7 +2453,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w900,
-                                color: AppTheme.brandPrimary,
+                                color: _colorMarca,
                               ),
                             ),
                           ),
@@ -2454,7 +2466,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             height: 50,
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.brandPrimary,
+                                backgroundColor: _colorMarca,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -2730,10 +2742,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           LucideIcons.shoppingBag,
                           size: 48,
-                          color: AppTheme.brandPrimary,
+                          color: _colorMarca,
                         ),
                         const SizedBox(height: 14),
                         Text(
@@ -2760,7 +2772,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.brandPrimary,
+                              backgroundColor: _colorMarca,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
@@ -3191,7 +3203,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               size: 16,
                               color: isDark
                                   ? const Color(0xFF93C5FD)
-                                  : AppTheme.brandPrimary,
+                                  : _colorMarca,
                             ),
                             filled: true,
                             fillColor: isDark
@@ -3433,7 +3445,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               Container(
                                 padding: EdgeInsets.all(isTablet ? 10 : 8),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary.withValues(
+                                  color: _colorMarca.withValues(
                                     alpha: 0.12,
                                   ),
                                   borderRadius: BorderRadius.circular(12),
@@ -3441,7 +3453,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 child: Icon(
                                   LucideIcons.shoppingBag,
                                   size: isTablet ? 20 : 18,
-                                  color: AppTheme.brandPrimary,
+                                  color: _colorMarca,
                                 ),
                               ),
                               Positioned(
@@ -3542,7 +3554,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: isDark
                           ? Colors.white
-                          : AppTheme.brandPrimary,
+                          : _colorMarca,
                       side: BorderSide(
                         color: isDark
                             ? const Color(0xFF334155)
