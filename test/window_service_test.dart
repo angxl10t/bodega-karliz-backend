@@ -16,15 +16,18 @@ void main() {
       expect(service.isFullScreenNotifier.value, isFalse);
     });
 
-    test('setFullScreen y toggleFullScreen actualizan el ValueNotifier', () async {
-      final service = WindowService.instance;
-      
-      await service.setFullScreen(false);
-      expect(service.isFullScreenNotifier.value, isFalse);
+    test(
+      'setFullScreen y toggleFullScreen actualizan el ValueNotifier',
+      () async {
+        final service = WindowService.instance;
 
-      await service.toggleFullScreen();
-      // En entorno de prueba sin backend nativo retorna false gracefulmente
-      expect(service.isFullScreenNotifier.value, isFalse);
-    });
+        await service.setFullScreen(false);
+        expect(service.isFullScreenNotifier.value, isFalse);
+
+        await service.toggleFullScreen();
+        // En entorno de prueba sin backend nativo retorna false gracefulmente
+        expect(service.isFullScreenNotifier.value, isFalse);
+      },
+    );
   });
 }
