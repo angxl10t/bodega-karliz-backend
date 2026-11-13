@@ -304,11 +304,25 @@ public class ProductoService {
             throw new RuntimeException("No se puede editar un producto dado de baja o inactivo. Debe reactivarlo primero.");
         }
 
+        // Snapshot de valores anteriores para auditoría en Kardex
+        final String nombreAnterior = producto.getNombre();
+        final String marcaAnterior = producto.getMarca();
+        final Categoria categoriaAnterior = producto.getCategoria();
+        final BigDecimal precioVentaAnterior = producto.getPrecioVenta();
+        final BigDecimal precioCostoAnterior = producto.getPrecioCosto();
+        final String codigoBarrasAnterior = producto.getCodigoBarras();
+        final java.time.LocalDate fechaVencimientoAnterior = producto.getFechaVencimiento();
+
         if (dto.getIdCategoria() != null) {
             Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(dto.getIdCategoria(), idBodega)
                     .orElseThrow(() -> new RuntimeException("Categoría no encontrada con ID: " + dto.getIdCategoria()));
             if (Boolean.FALSE.equals(categoria.getEstado())) {
                 throw new RuntimeException("No se puede asignar el producto a una categoría inactiva o dada de baja: " + categoria.getNombre());
+            }
+            if (categoriaAnterior == null || !categoriaAnterior.getIdCategoria().equals(categoria.getIdCategoria())) {
+                String catAnt = categoriaAnterior != null ? categoriaAnterior.getNombre() : "Sin Categoría";
+                registrarAuditoriaKardex(producto, "CAMBIO_CATEGORIA", BigDecimal.ZERO,
+                        String.format("Cambio de categoría: \"%s\" -> \"%s\"", catAnt, categoria.getNombre()));
             }
             producto.setCategoria(categoria);
         }
@@ -332,10 +346,20 @@ public class ProductoService {
             if (dto.getNombre().trim().isBlank()) {
                 throw new RuntimeException("El nombre del producto no puede estar vacío.");
             }
-            producto.setNombre(dto.getNombre().trim());
+            String nuevoNombre = dto.getNombre().trim();
+            if (nombreAnterior != null && !nombreAnterior.equals(nuevoNombre)) {
+                registrarAuditoriaKardex(producto, "CAMBIO_NOMBRE", BigDecimal.ZERO,
+                        String.format("Cambio de descripción/nombre: \"%s\" -> \"%s\"", nombreAnterior, nuevoNombre));
+            }
+            producto.setNombre(nuevoNombre);
         }
         if (dto.getMarca() != null && !dto.getMarca().trim().isBlank()) {
-            producto.setMarca(MarcaDetectorUtil.normalizarMarca(dto.getMarca().trim()));
+            String nuevaMarca = MarcaDetectorUtil.normalizarMarca(dto.getMarca().trim());
+            if (marcaAnterior != null && !marcaAnterior.equalsIgnoreCase(nuevaMarca)) {
+                registrarAuditoriaKardex(producto, "CAMBIO_MARCA", BigDecimal.ZERO,
+                        String.format("Cambio de marca: \"%s\" -> \"%s\"", marcaAnterior, nuevaMarca));
+            }
+            producto.setMarca(nuevaMarca);
         } else if (producto.getMarca() == null || producto.getMarca().trim().isBlank()) {
             String auto = MarcaDetectorUtil.detectarMarca(producto.getNombre());
             if (auto != null) {
@@ -346,7 +370,12 @@ public class ProductoService {
             if (dto.getPrecioVenta().compareTo(BigDecimal.ZERO) <= 0) {
                 throw new RuntimeException("El precio de venta debe ser mayor a cero.");
             }
-            producto.setPrecioVenta(dto.getPrecioVenta());
+            BigDecimal nuevoPrecio = dto.getPrecioVenta();
+            if (precioVentaAnterior != null && precioVentaAnterior.compareTo(nuevoPrecio) != 0) {
+                registrarAuditoriaKardex(producto, "CAMBIO_PRECIO", BigDecimal.ZERO,
+                        String.format(java.util.Locale.US, "Cambio de precio de venta: S/ %.2f -> S/ %.2f", precioVentaAnterior, nuevoPrecio));
+            }
+            producto.setPrecioVenta(nuevoPrecio);
         }
         if (dto.getStockActual() != null) {
             if (dto.getStockActual().compareTo(BigDecimal.ZERO) < 0) {
@@ -374,8 +403,9 @@ public class ProductoService {
             producto.setStockMinimo(dto.getStockMinimo());
         }
         if (dto.getCodigoBarras() != null) {
-            if (!dto.getCodigoBarras().isBlank()) {
-                productoRepository.findByBodega_IdBodegaAndCodigoBarras(idBodega, dto.getCodigoBarras().trim())
+            String nuevoCodigoBarras = dto.getCodigoBarras().trim();
+            if (!nuevoCodigoBarras.isBlank()) {
+                productoRepository.findByBodega_IdBodegaAndCodigoBarras(idBodega, nuevoCodigoBarras)
                         .filter(otro -> !otro.getIdProducto().equals(id))
                         .ifPresent(otro -> {
                             if (Boolean.TRUE.equals(otro.getEstado())) {
@@ -385,8 +415,19 @@ public class ProductoService {
                                 productoRepository.saveAndFlush(otro);
                             }
                         });
-                producto.setCodigoBarras(dto.getCodigoBarras().trim());
+                if (codigoBarrasAnterior != null && !codigoBarrasAnterior.equals(nuevoCodigoBarras)) {
+                    registrarAuditoriaKardex(producto, "CAMBIO_CODIGO", BigDecimal.ZERO,
+                            String.format("Cambio de código de barras: %s -> %s", codigoBarrasAnterior, nuevoCodigoBarras));
+                } else if (codigoBarrasAnterior == null) {
+                    registrarAuditoriaKardex(producto, "CAMBIO_CODIGO", BigDecimal.ZERO,
+                            String.format("Asignación de código de barras: %s", nuevoCodigoBarras));
+                }
+                producto.setCodigoBarras(nuevoCodigoBarras);
             } else {
+                if (codigoBarrasAnterior != null && !codigoBarrasAnterior.isBlank()) {
+                    registrarAuditoriaKardex(producto, "CAMBIO_CODIGO", BigDecimal.ZERO,
+                            String.format("Remoción de código de barras anterior: %s", codigoBarrasAnterior));
+                }
                 producto.setCodigoBarras(null);
             }
         }
@@ -394,10 +435,26 @@ public class ProductoService {
             producto.setControlaVencimiento(dto.getControlaVencimiento());
         }
         if (dto.getFechaVencimiento() != null) {
-            producto.setFechaVencimiento(dto.getFechaVencimiento());
+            java.time.LocalDate nuevaFecha = dto.getFechaVencimiento();
+            if (fechaVencimientoAnterior != null && !fechaVencimientoAnterior.equals(nuevaFecha)) {
+                registrarAuditoriaKardex(producto, "CAMBIO_VENCIMIENTO", BigDecimal.ZERO,
+                        String.format("Actualización de vencimiento: %s -> %s", fechaVencimientoAnterior, nuevaFecha));
+            } else if (fechaVencimientoAnterior == null) {
+                registrarAuditoriaKardex(producto, "CAMBIO_VENCIMIENTO", BigDecimal.ZERO,
+                        String.format("Asignación de vencimiento: %s", nuevaFecha));
+            }
+            producto.setFechaVencimiento(nuevaFecha);
         }
         if (dto.getPrecioCosto() != null) {
-            producto.setPrecioCosto(dto.getPrecioCosto());
+            BigDecimal nuevoCosto = dto.getPrecioCosto();
+            if (precioCostoAnterior != null && precioCostoAnterior.compareTo(nuevoCosto) != 0) {
+                registrarAuditoriaKardex(producto, "CAMBIO_COSTO", BigDecimal.ZERO,
+                        String.format(java.util.Locale.US, "Cambio de costo/compra: S/ %.2f -> S/ %.2f", precioCostoAnterior, nuevoCosto));
+            } else if (precioCostoAnterior == null && nuevoCosto.compareTo(BigDecimal.ZERO) > 0) {
+                registrarAuditoriaKardex(producto, "CAMBIO_COSTO", BigDecimal.ZERO,
+                        String.format(java.util.Locale.US, "Registro inicial de costo: S/ %.2f", nuevoCosto));
+            }
+            producto.setPrecioCosto(nuevoCosto);
         }
         if (dto.getImagenUrl() != null) {
             producto.setImagenUrl(dto.getImagenUrl().trim().isBlank() ? null : dto.getImagenUrl().trim());
@@ -411,6 +468,25 @@ public class ProductoService {
         }
 
         return mapToDTO(actualizado);
+    }
+
+    private void registrarAuditoriaKardex(Producto producto, String tipoMovimiento, BigDecimal cantidad, String motivo) {
+        try {
+            MovimientoInventario mov = new MovimientoInventario();
+            mov.setProducto(producto);
+            mov.setTipoMovimiento(tipoMovimiento);
+            mov.setCantidad(cantidad != null ? cantidad : BigDecimal.ZERO);
+            if (motivo != null && motivo.length() > 255) {
+                motivo = motivo.substring(0, 255);
+            }
+            mov.setMotivo(motivo);
+            mov.setUsuarioResponsable(obtenerUsuarioActual());
+            mov.setBodega(producto.getBodega());
+            movimientoInventarioRepository.save(mov);
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ProductoService.class)
+                    .warn("No se pudo registrar la auditoría en Kardex para el producto ID {}: {}", producto.getIdProducto(), e.getMessage());
+        }
     }
 
     @Transactional

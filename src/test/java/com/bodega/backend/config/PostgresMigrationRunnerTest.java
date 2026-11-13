@@ -24,8 +24,8 @@ class PostgresMigrationRunnerTest {
                 mock(DataSource.class), loader, true, true, "");
         assertEquals(PostgresMigrationRunner.DEFAULT_MIGRATION_LOCATIONS.size(), defaultRunner.getLocations().size(),
                 "DEFAULT_MIGRATION_LOCATIONS debe coincidir exactamente en tamaño.");
-        assertEquals(26, defaultRunner.getLocations().size(),
-                "DEFAULT_MIGRATION_LOCATIONS debe incluir las 26 migraciones activas.");
+        assertEquals(27, defaultRunner.getLocations().size(),
+                "DEFAULT_MIGRATION_LOCATIONS debe incluir las 27 migraciones activas.");
 
         for (String loc : defaultRunner.getLocations()) {
             var res = loader.getResource(loc);

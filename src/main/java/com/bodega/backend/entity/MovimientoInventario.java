@@ -24,7 +24,7 @@ public class MovimientoInventario {
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
 
-    @Column(name = "tipo_movimiento", nullable = false, length = 20)
+    @Column(name = "tipo_movimiento", nullable = false, length = 50)
     private String tipoMovimiento;
 
     @Column(nullable = false, precision = 12, scale = 3)

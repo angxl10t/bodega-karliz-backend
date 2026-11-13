@@ -140,4 +140,33 @@ public class ProductoServiceTest {
         assertEquals("Agua San Luis 625ml", creado.getNombre());
         verify(productoRepository).save(any(Producto.class));
     }
+
+    @Test
+    void testActualizar_CambioDePrecioYNombre_AuditaEnKardex() {
+        when(tenantService.getCurrentBodegaId()).thenReturn(3L);
+        when(productoRepository.findByIdForUpdateAndBodega(100L, 3L)).thenReturn(Optional.of(producto));
+        when(productoRepository.save(any(Producto.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ProductoDTO dto = new ProductoDTO();
+        dto.setNombre("Inca Kola 500ml Sabor Original");
+        dto.setPrecioVenta(new BigDecimal("4.00")); // Subió de 3.50 a 4.00
+        dto.setPrecioCosto(new BigDecimal("2.80")); // Costo nuevo
+
+        ProductoDTO actualizado = productoService.actualizar(100L, dto);
+
+        assertNotNull(actualizado);
+        assertEquals("Inca Kola 500ml Sabor Original", actualizado.getNombre());
+        assertEquals(new BigDecimal("4.00"), actualizado.getPrecioVenta());
+
+        // Verificar que se guardó la auditoría de cambio de precio y nombre en el Kardex
+        verify(movimientoInventarioRepository, atLeast(2)).save(argThat(mov -> {
+            if ("CAMBIO_PRECIO".equals(mov.getTipoMovimiento())) {
+                return mov.getMotivo().contains("3.50") && mov.getMotivo().contains("4.00");
+            }
+            if ("CAMBIO_NOMBRE".equals(mov.getTipoMovimiento())) {
+                return mov.getMotivo().contains("Inca Kola 500ml");
+            }
+            return true;
+        }));
+    }
 }
