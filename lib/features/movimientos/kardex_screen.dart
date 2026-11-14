@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -25,6 +26,7 @@ class _KardexScreenState extends State<KardexScreen> {
   bool _isLoading = true;
   String _filtroTexto = '';
   String _filtroTipo = 'TODOS';
+  MovimientoInventario? _movimientoSeleccionado;
 
   @override
   void initState() {
@@ -58,6 +60,15 @@ class _KardexScreenState extends State<KardexScreen> {
       setState(() {
         _movimientos = lista;
         _isLoading = false;
+        if (_movimientoSeleccionado == null && lista.isNotEmpty) {
+          _movimientoSeleccionado = lista.first;
+        } else if (_movimientoSeleccionado != null &&
+            !lista.any(
+              (m) => m.idMovimiento == _movimientoSeleccionado!.idMovimiento,
+            ) &&
+            lista.isNotEmpty) {
+          _movimientoSeleccionado = lista.first;
+        }
       });
     }
   }
@@ -246,216 +257,1507 @@ class _KardexScreenState extends State<KardexScreen> {
           : RefreshIndicator(
               onRefresh: _cargarMovimientos,
               color: AppTheme.brandPrimary,
-              child: Column(
-                children: [
-                  // Banner Didáctico
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: const DidacticBanner(
-                      title: 'Auditoría Integral de Kardex',
-                      description: 'Rastrea en tiempo real ventas, compras, mermas de stock y auditoría administrativa de cambios de precios, nombres y catálogo con sus respectivas insignias.',
-                      icon: LucideIcons.fileSpreadsheet,
-                    ),
-                  ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 900;
+                  final seleccionado =
+                      _movimientoSeleccionado ??
+                      (filtrados.isNotEmpty ? filtrados.first : null);
 
-                  // Métricas Rápidas
-                  Container(
-                    padding: const EdgeInsets.symmetric(
+                  if (isWide) {
+                    return _buildKardexDesktop(
+                      isDark,
+                      filtrados,
+                      totalEntradas,
+                      totalSalidas,
+                      totalAjustes,
+                      totalPrecios,
+                      totalEdiciones,
+                      totalDevoluciones,
+                      seleccionado,
+                    );
+                  }
+                  return _buildKardexMobile(
+                    isDark,
+                    filtrados,
+                    totalEntradas,
+                    totalSalidas,
+                    totalAjustes,
+                    totalPrecios,
+                    totalEdiciones,
+                    totalDevoluciones,
+                  );
+                },
+              ),
+            ),
+    );
+  }
+
+  Widget _buildKardexMobile(
+    bool isDark,
+    List<MovimientoInventario> filtrados,
+    int totalEntradas,
+    int totalSalidas,
+    int totalAjustes,
+    int totalPrecios,
+    int totalEdiciones,
+    int totalDevoluciones,
+  ) {
+    return Column(
+      children: [
+        // Banner Didáctico
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: const DidacticBanner(
+            title: 'Auditoría Integral de Kardex',
+            description: 'Rastrea en tiempo real ventas, compras, mermas de stock y auditoría administrativa de cambios de precios, nombres y catálogo con sus respectivas insignias.',
+            icon: LucideIcons.fileSpreadsheet,
+          ),
+        ),
+
+        // Métricas Rápidas
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          color: Colors.transparent,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                _buildKpiChip(
+                  'Entradas',
+                  '$totalEntradas',
+                  AppTheme.accentGreen,
+                  isDark,
+                  width: 85,
+                ),
+                const SizedBox(width: 6),
+                _buildKpiChip(
+                  'Salidas',
+                  '$totalSalidas',
+                  AppTheme.brandPrimary,
+                  isDark,
+                  width: 85,
+                ),
+                const SizedBox(width: 6),
+                _buildKpiChip(
+                  'Mermas',
+                  '$totalAjustes',
+                  AppTheme.alertRed,
+                  isDark,
+                  width: 85,
+                ),
+                const SizedBox(width: 6),
+                _buildKpiChip(
+                  'Precios',
+                  '$totalPrecios',
+                  const Color(0xFF8B5CF6),
+                  isDark,
+                  width: 85,
+                ),
+                const SizedBox(width: 6),
+                _buildKpiChip(
+                  'Ediciones',
+                  '$totalEdiciones',
+                  const Color(0xFF0284C7),
+                  isDark,
+                  width: 85,
+                ),
+                const SizedBox(width: 6),
+                _buildKpiChip(
+                  'Devolución',
+                  '$totalDevoluciones',
+                  AppTheme.infoIndigo,
+                  isDark,
+                  width: 88,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Filtros y Buscador
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.cardDarkSunken : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  ),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Filtrar por producto, motivo o usuario...',
+                    hintStyle: GoogleFonts.plusJakartaSans(
+                      color: AppTheme.getAdaptiveHintText(isDark),
+                      fontSize: 13,
+                    ),
+                    prefixIcon: const Icon(LucideIcons.search, size: 18),
+                    suffixIcon: _filtroTexto.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(LucideIcons.x, size: 16),
+                            onPressed: () {
+                              _searchDebouncer.cancel();
+                              _searchController.clear();
+                              setState(() => _filtroTexto = '');
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    color: Colors.transparent,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      child: Row(
-                        children: [
-                          _buildKpiChip(
-                            'Entradas',
-                            '$totalEntradas',
-                            AppTheme.accentGreen,
-                            isDark,
-                            width: 85,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildKpiChip(
-                            'Salidas',
-                            '$totalSalidas',
-                            AppTheme.brandPrimary,
-                            isDark,
-                            width: 85,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildKpiChip(
-                            'Mermas',
-                            '$totalAjustes',
-                            AppTheme.alertRed,
-                            isDark,
-                            width: 85,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildKpiChip(
-                            'Precios',
-                            '$totalPrecios',
-                            const Color(0xFF8B5CF6),
-                            isDark,
-                            width: 85,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildKpiChip(
-                            'Ediciones',
-                            '$totalEdiciones',
-                            const Color(0xFF0284C7),
-                            isDark,
-                            width: 85,
-                          ),
-                          const SizedBox(width: 6),
-                          _buildKpiChip(
-                            'Devolución',
-                            '$totalDevoluciones',
-                            AppTheme.infoIndigo,
-                            isDark,
-                            width: 88,
-                          ),
-                        ],
+                  ),
+                  onChanged: (val) => _searchDebouncer.run(() {
+                    if (mounted) {
+                      setState(() => _filtroTexto = val);
+                    }
+                  }),
+                  onSubmitted: (val) {
+                    _searchDebouncer.cancel();
+                    setState(() => _filtroTexto = val);
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Chips de Tipo
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildFilterChip('TODOS', 'Todos', isDark),
+                    const SizedBox(width: 6),
+                    _buildFilterChip('ENTRADA', 'Entradas (Compras)', isDark),
+                    const SizedBox(width: 6),
+                    _buildFilterChip('SALIDA', 'Salidas (Ventas)', isDark),
+                    const SizedBox(width: 6),
+                    _buildFilterChip('AJUSTE', 'Mermas y Ajustes', isDark),
+                    const SizedBox(width: 6),
+                    _buildFilterChip('PRECIO', 'Cambios de Precio', isDark),
+                    const SizedBox(width: 6),
+                    _buildFilterChip('EDICION', 'Edición de Catálogo', isDark),
+                    const SizedBox(width: 6),
+                    _buildFilterChip(
+                      'DEVOLUCION',
+                      'Devoluciones / Anulaciones',
+                      isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Lista de Movimientos
+        Expanded(
+          child: filtrados.isEmpty
+              ? _buildEmptyState(isDark)
+              : ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  itemCount: filtrados.length,
+                  separatorBuilder: (_, index) => const SizedBox(height: 10),
+                  itemBuilder: (context, idx) {
+                    final m = filtrados[idx];
+                    return _buildMovimientoTile(m, isDark);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKardexDesktop(
+    bool isDark,
+    List<MovimientoInventario> filtrados,
+    int totalEntradas,
+    int totalSalidas,
+    int totalAjustes,
+    int totalPrecios,
+    int totalEdiciones,
+    int totalDevoluciones,
+    MovimientoInventario? seleccionado,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. Rejilla Superior de 6 KPIs en Pantalla Completa
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+          child: _buildMetricsGridDesktop(
+            isDark,
+            totalEntradas,
+            totalSalidas,
+            totalAjustes,
+            totalPrecios,
+            totalEdiciones,
+            totalDevoluciones,
+          ),
+        ),
+
+        // 2. Cockpit en 2 Columnas Sincronizadas
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Columna Izquierda (Flex 7): Buscador, Filtros y Tabla Contable
+                Expanded(
+                  flex: 7,
+                  child: _buildPanelTablaMovimientosDesktop(
+                    isDark,
+                    filtrados,
+                    seleccionado,
+                  ),
+                ),
+                const SizedBox(width: 14),
+
+                // Columna Derecha (Flex 5): Inspector Lateral y Control de Fugas
+                Expanded(
+                  flex: 5,
+                  child: _buildPanelInspectorLateralDesktop(
+                    isDark,
+                    seleccionado,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricsGridDesktop(
+    bool isDark,
+    int totalEntradas,
+    int totalSalidas,
+    int totalAjustes,
+    int totalPrecios,
+    int totalEdiciones,
+    int totalDevoluciones,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildKpiCardDesktop(
+            label: 'Entradas',
+            count: '$totalEntradas',
+            color: AppTheme.accentGreen,
+            icon: LucideIcons.arrowDownLeft,
+            subtitulo: 'Compras de stock',
+            tipoFiltro: 'ENTRADA',
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildKpiCardDesktop(
+            label: 'Salidas',
+            count: '$totalSalidas',
+            color: AppTheme.brandPrimary,
+            icon: LucideIcons.arrowUpRight,
+            subtitulo: 'Ventas en caja POS',
+            tipoFiltro: 'SALIDA',
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildKpiCardDesktop(
+            label: 'Mermas',
+            count: '$totalAjustes',
+            color: AppTheme.alertRed,
+            icon: LucideIcons.packageMinus,
+            subtitulo: 'Roturas y vencidos',
+            tipoFiltro: 'AJUSTE',
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildKpiCardDesktop(
+            label: 'Precios',
+            count: '$totalPrecios',
+            color: const Color(0xFF8B5CF6),
+            icon: LucideIcons.tag,
+            subtitulo: 'Auditados Admin',
+            tipoFiltro: 'PRECIO',
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildKpiCardDesktop(
+            label: 'Catálogo',
+            count: '$totalEdiciones',
+            color: const Color(0xFF0284C7),
+            icon: LucideIcons.filePenLine,
+            subtitulo: 'Datos y códigos',
+            tipoFiltro: 'EDICION',
+            isDark: isDark,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildKpiCardDesktop(
+            label: 'Devolución',
+            count: '$totalDevoluciones',
+            color: AppTheme.infoIndigo,
+            icon: LucideIcons.rotateCcw,
+            subtitulo: 'Anulaciones POS',
+            tipoFiltro: 'DEVOLUCION',
+            isDark: isDark,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKpiCardDesktop({
+    required String label,
+    required String count,
+    required Color color,
+    required IconData icon,
+    required String subtitulo,
+    required String tipoFiltro,
+    required bool isDark,
+  }) {
+    final isSelected = _filtroTipo == tipoFiltro;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _filtroTipo = isSelected ? 'TODOS' : tipoFiltro;
+          });
+        },
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? color.withValues(alpha: isDark ? 0.18 : 0.08)
+                : (isDark ? AppTheme.cardDark : Colors.white),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected
+                  ? color
+                  : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+              width: isSelected ? 1.8 : 1.2,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, color: color, size: 15),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                count,
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitulo,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                  // Filtros y Buscador
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: Column(
+  Widget _buildPanelTablaMovimientosDesktop(
+    bool isDark,
+    List<MovimientoInventario> filtrados,
+    MovimientoInventario? seleccionado,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1.2,
+        ),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Fila de Búsqueda y Filtros
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.cardDarkSunken
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar por producto, motivo o usuario responsable...',
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                        color: AppTheme.getAdaptiveHintText(isDark),
+                        fontSize: 12.5,
+                      ),
+                      prefixIcon: const Icon(LucideIcons.search, size: 17),
+                      suffixIcon: _filtroTexto.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(LucideIcons.x, size: 15),
+                              onPressed: () {
+                                _searchDebouncer.cancel();
+                                _searchController.clear();
+                                setState(() => _filtroTexto = '');
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                    ),
+                    onChanged: (val) => _searchDebouncer.run(() {
+                      if (mounted) setState(() => _filtroTexto = val);
+                    }),
+                    onSubmitted: (val) {
+                      _searchDebouncer.cancel();
+                      setState(() => _filtroTexto = val);
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF1F5F9),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                tooltip: 'Actualizar movimientos',
+                icon: const Icon(LucideIcons.refreshCw, size: 16),
+                onPressed: _cargarMovimientos,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Chips de filtro rápido por tipo
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                _buildFilterChip('TODOS', 'Todos', isDark),
+                const SizedBox(width: 6),
+                _buildFilterChip('ENTRADA', 'Compras', isDark),
+                const SizedBox(width: 6),
+                _buildFilterChip('SALIDA', 'Ventas', isDark),
+                const SizedBox(width: 6),
+                _buildFilterChip('AJUSTE', 'Mermas', isDark),
+                const SizedBox(width: 6),
+                _buildFilterChip('PRECIO', 'Precios', isDark),
+                const SizedBox(width: 6),
+                _buildFilterChip('EDICION', 'Catálogo', isDark),
+                const SizedBox(width: 6),
+                _buildFilterChip('DEVOLUCION', 'Devoluciones', isDark),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Cabecera Fija de la Tabla Contable
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 55,
+                  child: Text(
+                    'HORA',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'PRODUCTO & MOTIVO SUSTENTATORIO',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 110,
+                  child: Text(
+                    'INSIGNIA',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 85,
+                  child: Text(
+                    'VARIACIÓN',
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 100,
+                  child: Text(
+                    'RESPONSABLE',
+                    textAlign: TextAlign.right,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+
+          // Cuerpo de Filas
+          Expanded(
+            child: filtrados.isEmpty
+                ? _buildEmptyState(isDark)
+                : ListView.separated(
+                    itemCount: filtrados.length,
+                    separatorBuilder: (_, index) => const SizedBox(height: 4),
+                    itemBuilder: (context, idx) {
+                      final m = filtrados[idx];
+                      final isSelected =
+                          seleccionado?.idMovimiento == m.idMovimiento;
+                      return _buildMovimientoRowDesktop(
+                        m: m,
+                        isDark: isDark,
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() => _movimientoSeleccionado = m);
+                        },
+                      );
+                    },
+                  ),
+          ),
+
+          // Footer informativo
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Mostrando ${filtrados.length} de ${_movimientos.length} movimientos',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+              ),
+              Row(
+                children: [
+                  _buildColorLegend('Compra', AppTheme.accentGreen, isDark),
+                  const SizedBox(width: 8),
+                  _buildColorLegend('Venta', AppTheme.brandPrimary, isDark),
+                  const SizedBox(width: 8),
+                  _buildColorLegend('Merma', AppTheme.alertRed, isDark),
+                  const SizedBox(width: 8),
+                  _buildColorLegend('Precio', const Color(0xFF8B5CF6), isDark),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColorLegend(String label, Color color, bool isDark) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10.5,
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF64748B),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMovimientoRowDesktop({
+    required MovimientoInventario m,
+    required bool isDark,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final detalle = _calcularDetalleVisual(m);
+    final horaStr = m.fechaMovimiento != null
+        ? '${m.fechaMovimiento!.hour.toString().padLeft(2, '0')}:${m.fechaMovimiento!.minute.toString().padLeft(2, '0')}'
+        : '--:--';
+
+    final cantFormateada = m.cantidad % 1 == 0
+        ? m.cantidad.toInt().toString()
+        : m.cantidad.toStringAsFixed(2);
+
+    final String variacionTexto;
+    if (detalle.esAuditoriaAdmin) {
+      variacionTexto = 'Auditado';
+    } else if (detalle.badgeText.startsWith('+')) {
+      variacionTexto = '+$cantFormateada u.';
+    } else {
+      variacionTexto = '-$cantFormateada u.';
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.08)
+                : (isDark ? AppTheme.cardDarkSunken : Colors.white),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? AppTheme.brandPrimary
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFF1F5F9)),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            children: [
+              // 1. Hora
+              SizedBox(
+                width: 55,
+                child: Text(
+                  horaStr,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // 2. Producto & Motivo
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      m.nombreProducto,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      m.motivo.isNotEmpty
+                          ? m.motivo
+                          : 'Movimiento de inventario',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // 3. Insignia Semántica
+              SizedBox(
+                width: 110,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: detalle.color.withValues(
+                        alpha: isDark ? 0.22 : 0.12,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: detalle.color.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppTheme.cardDarkSunken
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppTheme.borderDark
-                                  : AppTheme.borderLight,
-                            ),
+                        Icon(detalle.badgeIcon, size: 11, color: detalle.color),
+                        const SizedBox(width: 4),
+                        Text(
+                          detalle.badgeText,
+                          style: GoogleFonts.outfit(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            color: detalle.color,
+                            letterSpacing: 0.3,
                           ),
-                          child: TextField(
-                            controller: _searchController,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                            decoration: InputDecoration(
-                              hintText:
-                                  'Filtrar por producto, motivo o usuario...',
-                              hintStyle: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.getAdaptiveHintText(isDark),
-                                fontSize: 13,
-                              ),
-                              prefixIcon: const Icon(
-                                LucideIcons.search,
-                                size: 18,
-                              ),
-                              suffixIcon: _filtroTexto.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(LucideIcons.x, size: 16),
-                                      onPressed: () {
-                                        _searchDebouncer.cancel();
-                                        _searchController.clear();
-                                        setState(() => _filtroTexto = '');
-                                      },
-                                    )
-                                  : null,
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                            onChanged: (val) => _searchDebouncer.run(() {
-                              if (mounted) {
-                                setState(() => _filtroTexto = val);
-                              }
-                            }),
-                            onSubmitted: (val) {
-                              _searchDebouncer.cancel();
-                              setState(() => _filtroTexto = val);
-                            },
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // 4. Variación de Stock
+              SizedBox(
+                width: 85,
+                child: Text(
+                  variacionTexto,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: detalle.color,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // 5. Responsable
+              SizedBox(
+                width: 100,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Icon(
+                      LucideIcons.user,
+                      size: 11,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF94A3B8),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        m.usuarioResponsable ?? 'Sistema',
+                        textAlign: TextAlign.right,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF475569),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPanelInspectorLateralDesktop(
+    bool isDark,
+    MovimientoInventario? seleccionado,
+  ) {
+    if (seleccionado == null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.cardDark : Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+            width: 1.2,
+          ),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                LucideIcons.mousePointerClick,
+                size: 36,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF94A3B8),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Selecciona un movimiento',
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Haz clic en cualquier fila del listado para inspeccionar su auditoría profunda.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildCardFichaAuditoria(isDark, seleccionado),
+          const SizedBox(height: 14),
+          _buildCardControlMermas(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardFichaAuditoria(bool isDark, MovimientoInventario m) {
+    final detalle = _calcularDetalleVisual(m);
+    final fechaCompletaStr = m.fechaMovimiento != null
+        ? '${m.fechaMovimiento!.day.toString().padLeft(2, '0')}/${m.fechaMovimiento!.month.toString().padLeft(2, '0')}/${m.fechaMovimiento!.year} ${m.fechaMovimiento!.hour.toString().padLeft(2, '0')}:${m.fechaMovimiento!.minute.toString().padLeft(2, '0')}:${m.fechaMovimiento!.second.toString().padLeft(2, '0')}'
+        : 'Reciente';
+
+    final cantFormateada = m.cantidad % 1 == 0
+        ? m.cantidad.toInt().toString()
+        : m.cantidad.toStringAsFixed(2);
+
+    final esCambioPrecio = _esCambioPrecio(m);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1.2,
+        ),
+      ),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cabecera Inspector
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: detalle.color.withValues(
+                        alpha: isDark ? 0.22 : 0.12,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: detalle.color.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
+                      ),
+                    ),
+                    child: Icon(detalle.icon, color: detalle.color, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ficha de Auditoría',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        'Trazabilidad en tiempo real',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  ),
+                ),
+                child: Text(
+                  '#MOV-${m.idMovimiento}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Nombre de Producto
+          Text(
+            'PRODUCTO AUDITADO',
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF94A3B8),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            m.nombreProducto,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : AppTheme.textDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Tarjeta de Detalle si es Auditoría de Precio
+          if (esCambioPrecio) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B5CF6)
+                    .withValues(alpha: isDark ? 0.18 : 0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6)
+                      .withValues(alpha: isDark ? 0.4 : 0.25),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    LucideIcons.tag,
+                    color: Color(0xFF8B5CF6),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Actualización de Precios / Costos',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF8B5CF6),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        // Chips de Tipo
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          child: Row(
-                            children: [
-                              _buildFilterChip('TODOS', 'Todos', isDark),
-                              const SizedBox(width: 6),
-                              _buildFilterChip(
-                                'ENTRADA',
-                                'Entradas (Compras)',
-                                isDark,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildFilterChip(
-                                'SALIDA',
-                                'Salidas (Ventas)',
-                                isDark,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildFilterChip(
-                                'AJUSTE',
-                                'Mermas y Ajustes',
-                                isDark,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildFilterChip(
-                                'PRECIO',
-                                'Cambios de Precio',
-                                isDark,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildFilterChip(
-                                'EDICION',
-                                'Edición de Catálogo',
-                                isDark,
-                              ),
-                              const SizedBox(width: 6),
-                              _buildFilterChip(
-                                'DEVOLUCION',
-                                'Devoluciones / Anulaciones',
-                                isDark,
-                              ),
-                            ],
+                        Text(
+                          m.motivo,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? Colors.white70
+                                : const Color(0xFF4B5563),
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  // Lista de Movimientos
-                  Expanded(
-                    child: filtrados.isEmpty
-                        ? _buildEmptyState(isDark)
-                        : ListView.separated(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            itemCount: filtrados.length,
-                            separatorBuilder: (_, index) =>
-                                const SizedBox(height: 10),
-                            itemBuilder: (context, idx) {
-                              final m = filtrados[idx];
-                              return _buildMovimientoTile(m, isDark);
-                            },
-                          ),
-                  ),
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+          ],
+
+          // Variación Cuantitativa
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TIPO DE MOVIMIENTO',
+                      style: GoogleFonts.outfit(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      m.tipoMovimiento,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: detalle.color,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'CANTIDAD AFECTADA',
+                      style: GoogleFonts.outfit(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      detalle.esAuditoriaAdmin
+                          ? '0 u. (Dato)'
+                          : '$cantFormateada unidades',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: detalle.color,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Motivo Sustentatorio
+          Text(
+            'MOTIVO / DOCUMENTO SUSTENTATORIO',
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF94A3B8),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              ),
+            ),
+            child: Text(
+              m.motivo.isNotEmpty
+                  ? m.motivo
+                  : 'Sin motivo específico registrado.',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                height: 1.4,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Metadatos Fiscales
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                ),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Usuario Auditor:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                    Text(
+                      m.usuarioResponsable ?? 'Sistema Automático',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Fecha y Hora:',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                    Text(
+                      fechaCompletaStr,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Botones de Acción
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                  onPressed: () {
+                    Clipboard.setData(
+                      ClipboardData(text: 'MOV-${m.idMovimiento}'),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'ID MOV-${m.idMovimiento} copiado al portapapeles',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  icon: const Icon(LucideIcons.copy, size: 14),
+                  label: Text(
+                    'Copiar ID',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.brandPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _searchController.text = m.nombreProducto;
+                      _filtroTexto = m.nombreProducto;
+                    });
+                  },
+                  icon: const Icon(LucideIcons.history, size: 14),
+                  label: Text(
+                    'Historial Producto',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardControlMermas(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1.2,
+        ),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    LucideIcons.shieldAlert,
+                    color: AppTheme.alertRed,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Control de Fugas & Mermas',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.alertRed.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Activo',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.alertRed,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Cada ajuste por [ROTURA], [VENCIMIENTO] o [CONSUMO_INTERNO] se audita con responsable y fecha para proteger la rentabilidad de la bodega.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              height: 1.4,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF64748B),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -948,45 +2250,46 @@ class _KardexScreenState extends State<KardexScreen> {
                     ),
                     if (m.usuarioResponsable != null &&
                         m.usuarioResponsable!.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E293B)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.userCheck,
-                              size: 10,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF64748B),
-                            ),
-                            const SizedBox(width: 4),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 110),
-                              child: Text(
-                                m.usuarioResponsable!,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? AppTheme.textDarkMuted
-                                      : const Color(0xFF334155),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                LucideIcons.userCheck,
+                                size: 10,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  m.usuarioResponsable!,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? AppTheme.textDarkMuted
+                                        : const Color(0xFF334155),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
