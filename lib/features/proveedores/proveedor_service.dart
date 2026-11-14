@@ -43,6 +43,15 @@ class ProveedorService {
     }
   }
 
+  /// Permite inyectar proveedores en tests sin realizar llamadas de red HTTP
+  @visibleForTesting
+  static void setMockProveedores(List<Proveedor> proveedores) {
+    _cachedProveedores = List<Proveedor>.from(proveedores);
+    _cacheTimestamp = DateTime.now();
+    _inFlightProveedores = null;
+    _cacheEpoch++;
+  }
+
   Future<List<Proveedor>> getProveedores({bool forceRefresh = false}) async {
     if (!forceRefresh &&
         _cachedProveedores != null &&
