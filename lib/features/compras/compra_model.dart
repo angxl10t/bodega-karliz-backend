@@ -112,7 +112,7 @@ class CompraRegistro {
       comprobante: json['comprobante'] as String? ?? 'S/C',
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
       fechaCompra: json['fechaCompra'] != null
-          ? DateTime.tryParse(json['fechaCompra'].toString())
+          ? DateTime.tryParse(json['fechaCompra'].toString())?.toLocal()
           : null,
       detalles:
           (json['detalles'] as List<dynamic>?)

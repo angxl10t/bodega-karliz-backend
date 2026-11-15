@@ -28,7 +28,7 @@ class MovimientoInventario {
       cantidad: (json['cantidad'] as num?)?.toDouble() ?? 0.0,
       motivo: json['motivo'] as String? ?? '',
       fechaMovimiento: json['fechaMovimiento'] != null
-          ? DateTime.tryParse(json['fechaMovimiento'].toString())
+          ? DateTime.tryParse(json['fechaMovimiento'].toString())?.toLocal()
           : null,
       usuarioResponsable: json['usuarioResponsable'] as String?,
     );

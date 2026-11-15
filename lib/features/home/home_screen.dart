@@ -30,6 +30,9 @@ import '../legal/terminos_condiciones_screen.dart';
 import '../legal/politica_privacidad_screen.dart';
 import 'pixel_perfect_navbar.dart';
 import '../clientes/clientes_screen.dart';
+import '../movimientos/kardex_screen.dart';
+import '../movimientos/vencimientos_screen.dart';
+import '../compras/compras_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/offline/offline_models.dart';
@@ -2248,99 +2251,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     if (isWideScreen)
-                      NavigationRail(
-                        selectedIndex: _selectedIndex.clamp(
-                          0,
-                          _screens.length - 1,
-                        ),
-                        onDestinationSelected: (index) {
-                          HapticFeedback.selectionClick();
-                          _selectTab(index);
-                        },
-                        leading: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: IconButton(
-                            tooltip: _railCollapsed
-                                ? 'Expandir menú'
-                                : 'Compactar menú POS',
-                            icon: Icon(
-                              _railCollapsed
-                                  ? LucideIcons.panelLeftOpen
-                                  : LucideIcons.panelLeftClose,
-                              size: 18,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF334155),
-                            ),
-                            onPressed: () => setState(
-                              () => _railCollapsed = !_railCollapsed,
-                            ),
-                          ),
-                        ),
-                        labelType: _railCollapsed
-                            ? NavigationRailLabelType.none
-                            : NavigationRailLabelType.all,
-                        minWidth: isDesktop ? 84.0 : 72.0,
-                        backgroundColor: isDark
-                            ? AppTheme.cardDark
-                            : Colors.white,
-                        indicatorColor: AppTheme.brandPrimary,
-                        indicatorShape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        selectedIconTheme: IconThemeData(
-                          color: Colors.white,
-                          size: isDesktop ? 25.0 : 21.0,
-                        ),
-                        unselectedIconTheme: IconThemeData(
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF475569),
-                          size: isDesktop ? 24.0 : 20.0,
-                        ),
-                        selectedLabelTextStyle: GoogleFonts.outfit(
-                          fontSize: isDesktop ? 12.5 : 11.5,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.brandPrimary,
-                        ),
-                        unselectedLabelTextStyle: GoogleFonts.outfit(
-                          fontSize: isDesktop ? 12.0 : 11.0,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF475569),
-                        ),
-                        destinations: const [
-                          NavigationRailDestination(
-                            icon: Icon(LucideIcons.layoutGrid),
-                            label: Text('Inicio'),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(LucideIcons.shoppingBag),
-                            label: Text('POS'),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(LucideIcons.banknote),
-                            label: Text('Caja'),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(LucideIcons.boxes),
-                            label: Text('Stock'),
-                          ),
-                          NavigationRailDestination(
-                            icon: Icon(LucideIcons.bookUser),
-                            label: Text('Fiados'),
-                          ),
-                        ],
-                      ),
-                    if (isWideScreen)
-                      VerticalDivider(
-                        width: 1,
-                        thickness: 1,
-                        color: isDark
-                            ? AppTheme.borderDark
-                            : AppTheme.borderLight,
-                      ),
+                      _buildDesktopSidebar(context, isDark, isDesktop),
                     Expanded(
                       child: AnimatedIndexedStack(
                         index: _selectedIndex.clamp(0, _screens.length - 1),
@@ -2707,6 +2618,653 @@ class _HomeScreenState extends State<HomeScreen> {
               );
               _verificarSugerenciasSuperadmin();
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // SIDEBAR MODERNO DE ESCRITORIO Y WEB PANORÁMICA (Aprovechamiento de espacio)
+  // =========================================================================
+  Widget _buildDesktopSidebar(
+    BuildContext context,
+    bool isDark,
+    bool isDesktop,
+  ) {
+    final double sidebarWidth = _railCollapsed
+        ? (isDesktop ? 76.0 : 70.0)
+        : 210.0;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeInOutCubic,
+      width: sidebarWidth,
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        border: Border(
+          right: BorderSide(
+            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Header de Marca / Colapso
+          _buildSidebarHeader(isDark),
+
+          // 2. Módulos y Accesos Directos (Scrollable)
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (!_railCollapsed) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                      child: Text(
+                        'MÓDULOS PRINCIPALES',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ),
+                  ],
+                  _buildSidebarNavTile(
+                    index: 0,
+                    icon: LucideIcons.layoutGrid,
+                    label: 'Inicio',
+                    isDark: isDark,
+                  ),
+                  _buildSidebarNavTile(
+                    index: 1,
+                    icon: LucideIcons.shoppingBag,
+                    label: 'Venta POS',
+                    isDark: isDark,
+                  ),
+                  _buildSidebarNavTile(
+                    index: 2,
+                    icon: LucideIcons.banknote,
+                    label: 'Caja & Arqueo',
+                    isDark: isDark,
+                  ),
+                  _buildSidebarNavTile(
+                    index: 3,
+                    icon: LucideIcons.boxes,
+                    label: 'Stock / Catálogo',
+                    isDark: isDark,
+                  ),
+                  _buildSidebarNavTile(
+                    index: 4,
+                    icon: LucideIcons.bookUser,
+                    label: 'Clientes & Fiados',
+                    isDark: isDark,
+                  ),
+
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: _railCollapsed ? 12 : 16,
+                    ),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  if (!_railCollapsed) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                      child: Text(
+                        'AUDITORÍA Y CONTROL',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ),
+                  ],
+                  _buildSidebarActionTile(
+                    icon: LucideIcons.scrollText,
+                    label: 'Kardex Auditoría',
+                    color: const Color(0xFF8B5CF6),
+                    badge: 'Kardex',
+                    isDark: isDark,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const KardexScreen()),
+                      );
+                    },
+                  ),
+                  _buildSidebarActionTile(
+                    icon: LucideIcons.calendarClock,
+                    label: 'Vencimientos',
+                    color: const Color(0xFFF59E0B),
+                    badge: 'Alertas',
+                    isDark: isDark,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const VencimientosScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildSidebarActionTile(
+                    icon: LucideIcons.truck,
+                    label: 'Compras Proveedor',
+                    color: const Color(0xFF10B981),
+                    badge: 'Facturas',
+                    isDark: isDark,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ComprasScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 3. Footer Lateral (Usuario en Turno, F11, Modo Oscuro, Versión)
+          _buildSidebarFooter(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarHeader(bool isDark) {
+    if (_railCollapsed) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              width: 1,
+            ),
+          ),
+        ),
+        child: Column(
+          children: [
+            const CajaYaLogoMark(size: 24),
+            const SizedBox(height: 8),
+            IconButton(
+              tooltip: 'Expandir menú lateral',
+              icon: Icon(
+                LucideIcons.panelLeftOpen,
+                size: 18,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF475569),
+              ),
+              onPressed: () => setState(() => _railCollapsed = false),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const CajaYaLogoMark(size: 26),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'CajaYa POS',
+                  style: GoogleFonts.outfit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.brandPrimary,
+                  ),
+                ),
+                Text(
+                  _nombreBodega,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Compactar menú lateral',
+            icon: Icon(
+              LucideIcons.panelLeftClose,
+              size: 18,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF475569),
+            ),
+            onPressed: () => setState(() => _railCollapsed = true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarNavTile({
+    required int index,
+    required IconData icon,
+    required String label,
+    required bool isDark,
+  }) {
+    final bool isSelected = _selectedIndex == index;
+
+    if (_railCollapsed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        child: Tooltip(
+          message: label,
+          preferBelow: false,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              _selectTab(index);
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF475569)),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          _selectTab(index);
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8.5),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark
+                      ? AppTheme.brandPrimary.withValues(alpha: 0.18)
+                      : AppTheme.brandPrimary.withValues(alpha: 0.09))
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: isSelected
+                ? Border.all(
+                    color: isDark
+                        ? AppTheme.brandPrimary.withValues(alpha: 0.5)
+                        : AppTheme.brandPrimary.withValues(alpha: 0.3),
+                    width: 1,
+                  )
+                : null,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected
+                    ? AppTheme.brandPrimary
+                    : (isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF475569)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected
+                        ? (isDark ? Colors.white : AppTheme.brandPrimary)
+                        : (isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155)),
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.brandPrimary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSidebarActionTile({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required String badge,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    if (_railCollapsed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        child: Tooltip(
+          message: label,
+          preferBelow: false,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 17,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF475569),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSidebarFooter(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+            width: 1,
+          ),
+        ),
+      ),
+      padding: EdgeInsets.symmetric(
+        horizontal: _railCollapsed ? 8 : 12,
+        vertical: 8,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Usuario / Cajero activo
+          if (!_railCollapsed) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppTheme.cardDarkElevated
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: AppTheme.brandPrimary,
+                    child: Text(
+                      _username.isNotEmpty ? _username[0].toUpperCase() : 'U',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _username,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF1E293B),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.accentGreen,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                '$_userRol • $_plan',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.accentGreen,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ] else ...[
+            Tooltip(
+              message: '$_username ($_userRol • $_plan)',
+              preferBelow: false,
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: AppTheme.brandPrimary,
+                child: Text(
+                  _username.isNotEmpty ? _username[0].toUpperCase() : 'U',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+
+          // Barra de accesos utilitarios (Tema, Pantalla completa, Bloqueo)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                tooltip: isDark ? 'Modo Claro' : 'Modo Oscuro',
+                icon: Icon(
+                  isDark ? LucideIcons.sun : LucideIcons.moon,
+                  size: 16,
+                  color: isDark
+                      ? const Color(0xFFFBBF24)
+                      : const Color(0xFF64748B),
+                ),
+                onPressed: () => context.read<ThemeProvider>().toggleTheme(),
+              ),
+              if (WindowService.instance.isSupported)
+                ValueListenableBuilder<bool>(
+                  valueListenable: WindowService.instance.isFullScreenNotifier,
+                  builder: (context, isFullScreen, _) {
+                    return IconButton(
+                      tooltip: isFullScreen
+                          ? 'Salir Pantalla Completa (F11)'
+                          : 'Pantalla Completa (F11)',
+                      icon: Icon(
+                        isFullScreen
+                            ? LucideIcons.minimize
+                            : LucideIcons.maximize,
+                        size: 16,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                      onPressed: () =>
+                          WindowService.instance.toggleFullScreen(),
+                    );
+                  },
+                ),
+              IconButton(
+                tooltip: 'Bloquear Terminal',
+                icon: Icon(
+                  LucideIcons.lock,
+                  size: 16,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+                onPressed: _bloquearPantalla,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 4),
+          Text(
+            _railCollapsed ? 'v1.0.20' : 'CajaYa POS • v1.0.20',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w500,
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+            ),
           ),
         ],
       ),

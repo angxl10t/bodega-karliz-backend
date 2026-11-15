@@ -188,12 +188,12 @@ class VentaRegistro {
       montoRecibido: (json['montoRecibido'] as num?)?.toDouble(),
       vuelto: (json['vuelto'] as num?)?.toDouble(),
       fechaVenta: json['fechaVenta'] != null
-          ? DateTime.tryParse(json['fechaVenta'].toString())
+          ? DateTime.tryParse(json['fechaVenta'].toString())?.toLocal()
           : null,
       usuarioRegistro: json['usuarioRegistro'] as String?,
       estado: json['estado'] as String? ?? 'COMPLETADA',
       fechaAnulacion: json['fechaAnulacion'] != null
-          ? DateTime.tryParse(json['fechaAnulacion'].toString())
+          ? DateTime.tryParse(json['fechaAnulacion'].toString())?.toLocal()
           : null,
       usuarioAnulacion: json['usuarioAnulacion'] as String?,
       motivoAnulacion: json['motivoAnulacion'] as String?,
@@ -244,7 +244,7 @@ class EgresoCajaItem {
       motivo: json['motivo'] as String? ?? 'Gasto menor',
       categoriaGasto: json['categoriaGasto'] as String? ?? 'VARIOS',
       fechaEgreso: json['fechaEgreso'] != null
-          ? DateTime.tryParse(json['fechaEgreso'].toString())
+          ? DateTime.tryParse(json['fechaEgreso'].toString())?.toLocal()
           : null,
       usuarioRegistro: json['usuarioRegistro'] as String?,
       estado: json['estado'] as bool? ?? true,
@@ -335,7 +335,7 @@ class CierreCaja {
       totalCredito: (json['totalCredito'] as num?)?.toDouble() ?? 0.0,
       cantidadVentas: (json['cantidadVentas'] as num?)?.toInt() ?? 0,
       fecha: json['fecha'] != null
-          ? DateTime.tryParse(json['fecha'].toString())
+          ? DateTime.tryParse(json['fecha'].toString())?.toLocal()
           : null,
       fondoInicial: fIni,
       totalEgresos: egr,

@@ -95,6 +95,13 @@ class _KardexScreenState extends State<KardexScreen> {
         t.contains('VENCIMIENTO') ||
         t.contains('EDICION') ||
         t.contains('ADMIN') ||
+        t.contains('IMAGEN') ||
+        t.contains('FOTO') ||
+        mot.contains('CAMBIO DE IMAGEN') ||
+        mot.contains('ASIGNACIÓN DE IMAGEN') ||
+        mot.contains('ELIMINACIÓN DE IMAGEN') ||
+        mot.contains('FOTO DEL CATÁLOGO') ||
+        mot.contains('IMAGEN') ||
         mot.contains('CAMBIO DE DESCRIPCI') ||
         mot.contains('CAMBIO DE NOMBRE') ||
         mot.contains('CAMBIO DE CATEGOR') ||
@@ -1022,8 +1029,9 @@ class _KardexScreenState extends State<KardexScreen> {
     required VoidCallback onTap,
   }) {
     final detalle = _calcularDetalleVisual(m);
-    final horaStr = m.fechaMovimiento != null
-        ? '${m.fechaMovimiento!.hour.toString().padLeft(2, '0')}:${m.fechaMovimiento!.minute.toString().padLeft(2, '0')}'
+    final fechaLocal = m.fechaMovimiento?.toLocal();
+    final horaStr = fechaLocal != null
+        ? '${fechaLocal.hour.toString().padLeft(2, '0')}:${fechaLocal.minute.toString().padLeft(2, '0')}'
         : '--:--';
 
     final cantFormateada = m.cantidad % 1 == 0
@@ -1277,8 +1285,9 @@ class _KardexScreenState extends State<KardexScreen> {
 
   Widget _buildCardFichaAuditoria(bool isDark, MovimientoInventario m) {
     final detalle = _calcularDetalleVisual(m);
-    final fechaCompletaStr = m.fechaMovimiento != null
-        ? '${m.fechaMovimiento!.day.toString().padLeft(2, '0')}/${m.fechaMovimiento!.month.toString().padLeft(2, '0')}/${m.fechaMovimiento!.year} ${m.fechaMovimiento!.hour.toString().padLeft(2, '0')}:${m.fechaMovimiento!.minute.toString().padLeft(2, '0')}:${m.fechaMovimiento!.second.toString().padLeft(2, '0')}'
+    final fechaLocal = m.fechaMovimiento?.toLocal();
+    final fechaCompletaStr = fechaLocal != null
+        ? '${fechaLocal.day.toString().padLeft(2, '0')}/${fechaLocal.month.toString().padLeft(2, '0')}/${fechaLocal.year} ${fechaLocal.hour.toString().padLeft(2, '0')}:${fechaLocal.minute.toString().padLeft(2, '0')}:${fechaLocal.second.toString().padLeft(2, '0')}'
         : 'Reciente';
 
     final cantFormateada = m.cantidad % 1 == 0
@@ -2104,6 +2113,23 @@ class _KardexScreenState extends State<KardexScreen> {
       );
     }
 
+    if (tipo == 'CAMBIO_IMAGEN' ||
+        mot.contains('CAMBIO DE IMAGEN') ||
+        mot.contains('ASIGNACIÓN DE IMAGEN') ||
+        mot.contains('ELIMINACIÓN DE IMAGEN') ||
+        mot.contains('FOTO DEL CATÁLOGO') ||
+        mot.contains('FOTOGRAFÍA') ||
+        mot.contains('IMAGEN') ||
+        mot.contains('FOTO')) {
+      return (
+        color: const Color(0xFF8B5CF6), // Violeta vibrante
+        icon: LucideIcons.image,
+        badgeText: 'FOTO',
+        badgeIcon: LucideIcons.image,
+        esAuditoriaAdmin: true,
+      );
+    }
+
     if (_esCambioDatos(m)) {
       return (
         color: const Color(0xFF0284C7),
@@ -2174,9 +2200,9 @@ class _KardexScreenState extends State<KardexScreen> {
 
   Widget _buildMovimientoTile(MovimientoInventario m, bool isDark) {
     final detalle = _calcularDetalleVisual(m);
-
-    final fechaStr = m.fechaMovimiento != null
-        ? '${m.fechaMovimiento!.day.toString().padLeft(2, '0')}/${m.fechaMovimiento!.month.toString().padLeft(2, '0')} ${m.fechaMovimiento!.hour.toString().padLeft(2, '0')}:${m.fechaMovimiento!.minute.toString().padLeft(2, '0')}'
+    final fechaLocal = m.fechaMovimiento?.toLocal();
+    final fechaStr = fechaLocal != null
+        ? '${fechaLocal.day.toString().padLeft(2, '0')}/${fechaLocal.month.toString().padLeft(2, '0')} ${fechaLocal.hour.toString().padLeft(2, '0')}:${fechaLocal.minute.toString().padLeft(2, '0')}'
         : 'Reciente';
 
     return Container(
