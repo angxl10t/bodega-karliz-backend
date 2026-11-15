@@ -151,20 +151,25 @@ public class ProductoServiceTest {
         dto.setNombre("Inca Kola 500ml Sabor Original");
         dto.setPrecioVenta(new BigDecimal("4.00")); // Subió de 3.50 a 4.00
         dto.setPrecioCosto(new BigDecimal("2.80")); // Costo nuevo
+        dto.setImagenUrl("https://cajaya.pe/packshots/inka_kola_nueva.png");
 
         ProductoDTO actualizado = productoService.actualizar(100L, dto);
 
         assertNotNull(actualizado);
         assertEquals("Inca Kola 500ml Sabor Original", actualizado.getNombre());
         assertEquals(new BigDecimal("4.00"), actualizado.getPrecioVenta());
+        assertEquals("https://cajaya.pe/packshots/inka_kola_nueva.png", actualizado.getImagenUrl());
 
-        // Verificar que se guardó la auditoría de cambio de precio y nombre en el Kardex
-        verify(movimientoInventarioRepository, atLeast(2)).save(argThat(mov -> {
+        // Verificar que se guardó la auditoría de cambio de precio, nombre e imagen en el Kardex
+        verify(movimientoInventarioRepository, atLeast(3)).save(argThat(mov -> {
             if ("CAMBIO_PRECIO".equals(mov.getTipoMovimiento())) {
                 return mov.getMotivo().contains("3.50") && mov.getMotivo().contains("4.00");
             }
             if ("CAMBIO_NOMBRE".equals(mov.getTipoMovimiento())) {
                 return mov.getMotivo().contains("Inca Kola 500ml");
+            }
+            if ("CAMBIO_IMAGEN".equals(mov.getTipoMovimiento())) {
+                return mov.getMotivo().contains("catálogo");
             }
             return true;
         }));

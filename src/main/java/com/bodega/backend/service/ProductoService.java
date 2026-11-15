@@ -6,6 +6,7 @@ import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.MovimientoInventario;
 import com.bodega.backend.entity.Presentacion;
 import com.bodega.backend.entity.Producto;
+import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.MovimientoInventarioRepository;
 import com.bodega.backend.repository.PresentacionRepository;
@@ -33,6 +34,7 @@ public class ProductoService {
     private final PresentacionRepository presentacionRepository;
     private final TenantService tenantService;
     private final AnalyticsService analyticsService;
+    private final BodegaRepository bodegaRepository;
 
     public ProductoService(ProductoRepository productoRepository, 
                            CategoriaRepository categoriaRepository,
@@ -40,7 +42,17 @@ public class ProductoService {
                            PresentacionRepository presentacionRepository,
                            TenantService tenantService) {
         this(productoRepository, categoriaRepository, movimientoInventarioRepository,
-             presentacionRepository, tenantService, null);
+             presentacionRepository, tenantService, null, null);
+    }
+
+    public ProductoService(ProductoRepository productoRepository, 
+                           CategoriaRepository categoriaRepository,
+                           MovimientoInventarioRepository movimientoInventarioRepository,
+                           PresentacionRepository presentacionRepository,
+                           TenantService tenantService,
+                           BodegaRepository bodegaRepository) {
+        this(productoRepository, categoriaRepository, movimientoInventarioRepository,
+             presentacionRepository, tenantService, null, bodegaRepository);
     }
 
     @Autowired
@@ -49,13 +61,15 @@ public class ProductoService {
                            MovimientoInventarioRepository movimientoInventarioRepository,
                            PresentacionRepository presentacionRepository,
                            TenantService tenantService,
-                           @Autowired(required = false) AnalyticsService analyticsService) {
+                           @Autowired(required = false) AnalyticsService analyticsService,
+                           @Autowired(required = false) BodegaRepository bodegaRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
         this.presentacionRepository = presentacionRepository;
         this.tenantService = tenantService;
         this.analyticsService = analyticsService;
+        this.bodegaRepository = bodegaRepository;
     }
 
     @PostConstruct
@@ -312,6 +326,7 @@ public class ProductoService {
         final BigDecimal precioCostoAnterior = producto.getPrecioCosto();
         final String codigoBarrasAnterior = producto.getCodigoBarras();
         final java.time.LocalDate fechaVencimientoAnterior = producto.getFechaVencimiento();
+        final String imagenUrlAnterior = producto.getImagenUrl();
 
         if (dto.getIdCategoria() != null) {
             Categoria categoria = categoriaRepository.findByIdCategoriaAndBodega_IdBodega(dto.getIdCategoria(), idBodega)
@@ -457,7 +472,15 @@ public class ProductoService {
             producto.setPrecioCosto(nuevoCosto);
         }
         if (dto.getImagenUrl() != null) {
-            producto.setImagenUrl(dto.getImagenUrl().trim().isBlank() ? null : dto.getImagenUrl().trim());
+            String nuevaImagen = dto.getImagenUrl().trim().isBlank() ? null : dto.getImagenUrl().trim();
+            if (imagenUrlAnterior != null && nuevaImagen != null && !imagenUrlAnterior.equals(nuevaImagen)) {
+                registrarAuditoriaKardex(producto, "CAMBIO_IMAGEN", BigDecimal.ZERO, "Actualización de foto del producto en catálogo");
+            } else if (imagenUrlAnterior == null && nuevaImagen != null) {
+                registrarAuditoriaKardex(producto, "CAMBIO_IMAGEN", BigDecimal.ZERO, "Asignación de imagen al producto en catálogo");
+            } else if (imagenUrlAnterior != null && nuevaImagen == null) {
+                registrarAuditoriaKardex(producto, "CAMBIO_IMAGEN", BigDecimal.ZERO, "Eliminación de imagen del producto en catálogo");
+            }
+            producto.setImagenUrl(nuevaImagen);
         }
 
         Producto actualizado = productoRepository.save(producto);
@@ -480,12 +503,24 @@ public class ProductoService {
                 motivo = motivo.substring(0, 255);
             }
             mov.setMotivo(motivo);
-            mov.setUsuarioResponsable(obtenerUsuarioActual());
-            mov.setBodega(producto.getBodega());
+            String user = obtenerUsuarioActual();
+            if (user != null && user.length() > 50) {
+                user = user.substring(0, 50);
+            }
+            mov.setUsuarioResponsable(user);
+
+            Bodega b = producto.getBodega();
+            if (b == null) {
+                Long idBodega = tenantService.getCurrentBodegaId();
+                if (idBodega != null && bodegaRepository != null) {
+                    b = bodegaRepository.findById(idBodega).orElse(null);
+                }
+            }
+            mov.setBodega(b);
             movimientoInventarioRepository.save(mov);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ProductoService.class)
-                    .warn("No se pudo registrar la auditoría en Kardex para el producto ID {}: {}", producto.getIdProducto(), e.getMessage());
+                    .error("No se pudo registrar la auditoría en Kardex para el producto ID {}: {}", producto.getIdProducto(), e.getMessage(), e);
         }
     }
 

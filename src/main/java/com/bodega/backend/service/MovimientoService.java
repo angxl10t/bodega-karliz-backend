@@ -42,8 +42,11 @@ public class MovimientoService {
     @Transactional(readOnly = true)
     public List<MovimientoInventarioDTO> listarTodos() {
         Long idBodega = tenantService.getCurrentBodegaId();
-        return movimientoRepository.findTop200ByBodega_IdBodegaOrderByFechaMovimientoDesc(idBodega)
-                .stream()
+        List<MovimientoInventario> lista = movimientoRepository.findTop200ByBodega_IdBodegaOrderByFechaMovimientoDesc(idBodega);
+        if (lista.isEmpty()) {
+            lista = movimientoRepository.findTop200ByProducto_Bodega_IdBodegaOrderByFechaMovimientoDesc(idBodega);
+        }
+        return lista.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
