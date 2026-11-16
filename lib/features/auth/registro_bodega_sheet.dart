@@ -802,7 +802,9 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      isPro ? 'el 1er mes (luego S/ 79/mes)' : '/ mes (o S/ 99 trimestral)',
+                      isPro
+                          ? 'el 1er mes (luego S/ 79/mes)'
+                          : '/ mes (o S/ 99 trimestral)',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

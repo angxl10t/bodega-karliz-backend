@@ -153,7 +153,8 @@ class PagoYapeModal {
     String planSeleccionado = (planInicial.toUpperCase() == 'PRO')
         ? 'PRO'
         : 'BASICO';
-    String periodoSeleccionado = 'MENSUAL'; // 'MENSUAL' | 'TRIMESTRAL' | 'ANUAL'
+    String periodoSeleccionado =
+        'MENSUAL'; // 'MENSUAL' | 'TRIMESTRAL' | 'ANUAL'
     String billetera = 'YAPE';
     bool mostrarComparativa = false;
     bool isSubmitting = false;
@@ -191,7 +192,10 @@ class PagoYapeModal {
         builder: (dialogCtx) => StatefulBuilder(
           builder: (ctx, setModalState) {
             final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-            final double monto = calcularMonto(planSeleccionado, periodoSeleccionado);
+            final double monto = calcularMonto(
+              planSeleccionado,
+              periodoSeleccionado,
+            );
             final Color walletPrimary = billetera == 'YAPE'
                 ? const Color(0xFF732283)
                 : const Color(0xFF0084FF);
@@ -329,8 +333,8 @@ class PagoYapeModal {
                                         periodoSeleccionado == 'TRIMESTRAL'
                                             ? 'S/ 99 (3 meses)'
                                             : (periodoSeleccionado == 'ANUAL'
-                                                ? 'S/ 349 (1 año)'
-                                                : 'S/ 39.00 /mes'),
+                                                  ? 'S/ 349 (1 año)'
+                                                  : 'S/ 39.00 /mes'),
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.outfit(
                                           fontSize: 13.5,
@@ -416,8 +420,8 @@ class PagoYapeModal {
                                         periodoSeleccionado == 'TRIMESTRAL'
                                             ? 'S/ 199 (3 meses)'
                                             : (periodoSeleccionado == 'ANUAL'
-                                                ? 'S/ 699 (1 año)'
-                                                : 'S/ 79.00 /mes'),
+                                                  ? 'S/ 699 (1 año)'
+                                                  : 'S/ 79.00 /mes'),
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.outfit(
                                           fontSize: 13.5,
@@ -467,8 +471,8 @@ class PagoYapeModal {
                             periodoSeleccionado == 'TRIMESTRAL'
                                 ? '⭐ 3 Meses con ahorro'
                                 : (periodoSeleccionado == 'ANUAL'
-                                    ? '🎁 1 Año (Ahorras ~26%)'
-                                    : 'Mensual estándar'),
+                                      ? '🎁 1 Año (Ahorras ~26%)'
+                                      : 'Mensual estándar'),
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -490,15 +494,21 @@ class PagoYapeModal {
                               borderRadius: BorderRadius.circular(10),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: periodoSeleccionado == 'MENSUAL'
                                       ? (isDark
-                                          ? AppTheme.brandPrimary.withValues(alpha: 0.25)
-                                          : AppTheme.brandPrimary.withValues(alpha: 0.12))
+                                            ? AppTheme.brandPrimary.withValues(
+                                                alpha: 0.25,
+                                              )
+                                            : AppTheme.brandPrimary.withValues(
+                                                alpha: 0.12,
+                                              ))
                                       : (isDark
-                                          ? const Color(0xFF1E293B)
-                                          : const Color(0xFFF1F5F9)),
+                                            ? const Color(0xFF1E293B)
+                                            : const Color(0xFFF1F5F9)),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: periodoSeleccionado == 'MENSUAL'
@@ -514,11 +524,15 @@ class PagoYapeModal {
                                       style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w800,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                     Text(
-                                      planSeleccionado == 'PRO' ? 'S/ 79' : 'S/ 39',
+                                      planSeleccionado == 'PRO'
+                                          ? 'S/ 79'
+                                          : 'S/ 39',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w700,
@@ -539,15 +553,21 @@ class PagoYapeModal {
                               borderRadius: BorderRadius.circular(10),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: periodoSeleccionado == 'TRIMESTRAL'
                                       ? (isDark
-                                          ? AppTheme.accentGreen.withValues(alpha: 0.25)
-                                          : AppTheme.accentGreen.withValues(alpha: 0.12))
+                                            ? AppTheme.accentGreen.withValues(
+                                                alpha: 0.25,
+                                              )
+                                            : AppTheme.accentGreen.withValues(
+                                                alpha: 0.12,
+                                              ))
                                       : (isDark
-                                          ? const Color(0xFF1E293B)
-                                          : const Color(0xFFF1F5F9)),
+                                            ? const Color(0xFF1E293B)
+                                            : const Color(0xFFF1F5F9)),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: periodoSeleccionado == 'TRIMESTRAL'
@@ -563,11 +583,15 @@ class PagoYapeModal {
                                       style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w800,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                     Text(
-                                      planSeleccionado == 'PRO' ? 'S/ 199' : 'S/ 99',
+                                      planSeleccionado == 'PRO'
+                                          ? 'S/ 199'
+                                          : 'S/ 99',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w700,
@@ -588,15 +612,19 @@ class PagoYapeModal {
                               borderRadius: BorderRadius.circular(10),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: periodoSeleccionado == 'ANUAL'
                                       ? (isDark
-                                          ? const Color(0xFF8B5CF6).withValues(alpha: 0.25)
-                                          : const Color(0xFF8B5CF6).withValues(alpha: 0.12))
+                                            ? const Color(0xFF8B5CF6)
+                                                  .withValues(alpha: 0.25)
+                                            : const Color(0xFF8B5CF6)
+                                                  .withValues(alpha: 0.12))
                                       : (isDark
-                                          ? const Color(0xFF1E293B)
-                                          : const Color(0xFFF1F5F9)),
+                                            ? const Color(0xFF1E293B)
+                                            : const Color(0xFFF1F5F9)),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: periodoSeleccionado == 'ANUAL'
@@ -612,11 +640,15 @@ class PagoYapeModal {
                                       style: GoogleFonts.outfit(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w800,
-                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
                                       ),
                                     ),
                                     Text(
-                                      planSeleccionado == 'PRO' ? 'S/ 699' : 'S/ 349',
+                                      planSeleccionado == 'PRO'
+                                          ? 'S/ 699'
+                                          : 'S/ 349',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w700,
