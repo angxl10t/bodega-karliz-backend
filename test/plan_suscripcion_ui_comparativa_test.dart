@@ -105,10 +105,10 @@ void main() {
         expect(tester.takeException(), isNull);
 
         await tester.ensureVisible(
-          find.text('Pagar / Mejorar con Yape / Plin (S/ 50 o S/ 100)'),
+          find.text('Pagar / Mejorar con Yape / Plin (S/ 39 o S/ 79)'),
         );
         await tester.tap(
-          find.text('Pagar / Mejorar con Yape / Plin (S/ 50 o S/ 100)'),
+          find.text('Pagar / Mejorar con Yape / Plin (S/ 39 o S/ 79)'),
         );
         await tester.pumpAndSettle();
 
@@ -154,7 +154,7 @@ void main() {
           find.text('Comparativa detallada (Básico vs PRO)'),
           findsOneWidget,
         );
-        expect(find.text('Monto exacto a pagar: S/ 50.00'), findsOneWidget);
+        expect(find.text('Monto exacto a pagar: S/ 39.00'), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         // Expandir la tabla comparativa detallada junto al QR

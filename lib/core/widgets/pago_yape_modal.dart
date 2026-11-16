@@ -456,29 +456,36 @@ class PagoYapeModal {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'MODALIDAD DE PAGO:',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF334155),
-                              letterSpacing: 0.5,
+                          Flexible(
+                            child: Text(
+                              'MODALIDAD:',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
-                          Text(
-                            periodoSeleccionado == 'TRIMESTRAL'
-                                ? '⭐ 3 Meses con ahorro'
-                                : (periodoSeleccionado == 'ANUAL'
-                                      ? '🎁 1 Año (Ahorras ~26%)'
-                                      : 'Mensual estándar'),
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: periodoSeleccionado != 'MENSUAL'
-                                  ? AppTheme.accentGreen
-                                  : AppTheme.getAdaptiveMutedText(isDark),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              periodoSeleccionado == 'TRIMESTRAL'
+                                  ? '⭐ 3 Meses con ahorro'
+                                  : (periodoSeleccionado == 'ANUAL'
+                                        ? '🎁 1 Año (-26%)'
+                                        : 'Mensual estándar'),
+                              textAlign: TextAlign.end,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: periodoSeleccionado != 'MENSUAL'
+                                    ? AppTheme.accentGreen
+                                    : AppTheme.getAdaptiveMutedText(isDark),
+                              ),
                             ),
                           ),
                         ],

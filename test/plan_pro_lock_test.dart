@@ -60,11 +60,11 @@ void main() {
 
         // Check action buttons
         expect(
-          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'),
+          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 79 /mes)'),
           findsOneWidget,
         );
         expect(
-          find.text('Continuar con Plan Bodega Básico (S/ 50 /mes)'),
+          find.text('Continuar con Plan Bodega Básico (S/ 39 /mes)'),
           findsOneWidget,
         );
       },
@@ -105,7 +105,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'),
+          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 79 /mes)'),
           findsOneWidget,
         );
       },
@@ -171,7 +171,7 @@ void main() {
           findsAtLeastNWidgets(1),
         );
         expect(
-          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'),
+          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 79 /mes)'),
           findsOneWidget,
         );
       },
@@ -201,7 +201,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'),
+          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 79 /mes)'),
           findsOneWidget,
         );
       },

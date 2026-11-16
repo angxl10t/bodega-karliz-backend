@@ -199,7 +199,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Módulo Exclusivo Plan Minimarket PRO'), findsOneWidget);
-      expect(find.text('Mejorar a Plan PRO (S/ 100 /mes)'), findsOneWidget);
+      expect(find.text('Mejorar a Plan PRO (S/ 79 /mes)'), findsOneWidget);
       expect(
         find.textContaining('descuentos estratégicos por marcas'),
         findsOneWidget,

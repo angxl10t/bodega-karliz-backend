@@ -1229,7 +1229,7 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                 ),
                 icon: const Icon(LucideIcons.sparkles, size: 18),
                 label: Text(
-                  'Mejorar a Plan PRO (S/ 100 /mes)',
+                  'Mejorar a Plan PRO (S/ 79 /mes)',
                   style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
                 ),
                 onPressed: () {

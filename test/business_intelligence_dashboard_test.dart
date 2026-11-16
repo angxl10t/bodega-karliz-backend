@@ -323,7 +323,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)'),
+          find.text('Mejorar a Plan PRO con Yape / Plin (S/ 79 /mes)'),
           findsOneWidget,
         );
       },

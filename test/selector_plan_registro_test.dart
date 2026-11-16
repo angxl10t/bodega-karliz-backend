@@ -43,7 +43,7 @@ void main() {
         expect(find.text('Plan Minimarket PRO'), findsOneWidget);
         expect(find.text('Plan Bodega Básico'), findsOneWidget);
         expect(find.text('S/ 0.00'), findsOneWidget);
-        expect(find.text('S/ 50.00'), findsOneWidget);
+        expect(find.text('S/ 39.00'), findsOneWidget);
 
         // Verificar diferencias clave en la tabla
         expect(
@@ -102,10 +102,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // El botón debe actualizar su texto a Plan Básico
-      expect(find.text('CONFIRMAR PLAN BÁSICO (S/ 50 / MES)'), findsOneWidget);
+      expect(find.text('CONFIRMAR PLAN BÁSICO (S/ 39 / MES)'), findsOneWidget);
 
       // Confirmar selección
-      await tester.tap(find.text('CONFIRMAR PLAN BÁSICO (S/ 50 / MES)'));
+      await tester.tap(find.text('CONFIRMAR PLAN BÁSICO (S/ 39 / MES)'));
       await tester.pumpAndSettle();
 
       expect(planResultado, 'BASICO');
@@ -169,7 +169,7 @@ void main() {
         await tester.tap(find.text('Plan Bodega Básico'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.text('CONFIRMAR PLAN BÁSICO (S/ 50 / MES)'));
+        await tester.tap(find.text('CONFIRMAR PLAN BÁSICO (S/ 39 / MES)'));
         await tester.pumpAndSettle();
 
         // De vuelta en el formulario de registro, ahora el plan es Básico

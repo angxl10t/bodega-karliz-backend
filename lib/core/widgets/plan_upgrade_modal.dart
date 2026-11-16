@@ -310,7 +310,7 @@ class PlanUpgradeModal extends StatelessWidget {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Continuar con Plan Bodega Básico (S/ 50 /mes)',
+                  'Continuar con Plan Bodega Básico (S/ 39 /mes)',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

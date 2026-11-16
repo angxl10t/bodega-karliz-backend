@@ -259,7 +259,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       ),
                       icon: const Icon(LucideIcons.sparkles, size: 18),
                       label: Text(
-                        'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                        'Mejorar a Plan PRO con Yape / Plin (S/ 79 /mes)',
                         style: GoogleFonts.outfit(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,
