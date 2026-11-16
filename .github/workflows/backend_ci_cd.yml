@@ -59,15 +59,16 @@ jobs:
 
       - name: Ejecución de Suite de Pruebas Automatizadas e Integración PostgreSQL
         env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/cajaya_test
+          DB_PASSWORD: cajaya_test_password
+          SPRING_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:5432/cajaya_test
           SPRING_DATASOURCE_USERNAME: cajaya_test
           SPRING_DATASOURCE_PASSWORD: cajaya_test_password
-          POSTGRES_TEST_URL: jdbc:postgresql://localhost:5432/cajaya_test
+          POSTGRES_TEST_URL: jdbc:postgresql://127.0.0.1:5432/cajaya_test
           POSTGRES_TEST_USER: cajaya_test
           POSTGRES_TEST_PASSWORD: cajaya_test_password
         run: |
           echo "==> Ejecutando pruebas unitarias e integración real contra PostgreSQL..."
-          mvn test -Dmaven.test.skip=false
+          mvn test -Dmaven.test.skip=false -Djava.net.preferIPv4Stack=true
 
       - name: Diagnóstico de Fallos Surefire (si aplica)
         if: failure()
@@ -76,10 +77,18 @@ jobs:
             if [ -f "$f" ] && grep -qE "FAILURE|ERROR" "$f"; then
               echo "=== $f ==="
               cat "$f"
-              SUMMARY=$(grep -m1 -E "FAILURE|ERROR" "$f" | tr '\r\n' ' ')
-              echo "::error file=$f::$SUMMARY"
+              ERR_MSG=$(grep -E -m1 "Caused by:|Exception:|AssertionFailedError:" "$f" || head -n 3 "$f" | tr '\r\n' ' ')
+              echo "::error file=$f::$ERR_MSG"
             fi
           done
+
+      - name: Subir Reportes Surefire en Caso de Fallo
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-failed-reports
+          path: target/surefire-reports/
+          retention-days: 3
 
       - name: Empaquetado de Artefacto Ejecutable (JAR)
         run: |
