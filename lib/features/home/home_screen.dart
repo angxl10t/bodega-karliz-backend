@@ -2841,14 +2841,19 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF0F172A).withValues(alpha: 0.5)
                       : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
                     width: 1,
                   ),
                 ),
@@ -2871,7 +2876,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -3082,7 +3089,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               if (shortcut != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1.5,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.08)

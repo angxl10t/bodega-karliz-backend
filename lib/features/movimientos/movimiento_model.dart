@@ -41,7 +41,10 @@ class MovimientoInventario {
     final parsed = DateTime.tryParse(str);
     if (parsed == null) return null;
 
-    if (parsed.isUtc || str.endsWith('Z') || str.contains('+00:00') || str.contains('+0000')) {
+    if (parsed.isUtc ||
+        str.endsWith('Z') ||
+        str.contains('+00:00') ||
+        str.contains('+0000')) {
       final utc = parsed.toUtc();
       return utc.subtract(const Duration(hours: 5));
     }
