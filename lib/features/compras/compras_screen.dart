@@ -2942,6 +2942,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                             color: isDark ? Colors.white : AppTheme.textDark,
                             fontSize: 24,
                             fontWeight: FontWeight.w900,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         );
                       },
@@ -3371,6 +3372,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                           color: AppTheme.brandPrimary,
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       );
                     },

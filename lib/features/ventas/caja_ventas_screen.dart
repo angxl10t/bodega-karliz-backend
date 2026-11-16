@@ -1333,7 +1333,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
               if (actionLabel != null && onAction != null) ...[
                 const SizedBox(width: 4),
                 InkWell(
-                  onTap: onAction,
+                  mouseCursor: SystemMouseCursors.click,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onAction();
+                  },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 5,
@@ -1366,6 +1370,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
                 color: isDark ? Colors.white : AppTheme.textDark,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ),
@@ -6456,6 +6461,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                       color: v.isAnulada
                           ? AppTheme.getAdaptiveMutedText(isDark)
                           : AppTheme.brandPrimary,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ],

@@ -3005,12 +3005,15 @@ class _HomeScreenState extends State<HomeScreen> {
           message: shortcut != null ? '$label ($shortcut)' : label,
           preferBelow: false,
           child: InkWell(
+            mouseCursor: SystemMouseCursors.click,
             onTap: () {
               HapticFeedback.selectionClick();
               _selectTab(index);
             },
             borderRadius: BorderRadius.circular(12),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
@@ -3036,12 +3039,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: () {
           HapticFeedback.selectionClick();
           _selectTab(index);
         },
         borderRadius: BorderRadius.circular(10),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8.5),
           decoration: BoxDecoration(
             color: isSelected
@@ -3149,9 +3155,15 @@ class _HomeScreenState extends State<HomeScreen> {
           message: label,
           preferBelow: false,
           child: InkWell(
-            onTap: onTap,
+            mouseCursor: SystemMouseCursors.click,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onTap();
+            },
             borderRadius: BorderRadius.circular(12),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
@@ -3174,9 +3186,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: InkWell(
-        onTap: onTap,
+        mouseCursor: SystemMouseCursors.click,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(10),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
           child: Row(
@@ -3392,7 +3410,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 4),
           Text(
-            _railCollapsed ? 'v1.0.20' : 'CajaYa POS • v1.0.20',
+            _railCollapsed ? 'v1.0.23' : 'CajaYa POS • v1.0.23',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 9.5,
               fontWeight: FontWeight.w500,

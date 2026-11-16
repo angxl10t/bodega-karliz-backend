@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -509,6 +510,7 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                     .withValues(alpha: 0.5),
                 activeThumbColor: const Color(0xFF16A34A),
                 onChanged: (val) async {
+                  HapticFeedback.selectionClick();
                   await _service.cambiarEstado(p.idPromocion, val);
                   _cargarDatos();
                 },
@@ -567,6 +569,7 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                       fontSize: 11.5,
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFF16A34A),
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),

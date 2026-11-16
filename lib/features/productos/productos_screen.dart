@@ -1262,6 +1262,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: isDark ? Colors.white : AppTheme.textDark,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                           ),
                         ),
@@ -1280,6 +1283,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                         Material(
                           color: Colors.transparent,
                           child: InkWell(
+                            mouseCursor: SystemMouseCursors.click,
                             borderRadius: BorderRadius.circular(12),
                             onTap: () {
                               HapticFeedback.selectionClick();
@@ -1365,6 +1369,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                           Material(
                             color: Colors.transparent,
                             child: InkWell(
+                              mouseCursor: SystemMouseCursors.click,
                               borderRadius: BorderRadius.circular(12),
                               onTap: () {
                                 HapticFeedback.selectionClick();
@@ -1470,6 +1475,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                             child: Material(
                               color: Colors.transparent,
                               child: InkWell(
+                                mouseCursor: SystemMouseCursors.click,
                                 borderRadius: BorderRadius.circular(12),
                                 onTap: () {
                                   HapticFeedback.selectionClick();
@@ -1720,8 +1726,12 @@ class _ProductosScreenState extends State<ProductosScreen>
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
+          mouseCursor: SystemMouseCursors.click,
           borderRadius: BorderRadius.circular(18),
-          onTap: () => _mostrarDetalleProducto(p),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            _mostrarDetalleProducto(p);
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 14.0,

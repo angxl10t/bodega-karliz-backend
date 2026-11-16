@@ -1050,7 +1050,11 @@ class _KardexScreenState extends State<KardexScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        mouseCursor: SystemMouseCursors.click,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(14),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 140),
@@ -1174,6 +1178,7 @@ class _KardexScreenState extends State<KardexScreen> {
                     fontSize: 12.5,
                     fontWeight: FontWeight.w800,
                     color: detalle.color,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),

@@ -810,6 +810,8 @@ class _ClientesScreenState extends State<ClientesScreen>
       ),
       child: TabBar(
         controller: _tabController,
+        mouseCursor: SystemMouseCursors.click,
+        onTap: (_) => HapticFeedback.selectionClick(),
         indicator: BoxDecoration(
           color: _tabController.index == 0
               ? AppTheme.brandPrimary
@@ -1911,6 +1913,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                 fontSize: 18.5,
                 fontWeight: FontWeight.w900,
                 color: effectiveAccent,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
           ),
@@ -2438,6 +2441,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                           fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: c.colorRiesgo,
+                          fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
                     ],
@@ -2540,6 +2544,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                       color: isDark
                           ? AppTheme.textDarkSecondary
                           : const Color(0xFF334155),
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -2556,6 +2561,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                       color: c.creditoDisponible < 20
                           ? AppTheme.alertRed
                           : AppTheme.accentGreen,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                     maxLines: 1,
                   ),

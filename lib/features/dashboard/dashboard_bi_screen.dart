@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -467,7 +468,9 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
           return Expanded(
             key: ValueKey('bi_dias_$dias'),
             child: InkWell(
+              mouseCursor: SystemMouseCursors.click,
               onTap: () {
+                HapticFeedback.selectionClick();
                 if (_diasSeleccionados != dias) {
                   setState(() => _diasSeleccionados = dias);
                   _cargarDatos();
@@ -605,6 +608,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
                       color: AppTheme.accentGreen,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -719,6 +723,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       color: isDark
                           ? AppTheme.textDarkPrimary
                           : AppTheme.textDark,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   const SizedBox(height: 8),

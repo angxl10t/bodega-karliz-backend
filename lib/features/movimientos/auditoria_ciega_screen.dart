@@ -1053,7 +1053,11 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        mouseCursor: SystemMouseCursors.click,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          if (onTap != null) onTap();
+        },
         borderRadius: BorderRadius.circular(14),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
@@ -1081,6 +1085,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
                       color: color,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ],

@@ -1131,7 +1131,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         : 'Sin fecha';
 
     return InkWell(
+      mouseCursor: SystemMouseCursors.click,
       onTap: () {
+        HapticFeedback.selectionClick();
         setState(() => _productoSeleccionado = p);
       },
       borderRadius: BorderRadius.circular(12),
@@ -1280,6 +1282,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       fontSize: 12.5,
                       fontWeight: FontWeight.w800,
                       color: isDark ? Colors.white : AppTheme.textDark,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   Text(
@@ -1290,6 +1293,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       color: isDark
                           ? AppTheme.textDarkSecondary
                           : const Color(0xFF64748B),
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ],
@@ -2016,6 +2020,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                             color: isDark ? Colors.white : AppTheme.textDark,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                         Text(
@@ -2025,6 +2030,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                             color: isDark
                                 ? AppTheme.textDarkSecondary
                                 : const Color(0xFF334155),
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ],

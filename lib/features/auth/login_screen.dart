@@ -927,7 +927,11 @@ class _LoginScreenState extends State<LoginScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: InkWell(
-              onTap: _abrirModalRecuperarPassword,
+              mouseCursor: SystemMouseCursors.click,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                _abrirModalRecuperarPassword();
+              },
               borderRadius: BorderRadius.circular(8),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -1055,7 +1059,11 @@ class _LoginScreenState extends State<LoginScreen> {
           // Opción de Registro para Nuevas Bodegas (SaaS Onboarding)
           Center(
             child: InkWell(
-              onTap: () => RegistroBodegaSheet.show(context),
+              mouseCursor: SystemMouseCursors.click,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                RegistroBodegaSheet.show(context);
+              },
               borderRadius: BorderRadius.circular(10),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
