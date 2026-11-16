@@ -706,37 +706,17 @@ public class BodegaService {
 
         String planSolicitado = dto.getPlan().trim().toUpperCase();
 
+        // Tarifas oficiales mínimas: Plan Básico desde S/ 39 /mes, Plan PRO desde S/ 79 /mes (o pagos trimestrales/anuales)
+        java.math.BigDecimal montoMinimoMensual = "PRO".equals(planSolicitado) 
+                ? new java.math.BigDecimal("79.00") 
+                : new java.math.BigDecimal("39.00");
 
-
-        java.math.BigDecimal montoEsperado = "PRO".equals(planSolicitado) 
-
-
-
-                ? new java.math.BigDecimal("100.00") 
-
-
-
-                : new java.math.BigDecimal("50.00");
-
-
-
-
-
-
-
-        if (dto.getMonto().compareTo(montoEsperado) < 0) {
-
-
-
+        if (dto.getMonto().compareTo(montoMinimoMensual) < 0) {
             throw new RuntimeException("El monto enviado (S/ " + dto.getMonto() + 
-
-
-
-                    ") es inferior a la tarifa oficial del Plan " + planSolicitado + " (S/ " + montoEsperado + ").");
-
-
-
+                    ") es inferior a la tarifa oficial del Plan " + planSolicitado + " (mínimo mensual S/ " + montoMinimoMensual + ").");
         }
+
+        java.math.BigDecimal montoEsperado = dto.getMonto();
 
 
 
@@ -854,34 +834,32 @@ public class BodegaService {
 
 
 
-        // Extensión acumulativa: Si el plan aún está vigente, suma 30 días al vencimiento actual; si no, 30 días desde hoy
-
-
+        // Extensión acumulativa: calcula días según modalidad (Mensual 30 días, Trimestral 90 días, Anual 365 días)
+        int diasExtension = 30;
+        if ("PRO".equals(planSolicitado)) {
+            if (dto.getMonto().compareTo(new java.math.BigDecimal("699.00")) >= 0) {
+                diasExtension = 365;
+            } else if (dto.getMonto().compareTo(new java.math.BigDecimal("199.00")) >= 0) {
+                diasExtension = 90;
+            } else {
+                diasExtension = 30;
+            }
+        } else {
+            if (dto.getMonto().compareTo(new java.math.BigDecimal("349.00")) >= 0) {
+                diasExtension = 365;
+            } else if (dto.getMonto().compareTo(new java.math.BigDecimal("99.00")) >= 0) {
+                diasExtension = 90;
+            } else {
+                diasExtension = 30;
+            }
+        }
 
         java.time.OffsetDateTime baseTime = (bodega.getFechaVencimientoPlan() != null && bodega.getFechaVencimientoPlan().isAfter(java.time.OffsetDateTime.now()))
-
-
-
                 ? bodega.getFechaVencimientoPlan()
-
-
-
                 : java.time.OffsetDateTime.now();
 
-
-
-
-
-
-
-        bodega.setFechaVencimientoPlan(baseTime.plusDays(30));
-
-
-
+        bodega.setFechaVencimientoPlan(baseTime.plusDays(diasExtension));
         bodega.setPlan(planSolicitado);
-
-
-
         bodega.setEstado(true);
 
 
