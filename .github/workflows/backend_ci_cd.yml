@@ -73,12 +73,17 @@ jobs:
       - name: Diagnóstico de Fallos Surefire (si aplica)
         if: failure()
         run: |
+          echo "## ❌ Diagnóstico de Pruebas Surefire" >> $GITHUB_STEP_SUMMARY
           for f in target/surefire-reports/*.txt; do
             if [ -f "$f" ] && grep -qE "FAILURE|ERROR" "$f"; then
               echo "=== $f ==="
               cat "$f"
-              ERR_MSG=$(grep -E -m1 "Caused by:|Exception:|AssertionFailedError:" "$f" || head -n 3 "$f" | tr '\r\n' ' ')
-              echo "::error file=$f::$ERR_MSG"
+              echo "### Archivo: $f" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat "$f" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              CAUSED=$(grep "Caused by:" "$f" | tail -n 3 | tr '\r\n' ' // ' || head -n 3 "$f" | tr '\r\n' ' ')
+              echo "::error file=$f::$CAUSED"
             fi
           done
 
