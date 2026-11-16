@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -39,6 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _keepMeSignedIn = true;
   String _errorMessage = '';
   bool _sessionExpiredNotice = false;
+  bool _isLoginPressed = false;
 
   @override
   void initState() {
@@ -66,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final pass = _passwordController.text.trim();
 
     if (user.isEmpty || pass.isEmpty) {
+      HapticFeedback.mediumImpact();
       setState(() => _errorMessage = 'Por favor ingresa usuario y contraseña');
       return;
     }
@@ -89,6 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (result.success) {
+        HapticFeedback.lightImpact();
         final colorHex = await _authService.getColorPrimario();
         if (mounted && colorHex.isNotEmpty) {
           context.read<ThemeProvider>().setAccentColorFromHex(colorHex);
@@ -102,6 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         }
       } else {
+        HapticFeedback.heavyImpact();
         setState(
           () => _errorMessage =
               result.errorMessage ?? 'Usuario o contraseña incorrectos',
@@ -172,19 +177,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Stack(
                             children: [
-                              // Glow ambiental sutil en esquina superior izquierda
+                              // Iluminación ambiental contenida y sutil (estética B2B sobria)
                               Positioned(
-                                top: -100,
-                                left: -100,
+                                top: -120,
+                                left: -120,
                                 child: Container(
-                                  width: 360,
-                                  height: 360,
+                                  width: 420,
+                                  height: 420,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     gradient: RadialGradient(
                                       colors: [
                                         AppTheme.brandPrimary.withValues(
-                                          alpha: isDark ? 0.22 : 0.12,
+                                          alpha: isDark ? 0.09 : 0.04,
                                         ),
                                         Colors.transparent,
                                       ],
@@ -252,6 +257,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: SingleChildScrollView(
                       physics: const ClampingScrollPhysics(),
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 20,
@@ -668,12 +675,13 @@ class _LoginScreenState extends State<LoginScreen> {
           TextField(
             controller: _usernameController,
             textInputAction: TextInputAction.next,
+            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
             autocorrect: false,
             enableSuggestions: false,
             textCapitalization: TextCapitalization.none,
             cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
+              fontSize: 16, // Previene auto-zoom molesto en navegadores móviles (iOS Safari)
               fontWeight: FontWeight.w600,
               color: isDark
                   ? AppTheme.textDarkPrimary
@@ -742,7 +750,7 @@ class _LoginScreenState extends State<LoginScreen> {
             onSubmitted: (_) => _login(),
             cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
+              fontSize: 16, // Previene auto-zoom molesto en navegadores móviles (iOS Safari)
               fontWeight: FontWeight.w600,
               color: isDark
                   ? AppTheme.textDarkPrimary
@@ -764,15 +772,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
               ),
               suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
-                  size: 18,
-                  color: isDark
-                      ? AppTheme.textDarkSecondary
-                      : const Color(0xFF334155),
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
+                  child: Icon(
+                    _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
+                    key: ValueKey<bool>(_obscurePassword),
+                    size: 18,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF334155),
+                  ),
                 ),
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _obscurePassword = !_obscurePassword);
+                },
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -800,49 +816,72 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // Error Banner
-          if (_errorMessage.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppTheme.alertRed.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.alertRed.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    LucideIcons.alertCircle,
-                    color: AppTheme.alertRed,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _errorMessage,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: AppTheme.alertRed,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+          // Error Banner con transición animada suave
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 220),
+            firstCurve: Curves.easeOutCubic,
+            secondCurve: Curves.easeInCubic,
+            crossFadeState: _errorMessage.isNotEmpty
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            firstChild: _errorMessage.isNotEmpty
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.alertRed.withValues(
+                          alpha: isDark ? 0.15 : 0.08,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.alertRed.withValues(
+                            alpha: isDark ? 0.4 : 0.25,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.alertCircle,
+                            color: AppTheme.alertRed,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage,
+                              style: GoogleFonts.plusJakartaSans(
+                                color: AppTheme.alertRed,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+                  )
+                : const SizedBox.shrink(),
+            secondChild: const SizedBox.shrink(),
+          ),
 
           const SizedBox(height: 14),
 
-          // Mantener sesión
+          // Mantener sesión con micro-animación de resorte y feedback táctil
           GestureDetector(
-            onTap: () => setState(() => _keepMeSignedIn = !_keepMeSignedIn),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _keepMeSignedIn = !_keepMeSignedIn);
+            },
             child: Row(
               children: [
-                Container(
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
                   width: 18,
                   height: 18,
                   decoration: BoxDecoration(
@@ -859,9 +898,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 1.5,
                     ),
                   ),
-                  child: _keepMeSignedIn
-                      ? const Icon(Icons.check, size: 13, color: Colors.white)
-                      : null,
+                  child: AnimatedScale(
+                    scale: _keepMeSignedIn ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 160),
+                    curve: Curves.easeOutBack,
+                    child: const Icon(
+                      Icons.check,
+                      size: 13,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -899,63 +945,110 @@ class _LoginScreenState extends State<LoginScreen> {
 
           const SizedBox(height: 20),
 
-          // Botón Ingresar
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _login,
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text('INGRESAR AL SISTEMA'),
+          // Botón Ingresar con respuesta física táctil (escala en press) y desvanecimiento suave
+          Listener(
+            onPointerDown: (_) {
+              if (!_isLoading) {
+                HapticFeedback.lightImpact();
+                setState(() => _isLoginPressed = true);
+              }
+            },
+            onPointerUp: (_) {
+              if (_isLoginPressed) {
+                setState(() => _isLoginPressed = false);
+              }
+            },
+            onPointerCancel: (_) {
+              if (_isLoginPressed) {
+                setState(() => _isLoginPressed = false);
+              }
+            },
+            child: AnimatedScale(
+              scale: _isLoginPressed && !_isLoading ? 0.98 : 1.0,
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.easeOutCubic,
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _login,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: _isLoading
+                        ? const SizedBox(
+                            key: ValueKey('loading'),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Text(
+                            'INGRESAR AL SISTEMA',
+                            key: ValueKey('text'),
+                          ),
+                  ),
+                ),
+              ),
             ),
           ),
 
-          if (_isLoading && _isColdStarting) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2563EB).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+          // Banner de Servidor en Frío con transición animada
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 220),
+            firstCurve: Curves.easeOutCubic,
+            secondCurve: Curves.easeInCubic,
+            crossFadeState: _isLoading && _isColdStarting
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            firstChild: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
                 ),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFF2563EB),
-                    ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2563EB)
+                      .withValues(alpha: isDark ? 0.15 : 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFF2563EB)
+                        .withValues(alpha: isDark ? 0.35 : 0.25),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Despertando servidor en la nube... Esto puede tomar unos segundos si estuvo inactivo.',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? const Color(0xFF93C5FD)
-                            : const Color(0xFF1D4ED8),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF2563EB),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Despertando servidor en la nube... Espera un momento.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? const Color(0xFF93C5FD)
+                              : const Color(0xFF1D4ED8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
+            secondChild: const SizedBox.shrink(),
+          ),
 
           const SizedBox(height: 18),
 
