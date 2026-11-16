@@ -153,11 +153,36 @@ class PagoYapeModal {
     String planSeleccionado = (planInicial.toUpperCase() == 'PRO')
         ? 'PRO'
         : 'BASICO';
+    String periodoSeleccionado = 'MENSUAL'; // 'MENSUAL' | 'TRIMESTRAL' | 'ANUAL'
     String billetera = 'YAPE';
     bool mostrarComparativa = false;
     bool isSubmitting = false;
     String modalError = '';
     final BodegaService bodegaService = BodegaService();
+
+    double calcularMonto(String plan, String periodo) {
+      if (plan == 'PRO') {
+        switch (periodo) {
+          case 'TRIMESTRAL':
+            return 199.0;
+          case 'ANUAL':
+            return 699.0;
+          case 'MENSUAL':
+          default:
+            return 79.0;
+        }
+      } else {
+        switch (periodo) {
+          case 'TRIMESTRAL':
+            return 99.0;
+          case 'ANUAL':
+            return 349.0;
+          case 'MENSUAL':
+          default:
+            return 39.0;
+        }
+      }
+    }
 
     try {
       await showDialog(
@@ -166,7 +191,7 @@ class PagoYapeModal {
         builder: (dialogCtx) => StatefulBuilder(
           builder: (ctx, setModalState) {
             final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-            final double monto = planSeleccionado == 'PRO' ? 100.0 : 50.0;
+            final double monto = calcularMonto(planSeleccionado, periodoSeleccionado);
             final Color walletPrimary = billetera == 'YAPE'
                 ? const Color(0xFF732283)
                 : const Color(0xFF0084FF);
@@ -301,10 +326,14 @@ class PagoYapeModal {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'S/ 50.00 /mes',
+                                        periodoSeleccionado == 'TRIMESTRAL'
+                                            ? 'S/ 99 (3 meses)'
+                                            : (periodoSeleccionado == 'ANUAL'
+                                                ? 'S/ 349 (1 año)'
+                                                : 'S/ 39.00 /mes'),
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.outfit(
-                                          fontSize: 14,
+                                          fontSize: 13.5,
                                           fontWeight: FontWeight.w900,
                                           color: AppTheme.brandPrimary,
                                         ),
@@ -384,10 +413,14 @@ class PagoYapeModal {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        'S/ 100.00 /mes',
+                                        periodoSeleccionado == 'TRIMESTRAL'
+                                            ? 'S/ 199 (3 meses)'
+                                            : (periodoSeleccionado == 'ANUAL'
+                                                ? 'S/ 699 (1 año)'
+                                                : 'S/ 79.00 /mes'),
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.outfit(
-                                          fontSize: 14,
+                                          fontSize: 13.5,
                                           fontWeight: FontWeight.w900,
                                           color: AppTheme.accentGreen,
                                         ),
@@ -412,6 +445,190 @@ class PagoYapeModal {
                             ),
                           ],
                         ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Selector de Modalidad / Período con Ahorro
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'MODALIDAD DE PAGO:',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            periodoSeleccionado == 'TRIMESTRAL'
+                                ? '⭐ 3 Meses con ahorro'
+                                : (periodoSeleccionado == 'ANUAL'
+                                    ? '🎁 1 Año (Ahorras ~26%)'
+                                    : 'Mensual estándar'),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: periodoSeleccionado != 'MENSUAL'
+                                  ? AppTheme.accentGreen
+                                  : AppTheme.getAdaptiveMutedText(isDark),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => setModalState(
+                                () => periodoSeleccionado = 'MENSUAL',
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: periodoSeleccionado == 'MENSUAL'
+                                      ? (isDark
+                                          ? AppTheme.brandPrimary.withValues(alpha: 0.25)
+                                          : AppTheme.brandPrimary.withValues(alpha: 0.12))
+                                      : (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF1F5F9)),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: periodoSeleccionado == 'MENSUAL'
+                                        ? AppTheme.brandPrimary
+                                        : Colors.transparent,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '1 Mes',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                      ),
+                                    ),
+                                    Text(
+                                      planSeleccionado == 'PRO' ? 'S/ 79' : 'S/ 39',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.brandPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => setModalState(
+                                () => periodoSeleccionado = 'TRIMESTRAL',
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: periodoSeleccionado == 'TRIMESTRAL'
+                                      ? (isDark
+                                          ? AppTheme.accentGreen.withValues(alpha: 0.25)
+                                          : AppTheme.accentGreen.withValues(alpha: 0.12))
+                                      : (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF1F5F9)),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: periodoSeleccionado == 'TRIMESTRAL'
+                                        ? AppTheme.accentGreen
+                                        : Colors.transparent,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '3 Meses',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                      ),
+                                    ),
+                                    Text(
+                                      planSeleccionado == 'PRO' ? 'S/ 199' : 'S/ 99',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.accentGreen,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => setModalState(
+                                () => periodoSeleccionado = 'ANUAL',
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: periodoSeleccionado == 'ANUAL'
+                                      ? (isDark
+                                          ? const Color(0xFF8B5CF6).withValues(alpha: 0.25)
+                                          : const Color(0xFF8B5CF6).withValues(alpha: 0.12))
+                                      : (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF1F5F9)),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: periodoSeleccionado == 'ANUAL'
+                                        ? const Color(0xFF8B5CF6)
+                                        : Colors.transparent,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '1 Año',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark ? Colors.white : AppTheme.textDark,
+                                      ),
+                                    ),
+                                    Text(
+                                      planSeleccionado == 'PRO' ? 'S/ 699' : 'S/ 349',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF8B5CF6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
 

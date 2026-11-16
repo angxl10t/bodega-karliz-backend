@@ -793,7 +793,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                   textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
-                      isPro ? 'S/ 0.00' : 'S/ 50.00',
+                      isPro ? 'S/ 0.00' : 'S/ 39.00',
                       style: GoogleFonts.outfit(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
@@ -802,7 +802,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      isPro ? 'el 1er mes (luego S/ 100/mes)' : '/ mes',
+                      isPro ? 'el 1er mes (luego S/ 79/mes)' : '/ mes (o S/ 99 trimestral)',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

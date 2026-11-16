@@ -357,8 +357,8 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                                 const SizedBox(height: 8),
                                 Text(
                                   isPro
-                                      ? 'Tarifa: S/ 100.00 /mes • Catálogo Ilimitado + Ventas Online'
-                                      : 'Tarifa: S/ 50.00 /mes • POS Rápido + Caja Diaria',
+                                      ? 'Tarifa: S/ 79.00 /mes (o S/ 199 trimestral) • Catálogo Ilimitado + Ventas Online'
+                                      : 'Tarifa: S/ 39.00 /mes (o S/ 99 trimestral) • POS Rápido + Caja Diaria',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,

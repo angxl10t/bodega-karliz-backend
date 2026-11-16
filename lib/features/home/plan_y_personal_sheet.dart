@@ -2157,7 +2157,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                       ),
 
                                       child: Text(
-                                        isPro ? 'S/ 100 /mes' : 'S/ 50 /mes',
+                                        isPro ? 'S/ 79 /mes' : 'S/ 39 /mes',
 
                                         style: GoogleFonts.outfit(
                                           fontSize: 12,
@@ -2257,8 +2257,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
                                     label: Text(
                                       isPro
-                                          ? 'Renovar Plan Pro con Yape / Plin (S/ 100)'
-                                          : 'Pagar / Mejorar con Yape / Plin (S/ 50 o S/ 100)',
+                                          ? 'Renovar Plan Pro con Yape / Plin (S/ 79)'
+                                          : 'Pagar / Mejorar con Yape / Plin (S/ 39 o S/ 79)',
                                       textAlign: TextAlign.center,
 
                                       style: GoogleFonts.outfit(
@@ -2867,7 +2867,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   const SizedBox(height: 6),
 
                                   Text(
-                                    'El Plan PRO (S/ 100 /mes) desbloquea: Detector de Productos Hueso (capital inmovilizado), Catálogo Mi Bodega Online con link para WhatsApp, Auditoría Rápida de Pasillo anti-robo, Termómetro de Meta Diaria, Mapa de Horas Punta y Reporte Ejecutivo de Arqueo al WhatsApp del Dueño. Diseñado para bodegas y minimarkets que buscan máxima rentabilidad y control total.',
+                                    'El Plan PRO (S/ 79 /mes) desbloquea: Detector de Productos Hueso (capital inmovilizado), Catálogo Mi Bodega Online con link para WhatsApp, Auditoría Rápida de Pasillo anti-robo, Termómetro de Meta Diaria, Mapa de Horas Punta y Reporte Ejecutivo de Arqueo al WhatsApp del Dueño. Diseñado para bodegas y minimarkets que buscan máxima rentabilidad y control total.',
 
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
@@ -3611,7 +3611,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
                                   ),
 
                                   child: Text(
-                                    isPro ? 'PRO (S/ 100)' : 'BÁSICO (S/ 50)',
+                                    isPro ? 'PRO (S/ 79)' : 'BÁSICO (S/ 39)',
 
                                     style: GoogleFonts.outfit(
                                       fontSize: 9.5,

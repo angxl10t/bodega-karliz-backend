@@ -81,8 +81,8 @@ class TerminosCondicionesScreen extends StatelessWidget {
                   titulo: 'Suscripciones, Tarifas y Políticas de Pago',
                   contenido:
                       'CajaYa opera bajo un modelo de suscripción mensual transparente, sin contratos de permanencia forzosa ni cobros automáticos a tarjetas de crédito no autorizados:\n\n'
-                      '• Plan Bodega Básico: S/ 50.00 / mes (hasta 200 productos activos, 1 caja de atención).\n'
-                      '• Plan Minimarket PRO: S/ 100.00 / mes (productos ilimitados, multi-caja, facturación electrónica SUNAT y catálogo digital para pedidos por WhatsApp). Incluye 30 días de prueba gratuita (Trial) para nuevos comercios.\n'
+                      '• Plan Bodega Básico: S/ 39.00 / mes (o S/ 99.00 trimestral) con inventario de hasta 150 productos activos, 1 administrador y hasta 2 cajeros con PIN.\n'
+                      '• Plan Minimarket PRO: S/ 79.00 / mes (o S/ 199.00 trimestral) con productos ilimitados, personal ilimitado, catálogo digital oficial para pedidos por WhatsApp, auditoría ciega, detector de mercadería hueso y kit de marketing de barrio. Incluye 30 días de prueba gratuita (Trial) para nuevos comercios.\n'
                       '• Las mensualidades se abonan directamente mediante Yape, Plin o transferencia bancaria oficial al titular autorizado Luis T., contando con conciliación asistida por macro o validación manual. Las suscripciones renovadas de forma anticipada se acumulan a la fecha de vencimiento vigente sin pérdida de días.',
                 ),
 

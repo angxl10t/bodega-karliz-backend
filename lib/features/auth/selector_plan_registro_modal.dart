@@ -250,7 +250,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                       id: 'PRO',
                       titulo: 'Plan Minimarket PRO',
                       precioDestacado: 'S/ 0.00',
-                      subtituloPrecio: 'el 1er mes (luego S/ 100 / mes)',
+                      subtituloPrecio: 'el 1er mes (luego S/ 79 / mes)',
                       badgeSuperior: '🔥 RECOMENDADO • 1 MES GRATIS',
                       colorBadge: AppTheme.accentGreen,
                       descripcion: 'Para bodegas y minimarkets que buscan crecer, vender por WhatsApp y tener catálogo web online propio.',
@@ -263,8 +263,8 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                     _buildPlanCard(
                       id: 'BASICO',
                       titulo: 'Plan Bodega Básico',
-                      precioDestacado: 'S/ 50.00',
-                      subtituloPrecio: '/ mes (facturación mensual)',
+                      precioDestacado: 'S/ 39.00',
+                      subtituloPrecio: '/ mes (o S/ 99 trimestral)',
                       badgeSuperior: '🏪 BODEGAS TRADICIONALES',
                       colorBadge: const Color(0xFF64748B),
                       descripcion: 'Para pequeños puestos o bodegas con surtido acotado que solo necesitan registrar ventas rápidas de mostrador.',
@@ -330,7 +330,7 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
                       Text(
                         isPro
                             ? 'CONFIRMAR PLAN PRO (1 MES GRATIS)'
-                            : 'CONFIRMAR PLAN BÁSICO (S/ 50 / MES)',
+                            : 'CONFIRMAR PLAN BÁSICO (S/ 39 / MES)',
                         style: GoogleFonts.outfit(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w800,

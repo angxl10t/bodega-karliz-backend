@@ -195,7 +195,7 @@ class PlanUpgradeModal extends StatelessWidget {
 
               // Beneficios del Plan PRO
               Text(
-                'QUÉ DESBLOQUEAS CON EL PLAN PRO (S/ 100 /MES):',
+                'QUÉ DESBLOQUEAS CON EL PLAN PRO (S/ 79 /MES):',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -297,7 +297,7 @@ class PlanUpgradeModal extends StatelessWidget {
                 },
                 icon: const Icon(LucideIcons.sparkles, size: 18),
                 label: Text(
-                  'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                  'Mejorar a Plan PRO con Yape / Plin (S/ 79 /mes)',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
                     fontSize: 14,

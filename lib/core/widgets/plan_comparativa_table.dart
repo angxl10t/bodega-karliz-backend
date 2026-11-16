@@ -201,7 +201,7 @@ class PlanComparativaTable extends StatelessWidget {
                                 )
                               : null,
                           child: Text(
-                            'Básico (S/50)',
+                            'Básico (S/39)',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.outfit(
                               fontSize: compact ? 10 : 11,
@@ -236,7 +236,7 @@ class PlanComparativaTable extends StatelessWidget {
                           child: Text(
                             isRegistroConMesGratis
                                 ? 'PRO (1er Mes S/0)'
-                                : 'PRO (S/100)',
+                                : 'PRO (S/79)',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.outfit(
                               fontSize: compact ? 10 : 11,
