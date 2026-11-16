@@ -510,17 +510,23 @@ public class ProductoService {
             mov.setUsuarioResponsable(user);
 
             Bodega b = producto.getBodega();
-            if (b == null) {
-                Long idBodega = tenantService.getCurrentBodegaId();
+            Long idBodega = tenantService.getCurrentBodegaId();
+            if (b == null || b.getIdBodega() == null) {
                 if (idBodega != null && bodegaRepository != null) {
                     b = bodegaRepository.findById(idBodega).orElse(null);
                 }
             }
+            if (b == null && idBodega != null) {
+                b = new Bodega();
+                b.setIdBodega(idBodega);
+            }
             mov.setBodega(b);
-            movimientoInventarioRepository.save(mov);
+            movimientoInventarioRepository.saveAndFlush(mov);
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(ProductoService.class)
-                    .error("No se pudo registrar la auditoría en Kardex para el producto ID {}: {}", producto.getIdProducto(), e.getMessage(), e);
+                    .error("[KARDEX AUDITORIA ERROR] Fallo al registrar auditoría en Kardex ({}) para el producto ID {}: {}",
+                            tipoMovimiento, producto.getIdProducto(), e.getMessage(), e);
+            throw new RuntimeException("Error al registrar auditoría en Kardex (" + tipoMovimiento + "): " + e.getMessage(), e);
         }
     }
 

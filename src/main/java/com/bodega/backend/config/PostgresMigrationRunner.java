@@ -61,7 +61,8 @@ public class PostgresMigrationRunner implements ApplicationRunner {
             "classpath:db/migration/v27_logic_and_performance_fixes.sql",
             "classpath:db/migration/v28_starter_pack_preset_global.sql",
             "classpath:db/migration/v29_sugerencias_precio_superadmin.sql",
-            "classpath:db/migration/v30_auditoria_kardex_cambios_admin.sql"
+            "classpath:db/migration/v30_auditoria_kardex_cambios_admin.sql",
+            "classpath:db/migration/v31_fix_auditoria_kardex_view_and_column.sql"
     );
 
     private final DataSource dataSource;

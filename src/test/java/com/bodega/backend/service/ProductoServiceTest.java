@@ -161,7 +161,7 @@ public class ProductoServiceTest {
         assertEquals("https://cajaya.pe/packshots/inka_kola_nueva.png", actualizado.getImagenUrl());
 
         // Verificar que se guardó la auditoría de cambio de precio, nombre e imagen en el Kardex
-        verify(movimientoInventarioRepository, atLeast(3)).save(argThat(mov -> {
+        verify(movimientoInventarioRepository, atLeast(3)).saveAndFlush(argThat(mov -> {
             if ("CAMBIO_PRECIO".equals(mov.getTipoMovimiento())) {
                 return mov.getMotivo().contains("3.50") && mov.getMotivo().contains("4.00");
             }
