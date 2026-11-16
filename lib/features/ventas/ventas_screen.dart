@@ -9731,6 +9731,7 @@ class _VentasScreenState extends State<VentasScreen>
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         borderRadius: BorderRadius.circular(14),
         onTap: () {
           setState(() {
@@ -9739,56 +9740,61 @@ class _VentasScreenState extends State<VentasScreen>
           });
           HapticFeedback.selectionClick();
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? methodColor
-                : (isDark
-                      ? AppTheme.cardDarkHighlight
-                      : const Color(0xFFF5F6F8)),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
+        child: AnimatedScale(
+          scale: isSelected ? 1.0 : 0.985,
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOutCubic,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
               color: isSelected
                   ? methodColor
                   : (isDark
-                        ? AppTheme.borderDarkElevated
-                        : const Color(0xFFE2E8F0)),
-              width: isSelected ? 1.4 : 1.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: methodColor.withValues(alpha: 0.35),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 16,
+                        ? AppTheme.cardDarkHighlight
+                        : const Color(0xFFF5F6F8)),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
                 color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.white : methodColor),
+                    ? methodColor
+                    : (isDark
+                          ? AppTheme.borderDarkElevated
+                          : const Color(0xFFE2E8F0)),
+                width: isSelected ? 1.4 : 1.0,
               ),
-              const SizedBox(width: 8),
-              Text(
-                metodo,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: methodColor.withValues(alpha: 0.35),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
                   color: isSelected
                       ? Colors.white
-                      : (isDark ? Colors.white : const Color(0xFF334155)),
+                      : (isDark ? Colors.white : methodColor),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  metodo,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark ? Colors.white : const Color(0xFF334155)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -11223,12 +11229,14 @@ class _VentasScreenState extends State<VentasScreen>
                           ? (ResponsiveLayout.isDesktop(context) ? 14.5 : 12.5)
                           : 13.5,
                       fontWeight: FontWeight.w800,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0D9488),
                   foregroundColor: Colors.white,
+                  enabledMouseCursor: SystemMouseCursors.click,
                   elevation: 3,
                   shadowColor: const Color(0xFF0D9488).withValues(alpha: 0.35),
                   shape: RoundedRectangleBorder(
@@ -11291,12 +11299,14 @@ class _VentasScreenState extends State<VentasScreen>
                         : 13.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF059669),
                 foregroundColor: Colors.white,
+                enabledMouseCursor: SystemMouseCursors.click,
                 elevation: 4,
                 shadowColor: const Color(0xFF059669).withValues(alpha: 0.35),
                 shape: RoundedRectangleBorder(
@@ -11360,12 +11370,14 @@ class _VentasScreenState extends State<VentasScreen>
                   : 13.5,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.2,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: btnColor,
           foregroundColor: Colors.white,
+          enabledMouseCursor: SystemMouseCursors.click,
           elevation: 4,
           shadowColor: btnColor.withValues(alpha: 0.35),
           shape: RoundedRectangleBorder(

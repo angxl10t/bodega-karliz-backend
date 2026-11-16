@@ -631,8 +631,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                       (metaCumplida
                               ? AppTheme.accentGreen
                               : AppTheme.brandPrimary)
-                          .withValues(alpha: 0.12),
+                          .withValues(alpha: metaCumplida ? 0.20 : 0.12),
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: metaCumplida
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.accentGreen.withValues(alpha: 0.35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
                 child: Icon(
                   metaCumplida ? LucideIcons.flame : LucideIcons.target,
@@ -822,14 +831,19 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progreso,
-              minHeight: 10,
-              backgroundColor: isDark
-                  ? const Color(0xFF334155)
-                  : const Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                metaCumplida ? AppTheme.accentGreen : const Color(0xFF10B981),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: progreso),
+              duration: const Duration(milliseconds: 650),
+              curve: Curves.easeOutCubic,
+              builder: (context, val, _) => LinearProgressIndicator(
+                value: val,
+                minHeight: 10,
+                backgroundColor: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  metaCumplida ? AppTheme.accentGreen : const Color(0xFF10B981),
+                ),
               ),
             ),
           ),
@@ -1596,14 +1610,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: AppTheme.accentGreen,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
+                              const _PulsingLiveDot(),
                               const SizedBox(width: 5),
                               Text(
                                 'En Vivo',
@@ -1991,6 +1998,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   ? AppTheme.textDarkSecondary
                                   : const Color(0xFF334155),
                               fontWeight: FontWeight.w600,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -2093,6 +2103,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                               style: GoogleFonts.outfit(
                                 fontSize: 14.5,
                                 fontWeight: FontWeight.w900,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                                 color: isDark
                                     ? Colors.white
                                     : AppTheme.textDark,
@@ -2153,7 +2166,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildBiBanner(bool isDark) {
     final bool isPro = _plan.toUpperCase() == 'PRO';
     return InkWell(
+      mouseCursor: SystemMouseCursors.click,
       onTap: () {
+        HapticFeedback.selectionClick();
         if (!isPro) {
           PlanUpgradeModal.show(
             context,
@@ -2511,84 +2526,92 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        mouseCursor: SystemMouseCursors.click,
         onTap: () {
           HapticFeedback.selectionClick();
           setState(() => _tabOperaciones = index);
         },
         borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7.5),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppTheme.brandPrimary
-                : (isDark ? AppTheme.cardDark : const Color(0xFFF1F5F9)),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
+        child: AnimatedScale(
+          scale: isSelected ? 1.0 : 0.98,
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutCubic,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7.5),
+            decoration: BoxDecoration(
               color: isSelected
                   ? AppTheme.brandPrimary
-                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
-              width: 1.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.28),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 14,
+                  : (isDark ? AppTheme.cardDark : const Color(0xFFF1F5F9)),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
                 color: isSelected
-                    ? Colors.white
-                    : (isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B)),
+                    ? AppTheme.brandPrimary
+                    : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+                width: 1.0,
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.28),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 14,
                   color: isSelected
                       ? Colors.white
                       : (isDark
                             ? AppTheme.textDarkSecondary
-                            : const Color(0xFF334155)),
+                            : const Color(0xFF64748B)),
                 ),
-              ),
-              if (badge != null) ...[
-                const SizedBox(width: 5),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                     color: isSelected
-                        ? Colors.white.withValues(alpha: 0.25)
-                        : AppTheme.brandPrimary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
+                        ? Colors.white
+                        : (isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155)),
                   ),
-                  child: Text(
-                    badge,
-                    style: GoogleFonts.outfit(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: isSelected ? Colors.white : AppTheme.brandPrimary,
+                ),
+                if (badge != null) ...[
+                  const SizedBox(width: 5),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.25)
+                          : AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      badge,
+                      style: GoogleFonts.outfit(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: isSelected
+                            ? Colors.white
+                            : AppTheme.brandPrimary,
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -2604,7 +2627,11 @@ class _DashboardScreenState extends State<DashboardScreen>
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
-        onTap: onTap,
+        mouseCursor: SystemMouseCursors.click,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(18),
         child: Container(
           width: width,
@@ -3183,298 +3210,22 @@ class _DashboardScreenState extends State<DashboardScreen>
     bool isLocked = false,
     String? lockedBadge = 'PRO',
   }) {
-    final Color cardBg = isPrimaryHero
-        ? (isDark
-              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
-              : const Color(0xFFEFF6FF))
-        : (isDark ? AppTheme.cardDark : Colors.white);
-
-    final Color borderColor = isPrimaryHero
-        ? (isDark ? const Color(0xFF3B82F6) : const Color(0xFF93C5FD))
-        : (isLocked
-              ? (isDark
-                    ? const Color(0xFFD97706).withValues(alpha: 0.35)
-                    : const Color(0xFFF59E0B).withValues(alpha: 0.45))
-              : (isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight));
-
-    final Color iconBg = isPrimaryHero
-        ? AppTheme.brandPrimary
-        : color.withValues(alpha: isDark ? 0.20 : 0.10);
-
-    final Color iconColor = isPrimaryHero
-        ? Colors.white
-        : (isDark ? const Color(0xFF60A5FA) : color);
-
-    final card = Material(
-      color: cardBg,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        onLongPress: () {
-          HapticFeedback.mediumImpact();
-          if (onLongPress != null) {
-            onLongPress();
-          } else if (opId != null) {
-            _toggleFavorito(opId, title);
-          }
-        },
-        mouseCursor: SystemMouseCursors.click,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          width: width,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: borderColor,
-              width: isPrimaryHero ? 1.6 : 1.2,
-            ),
-          ),
-          child: isBanner
-              ? Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: iconBg,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        icon,
-                        color: iconColor,
-                        size: ResponsiveLayout.iconSize(context, base: 20),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                title,
-                                style: GoogleFonts.outfit(
-                                  fontSize: ResponsiveLayout.fontSize(
-                                    context,
-                                    base: 13.5,
-                                  ),
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (isPrimaryHero) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1.5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.brandPrimary,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    'PRINCIPAL',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ] else if (isLocked) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1.5,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFFD97706,
-                                    ).withValues(alpha: isDark ? 0.22 : 0.12),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(
-                                      color: const Color(0xFFD97706)
-                                          .withValues(alpha: 0.4),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        LucideIcons.lock,
-                                        size: 9,
-                                        color: Color(0xFFD97706),
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Text(
-                                        lockedBadge ?? 'PRO',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 8.5,
-                                          fontWeight: FontWeight.w900,
-                                          color: const Color(0xFFD97706),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF334155),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      LucideIcons.chevronRight,
-                      size: 16,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF94A3B8),
-                    ),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: iconBg,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: iconColor,
-                            size: ResponsiveLayout.iconSize(context, base: 18),
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (isPrimaryHero)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Text(
-                                  'PRINCIPAL',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              )
-                            else if (isLocked)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD97706)
-                                      .withValues(alpha: isDark ? 0.22 : 0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: const Color(0xFFD97706)
-                                        .withValues(alpha: 0.4),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.lock,
-                                      size: 9.5,
-                                      color: Color(0xFFD97706),
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      lockedBadge ?? 'PRO',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 8.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: const Color(0xFFD97706),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      title,
-                      style: GoogleFonts.outfit(
-                        fontSize: ResponsiveLayout.fontSize(
-                          context,
-                          base: 13.5,
-                        ),
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: ResponsiveLayout.fontSize(
-                          context,
-                          base: 11.5,
-                        ),
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF334155),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-        ),
-      ),
+    return _CraftQuickActionTile(
+      width: width,
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
+      color: color,
+      isDark: isDark,
+      onTap: onTap,
+      onLongPress:
+          onLongPress ??
+          (opId != null ? () => _toggleFavorito(opId, title) : null),
+      isBanner: isBanner,
+      isPrimaryHero: isPrimaryHero,
+      isLocked: isLocked,
+      lockedBadge: lockedBadge,
     );
-
-    if (width != null) return card;
-    return Expanded(child: card);
   }
 
   Widget _buildFifoDashboardCard(
@@ -3906,5 +3657,464 @@ class _CraftMetricTileState extends State<_CraftMetricTile> {
         ),
       ),
     );
+  }
+}
+
+class _PulsingLiveDot extends StatefulWidget {
+  const _PulsingLiveDot();
+
+  @override
+  State<_PulsingLiveDot> createState() => _PulsingLiveDotState();
+}
+
+class _PulsingLiveDotState extends State<_PulsingLiveDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    );
+    _animation = Tween<double>(
+      begin: 0.45,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    final bool isTest = WidgetsBinding.instance.runtimeType.toString().contains(
+      'Test',
+    );
+    if (!isTest) {
+      _controller.repeat(reverse: true);
+    } else {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, _) {
+        return Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppTheme.accentGreen.withValues(alpha: _animation.value),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.accentGreen.withValues(
+                  alpha: 0.45 * _animation.value,
+                ),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CraftQuickActionTile extends StatefulWidget {
+  final double? width;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool isBanner;
+  final bool isPrimaryHero;
+  final bool isLocked;
+  final String? lockedBadge;
+
+  const _CraftQuickActionTile({
+    this.width,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.isDark,
+    required this.onTap,
+    this.onLongPress,
+    this.isBanner = false,
+    this.isPrimaryHero = false,
+    this.isLocked = false,
+    this.lockedBadge = 'PRO',
+  });
+
+  @override
+  State<_CraftQuickActionTile> createState() => _CraftQuickActionTileState();
+}
+
+class _CraftQuickActionTileState extends State<_CraftQuickActionTile> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final isPrimaryHero = widget.isPrimaryHero;
+    final isLocked = widget.isLocked;
+
+    final Color cardBg = isPrimaryHero
+        ? (isDark
+              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+              : const Color(0xFFEFF6FF))
+        : (isDark ? AppTheme.cardDark : Colors.white);
+
+    final Color borderColor = isPrimaryHero
+        ? (isDark ? const Color(0xFF3B82F6) : const Color(0xFF93C5FD))
+        : (isLocked
+              ? (isDark
+                    ? const Color(0xFFD97706).withValues(alpha: 0.35)
+                    : const Color(0xFFF59E0B).withValues(alpha: 0.45))
+              : (_isHovered
+                    ? (isDark ? const Color(0xFF60A5FA) : AppTheme.brandPrimary)
+                    : (isDark
+                          ? AppTheme.borderDarkElevated
+                          : AppTheme.borderLight)));
+
+    final Color iconBg = isPrimaryHero
+        ? AppTheme.brandPrimary
+        : widget.color.withValues(alpha: isDark ? 0.20 : 0.10);
+
+    final Color iconColor = isPrimaryHero
+        ? Colors.white
+        : (isDark ? const Color(0xFF60A5FA) : widget.color);
+
+    final double scale = _isPressed ? 0.965 : (_isHovered ? 1.012 : 1.0);
+
+    final card = MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() => _isPressed = true);
+          HapticFeedback.lightImpact();
+        },
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedScale(
+          scale: scale,
+          duration: const Duration(milliseconds: 130),
+          curve: Curves.easeOutCubic,
+          child: Material(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(18),
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                widget.onTap();
+              },
+              onLongPress: widget.onLongPress != null
+                  ? () {
+                      HapticFeedback.mediumImpact();
+                      widget.onLongPress!();
+                    }
+                  : null,
+              mouseCursor: SystemMouseCursors.click,
+              borderRadius: BorderRadius.circular(18),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 130),
+                width: widget.width,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: borderColor,
+                    width: isPrimaryHero || _isHovered ? 1.6 : 1.2,
+                  ),
+                  boxShadow: _isHovered
+                      ? [
+                          BoxShadow(
+                            color:
+                                (isPrimaryHero
+                                        ? AppTheme.brandPrimary
+                                        : (isDark
+                                              ? Colors.black54
+                                              : const Color(0xFF64748B)))
+                                    .withValues(alpha: isDark ? 0.35 : 0.12),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: widget.isBanner
+                    ? Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: iconBg,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              widget.icon,
+                              color: iconColor,
+                              size: ResponsiveLayout.iconSize(
+                                context,
+                                base: 20,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      widget.title,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: ResponsiveLayout.fontSize(
+                                          context,
+                                          base: 13.5,
+                                        ),
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (isPrimaryHero) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.brandPrimary,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'PRINCIPAL',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ] else if (isLocked) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFD97706)
+                                              .withValues(
+                                                alpha: isDark ? 0.22 : 0.12,
+                                              ),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFD97706)
+                                                .withValues(alpha: 0.4),
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              LucideIcons.lock,
+                                              size: 9,
+                                              color: Color(0xFFD97706),
+                                            ),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              widget.lockedBadge ?? 'PRO',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 8.5,
+                                                fontWeight: FontWeight.w900,
+                                                color: const Color(0xFFD97706),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  widget.subtitle,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: ResponsiveLayout.fontSize(
+                                      context,
+                                      base: 11.5,
+                                    ),
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            LucideIcons.chevronRight,
+                            size: 16,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF94A3B8),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  color: iconBg,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  widget.icon,
+                                  color: iconColor,
+                                  size: ResponsiveLayout.iconSize(
+                                    context,
+                                    base: 18,
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isPrimaryHero)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.brandPrimary,
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: Text(
+                                        'PRINCIPAL',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    )
+                                  else if (isLocked)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFD97706)
+                                            .withValues(
+                                              alpha: isDark ? 0.22 : 0.12,
+                                            ),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: const Color(0xFFD97706)
+                                              .withValues(alpha: 0.4),
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            LucideIcons.lock,
+                                            size: 9.5,
+                                            color: Color(0xFFD97706),
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            widget.lockedBadge ?? 'PRO',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 8.5,
+                                              fontWeight: FontWeight.w900,
+                                              color: const Color(0xFFD97706),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            widget.title,
+                            style: GoogleFonts.outfit(
+                              fontSize: ResponsiveLayout.fontSize(
+                                context,
+                                base: 13.5,
+                              ),
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.subtitle,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: ResponsiveLayout.fontSize(
+                                context,
+                                base: 11.5,
+                              ),
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (widget.width != null) return card;
+    return Expanded(child: card);
   }
 }
