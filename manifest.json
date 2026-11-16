@@ -1,12 +1,12 @@
 {
     "name": "CajaYa Cloud POS",
     "short_name": "CajaYa POS",
-    "start_url": ".",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#0B0F19",
     "theme_color": "#2563EB",
     "description": "CajaYa POS - Punto de Venta y Control de Inventario en la Nube",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

@@ -151,23 +151,16 @@
 
 
   <script>
-    // Invalidador forzado de service worker y CacheStorage para actualizar inmediatamente
+    // Registro de Service Worker para habilitación de PWA e instalación en Escritorio (Chrome / Edge)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (let registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (let name of names) {
-          caches.delete(name);
-        }
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').catch(function(err) {
+          console.warn('PWA service worker registration notice:', err);
+        });
       });
     }
   </script>
 
-  <script src="flutter_bootstrap.js?v=1.0.23_v18" async></script>
+  <script src="flutter_bootstrap.js?v=1.0.23_v19" async></script>
 </body>
 </html>
