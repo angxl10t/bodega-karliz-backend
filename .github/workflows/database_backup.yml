@@ -1,0 +1,142 @@
+name: 💾 Respaldo Automatizado de Base de Datos (Supabase PostgreSQL)
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 08:00 UTC (03:00 AM hora de Lima Perú UTC-5)
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_reason:
+        description: 'Motivo del respaldo manual'
+        required: false
+        default: 'Respaldo manual solicitado desde GitHub Actions'
+      retention_days:
+        description: 'Días de retención del artefacto'
+        required: false
+        default: '30'
+        type: choice
+        options:
+          - '14'
+          - '30'
+          - '60'
+          - '90'
+
+concurrency:
+  group: database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup-database:
+    name: Generar Backup Comprimido PostgreSQL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obtener Fecha y Hora de Lima (UTC-5)
+        id: date
+        run: |
+          export TZ="America/Lima"
+          BACKUP_DATE=$(date +"%Y-%m-%d_%H%M%S")
+          DAY_NAME=$(date +"%A")
+          echo "timestamp=$BACKUP_DATE" >> "$GITHUB_OUTPUT"
+          echo "day=$DAY_NAME" >> "$GITHUB_OUTPUT"
+          echo "Fecha de Respaldo: $BACKUP_DATE ($DAY_NAME)"
+
+      - name: Instalar Herramientas de Cliente PostgreSQL 16
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-16 gzip
+
+      - name: Crear Directorio de Respaldos
+        run: mkdir -p backups
+
+      - name: Ejecutar pg_dump y Comprimir Backup
+        id: dump
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST || 'aws-1-us-west-2.pooler.supabase.com' }}
+          DB_PORT: ${{ secrets.DB_PORT || '5432' }}
+          DB_NAME: ${{ secrets.DB_NAME || 'postgres' }}
+          DB_USER: ${{ secrets.DB_USER || 'postgres.rmdbcmnoanyqumjlfphy' }}
+        run: |
+          set -euo pipefail
+          TIMESTAMP="${{ steps.date.outputs.timestamp }}"
+          FILENAME="cajaya_pos_backup_${TIMESTAMP}.sql.gz"
+          FILEPATH="backups/${FILENAME}"
+
+          echo "===> Iniciando volcado de base de datos CajaYa POS..."
+
+          # Construir conexión para pg_dump
+          if [ -n "${SUPABASE_DB_URL:-}" ]; then
+            echo "Conectando mediante SUPABASE_DB_URL..."
+            pg_dump "$SUPABASE_DB_URL" \
+              --no-owner \
+              --no-privileges \
+              --clean \
+              --if-exists \
+              --verbose | gzip -9 > "$FILEPATH"
+          elif [ -n "${DB_PASSWORD:-}" ]; then
+            echo "Conectando mediante credenciales a $DB_HOST:$DB_PORT..."
+            export PGPASSWORD="$DB_PASSWORD"
+            pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+              --no-owner \
+              --no-privileges \
+              --clean \
+              --if-exists \
+              --verbose | gzip -9 > "$FILEPATH"
+          else
+            echo "❌ ERROR: No se encontró ningún secreto configurado (ni SUPABASE_DB_URL ni DB_PASSWORD)."
+            echo "Por favor configura el secreto 'DB_PASSWORD' en Settings -> Secrets and variables -> Actions de este repositorio en GitHub."
+            exit 1
+          fi
+
+          # Validar que el archivo generado sea válido
+          FILESIZE=$(stat -c%s "$FILEPATH")
+          if [ "$FILESIZE" -lt 1000 ]; then
+            echo "❌ ERROR: El archivo de respaldo tiene un tamaño sospechosamente pequeño ($FILESIZE bytes)."
+            exit 1
+          fi
+
+          # Calcular checksum SHA-256
+          sha256sum "$FILEPATH" > "${FILEPATH}.sha256"
+          CHECKSUM=$(cut -d ' ' -f 1 < "${FILEPATH}.sha256")
+          HUMAN_SIZE=$(du -h "$FILEPATH" | cut -f1)
+
+          echo "filename=$FILENAME" >> "$GITHUB_OUTPUT"
+          echo "filepath=$FILEPATH" >> "$GITHUB_OUTPUT"
+          echo "filesize=$HUMAN_SIZE" >> "$GITHUB_OUTPUT"
+          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
+
+          echo "✅ Respaldo completado con éxito: $FILENAME ($HUMAN_SIZE) | SHA-256: $CHECKSUM"
+
+      - name: Subir Archivo de Respaldo a GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cajaya-pos-backup-${{ steps.date.outputs.timestamp }}
+          path: |
+            ${{ steps.dump.outputs.filepath }}
+            ${{ steps.dump.outputs.filepath }}.sha256
+          retention-days: ${{ github.event.inputs.retention_days || 30 }}
+          if-no-files-found: error
+
+      - name: Generar Reporte de Resumen en GitHub Actions
+        run: |
+          cat << 'EOF' >> $GITHUB_STEP_SUMMARY
+          ## 💾 Respaldo de Base de Datos CajaYa POS Exitoso
+
+          | Parámetro | Detalle |
+          | :--- | :--- |
+          | **Fecha y Hora (Perú UTC-5)** | `${{ steps.date.outputs.timestamp }}` |
+          | **Archivo Generado** | `${{ steps.dump.outputs.filename }}` |
+          | **Tamaño Comprimido** | `${{ steps.dump.outputs.filesize }}` |
+          | **Integridad SHA-256** | `${{ steps.dump.outputs.checksum }}` |
+          | **Retención en GitHub** | `${{ github.event.inputs.retention_days || '30' }} días` |
+          | **Motivo** | `${{ github.event.inputs.backup_reason || 'Respaldo diario nocturno automático (03:00 AM)' }}` |
+
+          > [!TIP]
+          > Puedes descargar este archivo `.sql.gz` en cualquier momento desde la sección **Artifacts** de esta ejecución.
+          > Para restaurarlo en caso de emergencia:
+          > ```bash
+          > gunzip -c ${{ steps.dump.outputs.filename }} | psql "TU_CONEXION_POSTGRES"
+          > ```
+          EOF
