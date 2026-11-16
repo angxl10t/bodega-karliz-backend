@@ -45,10 +45,13 @@ jobs:
           echo "day=$DAY_NAME" >> "$GITHUB_OUTPUT"
           echo "Fecha de Respaldo: $BACKUP_DATE ($DAY_NAME)"
 
-      - name: Instalar Herramientas de Cliente PostgreSQL 16
+      - name: Instalar Herramientas de Cliente PostgreSQL
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-16 gzip
+          if ! command -v pg_dump &> /dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq postgresql-client gzip
+          fi
+          pg_dump --version
 
       - name: Crear Directorio de Respaldos
         run: mkdir -p backups
