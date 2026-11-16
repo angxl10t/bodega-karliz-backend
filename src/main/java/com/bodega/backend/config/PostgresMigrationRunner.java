@@ -106,64 +106,77 @@ public class PostgresMigrationRunner implements ApplicationRunner {
             return;
         }
 
-        try (Connection connection = dataSource.getConnection()) {
-            String productName = connection.getMetaData().getDatabaseProductName();
+        try (Connection testConn = dataSource.getConnection()) {
+            String productName = testConn.getMetaData().getDatabaseProductName();
             if (productName == null || !productName.toLowerCase(Locale.ROOT).contains("postgresql")) {
                 log.info("[PostgresMigrationRunner] Motor '{}' detectado; se omiten scripts exclusivos de PostgreSQL.", productName);
                 return;
             }
-
-            if (!connection.getAutoCommit()) {
-                connection.setAutoCommit(true);
+        } catch (Exception ex) {
+            log.warn("[PostgresMigrationRunner] Error verificando motor de base de datos: {}", ex.getMessage());
+            if (!continueOnError) {
+                throw ex;
             }
-
-            int scriptsExecuted = 0;
-            int statementsExecuted = 0;
-            int warnings = 0;
-
-            for (String location : locations) {
-                Resource resource = resourceLoader.getResource(location);
-                if (!resource.exists()) {
-                    String msg = "Script de migración no encontrado: " + location;
-                    if (continueOnError) {
-                        log.warn("[PostgresMigrationRunner] {}", msg);
-                        warnings++;
-                        continue;
-                    }
-                    throw new IllegalStateException(msg);
-                }
-
-                String sql = readUtf8(resource);
-                List<String> statements = DollarQuotedSqlSplitter.splitStatements(sql);
-                scriptsExecuted++;
-
-                try (Statement stmt = connection.createStatement()) {
-                    for (String sqlStatement : statements) {
-                        try {
-                            stmt.execute(sqlStatement);
-                            statementsExecuted++;
-                        } catch (SQLException ex) {
-                            warnings++;
-                            String preview = sqlStatement.replaceAll("\\s+", " ");
-                            if (preview.length() > 140) {
-                                preview = preview.substring(0, 140) + "...";
-                            }
-                            if (!continueOnError) {
-                                throw new IllegalStateException(
-                                        "Fallo ejecutando sentencia en " + location + " [" + preview + "]: " + ex.getMessage(),
-                                        ex
-                                );
-                            }
-                            log.warn("[PostgresMigrationRunner] Aviso idempotente en {} ({}): {}",
-                                    location, ex.getSQLState(), ex.getMessage());
-                        }
-                    }
-                }
-            }
-
-            log.info("[PostgresMigrationRunner] {} scripts PostgreSQL procesados ({} sentencias ejecutadas, {} avisos idempotentes).",
-                    scriptsExecuted, statementsExecuted, warnings);
+            return;
         }
+
+        int scriptsExecuted = 0;
+        int statementsExecuted = 0;
+        int warnings = 0;
+
+        for (String location : locations) {
+            Resource resource = resourceLoader.getResource(location);
+            if (!resource.exists()) {
+                String msg = "Script de migración no encontrado: " + location;
+                if (continueOnError) {
+                    log.warn("[PostgresMigrationRunner] {}", msg);
+                    warnings++;
+                    continue;
+                }
+                throw new IllegalStateException(msg);
+            }
+
+            String sql = readUtf8(resource);
+            List<String> statements = DollarQuotedSqlSplitter.splitStatements(sql);
+            scriptsExecuted++;
+
+            try (Connection connection = dataSource.getConnection();
+                 Statement stmt = connection.createStatement()) {
+                if (!connection.getAutoCommit()) {
+                    connection.setAutoCommit(true);
+                }
+
+                for (String sqlStatement : statements) {
+                    try {
+                        stmt.execute(sqlStatement);
+                        statementsExecuted++;
+                    } catch (SQLException ex) {
+                        warnings++;
+                        String preview = sqlStatement.replaceAll("\\s+", " ");
+                        if (preview.length() > 140) {
+                            preview = preview.substring(0, 140) + "...";
+                        }
+                        if (!continueOnError) {
+                            throw new IllegalStateException(
+                                    "Fallo ejecutando sentencia en " + location + " [" + preview + "]: " + ex.getMessage(),
+                                    ex
+                            );
+                        }
+                        log.warn("[PostgresMigrationRunner] Aviso idempotente en {} ({}): {}",
+                                location, ex.getSQLState(), ex.getMessage());
+                    }
+                }
+            } catch (Exception ex) {
+                warnings++;
+                log.warn("[PostgresMigrationRunner] Excepción procesando migración {}: {}", location, ex.getMessage());
+                if (!continueOnError) {
+                    throw ex;
+                }
+            }
+        }
+
+        log.info("[PostgresMigrationRunner] {} scripts PostgreSQL procesados ({} sentencias ejecutadas, {} avisos idempotentes).",
+                scriptsExecuted, statementsExecuted, warnings);
     }
 
     private static String readUtf8(Resource resource) throws IOException {
