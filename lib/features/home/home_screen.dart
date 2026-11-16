@@ -1825,18 +1825,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? AppTheme.brandPrimary.withValues(
-                                        alpha: 0.18,
-                                      )
-                                    : AppTheme.surfaceTint,
+                                    ? AppTheme.cardDarkHighlight
+                                    : const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
                                   color: isDark
-                                      ? AppTheme.brandPrimary.withValues(
-                                          alpha: 0.45,
-                                        )
-                                      : AppTheme.borderTint,
-                                  width: 1,
+                                      ? AppTheme.borderDark
+                                      : const Color(0xFFE2E8F0),
+                                  width: 0.8,
                                 ),
                               ),
                               child: Row(
@@ -1855,11 +1851,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     'CLOUD POS',
                                     style: GoogleFonts.outfit(
                                       fontSize: 9,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w800,
                                       letterSpacing: 0.5,
                                       color: isDark
-                                          ? AppTheme.brandLight
-                                          : AppTheme.brandPrimary,
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
@@ -1954,9 +1950,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 10.5,
                                 color: isDark
-                                    ? const Color(0xFF38BDF8)
-                                    : AppTheme.brandPrimary,
-                                fontWeight: FontWeight.w700,
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -2158,15 +2154,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             Container(
                               width: 24,
                               height: 24,
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppTheme.brandPrimary,
-                                    AppTheme.brandDark,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
@@ -2177,7 +2168,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ? LucideIcons.shieldAlert
                                             : LucideIcons.shieldCheck),
                                   size: 13,
-                                  color: Colors.white,
+                                  color: isDark
+                                      ? const Color(0xFFF1F5F9)
+                                      : const Color(0xFF334155),
                                 ),
                               ),
                             ),
@@ -2748,7 +2741,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSidebarActionTile(
                     icon: LucideIcons.scrollText,
                     label: 'Kardex Auditoría',
-                    color: const Color(0xFF8B5CF6),
+                    color: const Color(0xFF64748B),
                     badge: 'Kardex',
                     isDark: isDark,
                     onTap: () {
@@ -2762,7 +2755,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSidebarActionTile(
                     icon: LucideIcons.calendarClock,
                     label: 'Vencimientos',
-                    color: const Color(0xFFF59E0B),
+                    color: const Color(0xFF64748B),
                     badge: 'Alertas',
                     isDark: isDark,
                     onTap: () {
@@ -2778,7 +2771,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSidebarActionTile(
                     icon: LucideIcons.truck,
                     label: 'Compras Proveedor',
-                    color: const Color(0xFF10B981),
+                    color: const Color(0xFF64748B),
                     badge: 'Facturas',
                     isDark: isDark,
                     onTap: () {
@@ -2826,7 +2819,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSidebarActionTile(
                     icon: LucideIcons.slidersHorizontal,
                     label: 'Panel & Configuración',
-                    color: AppTheme.brandPrimary,
+                    color: const Color(0xFF64748B),
                     badge: 'Ajustes',
                     isDark: isDark,
                     onTap: _mostrarPanelAdmin,
@@ -2885,7 +2878,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(
                       LucideIcons.cloudCheck,
                       size: 14,
-                      color: AppTheme.accentGreen,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ],
                 ),
@@ -3016,15 +3011,27 @@ class _HomeScreenState extends State<HomeScreen> {
               curve: Curves.easeOutCubic,
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
+                color: isSelected
+                    ? (isDark
+                          ? AppTheme.brandPrimary.withValues(alpha: 0.16)
+                          : const Color(0xFFEFF6FF))
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+                border: isSelected
+                    ? Border.all(
+                        color: isDark
+                            ? AppTheme.brandPrimary.withValues(alpha: 0.45)
+                            : const Color(0xFFBFDBFE),
+                        width: 1,
+                      )
+                    : null,
               ),
               child: Center(
                 child: Icon(
                   icon,
                   size: 20,
                   color: isSelected
-                      ? Colors.white
+                      ? AppTheme.brandPrimary
                       : (isDark
                             ? AppTheme.textDarkSecondary
                             : const Color(0xFF475569)),
@@ -3052,15 +3059,15 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: isSelected
                 ? (isDark
-                      ? AppTheme.brandPrimary.withValues(alpha: 0.18)
-                      : AppTheme.brandPrimary.withValues(alpha: 0.09))
+                      ? AppTheme.brandPrimary.withValues(alpha: 0.16)
+                      : const Color(0xFFEFF6FF))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             border: isSelected
                 ? Border.all(
                     color: isDark
-                        ? AppTheme.brandPrimary.withValues(alpha: 0.5)
-                        : AppTheme.brandPrimary.withValues(alpha: 0.3),
+                        ? AppTheme.brandPrimary.withValues(alpha: 0.45)
+                        : const Color(0xFFBFDBFE),
                     width: 1,
                   )
                 : null,
@@ -3093,7 +3100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              if (shortcut != null) ...[
+              if (shortcut != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 5,
@@ -3120,17 +3127,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? AppTheme.textDarkSecondary
                           : const Color(0xFF64748B),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-              ],
-              if (isSelected)
-                Container(
-                  width: 5,
-                  height: 5,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.brandPrimary,
-                    shape: BoxShape.circle,
                   ),
                 ),
             ],
@@ -3224,15 +3220,25 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
+                  color: isDark
+                      ? AppTheme.cardDarkHighlight
+                      : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
+                    width: 0.8,
+                  ),
                 ),
                 child: Text(
                   badge,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w700,
-                    color: color,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ),
@@ -3278,13 +3284,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   CircleAvatar(
                     radius: 14,
-                    backgroundColor: AppTheme.brandPrimary,
+                    backgroundColor: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
                     child: Text(
                       _username.isNotEmpty ? _username[0].toUpperCase() : 'U',
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        color: isDark ? Colors.white : const Color(0xFF334155),
                       ),
                     ),
                   ),
@@ -3324,7 +3332,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: AppTheme.accentGreen,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
                                 ),
                               ),
                             ),
@@ -3343,13 +3353,15 @@ class _HomeScreenState extends State<HomeScreen> {
               preferBelow: false,
               child: CircleAvatar(
                 radius: 16,
-                backgroundColor: AppTheme.brandPrimary,
+                backgroundColor: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
                 child: Text(
                   _username.isNotEmpty ? _username[0].toUpperCase() : 'U',
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : const Color(0xFF334155),
                   ),
                 ),
               ),

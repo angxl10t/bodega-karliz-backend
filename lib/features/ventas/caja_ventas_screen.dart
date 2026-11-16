@@ -1309,8 +1309,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF131B29) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1319,15 +1322,32 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  titulo,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 5,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        titulo,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               if (actionLabel != null && onAction != null) ...[
@@ -1340,12 +1360,20 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
+                      horizontal: 6,
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
+                      color: isDark
+                          ? AppTheme.cardDarkHighlight
+                          : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : const Color(0xFFE2E8F0),
+                        width: 0.8,
+                      ),
                     ),
                     child: Text(
                       actionLabel,
@@ -1398,9 +1426,12 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
+        color: color.withValues(alpha: isDark ? 0.12 : 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withValues(alpha: isDark ? 0.3 : 0.22),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -1410,7 +1441,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             child: Text(
               texto,
               style: GoogleFonts.outfit(
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w800,
                 color: color,
               ),
@@ -1726,10 +1757,13 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F2327) : const Color(0xFFE0F2FE),
+              color: isDark
+                  ? AppTheme.cardDarkHighlight
+                  : const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                width: 1,
               ),
             ),
             child: Row(
@@ -1744,7 +1778,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.brandPrimary,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -3712,21 +3748,23 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: esHoy
-                          ? (isDark
-                                ? const Color(0xFF064E3B)
-                                : const Color(0xFFD1FAE5))
-                          : (isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFE0E7FF)),
-                      borderRadius: BorderRadius.circular(12),
+                      color: isDark
+                          ? AppTheme.cardDarkHighlight
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : const Color(0xFFE2E8F0),
+                        width: 0.8,
+                      ),
                     ),
                     child: Row(
                       children: [
                         if (esHoy) ...[
                           Container(
-                            width: 8,
-                            height: 8,
+                            width: 7,
+                            height: 7,
                             decoration: const BoxDecoration(
                               color: AppTheme.accentGreen,
                               shape: BoxShape.circle,
@@ -3736,30 +3774,32 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                           Text(
                             'TURNO EN CURSO',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
                               color: isDark
-                                  ? const Color(0xFF6EE7B7)
-                                  : const Color(0xFF065F46),
-                              letterSpacing: 0.5,
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF475569),
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ] else ...[
-                          const Icon(
+                          Icon(
                             LucideIcons.checkCheck,
                             size: 14,
-                            color: Color(0xFF4338CA),
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF64748B),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             'TURNO CONCLUIDO',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
                               color: isDark
-                                  ? const Color(0xFFA5B4FC)
-                                  : const Color(0xFF4338CA),
-                              letterSpacing: 0.5,
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF475569),
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ],
@@ -3997,15 +4037,15 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: isDark ? 0.05 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -4019,28 +4059,50 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: isDark ? 0.2 : 0.12),
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
+                    width: 0.8,
+                  ),
                 ),
-                child: Icon(icon, size: 18, color: color),
+                child: Icon(icon, size: 17, color: color),
               ),
               if (actionLabel != null && onAction != null)
-                TextButton(
-                  style: TextButton.styleFrom(
+                InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    onAction();
+                  },
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
-                      vertical: 2,
+                      vertical: 3,
                     ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: onAction,
-                  child: Text(
-                    actionLabel,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: color,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.cardDarkHighlight
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : const Color(0xFFE2E8F0),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Text(
+                      actionLabel,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                      ),
                     ),
                   ),
                 ),
@@ -4690,10 +4752,13 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F2327) : const Color(0xFFE0F2FE),
-              borderRadius: BorderRadius.circular(18),
+              color: isDark
+                  ? AppTheme.cardDarkHighlight
+                  : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppTheme.brandPrimary.withValues(alpha: 0.35),
+                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                width: 1,
               ),
             ),
             child: Column(
@@ -4707,7 +4772,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.brandPrimary,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -4717,15 +4784,25 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                        color: isDark
+                            ? AppTheme.cardDarkElevated
+                            : const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : const Color(0xFFE2E8F0),
+                          width: 0.8,
+                        ),
                       ),
                       child: Text(
                         'Cálculo Automático',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.brandPrimary,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ),
@@ -5018,10 +5095,14 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF064E3B) : const Color(0xFFD1FAE5),
+          color: isDark
+              ? const Color(0xFF059669).withValues(alpha: 0.12)
+              : const Color(0xFFECFDF5),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: const Color(0xFF10B981).withValues(alpha: 0.4),
+            color: const Color(0xFF10B981)
+                .withValues(alpha: isDark ? 0.3 : 0.25),
+            width: 1,
           ),
         ),
         child: Row(
@@ -5029,7 +5110,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             const Icon(
               LucideIcons.checkCircle2,
               color: Color(0xFF059669),
-              size: 22,
+              size: 20,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -5040,9 +5121,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                     '¡CAJA CUADRADA EXACTA! (S/ 0.00)',
                     style: GoogleFonts.outfit(
                       fontSize: 13,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w800,
                       color: isDark
-                          ? const Color(0xFF6EE7B7)
+                          ? const Color(0xFF34D399)
                           : const Color(0xFF065F46),
                     ),
                   ),
@@ -5052,7 +5133,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: isDark
-                          ? const Color(0xFFA7F3D0)
+                          ? AppTheme.textDarkSecondary
                           : const Color(0xFF047857),
                     ),
                   ),
@@ -5066,17 +5147,21 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
 
     final bool esSobrante = diferencia > 0.01;
     final Color bg = esSobrante
-        ? (isDark ? const Color(0xFF0C2A4D) : const Color(0xFFE0F2FE))
-        : (isDark ? const Color(0xFF3F1318) : const Color(0xFFFEE2E2));
+        ? (isDark
+              ? const Color(0xFF2563EB).withValues(alpha: 0.12)
+              : const Color(0xFFEFF6FF))
+        : (isDark
+              ? const Color(0xFFDC2626).withValues(alpha: 0.12)
+              : const Color(0xFFFEF2F2));
     final Color border = esSobrante
-        ? const Color(0xFF0284C7).withValues(alpha: 0.5)
-        : const Color(0xFFEF4444).withValues(alpha: 0.5);
+        ? const Color(0xFF3B82F6).withValues(alpha: isDark ? 0.3 : 0.25)
+        : const Color(0xFFEF4444).withValues(alpha: isDark ? 0.3 : 0.25);
     final Color textCol = esSobrante
-        ? (isDark ? const Color(0xFF7DD3FC) : const Color(0xFF0369A1))
-        : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C));
+        ? (isDark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8))
+        : (isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C));
     final Color titleCol = esSobrante
-        ? (isDark ? const Color(0xFFBAE6FD) : const Color(0xFF0C4A6E))
-        : (isDark ? const Color(0xFFFECACA) : const Color(0xFF7F1D1D));
+        ? (isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E40AF))
+        : (isDark ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B));
     final IconData icon = esSobrante
         ? LucideIcons.arrowUpRight
         : LucideIcons.alertTriangle;
@@ -5511,17 +5596,33 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.15 : 0.08),
+        color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
-      ),
-      child: Text(
-        '$label: S/ ${monto.toStringAsFixed(2)}',
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w700,
-          color: color,
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+          width: 0.8,
         ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '$label: S/ ${monto.toStringAsFixed(2)}',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF475569),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -5535,45 +5636,38 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     required String descripcion,
     double? width,
   }) {
-    final Color effectiveColor = isDark
-        ? (titulo.contains('Efectivo')
-              ? const Color(0xFF34D399) // Emerald 400 nítido
-              : titulo.contains('Yape')
-              ? const Color(0xFFE879F9) // Fuchsia 400 radiante
-              : titulo.contains('Plin')
-              ? const Color(0xFF38BDF8) // Sky 400 luminoso
-              : titulo.contains('Tarjeta')
-              ? const Color(0xFFA5B4FC) // Indigo 300
-              : titulo.contains('Crédito') || titulo.contains('Fiado')
-              ? const Color(0xFFFBBF24) // Amber 400
-              : color)
-        : color;
+    final bool esEfectivo = titulo.contains('Efectivo');
+    final Color iconColor = esEfectivo
+        ? (isDark ? const Color(0xFF34D399) : const Color(0xFF059669))
+        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569));
 
     return Container(
       width: width,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
-          width: 1.2,
+          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          width: 1,
         ),
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: effectiveColor.withValues(alpha: isDark ? 0.22 : 0.12),
-              borderRadius: BorderRadius.circular(14),
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: effectiveColor.withValues(alpha: isDark ? 0.35 : 0.18),
-                width: 1,
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+                width: 0.8,
               ),
             ),
-            child: Icon(icon, color: effectiveColor, size: 22),
+            child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -5582,20 +5676,20 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
               children: [
                 Text(
                   titulo,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
                     color: isDark ? Colors.white : AppTheme.textDark,
                   ),
                 ),
                 Text(
                   descripcion,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
                     color: isDark
                         ? AppTheme.textDarkSecondary
-                        : const Color(0xFF334155),
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -5608,8 +5702,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             builder: (context, val, _) => Text(
               'S/ ${val.toStringAsFixed(2)}',
               style: GoogleFonts.outfit(
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
+                fontSize: 16.5,
+                fontWeight: FontWeight.w800,
                 color: isDark ? Colors.white : AppTheme.textDark,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
@@ -6497,53 +6591,49 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
 
     final m = metodo.toUpperCase();
     final Color fg;
-    final Color bg;
     final IconData icon;
 
     if (m.contains('YAPE')) {
       fg = const Color(0xFF7C3AED);
-      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
       icon = LucideIcons.smartphone;
     } else if (m.contains('PLIN')) {
       fg = const Color(0xFF0284C7);
-      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
       icon = LucideIcons.zap;
     } else if (m.contains('EFECTIVO')) {
       fg = const Color(0xFF059669);
-      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
       icon = LucideIcons.banknote;
     } else if (m.contains('CREDITO') || m.contains('FIADO')) {
       fg = const Color(0xFFD97706);
-      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
       icon = LucideIcons.bookOpen;
     } else if (m.contains('TARJETA')) {
       fg = const Color(0xFF2563EB);
-      bg = fg.withValues(alpha: isDark ? 0.22 : 0.12);
       icon = LucideIcons.creditCard;
     } else {
       fg = AppTheme.getAdaptiveMutedText(isDark);
-      bg = fg.withValues(alpha: isDark ? 0.20 : 0.10);
       icon = LucideIcons.arrowRightLeft;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: fg.withValues(alpha: isDark ? 0.35 : 0.22)),
+        color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+          width: 0.8,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: fg),
-          const SizedBox(width: 4),
+          const SizedBox(width: 5),
           Text(
             metodo,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: fg,
+              fontWeight: FontWeight.w600,
+              color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155),
             ),
           ),
         ],
