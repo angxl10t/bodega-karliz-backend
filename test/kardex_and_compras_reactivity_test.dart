@@ -104,6 +104,37 @@ void main() {
       expect(mov.fechaMovimiento, isNull);
     });
 
+    test('parseFechaPeru adjusts UTC and Render naive timestamps to Peru UTC-5', () {
+      // 1. UTC timestamp with Z
+      final fechaZ = MovimientoInventario.parseFechaPeru('2026-11-16T15:30:00Z');
+      expect(fechaZ, isNotNull);
+      expect(fechaZ!.hour, 10);
+      expect(fechaZ.minute, 30);
+
+      // 2. UTC timestamp with +00:00
+      final fechaPlusZero = MovimientoInventario.parseFechaPeru('2026-11-16T15:30:00+00:00');
+      expect(fechaPlusZero, isNotNull);
+      expect(fechaPlusZero!.hour, 10);
+      expect(fechaPlusZero.minute, 30);
+
+      // 3. Already Peru timezone (-05:00)
+      final fechaPeru = MovimientoInventario.parseFechaPeru('2026-11-16T10:30:00-05:00');
+      expect(fechaPeru, isNotNull);
+      // toLocal on -05:00 preserves the local hour
+      expect(fechaPeru!.minute, 30);
+
+      // 4. Naive UTC string from server
+      final fechaNaive = MovimientoInventario.parseFechaPeru('2026-11-16 15:30:00');
+      expect(fechaNaive, isNotNull);
+      expect(fechaNaive!.hour, 10);
+      expect(fechaNaive.minute, 30);
+
+      // 5. Null or empty string
+      expect(MovimientoInventario.parseFechaPeru(null), isNull);
+      expect(MovimientoInventario.parseFechaPeru(''), isNull);
+      expect(MovimientoInventario.parseFechaPeru('invalid-date'), isNull);
+    });
+
     test('Kardex movement classification distinguishes Entradas, Salidas and Devoluciones/Anulaciones', () {
       final entrada = MovimientoInventario(
         idMovimiento: 1,

@@ -2633,8 +2633,8 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isDesktop,
   ) {
     final double sidebarWidth = _railCollapsed
-        ? (isDesktop ? 76.0 : 70.0)
-        : 210.0;
+        ? (isDesktop ? 68.0 : 64.0)
+        : 226.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 220),
@@ -2666,7 +2666,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
                       child: Text(
-                        'MÓDULOS PRINCIPALES',
+                        'OPERACIONES POS',
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -2682,37 +2682,42 @@ class _HomeScreenState extends State<HomeScreen> {
                     index: 0,
                     icon: LucideIcons.layoutGrid,
                     label: 'Inicio',
+                    shortcut: 'F1',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
                     index: 1,
                     icon: LucideIcons.shoppingBag,
                     label: 'Venta POS',
+                    shortcut: 'F2',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
                     index: 2,
                     icon: LucideIcons.banknote,
                     label: 'Caja & Arqueo',
+                    shortcut: 'F4',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
                     index: 3,
                     icon: LucideIcons.boxes,
                     label: 'Stock / Catálogo',
+                    shortcut: 'F3',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
                     index: 4,
                     icon: LucideIcons.bookUser,
                     label: 'Clientes & Fiados',
+                    shortcut: 'F5',
                     isDark: isDark,
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: _railCollapsed ? 12 : 16,
+                      horizontal: _railCollapsed ? 10 : 16,
                     ),
                     child: Divider(
                       height: 1,
@@ -2728,7 +2733,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                       child: Text(
-                        'AUDITORÍA Y CONTROL',
+                        'LOGÍSTICA Y AUDITORÍA',
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -2786,10 +2791,99 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
+
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: _railCollapsed ? 10 : 16,
+                    ),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  if (!_railCollapsed) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+                      child: Text(
+                        'ADMINISTRACIÓN',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ),
+                  ],
+                  _buildSidebarActionTile(
+                    icon: LucideIcons.slidersHorizontal,
+                    label: 'Panel & Configuración',
+                    color: AppTheme.brandPrimary,
+                    badge: 'Ajustes',
+                    isDark: isDark,
+                    onTap: _mostrarPanelAdmin,
+                  ),
                 ],
               ),
             ),
           ),
+
+          // Mini Card de Estado Cloud / Conexión (Aprovechamiento visual del espacio inferior)
+          if (!_railCollapsed)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF0F172A).withValues(alpha: 0.5)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.accentGreen,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Cloud POS Online',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      LucideIcons.cloudCheck,
+                      size: 14,
+                      color: AppTheme.accentGreen,
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // 3. Footer Lateral (Usuario en Turno, F11, Modo Oscuro, Versión)
           _buildSidebarFooter(isDark),
@@ -2893,6 +2987,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required String label,
     required bool isDark,
+    String? shortcut,
   }) {
     final bool isSelected = _selectedIndex == index;
 
@@ -2900,7 +2995,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         child: Tooltip(
-          message: label,
+          message: shortcut != null ? '$label ($shortcut)' : label,
           preferBelow: false,
           child: InkWell(
             onTap: () {
@@ -2985,6 +3080,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              if (shortcut != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : const Color(0xFFE2E8F0),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Text(
+                    shortcut,
+                    style: GoogleFonts.outfit(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
               if (isSelected)
                 Container(
                   width: 5,

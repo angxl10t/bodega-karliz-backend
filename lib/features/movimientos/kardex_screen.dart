@@ -1029,9 +1029,9 @@ class _KardexScreenState extends State<KardexScreen> {
     required VoidCallback onTap,
   }) {
     final detalle = _calcularDetalleVisual(m);
-    final fechaLocal = m.fechaMovimiento?.toLocal();
-    final horaStr = fechaLocal != null
-        ? '${fechaLocal.hour.toString().padLeft(2, '0')}:${fechaLocal.minute.toString().padLeft(2, '0')}'
+    final fecha = m.fechaMovimiento;
+    final horaStr = fecha != null
+        ? '${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}'
         : '--:--';
 
     final cantFormateada = m.cantidad % 1 == 0
@@ -1285,9 +1285,9 @@ class _KardexScreenState extends State<KardexScreen> {
 
   Widget _buildCardFichaAuditoria(bool isDark, MovimientoInventario m) {
     final detalle = _calcularDetalleVisual(m);
-    final fechaLocal = m.fechaMovimiento?.toLocal();
-    final fechaCompletaStr = fechaLocal != null
-        ? '${fechaLocal.day.toString().padLeft(2, '0')}/${fechaLocal.month.toString().padLeft(2, '0')}/${fechaLocal.year} ${fechaLocal.hour.toString().padLeft(2, '0')}:${fechaLocal.minute.toString().padLeft(2, '0')}:${fechaLocal.second.toString().padLeft(2, '0')}'
+    final fecha = m.fechaMovimiento;
+    final fechaCompletaStr = fecha != null
+        ? '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year} ${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}:${fecha.second.toString().padLeft(2, '0')}'
         : 'Reciente';
 
     final cantFormateada = m.cantidad % 1 == 0
@@ -2200,9 +2200,9 @@ class _KardexScreenState extends State<KardexScreen> {
 
   Widget _buildMovimientoTile(MovimientoInventario m, bool isDark) {
     final detalle = _calcularDetalleVisual(m);
-    final fechaLocal = m.fechaMovimiento?.toLocal();
-    final fechaStr = fechaLocal != null
-        ? '${fechaLocal.day.toString().padLeft(2, '0')}/${fechaLocal.month.toString().padLeft(2, '0')} ${fechaLocal.hour.toString().padLeft(2, '0')}:${fechaLocal.minute.toString().padLeft(2, '0')}'
+    final fecha = m.fechaMovimiento;
+    final fechaStr = fecha != null
+        ? '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')} ${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}'
         : 'Reciente';
 
     return Container(
