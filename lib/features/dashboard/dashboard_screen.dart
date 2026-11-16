@@ -425,30 +425,29 @@ class _DashboardScreenState extends State<DashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD97706)
-                                  .withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              LucideIcons.target,
-                              size: 18,
-                              color: Color(0xFFD97706),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD97706)
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          LucideIcons.target,
+                          size: 18,
+                          color: Color(0xFFD97706),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
                                     'Termómetro de Meta Diaria',
                                     style: GoogleFonts.outfit(
                                       fontSize: 14.5,
@@ -457,52 +456,57 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           ? Colors.white
                                           : AppTheme.textDark,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 5,
-                                      vertical: 1.5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFD97706)
-                                          .withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          LucideIcons.lock,
-                                          size: 9,
-                                          color: Color(0xFFD97706),
-                                        ),
-                                        const SizedBox(width: 3),
-                                        Text(
-                                          'PRO',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w900,
-                                            color: const Color(0xFFD97706),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                '🔒 Función Exclusiva Plan PRO • Toca para desbloquear',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFFD97706),
                                 ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD97706)
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.lock,
+                                        size: 9,
+                                        color: Color(0xFFD97706),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        'PRO',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w900,
+                                          color: const Color(0xFFD97706),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '🔒 Función Exclusiva Plan PRO • Toca para desbloquear',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFD97706),
                               ),
-                            ],
-                          ),
-                        ],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -619,107 +623,110 @@ class _DashboardScreenState extends State<DashboardScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color:
-                          (metaCumplida
-                                  ? AppTheme.accentGreen
-                                  : AppTheme.brandPrimary)
-                              .withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      metaCumplida ? LucideIcons.flame : LucideIcons.target,
-                      size: 18,
-                      color: metaCumplida
-                          ? AppTheme.accentGreen
-                          : AppTheme.brandPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color:
+                      (metaCumplida
+                              ? AppTheme.accentGreen
+                              : AppTheme.brandPrimary)
+                          .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  metaCumplida ? LucideIcons.flame : LucideIcons.target,
+                  size: 18,
+                  color: metaCumplida
+                      ? AppTheme.accentGreen
+                      : AppTheme.brandPrimary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
                             'Termómetro de Meta Diaria',
                             style: GoogleFonts.outfit(
                               fontSize: 14.5,
                               fontWeight: FontWeight.w800,
                               color: isDark ? Colors.white : AppTheme.textDark,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 1.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  (isPro
-                                          ? const Color(0xFF0D9488)
-                                          : const Color(0xFFD97706))
-                                      .withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (!isPro) ...[
-                                  const Icon(
-                                    LucideIcons.lock,
-                                    size: 9,
-                                    color: Color(0xFFD97706),
-                                  ),
-                                  const SizedBox(width: 3),
-                                ],
-                                Text(
-                                  'PRO',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    color: isPro
-                                        ? const Color(0xFF0F766E)
-                                        : const Color(0xFFD97706),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        isPro
-                            ? (metaCumplida
-                                  ? '🎉 ¡Excelente! Superaste tu meta de venta diaria'
-                                  : (totalVentas > 0
-                                        ? 'Faltan S/ ${falta.toStringAsFixed(2)} para llegar a la meta'
-                                        : 'Registra tus ventas de hoy para avanzar'))
-                            : '🔒 Función Exclusiva Plan PRO • Toca para desbloquear',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: isPro
-                              ? (metaCumplida
-                                    ? (isDark
-                                          ? const Color(0xFF6EE7B7)
-                                          : const Color(0xFF059669))
-                                    : (isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF64748B)))
-                              : const Color(0xFFD97706),
                         ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                (isPro
+                                        ? const Color(0xFF0D9488)
+                                        : const Color(0xFFD97706))
+                                    .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!isPro) ...[
+                                const Icon(
+                                  LucideIcons.lock,
+                                  size: 9,
+                                  color: Color(0xFFD97706),
+                                ),
+                                const SizedBox(width: 3),
+                              ],
+                              Text(
+                                'PRO',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: isPro
+                                      ? const Color(0xFF0F766E)
+                                      : const Color(0xFFD97706),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      isPro
+                          ? (metaCumplida
+                                ? '🎉 ¡Excelente! Superaste tu meta de venta diaria'
+                                : (totalVentas > 0
+                                      ? 'Faltan S/ ${falta.toStringAsFixed(2)} para llegar a la meta'
+                                      : 'Registra tus ventas de hoy para avanzar'))
+                          : '🔒 Función Exclusiva Plan PRO • Toca para desbloquear',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isPro
+                            ? (metaCumplida
+                                  ? (isDark
+                                        ? const Color(0xFF6EE7B7)
+                                        : const Color(0xFF059669))
+                                  : (isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF64748B)))
+                            : const Color(0xFFD97706),
                       ),
-                    ],
-                  ),
-                ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
               IconButton(
                 icon: const Icon(LucideIcons.pencil, size: 15),
@@ -750,18 +757,22 @@ class _DashboardScreenState extends State<DashboardScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 4,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
                 children: [
                   Text(
                     'S/ ${totalVentas.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                       color: metaCumplida
                           ? AppTheme.accentGreen
                           : (isDark ? Colors.white : AppTheme.textDark),
@@ -772,6 +783,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                       color: isDark
                           ? AppTheme.textDarkSecondary
                           : const Color(0xFF64748B),
@@ -779,16 +791,30 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ],
               ),
-              Text(
-                '${porcentaje.toStringAsFixed(0)}% cumplido',
-                style: GoogleFonts.outfit(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: metaCumplida
-                      ? AppTheme.accentGreen
-                      : (porcentaje >= 50
-                            ? const Color(0xFF2563EB)
-                            : const Color(0xFFD97706)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color:
+                      (metaCumplida
+                              ? AppTheme.accentGreen
+                              : (porcentaje >= 50
+                                    ? const Color(0xFF2563EB)
+                                    : const Color(0xFFD97706)))
+                          .withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${porcentaje.toStringAsFixed(0)}% cumplido',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                    color: metaCumplida
+                        ? AppTheme.accentGreen
+                        : (porcentaje >= 50
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFFD97706)),
+                  ),
                 ),
               ),
             ],
@@ -897,7 +923,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       return p.stockActual > (umbralMinimo * 0.5) &&
           p.stockActual <= umbralMinimo;
     }).toList();
-    final int totalAlertas = productosCriticos.length + productosBajos.length;
     final List<Producto> productosVencidosFIFO = _productos.where((p) {
       return p.controlaVencimiento &&
           p.fechaVencimiento != null &&
@@ -927,360 +952,442 @@ class _DashboardScreenState extends State<DashboardScreen>
             ? const Center(
                 child: CircularProgressIndicator(color: AppTheme.brandPrimary),
               )
-            : SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Banner Ejecutivo Rebrandeado CajaYa con badge sutil de stock
-                    _buildGreetingBanner(isDark, productosCriticos),
-                    const SizedBox(height: 18),
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final bool isCockpitWide = constraints.maxWidth >= 1050;
 
-                    // Título de Métricas
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Métricas Clave del Negocio',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Actualizado hoy (En vivo)',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: AppTheme.accentGreen,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isCockpitWide ? 22 : 16,
+                      vertical: isCockpitWide ? 20 : 16,
                     ),
-                    const SizedBox(height: 12),
-
-                    // Cuadrícula de KPIs Responsiva (4 Pilares Fundamentales)
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            _buildMetricTile(
-                              constraints: constraints,
-                              title: 'Ventas de Hoy',
-                              value:
-                                  'S/ ${(_cierreHoy?.totalVentas ?? 0.0).toStringAsFixed(2)}',
-                              subtitle:
-                                  '${_cierreHoy?.cantidadVentas ?? 0} ventas hoy',
-                              icon: LucideIcons.badgePercent,
-                              accentColor: AppTheme.accentGreen,
-                              isDark: isDark,
-                              onTap: () =>
-                                  widget.onNavigateTab(2), // Tab Arqueo
-                            ),
-                            _buildMetricTile(
-                              constraints: constraints,
-                              title: 'Fiados por Cobrar',
-                              value:
-                                  'S/ ${(_resumenCreditos?.totalDeuda ?? 0.0).toStringAsFixed(2)}',
-                              subtitle:
-                                  '${_resumenCreditos?.clientesConDeuda ?? 0} vecinos con saldo',
-                              icon: LucideIcons.bookUser,
-                              accentColor: const Color(0xFFD97706),
-                              isDark: isDark,
-                              onTap: () {
-                                widget.onNavigateTab(4);
-                                ClientesScreen.cambiarPestana(0);
-                              },
-                            ),
-                            _buildMetricTile(
-                              constraints: constraints,
-                              title: 'Valor en Mercadería',
-                              value: 'S/ ${valorInventario.toStringAsFixed(2)}',
-                              subtitle:
-                                  '${stockTotalUnidades % 1 == 0 ? stockTotalUnidades.toInt().toString() : stockTotalUnidades.toStringAsFixed(1)} u. en almacén',
-                              icon: LucideIcons.wallet,
-                              accentColor: AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () =>
-                                  widget.onNavigateTab(3), // Tab Inventario
-                            ),
-                            _buildMetricTile(
-                              constraints: constraints,
-                              title: 'Catálogo & Stock',
-                              value: '$totalProductos Items',
-                              subtitle: productosCriticos.isNotEmpty
-                                  ? '${productosCriticos.length} por reponer • Ver catálogo'
-                                  : 'Existencias saludables',
-                              icon: LucideIcons.boxes,
-                              accentColor: productosCriticos.isNotEmpty
-                                  ? AppTheme.alertRed
-                                  : AppTheme.brandPrimary,
-                              isDark: isDark,
-                              onTap: () =>
-                                  widget.onNavigateTab(3), // Tab Inventario
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-
-                    // Tarjeta en Directo de Canales de Pago
-                    _buildPaymentBreakdownCard(isDark),
-
-                    // Termómetro de Meta Diaria de Venta (PRO)
-                    _buildTermometroMetaDiaria(isDark),
-                    const SizedBox(height: 22),
-
-                    // Hub de Operaciones & Herramientas con Pestañas y Favoritos Personalizables
-                    _buildHubOperaciones(isDark),
-                    const SizedBox(height: 22),
-
-                    // Banner de Inteligencia de Negocio & BI
-                    _buildBiBanner(isDark),
-                    const SizedBox(height: 24),
-
-                    // Control de Vencimientos FIFO (Semáforo de Lotes Críticos)
-                    if (productosVencidosFIFO.isNotEmpty ||
-                        productosCriticosFIFO.isNotEmpty ||
-                        productosAtencionFIFO.isNotEmpty) ...[
-                      _buildFifoDashboardCard(
-                        isDark,
-                        vencidos: productosVencidosFIFO.length,
-                        criticos: productosCriticosFIFO.length,
-                        atencion: productosAtencionFIFO.length,
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Alertas de Reposición
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Alertas de Reposición',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (totalAlertas > 0) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.alertRed.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '$totalAlertas productos por agotar',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.alertRed,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    if (productosCriticos.isEmpty && productosBajos.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppTheme.cardDark : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.borderDark
-                                : const Color(0xFFD1FAE5),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFD1FAE5),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                LucideIcons.checkCircle,
-                                color: AppTheme.accentGreen,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '¡Inventario en Estado Óptimo!',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Todos los productos tienen existencias saludables.',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final items = [
-                            ...productosCriticos,
-                            ...productosBajos,
-                          ].take(6).toList();
-                          final double itemWidth = constraints.maxWidth >= 750
-                              ? (constraints.maxWidth - 10) / 2
-                              : constraints.maxWidth;
-
-                          return Wrap(
-                            spacing: 10,
-                            runSpacing: 8,
-                            children: items.map((p) {
-                              final double umbralMinimo = p.stockMinimo > 0
-                                  ? p.stockMinimo
-                                  : 5.0;
-                              final isCritico =
-                                  p.stockActual <= (umbralMinimo * 0.5);
-                              final color = isCritico
-                                  ? AppTheme.alertRed
-                                  : AppTheme.warningAmber;
-
-                              return Container(
-                                width: itemWidth,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 13,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? AppTheme.cardDark
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? AppTheme.borderDark
-                                        : AppTheme.borderLight,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
+                    child: isCockpitWide
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Columna Izquierda Principal (62%): Operaciones y Flujo
+                              Expanded(
+                                flex: 62,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: color.withValues(alpha: 0.12),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        isCritico
-                                            ? LucideIcons.alertCircle
-                                            : LucideIcons.alertTriangle,
-                                        color: color,
-                                        size: 17,
-                                      ),
+                                    _buildGreetingBanner(
+                                      isDark,
+                                      productosCriticos,
                                     ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            p.nombre,
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 13.5,
-                                              fontWeight: FontWeight.w700,
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : AppTheme.textDark,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            'Código: ${p.codigo}',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 11.5,
-                                              fontWeight: FontWeight.w600,
-                                              color: isDark
-                                                  ? AppTheme.textDarkSecondary
-                                                  : const Color(0xFF334155),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                    const SizedBox(height: 18),
+                                    _buildMetricasSectionHeader(isDark),
+                                    const SizedBox(height: 12),
+                                    _buildMetricasGrid(
+                                      constraints: constraints,
+                                      isDark: isDark,
+                                      valorInventario: valorInventario,
+                                      stockTotalUnidades: stockTotalUnidades,
+                                      totalProductos: totalProductos,
+                                      productosCriticos: productosCriticos,
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: color.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} u.',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w800,
-                                          color: color,
-                                        ),
-                                      ),
-                                    ),
+                                    const SizedBox(height: 16),
+                                    _buildPaymentBreakdownCard(isDark),
+                                    const SizedBox(height: 22),
+                                    _buildHubOperaciones(isDark),
                                   ],
                                 ),
-                              );
-                            }).toList(),
-                          );
-                        },
-                      ),
-                  ],
-                ),
+                              ),
+                              const SizedBox(width: 20),
+                              // Columna Derecha de Control (38%): Metas, Semáforos y Alertas
+                              Expanded(
+                                flex: 38,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildTermometroMetaDiaria(isDark),
+                                    const SizedBox(height: 16),
+                                    if (productosVencidosFIFO.isNotEmpty ||
+                                        productosCriticosFIFO.isNotEmpty ||
+                                        productosAtencionFIFO.isNotEmpty) ...[
+                                      _buildFifoDashboardCard(
+                                        isDark,
+                                        vencidos: productosVencidosFIFO.length,
+                                        criticos: productosCriticosFIFO.length,
+                                        atencion: productosAtencionFIFO.length,
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
+                                    _buildAlertasReposicion(
+                                      isDark,
+                                      productosCriticos,
+                                      productosBajos,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _buildBiBanner(isDark),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildGreetingBanner(isDark, productosCriticos),
+                              const SizedBox(height: 18),
+                              _buildMetricasSectionHeader(isDark),
+                              const SizedBox(height: 12),
+                              _buildMetricasGrid(
+                                constraints: constraints,
+                                isDark: isDark,
+                                valorInventario: valorInventario,
+                                stockTotalUnidades: stockTotalUnidades,
+                                totalProductos: totalProductos,
+                                productosCriticos: productosCriticos,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildPaymentBreakdownCard(isDark),
+                              _buildTermometroMetaDiaria(isDark),
+                              const SizedBox(height: 22),
+                              _buildHubOperaciones(isDark),
+                              const SizedBox(height: 22),
+                              _buildBiBanner(isDark),
+                              const SizedBox(height: 24),
+                              if (productosVencidosFIFO.isNotEmpty ||
+                                  productosCriticosFIFO.isNotEmpty ||
+                                  productosAtencionFIFO.isNotEmpty) ...[
+                                _buildFifoDashboardCard(
+                                  isDark,
+                                  vencidos: productosVencidosFIFO.length,
+                                  criticos: productosCriticosFIFO.length,
+                                  atencion: productosAtencionFIFO.length,
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                              _buildAlertasReposicion(
+                                isDark,
+                                productosCriticos,
+                                productosBajos,
+                              ),
+                            ],
+                          ),
+                  );
+                },
               ),
       ),
+    );
+  }
+
+  Widget _buildMetricasSectionHeader(bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            'Métricas Clave del Negocio',
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : AppTheme.textDark,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'Actualizado hoy (En vivo)',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11.5,
+            color: AppTheme.accentGreen,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricasGrid({
+    required BoxConstraints constraints,
+    required bool isDark,
+    required double valorInventario,
+    required double stockTotalUnidades,
+    required int totalProductos,
+    required List<Producto> productosCriticos,
+  }) {
+    return LayoutBuilder(
+      builder: (context, gridConstraints) {
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _buildMetricTile(
+              constraints: gridConstraints,
+              title: 'Ventas de Hoy',
+              value:
+                  'S/ ${(_cierreHoy?.totalVentas ?? 0.0).toStringAsFixed(2)}',
+              subtitle: '${_cierreHoy?.cantidadVentas ?? 0} ventas hoy',
+              icon: LucideIcons.badgePercent,
+              accentColor: AppTheme.accentGreen,
+              isDark: isDark,
+              onTap: () => widget.onNavigateTab(2), // Tab Arqueo
+            ),
+            _buildMetricTile(
+              constraints: gridConstraints,
+              title: 'Fiados por Cobrar',
+              value:
+                  'S/ ${(_resumenCreditos?.totalDeuda ?? 0.0).toStringAsFixed(2)}',
+              subtitle:
+                  '${_resumenCreditos?.clientesConDeuda ?? 0} vecinos con saldo',
+              icon: LucideIcons.bookUser,
+              accentColor: const Color(0xFFD97706),
+              isDark: isDark,
+              onTap: () {
+                widget.onNavigateTab(4);
+                ClientesScreen.cambiarPestana(0);
+              },
+            ),
+            _buildMetricTile(
+              constraints: gridConstraints,
+              title: 'Valor en Mercadería',
+              value: 'S/ ${valorInventario.toStringAsFixed(2)}',
+              subtitle:
+                  '${stockTotalUnidades % 1 == 0 ? stockTotalUnidades.toInt().toString() : stockTotalUnidades.toStringAsFixed(1)} u. en almacén',
+              icon: LucideIcons.wallet,
+              accentColor: AppTheme.brandPrimary,
+              isDark: isDark,
+              onTap: () => widget.onNavigateTab(3), // Tab Inventario
+            ),
+            _buildMetricTile(
+              constraints: gridConstraints,
+              title: 'Catálogo & Stock',
+              value: '$totalProductos Items',
+              subtitle: productosCriticos.isNotEmpty
+                  ? '${productosCriticos.length} por reponer • Ver catálogo'
+                  : 'Existencias saludables',
+              icon: LucideIcons.boxes,
+              accentColor: productosCriticos.isNotEmpty
+                  ? AppTheme.alertRed
+                  : AppTheme.brandPrimary,
+              isDark: isDark,
+              onTap: () => widget.onNavigateTab(3), // Tab Inventario
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAlertasReposicion(
+    bool isDark,
+    List<Producto> productosCriticos,
+    List<Producto> productosBajos,
+  ) {
+    final int totalAlertas = productosCriticos.length + productosBajos.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'Alertas de Reposición',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (totalAlertas > 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.alertRed.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$totalAlertas productos por agotar',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.alertRed,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (productosCriticos.isEmpty && productosBajos.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDark : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : const Color(0xFFD1FAE5),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFD1FAE5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.checkCircle,
+                    color: AppTheme.accentGreen,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '¡Inventario en Estado Óptimo!',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        'Todos los productos tienen existencias saludables.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final items = [
+                ...productosCriticos,
+                ...productosBajos,
+              ].take(6).toList();
+              final double itemWidth = constraints.maxWidth >= 750
+                  ? (constraints.maxWidth - 10) / 2
+                  : constraints.maxWidth;
+
+              return Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: items.map((p) {
+                  final double umbralMinimo = p.stockMinimo > 0
+                      ? p.stockMinimo
+                      : 5.0;
+                  final isCritico = p.stockActual <= (umbralMinimo * 0.5);
+                  final color = isCritico
+                      ? AppTheme.alertRed
+                      : AppTheme.warningAmber;
+
+                  return Container(
+                    width: itemWidth,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 13,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.cardDark : Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : AppTheme.borderLight,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isCritico
+                                ? LucideIcons.alertCircle
+                                : LucideIcons.alertTriangle,
+                            color: color,
+                            size: 17,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                p.nombre,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                'Código: ${p.codigo}',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} u.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+      ],
     );
   }
 
@@ -1301,20 +1408,22 @@ class _DashboardScreenState extends State<DashboardScreen>
         gradient: LinearGradient(
           colors: isDark
               ? [AppTheme.cardDarkElevated, AppTheme.cardDark]
-              : [AppTheme.brandInk, const Color(0xFF1E293B)],
+              : [Colors.white, const Color(0xFFF8FAFC)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : const Color(0xFF334155),
-          width: 1,
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.12),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: (isDark ? Colors.black : const Color(0xFF64748B)).withValues(
+              alpha: isDark ? 0.3 : 0.07,
+            ),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1334,27 +1443,35 @@ class _DashboardScreenState extends State<DashboardScreen>
                     vertical: 4.5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.10),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.10)
+                        : const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFF38BDF8).withValues(alpha: 0.35),
+                      color: isDark
+                          ? const Color(0xFF38BDF8).withValues(alpha: 0.35)
+                          : const Color(0xFFBFDBFE),
                       width: 0.8,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         LucideIcons.store,
                         size: 12,
-                        color: Color(0xFF38BDF8),
+                        color: isDark
+                            ? const Color(0xFF38BDF8)
+                            : AppTheme.brandPrimary,
                       ),
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
                           _nombreBodega,
                           style: GoogleFonts.outfit(
-                            color: const Color(0xFFF1F5F9),
+                            color: isDark
+                                ? const Color(0xFFF1F5F9)
+                                : const Color(0xFF1E40AF),
                             fontSize: 11.5,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.2,
@@ -1398,18 +1515,24 @@ class _DashboardScreenState extends State<DashboardScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                (_plan == 'PRO'
-                                        ? const Color(0xFF38BDF8)
-                                        : AppTheme.brandPrimary)
-                                    .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color:
-                                  (_plan == 'PRO'
+                            color: isDark
+                                ? (_plan == 'PRO'
                                           ? const Color(0xFF38BDF8)
                                           : AppTheme.brandPrimary)
-                                      .withValues(alpha: 0.5),
+                                      .withValues(alpha: 0.2)
+                                : (_plan == 'PRO'
+                                      ? const Color(0xFFEFF6FF)
+                                      : const Color(0xFFF1F5F9)),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark
+                                  ? (_plan == 'PRO'
+                                            ? const Color(0xFF38BDF8)
+                                            : AppTheme.brandPrimary)
+                                        .withValues(alpha: 0.5)
+                                  : (_plan == 'PRO'
+                                        ? const Color(0xFF93C5FD)
+                                        : const Color(0xFFCBD5E1)),
                               width: 0.8,
                             ),
                           ),
@@ -1421,15 +1544,23 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     ? LucideIcons.sparkles
                                     : LucideIcons.shield,
                                 size: 10.5,
-                                color: _plan == 'PRO'
-                                    ? const Color(0xFF38BDF8)
-                                    : Colors.white,
+                                color: isDark
+                                    ? (_plan == 'PRO'
+                                          ? const Color(0xFF38BDF8)
+                                          : Colors.white)
+                                    : (_plan == 'PRO'
+                                          ? const Color(0xFF0284C7)
+                                          : const Color(0xFF475569)),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 _plan == 'PRO' ? 'PRO' : 'BÁSICO',
                                 style: GoogleFonts.outfit(
-                                  color: Colors.white,
+                                  color: isDark
+                                      ? Colors.white
+                                      : (_plan == 'PRO'
+                                            ? const Color(0xFF0284C7)
+                                            : const Color(0xFF334155)),
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.3,
@@ -1451,12 +1582,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                            color: isDark
+                                ? AppTheme.accentGreen.withValues(alpha: 0.15)
+                                : const Color(0xFFDCFCE7),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: AppTheme.accentGreen.withValues(
-                                alpha: 0.4,
-                              ),
+                              color: isDark
+                                  ? AppTheme.accentGreen.withValues(alpha: 0.4)
+                                  : const Color(0xFF86EFAC),
                               width: 0.8,
                             ),
                           ),
@@ -1475,7 +1608,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                               Text(
                                 'En Vivo',
                                 style: GoogleFonts.plusJakartaSans(
-                                  color: const Color(0xFF86EFAC),
+                                  color: isDark
+                                      ? const Color(0xFF86EFAC)
+                                      : const Color(0xFF15803D),
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -1504,28 +1639,36 @@ class _DashboardScreenState extends State<DashboardScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF38BDF8)
-                                .withValues(alpha: 0.18),
+                            color: isDark
+                                ? const Color(0xFF38BDF8)
+                                      .withValues(alpha: 0.18)
+                                : const Color(0xFFF0FDF4),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: const Color(0xFF38BDF8)
-                                  .withValues(alpha: 0.45),
+                              color: isDark
+                                  ? const Color(0xFF38BDF8)
+                                        .withValues(alpha: 0.45)
+                                  : const Color(0xFFBBF7D0),
                               width: 0.8,
                             ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 LucideIcons.sparkles,
                                 size: 11,
-                                color: Color(0xFF38BDF8),
+                                color: isDark
+                                    ? const Color(0xFF38BDF8)
+                                    : const Color(0xFF16A34A),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 'Consejos',
                                 style: GoogleFonts.outfit(
-                                  color: Colors.white,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF15803D),
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.2,
@@ -1642,7 +1785,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Text(
                       '¡Bienvenido, $_username!',
                       style: GoogleFonts.outfit(
-                        color: Colors.white,
+                        color: isDark ? Colors.white : AppTheme.textDark,
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.4,
@@ -1658,7 +1801,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                               ? LucideIcons.shieldCheck
                               : LucideIcons.userCheck,
                           size: 13,
-                          color: const Color(0xFF60A5FA),
+                          color: isDark
+                              ? const Color(0xFF60A5FA)
+                              : AppTheme.brandPrimary,
                         ),
                         const SizedBox(width: 5),
                         Expanded(
@@ -1667,7 +1812,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ? 'Administrador General • Acceso Total'
                                 : 'Operador de Tienda • Turno Activo',
                             style: GoogleFonts.plusJakartaSans(
-                              color: const Color(0xFF93C5FD),
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : const Color(0xFF475569),
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -1688,10 +1835,14 @@ class _DashboardScreenState extends State<DashboardScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.06)
+                  : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : const Color(0xFFE2E8F0),
                 width: 0.8,
               ),
             ),
@@ -1700,7 +1851,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Icon(
                   _ruc.isNotEmpty ? LucideIcons.fileText : LucideIcons.layers,
                   size: 13,
-                  color: const Color(0xFFCBD5E1),
+                  color: isDark
+                      ? const Color(0xFFCBD5E1)
+                      : const Color(0xFF64748B),
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -1717,9 +1870,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                       }
                     }(),
                     style: GoogleFonts.plusJakartaSans(
-                      color: const Color(0xFFCBD5E1),
+                      color: isDark
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFF475569),
                       fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1732,8 +1887,16 @@ class _DashboardScreenState extends State<DashboardScreen>
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.transparent
+                          : const Color(0xFFE2E8F0),
+                      width: 0.5,
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1747,9 +1910,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                       Text(
                         'POS Activo',
                         style: GoogleFonts.plusJakartaSans(
-                          color: const Color(0xFFE2E8F0),
+                          color: isDark
+                              ? const Color(0xFFE2E8F0)
+                              : const Color(0xFF334155),
                           fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -2155,124 +2320,16 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ? (constraints.maxWidth - 10) / 2
                     : constraints.maxWidth));
 
-    // Acentos luminosos vibrantes para máxima legibilidad WCAG AAA en Modo Oscuro
-    final Color displayAccent = isDark
-        ? (accentColor == AppTheme.accentGreen
-              ? const Color(0xFF34D399) // Emerald 400 nítido
-              : accentColor == const Color(0xFFD97706) ||
-                    accentColor == AppTheme.warningAmber
-              ? const Color(0xFFFBBF24) // Amber 400 luminoso
-              : accentColor == AppTheme.alertRed
-              ? const Color(0xFFF87171) // Red 400 radiante
-              : accentColor == AppTheme.brandPrimary
-              ? const Color(0xFF60A5FA) // Blue 400 vivo
-              : accentColor == AppTheme.infoIndigo
-              ? const Color(0xFFA78BFA) // Violet 400
-              : accentColor)
-        : accentColor;
-
-    // Título con contraste nítido: Slate 100 en oscuro, Slate 800 en claro
-    final Color titleColor = isDark
-        ? const Color(0xFFF1F5F9)
-        : const Color(0xFF1E293B);
-
-    final card = Container(
+    return _CraftMetricTile(
       width: cardWidth,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? AppTheme.borderDarkElevated : AppTheme.borderLight,
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isDark ? Colors.black : Colors.black12).withValues(
-              alpha: isDark ? 0.35 : 0.04,
-            ),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: displayAccent.withValues(alpha: isDark ? 0.22 : 0.12),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: displayAccent.withValues(alpha: isDark ? 0.35 : 0.18),
-                width: 1,
-              ),
-            ),
-            child: Icon(
-              icon,
-              color: displayAccent,
-              size: ResponsiveLayout.iconSize(context, base: 22),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: ResponsiveLayout.fontSize(context, base: 12.5),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.1,
-                    color: titleColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    value,
-                    style: GoogleFonts.outfit(
-                      fontSize: ResponsiveLayout.fontSize(context, base: 19.0),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.3,
-                      color: isDark ? Colors.white : AppTheme.textDark,
-                    ),
-                    maxLines: 1,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: ResponsiveLayout.fontSize(context, base: 11.5),
-                    fontWeight: FontWeight.w700,
-                    color: displayAccent,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      title: title,
+      value: value,
+      subtitle: subtitle,
+      icon: icon,
+      accentColor: accentColor,
+      isDark: isDark,
+      onTap: onTap,
     );
-
-    if (onTap != null) {
-      return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: card,
-        ),
-      );
-    }
-    return card;
   }
 
   Widget _buildHubOperaciones(bool isDark) {
@@ -2319,14 +2376,19 @@ class _DashboardScreenState extends State<DashboardScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Operaciones & Herramientas',
-              style: GoogleFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.textDark,
+            Expanded(
+              child: Text(
+                'Operaciones & Herramientas',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: 8),
             InkWell(
               onTap: () =>
                   _mostrarModalInstruccionPersonalizar(context, isDark),
@@ -3147,10 +3209,19 @@ class _DashboardScreenState extends State<DashboardScreen>
       color: cardBg,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
-        onTap: onTap,
-        onLongPress:
-            onLongPress ??
-            (opId != null ? () => _toggleFavorito(opId, title) : null),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+          if (onLongPress != null) {
+            onLongPress();
+          } else if (opId != null) {
+            _toggleFavorito(opId, title);
+          }
+        },
+        mouseCursor: SystemMouseCursors.click,
         borderRadius: BorderRadius.circular(18),
         child: Container(
           width: width,
@@ -3624,6 +3695,215 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CraftMetricTile extends StatefulWidget {
+  final double width;
+  final String title;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color accentColor;
+  final bool isDark;
+  final VoidCallback? onTap;
+
+  const _CraftMetricTile({
+    required this.width,
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.accentColor,
+    required this.isDark,
+    this.onTap,
+  });
+
+  @override
+  State<_CraftMetricTile> createState() => _CraftMetricTileState();
+}
+
+class _CraftMetricTileState extends State<_CraftMetricTile> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final accentColor = widget.accentColor;
+
+    final Color displayAccent = isDark
+        ? (accentColor == AppTheme.accentGreen
+              ? const Color(0xFF34D399)
+              : accentColor == const Color(0xFFD97706) ||
+                    accentColor == AppTheme.warningAmber
+              ? const Color(0xFFFBBF24)
+              : accentColor == AppTheme.alertRed
+              ? const Color(0xFFF87171)
+              : accentColor == AppTheme.brandPrimary
+              ? const Color(0xFF60A5FA)
+              : accentColor == AppTheme.infoIndigo
+              ? const Color(0xFFA78BFA)
+              : accentColor)
+        : accentColor;
+
+    final Color titleColor = isDark
+        ? const Color(0xFFF1F5F9)
+        : const Color(0xFF1E293B);
+
+    return MouseRegion(
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
+      onEnter: (_) {
+        if (widget.onTap != null && mounted) {
+          setState(() => _isHovered = true);
+        }
+      },
+      onExit: (_) {
+        if (widget.onTap != null && mounted) {
+          setState(() => _isHovered = false);
+        }
+      },
+      child: GestureDetector(
+        onTapDown: (_) {
+          if (widget.onTap != null) {
+            setState(() => _isPressed = true);
+            HapticFeedback.lightImpact();
+          }
+        },
+        onTapUp: (_) {
+          if (widget.onTap != null && mounted) {
+            setState(() => _isPressed = false);
+          }
+        },
+        onTapCancel: () {
+          if (widget.onTap != null && mounted) {
+            setState(() => _isPressed = false);
+          }
+        },
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.975 : (_isHovered ? 1.015 : 1.0),
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOutCubic,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            width: widget.width,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? (_isHovered ? AppTheme.cardDarkElevated : AppTheme.cardDark)
+                  : (_isHovered ? const Color(0xFFFAFAFE) : Colors.white),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: _isHovered
+                    ? displayAccent.withValues(alpha: isDark ? 0.65 : 0.45)
+                    : (isDark
+                          ? AppTheme.borderDarkElevated
+                          : AppTheme.borderLight),
+                width: _isHovered ? 1.5 : 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: (isDark ? Colors.black : Colors.black12).withValues(
+                    alpha: isDark
+                        ? (_isHovered ? 0.45 : 0.35)
+                        : (_isHovered ? 0.08 : 0.04),
+                  ),
+                  blurRadius: _isHovered ? 14 : 8,
+                  offset: Offset(0, _isHovered ? 4 : 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: displayAccent.withValues(
+                      alpha: isDark
+                          ? (_isHovered ? 0.30 : 0.22)
+                          : (_isHovered ? 0.18 : 0.12),
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: displayAccent.withValues(
+                        alpha: isDark
+                            ? (_isHovered ? 0.50 : 0.35)
+                            : (_isHovered ? 0.30 : 0.18),
+                      ),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    widget.icon,
+                    color: displayAccent,
+                    size: ResponsiveLayout.iconSize(context, base: 22),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: ResponsiveLayout.fontSize(
+                            context,
+                            base: 12.5,
+                          ),
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.1,
+                          color: titleColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          widget.value,
+                          style: GoogleFonts.outfit(
+                            fontSize: ResponsiveLayout.fontSize(
+                              context,
+                              base: 19.0,
+                            ),
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.3,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                          maxLines: 1,
+                        ),
+                      ),
+                      Text(
+                        widget.subtitle,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: ResponsiveLayout.fontSize(
+                            context,
+                            base: 11.5,
+                          ),
+                          fontWeight: FontWeight.w700,
+                          color: displayAccent,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
