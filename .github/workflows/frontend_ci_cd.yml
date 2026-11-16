@@ -136,10 +136,22 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.daemon.jvm.options=-Xmx1024m
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=768m" -Dkotlin.daemon.jvm.options=-Xmx1536m
         run: |
           echo "==> Compilando APK Android optimizado..."
-          flutter build apk --release --verbose --android-skip-build-dependency-validation
+          flutter build apk --release --android-skip-build-dependency-validation 2>&1 | tee /tmp/flutter_apk.log || {
+            ERR=$(grep -E -i "error:|exception:|failed|caused by" /tmp/flutter_apk.log | tail -n 4 | tr '\r\n' ' ' || echo "Build APK failed")
+            echo "::error::$ERR"
+            exit 1
+          }
+
+      - name: Subir Log de Compilación APK en Caso de Fallo
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-apk-build-log
+          path: /tmp/flutter_apk.log
+          retention-days: 2
 
       - name: Guardar APK Android como Artefacto en GitHub Actions
         uses: actions/upload-artifact@v4
