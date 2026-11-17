@@ -53,7 +53,8 @@ public class StarterPackService {
         {"Limpieza y Cuidado del Hogar", "Detergentes, lejías, lavavajillas, suavizantes y esponjas"},
         {"Cuidado Personal y Dental", "Cremas dentales, jabones, champús y papel higiénico"},
         {"Helados y Congelados", "Helados en paleta, conos, bombones y potes familiares"},
-        {"Cigarrillos y Tabaco", "Cigarrillos en cajetilla, fósforos y encendedores"}
+        {"Cigarrillos y Tabaco", "Cigarrillos en cajetilla, fósforos y encendedores"},
+        {"Mascotas y Alimento", "Comida para perros y gatos en bolsa, sobres húmedos y paté en lata"}
     };
 
     /**
@@ -346,7 +347,44 @@ public class StarterPackService {
         {"7750114009343", "Suavizante Suavitel Fresca Primavera Sachet 200ml", "Suavitel", "Limpieza y Cuidado del Hogar", "2.00", "1.50", "packshots/suavizante_suavitel.png"},
         {"7750114009350", "Limpiador Multiusos Poett Lavanda Botella 450ml", "Poett", "Limpieza y Cuidado del Hogar", "2.80", "2.15", "packshots/limpiador_poett.png"},
         {"7750113008209", "Papel Higiénico Elite Dúo Doble Hoja x2 rollos", "Elite", "Cuidado Personal y Dental", "3.20", "2.50", "packshots/papel_higienico_elite.png"},
-        {"7750107002122", "Queso Fresco Bonlé Gloria Tajado 200g", "Gloria", "Embutidos y Fiambrería", "5.20", "4.10", "packshots/queso_fresco_bonle.png"}
+        {"7750107002122", "Queso Fresco Bonlé Gloria Tajado 200g", "Gloria", "Embutidos y Fiambrería", "5.20", "4.10", "packshots/queso_fresco_bonle.png"},
+
+        // --- 16. EXPANSIÓN COMERCIAL OLA 4: MASCOTAS (PERROS Y GATOS) + MENESTRAS Y BODEGA ---
+        // Comida para Perros (seco, paté en lata y sobres húmedos)
+        {"7753176005159", "Comida para Perro Ricocan Adulto Raza Pequeña Cordero 1kg", "Ricocan", "Mascotas y Alimento", "11.50", "9.20", "packshots/ricocan_cordero_1kg.png"},
+        {"7753176001434", "Comida para Perro Ricocan Adulto Multisabores 1kg", "Ricocan", "Mascotas y Alimento", "11.50", "9.20", "packshots/ricocan_adulto_multi_1kg.png"},
+        {"7753176004107", "Comida para Perro Ricocan Cachorros Carne y Leche 1kg", "Ricocan", "Mascotas y Alimento", "11.90", "9.50", "packshots/ricocan_cachorro_1kg.png"},
+        {"7753176005104", "Paté para Perro Ricocan Adulto Cordero Lata 330g", "Ricocan", "Mascotas y Alimento", "5.50", "4.30", "packshots/ricocan_pate_cordero_330g.png"},
+        {"7753176000567", "Paté para Perro Ricocan Cachorro Lata 330g", "Ricocan", "Mascotas y Alimento", "5.50", "4.30", "packshots/ricocan_pate_cachorro_330g.png"},
+        {"7753176003049", "Sobre Ricocan Trocitos en Salsa Cordero 100g", "Ricocan", "Mascotas y Alimento", "3.80", "2.95", "packshots/ricocan_sobre_cordero_100g.png"},
+        {"7750885026376", "Comida para Perro Mimaskot Adulto Carne 1kg", "Mimaskot", "Mascotas y Alimento", "12.50", "10.00", "packshots/mimaskot_adulto_carne_1kg.png"},
+        {"7750885026345", "Comida para Perro Mimaskot Adulto Carne Bolsa 3kg", "Mimaskot", "Mascotas y Alimento", "29.90", "24.50", "packshots/mimaskot_adulto_carne_3kg.png"},
+        {"7750885026512", "Comida para Perro Mimaskot Cachorros 1kg", "Mimaskot", "Mascotas y Alimento", "12.50", "10.00", "packshots/mimaskot_cachorro_1kg.png"},
+        {"7613287613356", "Comida para Perro Dogui Adultos Todas las Razas 1.5kg", "Dogui", "Mascotas y Alimento", "17.50", "14.20", "packshots/dogui_adulto_1_5kg.png"},
+        {"2050044506523", "Tripack Sobre Dog Chow Adultos Carne 3x100g", "Dog Chow", "Mascotas y Alimento", "13.50", "10.80", "packshots/dog_chow_sobre_carne_100g.png"},
+        {"7896029004326", "Sobre Pedigree Adulto Carne en Salsa 100g", "Pedigree", "Mascotas y Alimento", "3.50", "2.70", "packshots/pedigree_sobre_carne_100g.png"},
+        {"7896029004357", "Sobre Pedigree Adulto Pollo en Salsa 100g", "Pedigree", "Mascotas y Alimento", "3.50", "2.70", "packshots/pedigree_sobre_pollo_100g.png"},
+        {"23100051048",   "Comida para Perro Pedigree Adulto Carne Bolsa 2kg", "Pedigree", "Mascotas y Alimento", "34.00", "27.80", "packshots/pedigree_adulto_2kg.png"},
+        // Comida para Gatos (complemento esencial de mascotas)
+        {"7753176005548", "Comida para Gato Ricocat Adulto Atún y Sardina 1kg", "Ricocat", "Mascotas y Alimento", "14.00", "11.20", "packshots/ricocat_adulto_1kg.png"},
+        {"7753176007337", "Paté para Gato Ricocat Adulto Lata 180g", "Ricocat", "Mascotas y Alimento", "4.50", "3.50", "packshots/ricocat_pate_180g.png"},
+        {"7753176003100", "Sobre Ricocat Trozos Salmón en Salsa 85g", "Ricocat", "Mascotas y Alimento", "3.80", "2.95", "packshots/ricocat_sobre_salmon_85g.png"},
+        // Bodega Peruana: Menestras, Galletas, Despensa y Hogar con fotos oficiales reales
+        {"7622201714819", "Galletas Soda Field Clásica Six-Pack x6", "Field", "Panadería y Desayuno", "3.50", "2.75", "packshots/galleta_soda_field_x6.png"},
+        {"7622202232756", "Galletas Saladas Ritz Clásica 70g", "Ritz", "Snacks y Piqueos", "2.00", "1.50", "packshots/galleta_ritz_70g.png"},
+        {"7613035803138", "Galletas Morochas Nestlé Six-Pack x6", "Nestlé", "Golosinas y Chocolates", "4.80", "3.80", "packshots/galleta_morochas_x6.png"},
+        {"38000184888",   "Papas Pringles Original Lata 104g", "Pringles", "Snacks y Piqueos", "9.50", "7.50", "packshots/pringles_original_104g.png"},
+        {"7750243049566", "Mostaza AlaCena Doypack 220g", "AlaCena", "Abarrotes y Despensa", "4.80", "3.80", "packshots/mostaza_alacena.png"},
+        {"7753121001892", "Vinagre Tinto Venturo Botella 600ml", "Venturo", "Abarrotes y Despensa", "5.00", "3.90", "packshots/vinagre_tinto_venturo_600ml.png"},
+        {"7758003000161", "Lenteja Costeño Bolsa 500g", "Costeño", "Abarrotes y Despensa", "5.20", "4.10", "packshots/lenteja_costeno_500g.png"},
+        {"7755139542183", "Frijol Canario Costeño Bolsa 500g", "Costeño", "Abarrotes y Despensa", "7.80", "6.30", "packshots/frijol_canario_costeno_500g.png"},
+        {"7758003087193", "Arveja Partida Costeño Bolsa 500g", "Costeño", "Abarrotes y Despensa", "3.80", "2.95", "packshots/arveja_partida_costeno_500g.png"},
+        {"7758003370110", "Garbanzo Costeño Bolsa 500g", "Costeño", "Abarrotes y Despensa", "6.20", "4.95", "packshots/garbanzo_costeno_500g.png"},
+        {"7750243227247", "Harina Preparada Blanca Flor Bolsa 1kg", "Blanca Flor", "Abarrotes y Despensa", "7.50", "6.00", "packshots/harina_blanca_flor_1kg.png"},
+        {"7613030498698", "Manjar Blanco Nestlé Doypack 200g", "Nestlé", "Panadería y Desayuno", "4.80", "3.80", "packshots/manjar_nestle_200g.png"},
+        {"7750151009614", "Yogur Frutado Laive Fresa Botella 800g", "Laive", "Lácteos y Derivados", "8.50", "6.80", "packshots/yogur_laive_fresa_800g.png"},
+        {"8445291642126", "Mini Panetón D'Onofrio Bolsa 80g", "D'Onofrio", "Panadería y Desayuno", "4.20", "3.30", "packshots/mini_paneton_donofrio_80g.png"},
+        {"7501032938215", "Ambientador Glade Aerosol Campos de Lavanda 400ml", "Glade", "Limpieza y Cuidado del Hogar", "11.50", "9.20", "packshots/ambientador_glade_lavanda.png"}
     };
 
     /**
