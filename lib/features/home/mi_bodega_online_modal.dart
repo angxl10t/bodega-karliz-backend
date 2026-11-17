@@ -136,7 +136,9 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                 ),
               ],
             ),
-            backgroundColor: nuevoEstado ? const Color(0xFF10B981) : const Color(0xFFE11D48),
+            backgroundColor: nuevoEstado
+                ? const Color(0xFF10B981)
+                : const Color(0xFFE11D48),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
           ),
@@ -191,7 +193,9 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                 ),
               ],
             ),
-            backgroundColor: nuevoEstado ? const Color(0xFF2563EB) : const Color(0xFFD97706),
+            backgroundColor: nuevoEstado
+                ? const Color(0xFF2563EB)
+                : const Color(0xFFD97706),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 3),
           ),
@@ -747,10 +751,14 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+                      color: isDark
+                          ? AppTheme.cardDarkSunken
+                          : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : const Color(0xFFE2E8F0),
                         width: 1.2,
                       ),
                     ),
@@ -791,14 +799,21 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
 
                         // Switch 1: Estado de Tienda (Abierto / Cerrado)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF0F172A)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: _catalogoAbierto
-                                  ? const Color(0xFF10B981).withValues(alpha: 0.3)
-                                  : const Color(0xFFEF4444).withValues(alpha: 0.3),
+                                  ? const Color(0xFF10B981)
+                                        .withValues(alpha: 0.3)
+                                  : const Color(0xFFEF4444)
+                                        .withValues(alpha: 0.3),
                               width: 1,
                             ),
                           ),
@@ -808,14 +823,17 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                                 width: 34,
                                 height: 34,
                                 decoration: BoxDecoration(
-                                  color: (_catalogoAbierto
-                                          ? const Color(0xFF10B981)
-                                          : const Color(0xFFEF4444))
-                                      .withValues(alpha: 0.12),
+                                  color:
+                                      (_catalogoAbierto
+                                              ? const Color(0xFF10B981)
+                                              : const Color(0xFFEF4444))
+                                          .withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
-                                  _catalogoAbierto ? LucideIcons.store : LucideIcons.doorClosed,
+                                  _catalogoAbierto
+                                      ? LucideIcons.store
+                                      : LucideIcons.doorClosed,
                                   size: 18,
                                   color: _catalogoAbierto
                                       ? const Color(0xFF10B981)
@@ -830,25 +848,41 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                                     Row(
                                       children: [
                                         Text(
-                                          _catalogoAbierto ? 'Abierto ahora' : 'Cerrado temporalmente',
+                                          _catalogoAbierto
+                                              ? 'Abierto ahora'
+                                              : 'Cerrado temporalmente',
                                           style: GoogleFonts.outfit(
                                             fontSize: 13.5,
                                             fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
                                           ),
                                         ),
                                         const SizedBox(width: 6),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 1.5,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: (_catalogoAbierto
-                                                    ? const Color(0xFF10B981)
-                                                    : const Color(0xFFEF4444))
-                                                .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
+                                            color:
+                                                (_catalogoAbierto
+                                                        ? const Color(
+                                                            0xFF10B981,
+                                                          )
+                                                        : const Color(
+                                                            0xFFEF4444,
+                                                          ))
+                                                    .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
-                                            _catalogoAbierto ? 'ONLINE' : 'EN PAUSA',
+                                            _catalogoAbierto
+                                                ? 'ONLINE'
+                                                : 'EN PAUSA',
                                             style: TextStyle(
                                               fontSize: 9,
                                               fontWeight: FontWeight.w900,
@@ -877,7 +911,9 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                               Switch.adaptive(
                                 value: _catalogoAbierto,
                                 activeTrackColor: const Color(0xFF10B981),
-                                onChanged: widget.isPro ? _cambiarEstadoCatalogo : null,
+                                onChanged: widget.isPro
+                                    ? _cambiarEstadoCatalogo
+                                    : null,
                               ),
                             ],
                           ),
@@ -886,9 +922,14 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
 
                         // Switch 2: Opción Delivery Rápido
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                            color: isDark
+                                ? const Color(0xFF0F172A)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: _deliveryActivo
@@ -903,14 +944,17 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                                 width: 34,
                                 height: 34,
                                 decoration: BoxDecoration(
-                                  color: (_deliveryActivo
-                                          ? AppTheme.brandPrimary
-                                          : const Color(0xFF64748B))
-                                      .withValues(alpha: 0.12),
+                                  color:
+                                      (_deliveryActivo
+                                              ? AppTheme.brandPrimary
+                                              : const Color(0xFF64748B))
+                                          .withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
-                                  _deliveryActivo ? LucideIcons.bike : LucideIcons.shoppingBag,
+                                  _deliveryActivo
+                                      ? LucideIcons.bike
+                                      : LucideIcons.shoppingBag,
                                   size: 18,
                                   color: _deliveryActivo
                                       ? AppTheme.brandPrimary
@@ -925,25 +969,39 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                                     Row(
                                       children: [
                                         Text(
-                                          _deliveryActivo ? 'Delivery rápido' : 'Solo retiro en tienda',
+                                          _deliveryActivo
+                                              ? 'Delivery rápido'
+                                              : 'Solo retiro en tienda',
                                           style: GoogleFonts.outfit(
                                             fontSize: 13.5,
                                             fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
                                           ),
                                         ),
                                         const SizedBox(width: 6),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 1.5,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: (_deliveryActivo
-                                                    ? AppTheme.brandPrimary
-                                                    : const Color(0xFF64748B))
-                                                .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(6),
+                                            color:
+                                                (_deliveryActivo
+                                                        ? AppTheme.brandPrimary
+                                                        : const Color(
+                                                            0xFF64748B,
+                                                          ))
+                                                    .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
-                                            _deliveryActivo ? 'ACTIVO' : 'DESACTIVADO',
+                                            _deliveryActivo
+                                                ? 'ACTIVO'
+                                                : 'DESACTIVADO',
                                             style: TextStyle(
                                               fontSize: 9,
                                               fontWeight: FontWeight.w900,
@@ -972,7 +1030,9 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                               Switch.adaptive(
                                 value: _deliveryActivo,
                                 activeTrackColor: AppTheme.brandPrimary,
-                                onChanged: widget.isPro ? _cambiarModalidadDelivery : null,
+                                onChanged: widget.isPro
+                                    ? _cambiarModalidadDelivery
+                                    : null,
                               ),
                             ],
                           ),

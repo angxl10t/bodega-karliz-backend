@@ -410,9 +410,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       buffer.writeln('');
       if (_bodega['deliveryActivo'] == false) {
         buffer.writeln('Modalidad: Retiro en tienda');
-        buffer.writeln('¿Me confirman disponibilidad para recoger en su local?');
+        buffer.writeln(
+          '¿Me confirman disponibilidad para recoger en su local?',
+        );
       } else {
-        buffer.writeln('¿Me confirman disponibilidad y si tienen delivery para mi zona?');
+        buffer.writeln(
+          '¿Me confirman disponibilidad y si tienen delivery para mi zona?',
+        );
       }
 
       // Registrar en la bandeja de pedidos web de CajaYa y sincronizar en la nube
@@ -1079,7 +1083,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final lema = _bodega['lemaComercial']?.toString() ?? '';
     final direccion = _bodega['direccion']?.toString() ?? '';
     final prods = _productosFiltrados;
-    final bool estaAbierto = _bodega['catalogoAbierto'] != false && _bodega['abierto'] != false;
+    final bool estaAbierto =
+        _bodega['catalogoAbierto'] != false && _bodega['abierto'] != false;
     final bool deliveryActivo = _bodega['deliveryActivo'] != false;
 
     return Align(
@@ -1337,19 +1342,33 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               vertical: 2.5,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: (estaAbierto
-                                                      ? const Color(0xFF10B981)
-                                                      : const Color(0xFFEF4444))
-                                                  .withValues(
-                                                    alpha: isDark ? 0.20 : 0.10,
-                                                  ),
+                                              color:
+                                                  (estaAbierto
+                                                          ? const Color(
+                                                              0xFF10B981,
+                                                            )
+                                                          : const Color(
+                                                              0xFFEF4444,
+                                                            ))
+                                                      .withValues(
+                                                        alpha: isDark
+                                                            ? 0.20
+                                                            : 0.10,
+                                                      ),
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                               border: Border.all(
-                                                color: (estaAbierto
-                                                        ? const Color(0xFF10B981)
-                                                        : const Color(0xFFEF4444))
-                                                    .withValues(alpha: 0.40),
+                                                color:
+                                                    (estaAbierto
+                                                            ? const Color(
+                                                                0xFF10B981,
+                                                              )
+                                                            : const Color(
+                                                                0xFFEF4444,
+                                                              ))
+                                                        .withValues(
+                                                          alpha: 0.40,
+                                                        ),
                                                 width: 0.8,
                                               ),
                                             ),
@@ -1361,8 +1380,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                   height: 6,
                                                   decoration: BoxDecoration(
                                                     color: estaAbierto
-                                                        ? const Color(0xFF10B981)
-                                                        : const Color(0xFFEF4444),
+                                                        ? const Color(
+                                                            0xFF10B981,
+                                                          )
+                                                        : const Color(
+                                                            0xFFEF4444,
+                                                          ),
                                                     shape: BoxShape.circle,
                                                   ),
                                                 ),
@@ -1377,8 +1400,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                         fontWeight:
                                                             FontWeight.w700,
                                                         color: estaAbierto
-                                                            ? const Color(0xFF10B981)
-                                                            : const Color(0xFFEF4444),
+                                                            ? const Color(
+                                                                0xFF10B981,
+                                                              )
+                                                            : const Color(
+                                                                0xFFEF4444,
+                                                              ),
                                                       ),
                                                 ),
                                               ],
@@ -1386,10 +1413,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           ),
                                           if (deliveryActivo) ...[
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 7,
-                                                vertical: 2.5,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 2.5,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: _colorMarca.withValues(
                                                   alpha: isDark ? 0.18 : 0.08,
@@ -1426,10 +1454,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               ),
                                             ),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 7,
-                                                vertical: 2.5,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 2.5,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: isDark
                                                     ? const Color(0xFF1E293B)
@@ -1450,8 +1479,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                     LucideIcons.shoppingBag,
                                                     size: 11,
                                                     color: isDark
-                                                        ? const Color(0xFFCBD5E1)
-                                                        : const Color(0xFF475569),
+                                                        ? const Color(
+                                                            0xFFCBD5E1,
+                                                          )
+                                                        : const Color(
+                                                            0xFF475569,
+                                                          ),
                                                   ),
                                                   const SizedBox(width: 4),
                                                   Text(
@@ -1475,20 +1508,23 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                             ),
                                           ] else ...[
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 7,
-                                                vertical: 2.5,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 2.5,
+                                                  ),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFD97706).withValues(
-                                                  alpha: isDark ? 0.20 : 0.10,
-                                                ),
+                                                color: const Color(0xFFD97706)
+                                                    .withValues(
+                                                      alpha: isDark
+                                                          ? 0.20
+                                                          : 0.10,
+                                                    ),
                                                 borderRadius:
                                                     BorderRadius.circular(16),
                                                 border: Border.all(
-                                                  color: const Color(0xFFD97706).withValues(
-                                                    alpha: 0.35,
-                                                  ),
+                                                  color: const Color(0xFFD97706)
+                                                      .withValues(alpha: 0.35),
                                                   width: 0.8,
                                                 ),
                                               ),
@@ -1508,7 +1544,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                           fontSize: 10.5,
                                                           fontWeight:
                                                               FontWeight.w700,
-                                                          color: const Color(0xFFD97706),
+                                                          color: const Color(
+                                                            0xFFD97706,
+                                                          ),
                                                         ),
                                                   ),
                                                 ],
@@ -1724,10 +1762,14 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           if (!estaAbierto) ...[
                             SizedBox(height: isTablet ? 12 : 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? const Color(0xFF450A0A).withValues(alpha: 0.5)
+                                    ? const Color(0xFF450A0A)
+                                          .withValues(alpha: 0.5)
                                     : const Color(0xFFFEF2F2),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
