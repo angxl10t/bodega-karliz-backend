@@ -103,6 +103,13 @@ class CategoryHelper {
         cat.contains('vegetal')) {
       return LucideIcons.apple;
     }
+    if (cat.contains('mascot') ||
+        cat.contains('perro') ||
+        cat.contains('gato') ||
+        cat.contains('ricocan') ||
+        cat.contains('pedigree')) {
+      return LucideIcons.pawPrint;
+    }
     return LucideIcons.package2;
   }
 
@@ -144,6 +151,11 @@ class CategoryHelper {
     }
     if (cat.contains('fruta') || cat.contains('verdur')) {
       return const Color(0xFF22C55E); // Verde fresco
+    }
+    if (cat.contains('mascot') ||
+        cat.contains('perro') ||
+        cat.contains('gato')) {
+      return const Color(0xFFEA580C); // Terracota cálido mascotas
     }
     return AppTheme.brandPrimary;
   }
