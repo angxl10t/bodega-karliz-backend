@@ -145,7 +145,11 @@ public class DataInitializer implements ApplicationRunner {
             "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS serie_boleta VARCHAR(10) DEFAULT 'B001'",
             "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS serie_factura VARCHAR(10) DEFAULT 'F001'",
             "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS ultimo_correlativo_boleta BIGINT DEFAULT 0",
-            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS ultimo_correlativo_factura BIGINT DEFAULT 0"
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS ultimo_correlativo_factura BIGINT DEFAULT 0",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS catalogo_abierto BOOLEAN DEFAULT TRUE",
+            "ALTER TABLE bodegas ADD COLUMN IF NOT EXISTS delivery_activo BOOLEAN DEFAULT TRUE",
+            "UPDATE bodegas SET catalogo_abierto = TRUE WHERE catalogo_abierto IS NULL",
+            "UPDATE bodegas SET delivery_activo = TRUE WHERE delivery_activo IS NULL"
         };
         for (String sql : alterStatements) {
             try {
