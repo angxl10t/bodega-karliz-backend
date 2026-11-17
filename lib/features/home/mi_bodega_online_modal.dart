@@ -70,8 +70,35 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
   bool _catalogoAbierto = true;
   bool _deliveryActivo = true;
   bool _guardandoEstado = false;
+  BodegaInfo? _bodegaInfo;
   late final TextEditingController _telefonoCtrl;
   final BodegaService _bodegaService = BodegaService();
+
+  String get _nombreComercialSeguro {
+    final infoName = _bodegaInfo?.nombreComercial.trim();
+    if (infoName != null && infoName.length >= 3) {
+      return infoName;
+    }
+    final widgetName = widget.nombreBodega.trim();
+    if (widgetName.length >= 3) {
+      return widgetName;
+    }
+    return 'Mi Bodega';
+  }
+
+  String _formatearErrorRed(Object error, String defaultMsg) {
+    final str = error.toString();
+    if (str.contains('Failed to fetch') ||
+        str.contains('XMLHttpRequest') ||
+        str.contains('ClientException') ||
+        str.contains('SocketException') ||
+        str.contains('503') ||
+        str.contains('502') ||
+        str.contains('TimeoutException')) {
+      return 'No se pudo conectar con el servidor en la nube (cajaya-api). El backend puede estar iniciando en Render. Por favor espera unos segundos y vuelve a intentar.';
+    }
+    return '$defaultMsg: ${str.replaceAll('Exception:', '').trim()}';
+  }
 
   @override
   void initState() {
@@ -92,6 +119,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
       final info = await _bodegaService.obtenerMiBodega();
       if (mounted && info != null) {
         setState(() {
+          _bodegaInfo = info;
           _catalogoAbierto = info.catalogoAbierto;
           _deliveryActivo = info.deliveryActivo;
           if (info.telefono != null && info.telefono!.isNotEmpty) {
@@ -113,7 +141,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
     });
     try {
       await _bodegaService.actualizarConfiguracion(
-        nombreComercial: widget.nombreBodega,
+        nombreComercial: _nombreComercialSeguro,
         catalogoAbierto: nuevoEstado,
       );
       if (mounted) {
@@ -149,9 +177,12 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
         setState(() => _catalogoAbierto = !nuevoEstado);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al cambiar estado de la tienda: $e'),
+            content: Text(
+              _formatearErrorRed(e, 'Error al cambiar estado de la tienda'),
+            ),
             backgroundColor: const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -170,7 +201,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
     });
     try {
       await _bodegaService.actualizarConfiguracion(
-        nombreComercial: widget.nombreBodega,
+        nombreComercial: _nombreComercialSeguro,
         deliveryActivo: nuevoEstado,
       );
       if (mounted) {
@@ -206,9 +237,12 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
         setState(() => _deliveryActivo = !nuevoEstado);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al cambiar modalidad de entrega: $e'),
+            content: Text(
+              _formatearErrorRed(e, 'Error al cambiar modalidad de entrega'),
+            ),
             backgroundColor: const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -235,7 +269,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
     setState(() => _guardandoTelefono = true);
     try {
       await _bodegaService.actualizarConfiguracion(
-        nombreComercial: widget.nombreBodega,
+        nombreComercial: _nombreComercialSeguro,
         telefono: nuevo.isEmpty ? null : nuevo,
       );
       if (nuevo.isNotEmpty) {
@@ -280,9 +314,10 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
         setState(() => _guardandoTelefono = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al guardar número: $e'),
+            content: Text(_formatearErrorRed(e, 'Error al guardar número')),
             backgroundColor: const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
