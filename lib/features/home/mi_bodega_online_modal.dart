@@ -67,6 +67,9 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
   late String _telefono;
   bool _editandoTelefono = false;
   bool _guardandoTelefono = false;
+  bool _catalogoAbierto = true;
+  bool _deliveryActivo = true;
+  bool _guardandoEstado = false;
   late final TextEditingController _telefonoCtrl;
   final BodegaService _bodegaService = BodegaService();
 
@@ -87,18 +90,129 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
   Future<void> _cargarTelefonoActualizado() async {
     try {
       final info = await _bodegaService.obtenerMiBodega();
-      if (mounted &&
-          info != null &&
-          info.telefono != null &&
-          info.telefono!.isNotEmpty) {
+      if (mounted && info != null) {
         setState(() {
-          _telefono = info.telefono!;
-          if (!_editandoTelefono) {
-            _telefonoCtrl.text = _telefono;
+          _catalogoAbierto = info.catalogoAbierto;
+          _deliveryActivo = info.deliveryActivo;
+          if (info.telefono != null && info.telefono!.isNotEmpty) {
+            _telefono = info.telefono!;
+            if (!_editandoTelefono) {
+              _telefonoCtrl.text = _telefono;
+            }
           }
         });
       }
     } catch (_) {}
+  }
+
+  Future<void> _cambiarEstadoCatalogo(bool nuevoEstado) async {
+    if (_guardandoEstado) return;
+    setState(() {
+      _guardandoEstado = true;
+      _catalogoAbierto = nuevoEstado;
+    });
+    try {
+      await _bodegaService.actualizarConfiguracion(
+        nombreComercial: widget.nombreBodega,
+        catalogoAbierto: nuevoEstado,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  nuevoEstado ? LucideIcons.store : LucideIcons.doorClosed,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    nuevoEstado
+                        ? '¡Tienda abierta! Tu catálogo digital ahora recibe pedidos.'
+                        : 'Tienda en pausa. El catálogo mostrará que estás cerrado temporalmente.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: nuevoEstado ? const Color(0xFF10B981) : const Color(0xFFE11D48),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _catalogoAbierto = !nuevoEstado);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cambiar estado de la tienda: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _guardandoEstado = false);
+      }
+    }
+  }
+
+  Future<void> _cambiarModalidadDelivery(bool nuevoEstado) async {
+    if (_guardandoEstado) return;
+    setState(() {
+      _guardandoEstado = true;
+      _deliveryActivo = nuevoEstado;
+    });
+    try {
+      await _bodegaService.actualizarConfiguracion(
+        nombreComercial: widget.nombreBodega,
+        deliveryActivo: nuevoEstado,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  nuevoEstado ? LucideIcons.bike : LucideIcons.shoppingBag,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    nuevoEstado
+                        ? '¡Delivery rápido activado! Los clientes pueden pedir a domicilio.'
+                        : 'Modalidad configurada: Solo retiro en tienda.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: nuevoEstado ? const Color(0xFF2563EB) : const Color(0xFFD97706),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _deliveryActivo = !nuevoEstado);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cambiar modalidad de entrega: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _guardandoEstado = false);
+      }
+    }
   }
 
   Future<void> _guardarTelefono() async {
@@ -624,6 +738,245 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                               ),
                             ],
                           ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Tarjeta: Operación y Disponibilidad del Catálogo
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.sliders,
+                              size: 15,
+                              color: AppTheme.brandPrimary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'CONTROL OPERATIVO DEL CATÁLOGO:',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.brandPrimary,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            if (_guardandoEstado) ...[
+                              const Spacer(),
+                              const SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppTheme.brandPrimary,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Switch 1: Estado de Tienda (Abierto / Cerrado)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _catalogoAbierto
+                                  ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                                  : const Color(0xFFEF4444).withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: (_catalogoAbierto
+                                          ? const Color(0xFF10B981)
+                                          : const Color(0xFFEF4444))
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  _catalogoAbierto ? LucideIcons.store : LucideIcons.doorClosed,
+                                  size: 18,
+                                  color: _catalogoAbierto
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFEF4444),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          _catalogoAbierto ? 'Abierto ahora' : 'Cerrado temporalmente',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                          decoration: BoxDecoration(
+                                            color: (_catalogoAbierto
+                                                    ? const Color(0xFF10B981)
+                                                    : const Color(0xFFEF4444))
+                                                .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            _catalogoAbierto ? 'ONLINE' : 'EN PAUSA',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                              color: _catalogoAbierto
+                                                  ? const Color(0xFF10B981)
+                                                  : const Color(0xFFEF4444),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      _catalogoAbierto
+                                          ? 'Aceptando pedidos normalmente en la web'
+                                          : 'Pausa pedidos si saliste o estás surtiendo',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Switch.adaptive(
+                                value: _catalogoAbierto,
+                                activeTrackColor: const Color(0xFF10B981),
+                                onChanged: widget.isPro ? _cambiarEstadoCatalogo : null,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Switch 2: Opción Delivery Rápido
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _deliveryActivo
+                                  ? AppTheme.brandPrimary.withValues(alpha: 0.3)
+                                  : const Color(0xFFCBD5E1),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: (_deliveryActivo
+                                          ? AppTheme.brandPrimary
+                                          : const Color(0xFF64748B))
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  _deliveryActivo ? LucideIcons.bike : LucideIcons.shoppingBag,
+                                  size: 18,
+                                  color: _deliveryActivo
+                                      ? AppTheme.brandPrimary
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          _deliveryActivo ? 'Delivery rápido' : 'Solo retiro en tienda',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark ? Colors.white : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                          decoration: BoxDecoration(
+                                            color: (_deliveryActivo
+                                                    ? AppTheme.brandPrimary
+                                                    : const Color(0xFF64748B))
+                                                .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            _deliveryActivo ? 'ACTIVO' : 'DESACTIVADO',
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                              color: _deliveryActivo
+                                                  ? AppTheme.brandPrimary
+                                                  : const Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      _deliveryActivo
+                                          ? 'Clientes pueden solicitar envío a domicilio'
+                                          : 'Solo pedidos para recoger en el local',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Switch.adaptive(
+                                value: _deliveryActivo,
+                                activeTrackColor: AppTheme.brandPrimary,
+                                onChanged: widget.isPro ? _cambiarModalidadDelivery : null,
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),

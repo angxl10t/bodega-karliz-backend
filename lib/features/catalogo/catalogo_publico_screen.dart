@@ -408,7 +408,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         buffer.writeln('(Incluye botellas retornables)');
       }
       buffer.writeln('');
-      buffer.writeln('¿Me confirman disponibilidad para recoger?');
+      if (_bodega['deliveryActivo'] == false) {
+        buffer.writeln('Modalidad: Retiro en tienda');
+        buffer.writeln('¿Me confirman disponibilidad para recoger en su local?');
+      } else {
+        buffer.writeln('¿Me confirman disponibilidad y si tienen delivery para mi zona?');
+      }
 
       // Registrar en la bandeja de pedidos web de CajaYa y sincronizar en la nube
       final slugOrId = _bodega['idBodega']?.toString() ?? widget.tiendaSlug;
@@ -1074,6 +1079,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final lema = _bodega['lemaComercial']?.toString() ?? '';
     final direccion = _bodega['direccion']?.toString() ?? '';
     final prods = _productosFiltrados;
+    final bool estaAbierto = _bodega['catalogoAbierto'] != false && _bodega['abierto'] != false;
+    final bool deliveryActivo = _bodega['deliveryActivo'] != false;
 
     return Align(
       alignment: Alignment.topCenter,
@@ -1318,25 +1325,30 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     ],
                                     if (!isShortHeight) ...[
                                       const SizedBox(height: 6),
-                                      // Badges de Servicio
+                                      // Badges de Servicio Dinámicos
                                       Wrap(
                                         spacing: 6,
                                         runSpacing: 4,
                                         children: [
+                                          // Badge Estado (Abierto ahora vs Cerrado temporalmente)
                                           Container(
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 7,
                                               vertical: 2.5,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF10B981)
+                                              color: (estaAbierto
+                                                      ? const Color(0xFF10B981)
+                                                      : const Color(0xFFEF4444))
                                                   .withValues(
                                                     alpha: isDark ? 0.20 : 0.10,
                                                   ),
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                               border: Border.all(
-                                                color: const Color(0xFF10B981)
+                                                color: (estaAbierto
+                                                        ? const Color(0xFF10B981)
+                                                        : const Color(0xFFEF4444))
                                                     .withValues(alpha: 0.40),
                                                 width: 0.8,
                                               ),
@@ -1347,118 +1359,162 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                 Container(
                                                   width: 6,
                                                   height: 6,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                        color: Color(
-                                                          0xFF10B981,
-                                                        ),
-                                                        shape: BoxShape.circle,
-                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: estaAbierto
+                                                        ? const Color(0xFF10B981)
+                                                        : const Color(0xFFEF4444),
+                                                    shape: BoxShape.circle,
+                                                  ),
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  'Abierto ahora',
+                                                  estaAbierto
+                                                      ? 'Abierto ahora'
+                                                      : 'Cerrado temporalmente',
                                                   style:
                                                       GoogleFonts.plusJakartaSans(
                                                         fontSize: 10.5,
                                                         fontWeight:
                                                             FontWeight.w700,
-                                                        color: const Color(
-                                                          0xFF10B981,
-                                                        ),
+                                                        color: estaAbierto
+                                                            ? const Color(0xFF10B981)
+                                                            : const Color(0xFFEF4444),
                                                       ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 7,
-                                              vertical: 2.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: _colorMarca.withValues(
-                                                alpha: isDark ? 0.18 : 0.08,
+                                          if (deliveryActivo) ...[
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 7,
+                                                vertical: 2.5,
                                               ),
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              border: Border.all(
+                                              decoration: BoxDecoration(
                                                 color: _colorMarca.withValues(
-                                                  alpha: 0.35,
+                                                  alpha: isDark ? 0.18 : 0.08,
                                                 ),
-                                                width: 0.8,
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                border: Border.all(
+                                                  color: _colorMarca.withValues(
+                                                    alpha: 0.35,
+                                                  ),
+                                                  width: 0.8,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    LucideIcons.bike,
+                                                    size: 11,
+                                                    color: _colorMarca,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Delivery rápido',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 10.5,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: _colorMarca,
+                                                        ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  LucideIcons.bike,
-                                                  size: 11,
-                                                  color: _colorMarca,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Delivery rápido',
-                                                  style:
-                                                      GoogleFonts.plusJakartaSans(
-                                                        fontSize: 10.5,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color: _colorMarca,
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 7,
-                                              vertical: 2.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: isDark
-                                                  ? const Color(0xFF1E293B)
-                                                  : const Color(0xFFF1F5F9),
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              border: Border.all(
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 7,
+                                                vertical: 2.5,
+                                              ),
+                                              decoration: BoxDecoration(
                                                 color: isDark
-                                                    ? const Color(0xFF334155)
-                                                    : const Color(0xFFE2E8F0),
-                                                width: 0.8,
+                                                    ? const Color(0xFF1E293B)
+                                                    : const Color(0xFFF1F5F9),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                border: Border.all(
+                                                  color: isDark
+                                                      ? const Color(0xFF334155)
+                                                      : const Color(0xFFE2E8F0),
+                                                  width: 0.8,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    LucideIcons.shoppingBag,
+                                                    size: 11,
+                                                    color: isDark
+                                                        ? const Color(0xFFCBD5E1)
+                                                        : const Color(0xFF475569),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Retiro en tienda',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 10.5,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: isDark
+                                                              ? const Color(
+                                                                  0xFFCBD5E1,
+                                                                )
+                                                              : const Color(
+                                                                  0xFF475569,
+                                                                ),
+                                                        ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  LucideIcons.shoppingBag,
-                                                  size: 11,
-                                                  color: isDark
-                                                      ? const Color(0xFFCBD5E1)
-                                                      : const Color(0xFF475569),
+                                          ] else ...[
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 7,
+                                                vertical: 2.5,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFD97706).withValues(
+                                                  alpha: isDark ? 0.20 : 0.10,
                                                 ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  'Retiro en tienda',
-                                                  style:
-                                                      GoogleFonts.plusJakartaSans(
-                                                        fontSize: 10.5,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color: isDark
-                                                            ? const Color(
-                                                                0xFFCBD5E1,
-                                                              )
-                                                            : const Color(
-                                                                0xFF475569,
-                                                              ),
-                                                      ),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                                border: Border.all(
+                                                  color: const Color(0xFFD97706).withValues(
+                                                    alpha: 0.35,
+                                                  ),
+                                                  width: 0.8,
                                                 ),
-                                              ],
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    LucideIcons.shoppingBag,
+                                                    size: 11,
+                                                    color: Color(0xFFD97706),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Solo retiro en tienda',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 10.5,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: const Color(0xFFD97706),
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
+                                          ],
                                         ],
                                       ),
                                       if (direccion.isNotEmpty) ...[
@@ -1659,6 +1715,46 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       desc: 'Yape, Plin o Efectivo',
                                       isDark: isDark,
                                       isTablet: isTablet,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (!estaAbierto) ...[
+                            SizedBox(height: isTablet ? 12 : 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF450A0A).withValues(alpha: 0.5)
+                                    : const Color(0xFFFEF2F2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF7F1D1D)
+                                      : const Color(0xFFFCA5A5),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.doorClosed,
+                                    size: 16,
+                                    color: Color(0xFFEF4444),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Tienda en pausa temporal: puedes explorar productos y precios, pero los pedidos están en espera.',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? const Color(0xFFFCA5A5)
+                                            : const Color(0xFF991B1B),
+                                      ),
                                     ),
                                   ),
                                 ],

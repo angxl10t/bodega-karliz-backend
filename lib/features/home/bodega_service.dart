@@ -30,6 +30,8 @@ class BodegaInfo {
   final int? limiteProductos;
   final int? totalProductosActivos;
   final bool limiteAlcanzado;
+  final bool catalogoAbierto;
+  final bool deliveryActivo;
 
   BodegaInfo({
     required this.idBodega,
@@ -54,6 +56,8 @@ class BodegaInfo {
     this.limiteProductos,
     this.totalProductosActivos,
     this.limiteAlcanzado = false,
+    this.catalogoAbierto = true,
+    this.deliveryActivo = true,
   }) : esNuevoRus = esNuevoRus ?? (regimenTributario == 'NUEVO_RUS');
 
   BodegaInfo copyWith({
@@ -79,6 +83,8 @@ class BodegaInfo {
     int? limiteProductos,
     int? totalProductosActivos,
     bool? limiteAlcanzado,
+    bool? catalogoAbierto,
+    bool? deliveryActivo,
   }) {
     return BodegaInfo(
       idBodega: idBodega ?? this.idBodega,
@@ -105,6 +111,8 @@ class BodegaInfo {
       totalProductosActivos:
           totalProductosActivos ?? this.totalProductosActivos,
       limiteAlcanzado: limiteAlcanzado ?? this.limiteAlcanzado,
+      catalogoAbierto: catalogoAbierto ?? this.catalogoAbierto,
+      deliveryActivo: deliveryActivo ?? this.deliveryActivo,
     );
   }
 
@@ -136,6 +144,8 @@ class BodegaInfo {
       limiteProductos: json['limiteProductos'] as int?,
       totalProductosActivos: (json['totalProductosActivos'] as num?)?.toInt(),
       limiteAlcanzado: json['limiteAlcanzado'] == true,
+      catalogoAbierto: json['catalogoAbierto'] != false,
+      deliveryActivo: json['deliveryActivo'] != false,
     );
   }
 }
@@ -263,6 +273,8 @@ class BodegaService {
     String? lemaComercial,
     String? colorPrimario,
     String? logoUrl,
+    bool? catalogoAbierto,
+    bool? deliveryActivo,
   }) async {
     final body = <String, dynamic>{
       'nombreComercial': nombreComercial,
@@ -273,6 +285,12 @@ class BodegaService {
       'colorPrimario': colorPrimario,
       'logoUrl': logoUrl,
     };
+    if (catalogoAbierto != null) {
+      body['catalogoAbierto'] = catalogoAbierto;
+    }
+    if (deliveryActivo != null) {
+      body['deliveryActivo'] = deliveryActivo;
+    }
 
     final response = await _client.put('/bodegas/configuracion', body);
     if (response.statusCode == 200) {
