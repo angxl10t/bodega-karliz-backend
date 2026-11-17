@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -33,6 +34,16 @@ void main() async {
     LoginScreen.sessionExpiredFlag = true;
     _router.go('/login');
   };
+
+  if (!kIsWeb) {
+    HardwareKeyboard.instance.addHandler((event) {
+      if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.f11) {
+        WindowService.instance.toggleFullScreen();
+        return true;
+      }
+      return false;
+    });
+  }
 
   runApp(
     ChangeNotifierProvider(
@@ -120,20 +131,6 @@ class BodegaApp extends StatelessWidget {
       darkTheme: themeProvider.darkTheme,
       themeMode: themeProvider.themeMode,
       routerConfig: _router,
-      builder: (context, child) {
-        return Focus(
-          autofocus: true,
-          onKeyEvent: (node, event) {
-            if (event is KeyDownEvent &&
-                event.logicalKey == LogicalKeyboardKey.f11) {
-              WindowService.instance.toggleFullScreen();
-              return KeyEventResult.handled;
-            }
-            return KeyEventResult.ignored;
-          },
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),

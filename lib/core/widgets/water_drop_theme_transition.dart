@@ -190,7 +190,7 @@ class _WaterDropThemeButtonState extends State<WaterDropThemeButton>
   void _handleTap() {
     _bounceController.forward(from: 0.0);
     final renderBox = context.findRenderObject() as RenderBox?;
-    final origin = renderBox != null
+    final origin = renderBox != null && renderBox.hasSize
         ? renderBox.localToGlobal(renderBox.size.center(Offset.zero))
         : MediaQuery.of(context).size.center(Offset.zero);
 
