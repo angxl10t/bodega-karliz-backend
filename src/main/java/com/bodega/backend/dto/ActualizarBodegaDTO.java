@@ -1,6 +1,5 @@
 package com.bodega.backend.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -8,7 +7,6 @@ import lombok.Data;
 @Data
 public class ActualizarBodegaDTO {
 
-    @NotBlank(message = "El nombre de la bodega o negocio es obligatorio")
     @Size(min = 3, max = 150, message = "El nombre debe tener entre 3 y 150 caracteres")
     private String nombreComercial;
 

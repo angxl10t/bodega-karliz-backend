@@ -110,6 +110,9 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
+                // Preflight CORS para navegadores web: permitir OPTIONS sin autenticacion
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
                 // Inicio de sesión y registro de nueva bodega son públicos en /api/auth
 
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/login", "/api/auth/registrar-bodega").permitAll()
@@ -231,6 +234,8 @@ public class SecurityConfig {
 
             "https://angxl10t.github.io",
 
+            "https://*.github.io",
+
             "http://localhost:*",
 
             "https://localhost:*",
@@ -246,6 +251,8 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
 
         configuration.setAllowCredentials(true);
+
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Total-Count"));
 
         
 
