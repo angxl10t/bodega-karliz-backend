@@ -4,11 +4,19 @@
   <base href="$FLUTTER_BASE_HREF">
 
   <script>
-    // Normalizador automatico para evitar errores 404 en subrutas de Render o simuladores
-    if (window.location.pathname.startsWith('/bodega-sistema')) {
-      var _sub = window.location.pathname.replace(/^\/bodega-sistema\/?/, '/') || '/';
-      window.location.replace(_sub + window.location.search + window.location.hash);
-    }
+    // Soporte dinámico de base href para GitHub Pages (/bodega-karliz-backend/) y Render (/)
+    (function() {
+      var path = window.location.pathname;
+      if (path.indexOf('/bodega-karliz-backend') === 0) {
+        var baseTag = document.querySelector('base');
+        if (baseTag) {
+          baseTag.setAttribute('href', '/bodega-karliz-backend/');
+        }
+      } else if (path.startsWith('/bodega-sistema')) {
+        var _sub = path.replace(/^\/bodega-sistema\/?/, '/') || '/';
+        window.location.replace(_sub + window.location.search + window.location.hash);
+      }
+    })();
   </script>
 
   <meta charset="UTF-8">
@@ -154,13 +162,13 @@
     // Registro de Service Worker para habilitación de PWA e instalación en Escritorio (Chrome / Edge)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('sw.js').catch(function(err) {
+        navigator.serviceWorker.register('sw.js?v=22').catch(function(err) {
           console.warn('PWA service worker registration notice:', err);
         });
       });
     }
   </script>
 
-  <script src="flutter_bootstrap.js?v=1.0.25_v21" async></script>
+  <script src="flutter_bootstrap.js?v=1.0.25_v22" async></script>
 </body>
 </html>

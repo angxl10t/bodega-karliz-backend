@@ -10,6 +10,8 @@ import 'package:http/http.dart' as http;
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/api_constants.dart';
 import '../../core/cajaya_vectors.dart';
 import '../../core/category_helper.dart';
@@ -107,6 +109,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   String _filtroBusqueda = '';
   List<Map<String, dynamic>> _cachedProductosFiltrados = [];
   Timer? _searchDebounce;
+  Timer? _autoRetryTimer;
 
   // Carrito de compras: {idProducto: cantidad}
   final Map<int, int> _carrito = {};
@@ -138,6 +141,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   @override
   void dispose() {
     _searchDebounce?.cancel();
+    _autoRetryTimer?.cancel();
     _searchCtrl.dispose();
     _notasPedidoCtrl.dispose();
     if (widget.httpClient == null) {
@@ -146,84 +150,131 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     super.dispose();
   }
 
-  Future<void> _cargarCatalogo() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  void _aplicarDatosCatalogo(Map<String, dynamic> data) {
+    final bodegaMap = (data['bodega'] as Map<String, dynamic>?) ?? {};
+    final bool esPro = data['esPro'] == true;
+    final String? msg = data['mensaje'] as String?;
+    final rawProds = (data['productos'] as List<dynamic>?) ?? [];
+    final prodsList = rawProds
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where(
+          (p) =>
+              p['stockActual'] == null ||
+              ((p['stockActual'] as num).toDouble() > 0),
+        )
+        .toList();
+    final rawCats = (data['categorias'] as List<dynamic>?) ?? [];
+    final catsList = rawCats.map((e) => e.toString()).toList();
 
+    final rawPromos = (data['promociones'] as List<dynamic>?) ?? [];
+    final promosList = rawPromos
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+
+    final prodsById = <String, Map<String, dynamic>>{};
+    int ofertas = 0;
+    for (final p in prodsList) {
+      final idStr = p['idProducto']?.toString();
+      if (idStr != null && idStr.isNotEmpty) {
+        prodsById[idStr] = p;
+      }
+      if (p['tienePromocion'] == true) {
+        ofertas++;
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _bodega = bodegaMap;
+        _esPro = esPro;
+        _mensajeNoPro = msg;
+        _productos = prodsList;
+        _productosPorId = prodsById;
+        _ofertasCount = ofertas;
+        _categorias = catsList;
+        _promociones = promosList;
+        _recomputeProductosFiltrados();
+        _isLoading = false;
+        _error = null;
+      });
+    }
+  }
+
+  Future<void> _cargarSnapshotLocal(String cacheKey) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedJson = prefs.getString(cacheKey);
+      if (cachedJson != null &&
+          cachedJson.isNotEmpty &&
+          mounted &&
+          _productos.isEmpty) {
+        final decoded = jsonDecode(cachedJson) as Map<String, dynamic>;
+        _aplicarDatosCatalogo(decoded);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _cargarCatalogo() async {
+    _autoRetryTimer?.cancel();
+    final slugClean = widget.tiendaSlug.trim().toLowerCase();
+    final cacheKey =
+        'catalogo_cache_${slugClean.isEmpty ? "default" : slugClean}';
+
+    // 1. Cargar instantáneamente desde snapshot en almacenamiento local si existe (no bloqueante)
+    unawaited(_cargarSnapshotLocal(cacheKey));
+
+    if (_productos.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
+
+    // 2. Consulta de red con timeout extendido para tolerar arranque en frío de Render
     try {
       final uri = Uri.parse(
         '${ApiConstants.baseUrl}/public/catalogo?tienda=${Uri.encodeComponent(widget.tiendaSlug)}',
       );
-      final resp = await _client.get(uri).timeout(const Duration(seconds: 15));
+      final resp = await _client.get(uri).timeout(const Duration(seconds: 35));
 
       if (resp.statusCode == 200) {
-        final data =
-            jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
-        final bodegaMap = (data['bodega'] as Map<String, dynamic>?) ?? {};
-        final bool esPro = data['esPro'] == true;
-        final String? msg = data['mensaje'] as String?;
-        final rawProds = (data['productos'] as List<dynamic>?) ?? [];
-        final prodsList = rawProds
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .where(
-              (p) =>
-                  p['stockActual'] == null ||
-                  ((p['stockActual'] as num).toDouble() > 0),
-            )
-            .toList();
-        final rawCats = (data['categorias'] as List<dynamic>?) ?? [];
-        final catsList = rawCats.map((e) => e.toString()).toList();
+        final utf8Body = utf8.decode(resp.bodyBytes);
+        final data = jsonDecode(utf8Body) as Map<String, dynamic>;
+        _aplicarDatosCatalogo(data);
 
-        final rawPromos = (data['promociones'] as List<dynamic>?) ?? [];
-        final promosList = rawPromos
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList();
-
-        final prodsById = <String, Map<String, dynamic>>{};
-        int ofertas = 0;
-        for (final p in prodsList) {
-          final idStr = p['idProducto']?.toString();
-          if (idStr != null && idStr.isNotEmpty) {
-            prodsById[idStr] = p;
-          }
-          if (p['tienePromocion'] == true) {
-            ofertas++;
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            _bodega = bodegaMap;
-            _esPro = esPro;
-            _mensajeNoPro = msg;
-            _productos = prodsList;
-            _productosPorId = prodsById;
-            _ofertasCount = ofertas;
-            _categorias = catsList;
-            _promociones = promosList;
-            _recomputeProductosFiltrados();
-            _isLoading = false;
-          });
-        }
+        // Guardar snapshot para próximas aperturas instantáneas sin bloqueo
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(cacheKey, utf8Body);
+        } catch (_) {}
       } else {
-        if (mounted) {
+        if (_productos.isEmpty && mounted) {
           setState(() {
             _error =
-                'No se pudo cargar el catálogo de la bodega (Código ${resp.statusCode}).';
+                'La tienda en la nube se está activando (Código ${resp.statusCode}). Reintentando conexión...';
             _isLoading = false;
           });
+          _iniciarAutoReintento();
         }
       }
     } catch (e) {
-      if (mounted) {
+      if (_productos.isEmpty && mounted) {
         setState(() {
-          _error = 'Error de conexión al cargar el catálogo: $e';
+          _error = 'El catálogo en la nube se está activando (puede tardar unos segundos en la primera visita). Reintentando conexión automáticamente...';
           _isLoading = false;
         });
+        _iniciarAutoReintento();
       }
     }
+  }
+
+  void _iniciarAutoReintento() {
+    _autoRetryTimer?.cancel();
+    _autoRetryTimer = Timer(const Duration(seconds: 8), () {
+      if (mounted && _productos.isEmpty) {
+        _cargarCatalogo();
+      }
+    });
   }
 
   List<Map<String, dynamic>> get _productosFiltrados =>
