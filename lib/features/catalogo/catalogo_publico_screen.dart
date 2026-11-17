@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api_constants.dart';
 import '../../core/cajaya_vectors.dart';
+import '../../core/category_helper.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
@@ -1003,6 +1004,63 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     );
   }
 
+  Widget _buildTrustStep({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String desc,
+    required bool isDark,
+    required bool isTablet,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(isTablet ? 7 : 5),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: isDark ? 0.20 : 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: isTablet ? 15 : 13, color: color),
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: isTablet ? 12 : 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  desc,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: isTablet ? 10.5 : 9,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCatalogoProView(bool isDark) {
     final mediaQuery = MediaQuery.of(context);
     final double shortestSide = mediaQuery.size.shortestSide;
@@ -1010,6 +1068,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final bool isTablet =
         isPhysicalTablet ||
         (mediaQuery.size.width >= 650 && mediaQuery.size.height >= 550);
+    final bool isShortHeight = mediaQuery.size.height < 500;
 
     final nombreBodega = _bodega['nombreComercial']?.toString() ?? 'Bodega';
     final lema = _bodega['lemaComercial']?.toString() ?? '';
@@ -1023,510 +1082,702 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // Banner Superior de la Tienda
+            // Banner Superior de la Tienda (Modern Retail Storefront)
             SliverToBoxAdapter(
               child: Container(
                 margin: EdgeInsets.fromLTRB(
                   isTablet ? 20 : 16,
-                  isTablet ? 18 : 14,
+                  isShortHeight ? 6 : (isTablet ? 18 : 14),
                   isTablet ? 20 : 16,
-                  10,
+                  isShortHeight ? 6 : 12,
                 ),
-                padding: EdgeInsets.all(isTablet ? 22 : 18),
                 decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF111827) : Colors.white,
                   gradient: LinearGradient(
                     colors: isDark
                         ? [
-                            const Color(0xFF1C222E), // Base titanio oscuro
-                            const Color(0xFF283142), // Acero cepillado
-                            const Color(
-                              0xFF3B485E,
-                            ), // Reflejo especular metálico
-                            _colorMarca.withValues(
-                              alpha: 0.26,
-                            ), // Reflejo anodizado de marca
-                            const Color(0xFF232B3A), // Tono metálico intermedio
-                            const Color(
-                              0xFF131822,
-                            ), // Sombra de aleación profunda
+                            _colorMarca.withValues(alpha: 0.16),
+                            const Color(0xFF111827),
+                            const Color(0xFF0B0F19),
                           ]
                         : [
-                            const Color(0xFFF1F5F9), // Base aluminio platino
-                            const Color(0xFFE2E8F0), // Acero claro cepillado
-                            const Color(
-                              0xFFFFFFFF,
-                            ), // Brillo especular blanco plateado
-                            _colorMarca.withValues(
-                              alpha: 0.16,
-                            ), // Tinte metálico de marca
-                            const Color(0xFFE5EAF2), // Platino satinado
-                            const Color(0xFFCBD5E1), // Sombra de aleación clara
+                            _colorMarca.withValues(alpha: 0.08),
+                            Colors.white,
+                            const Color(0xFFF8FAFC),
                           ],
-                    stops: const [0.0, 0.22, 0.48, 0.68, 0.86, 1.0],
-                    begin: const Alignment(-0.95, -0.85),
-                    end: const Alignment(0.95, 0.85),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
                   border: Border.all(
                     color: isDark
-                        ? const Color(0xFF64748B).withValues(alpha: 0.55)
-                        : const Color(0xFF94A3B8).withValues(alpha: 0.65),
-                    width: 1.4,
+                        ? _colorMarca.withValues(alpha: 0.28)
+                        : _colorMarca.withValues(alpha: 0.18),
+                    width: 1.2,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: isDark
-                          ? Colors.black.withValues(alpha: 0.45)
-                          : const Color(0xFF334155).withValues(alpha: 0.12),
+                          ? Colors.black.withValues(alpha: 0.40)
+                          : const Color(0xFF334155).withValues(alpha: 0.08),
                       blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                    BoxShadow(
-                      color: isDark
-                          ? const Color(0xFF94A3B8).withValues(alpha: 0.22)
-                          : Colors.white.withValues(alpha: 0.95),
-                      blurRadius: 1.5,
-                      offset: const Offset(0, -1),
+                      offset: const Offset(0, 8),
                     ),
                     BoxShadow(
                       color: _colorMarca.withValues(
-                        alpha: isDark ? 0.20 : 0.12,
+                        alpha: isDark ? 0.12 : 0.06,
                       ),
-                      blurRadius: 18,
-                      offset: const Offset(0, 4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Acento decorativo superior con shimmer de marca
                     Container(
-                      height: 3.5,
-                      margin: const EdgeInsets.only(bottom: 14),
+                      height: isShortHeight ? 2.5 : 4.0,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: isDark
-                              ? [
-                                  _colorMarca.withValues(alpha: 0.2),
-                                  _colorMarca,
-                                  Colors.white.withValues(alpha: 0.95),
-                                  _colorMarca,
-                                  _colorMarca.withValues(alpha: 0.2),
-                                ]
-                              : [
-                                  _colorMarca.withValues(alpha: 0.3),
-                                  _colorMarca,
-                                  Colors.white,
-                                  _colorMarca,
-                                  _colorMarca.withValues(alpha: 0.3),
-                                ],
-                          stops: const [0.0, 0.32, 0.50, 0.68, 1.0],
+                          colors: [
+                            _colorMarca.withValues(alpha: 0.3),
+                            _colorMarca,
+                            _colorPromocion,
+                            _colorMarca,
+                            _colorMarca.withValues(alpha: 0.3),
+                          ],
                         ),
-                        borderRadius: BorderRadius.circular(2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _colorMarca.withValues(alpha: 0.4),
-                            blurRadius: 6,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
                       ),
                     ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(isTablet ? 13 : 11),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: isDark
-                                  ? [
-                                      const Color(0xFF475569),
-                                      const Color(0xFF334155),
-                                      _colorMarca.withValues(alpha: 0.45),
-                                      const Color(0xFF1E293B),
-                                    ]
-                                  : [
-                                      const Color(0xFFFFFFFF),
-                                      const Color(0xFFE2E8F0),
-                                      _colorMarca.withValues(alpha: 0.25),
-                                      const Color(0xFFCBD5E1),
-                                    ],
-                              stops: const [0.0, 0.35, 0.70, 1.0],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              isTablet ? 18 : 15,
-                            ),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF94A3B8)
-                                        .withValues(alpha: 0.8)
-                                  : const Color(0xFF94A3B8)
-                                        .withValues(alpha: 0.75),
-                              width: 1.6,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: isDark
-                                    ? Colors.black.withValues(alpha: 0.35)
-                                    : const Color(0xFF64748B)
-                                          .withValues(alpha: 0.22),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                              BoxShadow(
-                                color: _colorMarca.withValues(alpha: 0.30),
-                                blurRadius: 10,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          child: Icon(
-                            LucideIcons.store,
-                            size: isTablet ? 30 : 26,
-                            color: isDark ? Colors.white : _colorMarca,
-                          ),
-                        ),
-                        SizedBox(width: isTablet ? 16 : 14),
-                        Expanded(
-                          child: Column(
+                    Padding(
+                      padding: EdgeInsets.all(
+                        isShortHeight ? 10 : (isTablet ? 22 : 16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      nombreBodega,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: isTablet ? 22 : 19,
-                                        fontWeight: FontWeight.w900,
-                                        color: isDark
-                                            ? Colors.white
-                                            : AppTheme.textDark,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                              // Avatar / Logo del Comercio
+                              Container(
+                                width: isShortHeight
+                                    ? 40
+                                    : (isTablet ? 64 : 54),
+                                height: isShortHeight
+                                    ? 40
+                                    : (isTablet ? 64 : 54),
+                                decoration: BoxDecoration(
+                                  color: _colorMarca.withValues(
+                                    alpha: isDark ? 0.22 : 0.12,
                                   ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: isTablet ? 9 : 8,
-                                      vertical: isTablet ? 3.5 : 3,
+                                  borderRadius: BorderRadius.circular(
+                                    isShortHeight ? 10 : (isTablet ? 18 : 15),
+                                  ),
+                                  border: Border.all(
+                                    color: _colorMarca.withValues(
+                                      alpha: isDark ? 0.55 : 0.35,
                                     ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: isDark
-                                            ? [
-                                                const Color(0xFF334155),
-                                                const Color(0xFF1E293B),
-                                                _colorMarca.withValues(
-                                                  alpha: 0.35,
-                                                ),
-                                              ]
-                                            : [
-                                                const Color(0xFFFFFFFF),
-                                                const Color(0xFFF1F5F9),
-                                                _colorMarca.withValues(
-                                                  alpha: 0.18,
-                                                ),
-                                                const Color(0xFFE2E8F0),
-                                              ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _colorMarca.withValues(
+                                        alpha: isDark ? 0.25 : 0.12,
                                       ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: isDark
-                                            ? const Color(0xFF64748B)
-                                            : const Color(0xFF94A3B8),
-                                        width: 1.1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: isDark ? 0.25 : 0.08,
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    isShortHeight ? 9 : (isTablet ? 17 : 14),
+                                  ),
+                                  child:
+                                      (_bodega['logoUrl'] != null &&
+                                          _bodega['logoUrl']
+                                              .toString()
+                                              .trim()
+                                              .isNotEmpty)
+                                      ? Image.network(
+                                          _bodega['logoUrl'].toString().trim(),
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, _, _) => Center(
+                                            child: Icon(
+                                              LucideIcons.store,
+                                              size: isShortHeight
+                                                  ? 22
+                                                  : (isTablet ? 30 : 26),
+                                              color: _colorMarca,
+                                            ),
                                           ),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 1.5),
+                                        )
+                                      : Center(
+                                          child: Icon(
+                                            LucideIcons.store,
+                                            size: isShortHeight
+                                                ? 22
+                                                : (isTablet ? 30 : 26),
+                                            color: _colorMarca,
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
+                                ),
+                              ),
+                              SizedBox(
+                                width: isShortHeight
+                                    ? 10
+                                    : (isTablet ? 16 : 12),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 4,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
                                       children: [
-                                        Icon(
-                                          LucideIcons.badgeCheck,
-                                          size: isTablet ? 13 : 11,
-                                          color: isDark
-                                              ? const Color(0xFF93C5FD)
-                                              : _colorMarca,
-                                        ),
-                                        const SizedBox(width: 4),
                                         Text(
-                                          'PRO ONLINE',
+                                          nombreBodega,
                                           style: GoogleFonts.outfit(
-                                            fontSize: isTablet ? 11 : 9.5,
+                                            fontSize: isShortHeight
+                                                ? 16.5
+                                                : (isTablet ? 22 : 18.5),
                                             fontWeight: FontWeight.w900,
-                                            letterSpacing: 0.6,
                                             color: isDark
                                                 ? Colors.white
-                                                : const Color(0xFF1E293B),
+                                                : AppTheme.textDark,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: isTablet ? 9 : 8,
+                                            vertical: isTablet ? 3.5 : 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF059669)
+                                                .withValues(
+                                                  alpha: isDark ? 0.22 : 0.12,
+                                                ),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            border: Border.all(
+                                              color: const Color(0xFF059669)
+                                                  .withValues(alpha: 0.45),
+                                              width: 1.0,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                LucideIcons.badgeCheck,
+                                                size: 13,
+                                                color: Color(0xFF10B981),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'PRO ONLINE',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: isTablet ? 11 : 9.5,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: 0.6,
+                                                  color: const Color(
+                                                    0xFF10B981,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              if (lema.isNotEmpty)
-                                Text(
-                                  lema,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: isTablet ? 13.5 : 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF1E293B),
-                                  ),
-                                ),
-                              if (direccion.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      LucideIcons.mapPin,
-                                      size: isTablet ? 14 : 12,
-                                      color: isDark
-                                          ? const Color(0xFF93C5FD)
-                                          : _colorMarca,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        direccion,
+                                    if (lema.isNotEmpty && !isShortHeight) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        lema,
                                         style: GoogleFonts.plusJakartaSans(
-                                          fontSize: isTablet ? 12.5 : 11.5,
+                                          fontSize: isTablet ? 13 : 11.5,
                                           fontWeight: FontWeight.w600,
                                           color: isDark
-                                              ? const Color(0xFFF1F5F9)
-                                              : const Color(0xFF1E293B),
+                                              ? const Color(0xFF94A3B8)
+                                              : const Color(0xFF64748B),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
+                                    ],
+                                    if (!isShortHeight) ...[
+                                      const SizedBox(height: 6),
+                                      // Badges de Servicio
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 4,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 7,
+                                              vertical: 2.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF10B981)
+                                                  .withValues(
+                                                    alpha: isDark ? 0.20 : 0.10,
+                                                  ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: const Color(0xFF10B981)
+                                                    .withValues(alpha: 0.40),
+                                                width: 0.8,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  width: 6,
+                                                  height: 6,
+                                                  decoration:
+                                                      const BoxDecoration(
+                                                        color: Color(
+                                                          0xFF10B981,
+                                                        ),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Abierto ahora',
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontSize: 10.5,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: const Color(
+                                                          0xFF10B981,
+                                                        ),
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 7,
+                                              vertical: 2.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: _colorMarca.withValues(
+                                                alpha: isDark ? 0.18 : 0.08,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: _colorMarca.withValues(
+                                                  alpha: 0.35,
+                                                ),
+                                                width: 0.8,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  LucideIcons.bike,
+                                                  size: 11,
+                                                  color: _colorMarca,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Delivery rápido',
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontSize: 10.5,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: _colorMarca,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 7,
+                                              vertical: 2.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isDark
+                                                  ? const Color(0xFF1E293B)
+                                                  : const Color(0xFFF1F5F9),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color: isDark
+                                                    ? const Color(0xFF334155)
+                                                    : const Color(0xFFE2E8F0),
+                                                width: 0.8,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  LucideIcons.shoppingBag,
+                                                  size: 11,
+                                                  color: isDark
+                                                      ? const Color(0xFFCBD5E1)
+                                                      : const Color(0xFF475569),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Retiro en tienda',
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontSize: 10.5,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: isDark
+                                                            ? const Color(
+                                                                0xFFCBD5E1,
+                                                              )
+                                                            : const Color(
+                                                                0xFF475569,
+                                                              ),
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (direccion.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              LucideIcons.mapPin,
+                                              size: isTablet ? 14 : 12,
+                                              color: _colorMarca,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                direccion,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: isTablet
+                                                          ? 12
+                                                          : 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: isDark
+                                                          ? const Color(
+                                                              0xFFCBD5E1,
+                                                            )
+                                                          : const Color(
+                                                              0xFF475569,
+                                                            ),
+                                                    ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                      if (_bodega['telefono'] != null &&
+                                          _bodega['telefono']
+                                              .toString()
+                                              .trim()
+                                              .isNotEmpty) ...[
+                                        const SizedBox(height: 8),
+                                        InkWell(
+                                          onTap: () async {
+                                            final rawT = _bodega['telefono']
+                                                .toString()
+                                                .trim();
+                                            final l = rawT.replaceAll(
+                                              RegExp(r'[^0-9]'),
+                                              '',
+                                            );
+                                            final tf =
+                                                (l.length == 9 &&
+                                                    l.startsWith('9'))
+                                                ? '51$l'
+                                                : (l.startsWith('51')
+                                                      ? l
+                                                      : '51$l');
+                                            final msg = Uri.encodeComponent(
+                                              '¡Hola *$nombreBodega*! 👋 Quisiera hacerles una consulta sobre su catálogo online.',
+                                            );
+                                            final uri = Uri.parse(
+                                              'https://wa.me/$tf?text=$msg',
+                                            );
+                                            if (await canLaunchUrl(uri)) {
+                                              await launchUrl(
+                                                uri,
+                                                mode: LaunchMode
+                                                    .externalApplication,
+                                              );
+                                            }
+                                          },
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: isTablet ? 10 : 8,
+                                              vertical: isTablet ? 5 : 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF16A34A)
+                                                  .withValues(
+                                                    alpha: isDark ? 0.22 : 0.12,
+                                                  ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: const Color(0xFF16A34A)
+                                                    .withValues(alpha: 0.45),
+                                                width: 1.0,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  LucideIcons.messageCircle,
+                                                  size: 13,
+                                                  color: Color(0xFF16A34A),
+                                                ),
+                                                const SizedBox(width: 5),
+                                                Flexible(
+                                                  child: Text(
+                                                    'WhatsApp: ${_bodega['telefono']}',
+                                                    style: GoogleFonts.outfit(
+                                                      fontSize: isTablet
+                                                          ? 12
+                                                          : 11,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: const Color(
+                                                        0xFF16A34A,
+                                                      ),
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ],
                                 ),
-                              ],
-                              if (_bodega['telefono'] != null &&
-                                  _bodega['telefono']
-                                      .toString()
-                                      .trim()
-                                      .isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                InkWell(
-                                  onTap: () async {
-                                    final rawT = _bodega['telefono']
-                                        .toString()
-                                        .trim();
-                                    final l = rawT.replaceAll(
-                                      RegExp(r'[^0-9]'),
-                                      '',
-                                    );
-                                    final tf =
-                                        (l.length == 9 && l.startsWith('9'))
-                                        ? '51$l'
-                                        : (l.startsWith('51') ? l : '51$l');
-                                    final msg = Uri.encodeComponent(
-                                      '¡Hola *$nombreBodega*! 👋 Quisiera hacerles una consulta sobre su catálogo online.',
-                                    );
-                                    final uri = Uri.parse(
-                                      'https://wa.me/$tf?text=$msg',
-                                    );
-                                    if (await canLaunchUrl(uri)) {
-                                      await launchUrl(
-                                        uri,
-                                        mode: LaunchMode.externalApplication,
-                                      );
-                                    }
-                                  },
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: isTablet ? 10 : 8,
-                                      vertical: isTablet ? 4 : 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: isDark
-                                            ? [
-                                                const Color(0xFF064E3B)
-                                                    .withValues(alpha: 0.40),
-                                                const Color(0xFF1E293B),
-                                              ]
-                                            : [
-                                                const Color(0xFFDCFCE7),
-                                                const Color(0xFFF1F5F9),
-                                              ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: const Color(0xFF16A34A)
-                                            .withValues(
-                                              alpha: isDark ? 0.55 : 0.45,
-                                            ),
-                                        width: 1.0,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: isDark ? 0.20 : 0.06,
-                                          ),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 1),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          LucideIcons.messageCircle,
-                                          size: 13,
-                                          color: Color(0xFF16A34A),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Flexible(
-                                          child: Text(
-                                            'WhatsApp: ${_bodega['telefono']}',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: isTablet ? 12 : 11,
-                                              fontWeight: FontWeight.w800,
-                                              color: const Color(0xFF16A34A),
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: isTablet ? 16 : 14),
 
-                    // Buscador
-                    TextField(
-                      controller: _searchCtrl,
-                      onChanged: (val) {
-                        _searchDebounce?.cancel();
-                        if (val.isEmpty) {
-                          setState(() {
-                            _filtroBusqueda = '';
-                            _recomputeProductosFiltrados();
-                          });
-                          return;
-                        }
-                        _searchDebounce = Timer(
-                          const Duration(milliseconds: 180),
-                          () {
-                            if (!mounted) return;
-                            setState(() {
-                              _filtroBusqueda = val;
-                              _recomputeProductosFiltrados();
-                            });
-                          },
-                        );
-                      },
-                      onSubmitted: (val) {
-                        _searchDebounce?.cancel();
-                        setState(() {
-                          _filtroBusqueda = val;
-                          _recomputeProductosFiltrados();
-                        });
-                      },
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: isTablet ? 15 : 13.5,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Buscar productos, abarrotes, bebidas...',
-                        hintStyle: GoogleFonts.plusJakartaSans(
-                          fontSize: isTablet ? 14 : 13,
-                          color: isDark
-                              ? const Color(0xFFCBD5E1)
-                              : const Color(0xFF475569),
-                        ),
-                        prefixIcon: Icon(
-                          LucideIcons.search,
-                          size: isTablet ? 20 : 18,
-                          color: _colorMarca,
-                        ),
-                        suffixIcon: _filtroBusqueda.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(
-                                  LucideIcons.x,
-                                  size: isTablet ? 18 : 16,
+                          if (!isShortHeight) ...[
+                            SizedBox(height: isTablet ? 16 : 12),
+
+                            // Guía de Compra en 3 Pasos (Storefront Trust Strip)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isTablet ? 14 : 10,
+                                vertical: isTablet ? 10 : 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF0B0F19)
+                                          .withValues(alpha: 0.6)
+                                    : const Color(0xFFF1F5F9)
+                                          .withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF1F2937)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 0.8,
                                 ),
-                                onPressed: () {
-                                  _searchDebounce?.cancel();
-                                  _searchCtrl.clear();
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildTrustStep(
+                                      icon: LucideIcons.shoppingBag,
+                                      color: _colorMarca,
+                                      title: '1. Elige',
+                                      desc: 'Agrega a tu lista',
+                                      isDark: isDark,
+                                      isTablet: isTablet,
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 24,
+                                    color: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFCBD5E1),
+                                  ),
+                                  Expanded(
+                                    child: _buildTrustStep(
+                                      icon: LucideIcons.messageCircle,
+                                      color: const Color(0xFF16A34A),
+                                      title: '2. Pide',
+                                      desc: 'Directo a WhatsApp',
+                                      isDark: isDark,
+                                      isTablet: isTablet,
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 24,
+                                    color: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFCBD5E1),
+                                  ),
+                                  Expanded(
+                                    child: _buildTrustStep(
+                                      icon: LucideIcons.wallet,
+                                      color: const Color(0xFFD97706),
+                                      title: '3. Paga',
+                                      desc: 'Yape, Plin o Efectivo',
+                                      isDark: isDark,
+                                      isTablet: isTablet,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
+                          SizedBox(
+                            height: isShortHeight ? 8 : (isTablet ? 14 : 12),
+                          ),
+
+                          // Buscador
+                          TextField(
+                            controller: _searchCtrl,
+                            onChanged: (val) {
+                              _searchDebounce?.cancel();
+                              if (val.isEmpty) {
+                                setState(() {
+                                  _filtroBusqueda = '';
+                                  _recomputeProductosFiltrados();
+                                });
+                                return;
+                              }
+                              _searchDebounce = Timer(
+                                const Duration(milliseconds: 180),
+                                () {
+                                  if (!mounted) return;
                                   setState(() {
-                                    _filtroBusqueda = '';
+                                    _filtroBusqueda = val;
                                     _recomputeProductosFiltrados();
                                   });
                                 },
-                              )
-                            : null,
-                        filled: true,
-                        fillColor: isDark
-                            ? const Color(0xFF0C1019)
-                            : Colors.white,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: isTablet ? 16 : 14,
-                          vertical: isTablet ? 14 : 10,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            isTablet ? 16 : 14,
+                              );
+                            },
+                            onSubmitted: (val) {
+                              _searchDebounce?.cancel();
+                              setState(() {
+                                _filtroBusqueda = val;
+                                _recomputeProductosFiltrados();
+                              });
+                            },
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: isTablet ? 15 : 13.5,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                            decoration: InputDecoration(
+                              hintText:
+                                  'Buscar productos, abarrotes, bebidas...',
+                              hintStyle: GoogleFonts.plusJakartaSans(
+                                fontSize: isTablet ? 14 : 13,
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : const Color(0xFF64748B),
+                              ),
+                              prefixIcon: Icon(
+                                LucideIcons.search,
+                                size: isTablet ? 20 : 18,
+                                color: _colorMarca,
+                              ),
+                              suffixIcon: _filtroBusqueda.isNotEmpty
+                                  ? IconButton(
+                                      icon: Icon(
+                                        LucideIcons.x,
+                                        size: isTablet ? 18 : 16,
+                                      ),
+                                      onPressed: () {
+                                        _searchDebounce?.cancel();
+                                        _searchCtrl.clear();
+                                        setState(() {
+                                          _filtroBusqueda = '';
+                                          _recomputeProductosFiltrados();
+                                        });
+                                      },
+                                    )
+                                  : null,
+                              filled: true,
+                              fillColor: isDark
+                                  ? const Color(0xFF0C1019)
+                                  : Colors.white,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: isTablet ? 16 : 14,
+                                vertical: isShortHeight
+                                    ? 8
+                                    : (isTablet ? 14 : 10),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  isTablet ? 16 : 14,
+                                ),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1.2,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  isTablet ? 16 : 14,
+                                ),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1.2,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  isTablet ? 16 : 14,
+                                ),
+                                borderSide: BorderSide(
+                                  color: _colorMarca,
+                                  width: 1.8,
+                                ),
+                              ),
+                            ),
                           ),
-                          borderSide: BorderSide(
-                            color: isDark
-                                ? const Color(0xFF475569)
-                                : const Color(0xFF94A3B8),
-                            width: 1.2,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            isTablet ? 16 : 14,
-                          ),
-                          borderSide: BorderSide(
-                            color: isDark
-                                ? const Color(0xFF475569)
-                                : const Color(0xFF94A3B8),
-                            width: 1.2,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            isTablet ? 16 : 14,
-                          ),
-                          borderSide: BorderSide(
-                            color: _colorMarca,
-                            width: 1.8,
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ],
@@ -1916,10 +2167,19 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final isSelected =
         _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
     final chipColor = esOferta ? _colorPromocion : _colorMarca;
+    final iconData = esOferta
+        ? LucideIcons.flame
+        : (key == 'TODAS'
+              ? LucideIcons.layoutGrid
+              : CategoryHelper.getIcon(key));
+    final iconColor = isSelected
+        ? Colors.white
+        : (esOferta ? _colorPromocion : CategoryHelper.getColor(key, isDark));
 
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
       child: FilterChip(
+        avatar: Icon(iconData, size: isTablet ? 15 : 13.5, color: iconColor),
         label: Text(
           label,
           style: GoogleFonts.plusJakartaSans(
@@ -1935,8 +2195,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           ),
         ),
         padding: isTablet
-            ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
-            : EdgeInsets.zero,
+            ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
+            : const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
         selected: isSelected,
         selectedColor: chipColor,
         backgroundColor: isDark
@@ -2024,6 +2284,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         : 0;
     final int cantidadEnCarrito = _carrito[id] ?? 0;
     final bool isTablet = config.isTablet;
+    final catColor = CategoryHelper.getColor(categoria, isDark);
 
     return Container(
       decoration: BoxDecoration(
@@ -2032,16 +2293,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         border: Border.all(
           color: cantidadEnCarrito > 0
               ? _colorMarca
-              : (isDark
-                    ? const Color(0xFF334155)
-                    : _colorMarca.withValues(alpha: 0.14)),
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
           width: cantidadEnCarrito > 0 ? 2.0 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
             color: cantidadEnCarrito > 0
-                ? _colorMarca.withValues(alpha: 0.18)
-                : _colorMarca.withValues(alpha: 0.04),
+                ? _colorMarca.withValues(alpha: 0.20)
+                : (isDark
+                      ? Colors.black.withValues(alpha: 0.25)
+                      : const Color(0xFF0F172A).withValues(alpha: 0.05)),
             blurRadius: isTablet ? 12 : 8,
             offset: const Offset(0, 3),
           ),
@@ -2201,26 +2462,81 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   vertical: isTablet ? 3 : 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: isDark
-                                      ? const Color(0xFF262E44)
-                                      : const Color(0xFFF1F5F9),
+                                  color: catColor.withValues(
+                                    alpha: isDark ? 0.20 : 0.10,
+                                  ),
                                   borderRadius: BorderRadius.circular(
                                     isTablet ? 7 : 5,
                                   ),
+                                  border: Border.all(
+                                    color: catColor.withValues(
+                                      alpha: isDark ? 0.35 : 0.25,
+                                    ),
+                                    width: 0.7,
+                                  ),
                                 ),
                                 child: Text(
-                                  categoria,
+                                  categoria.toUpperCase(),
                                   style: GoogleFonts.outfit(
                                     fontSize: config.categoriaFontSize,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark
-                                        ? const Color(0xFFF1F5F9)
-                                        : const Color(0xFF0F172A),
+                                    color: catColor,
+                                    letterSpacing: 0.3,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
+                              if (prod['marca'] != null &&
+                                  prod['marca'].toString().trim().isNotEmpty &&
+                                  prod['marca']
+                                          .toString()
+                                          .trim()
+                                          .toLowerCase() !=
+                                      'general' &&
+                                  prod['marca']
+                                          .toString()
+                                          .trim()
+                                          .toLowerCase() !=
+                                      categoria.toLowerCase())
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isTablet ? 6 : 5,
+                                    vertical: isTablet ? 3 : 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? const Color(0xFF1E293B)
+                                        : const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(
+                                      isTablet ? 7 : 5,
+                                    ),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                      width: 0.6,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    prod['marca']
+                                        .toString()
+                                        .trim()
+                                        .toUpperCase(),
+                                    style: GoogleFonts.outfit(
+                                      fontSize:
+                                          (config.categoriaFontSize * 0.95)
+                                              .clamp(8.5, 11.0),
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
+                                      letterSpacing: 0.3,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               if (_esProductoRetornable(prod))
                                 Container(
                                   padding: EdgeInsets.symmetric(
