@@ -2368,7 +2368,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
       child: FilterChip(
+        showCheckmark: false,
         avatar: Icon(iconData, size: isTablet ? 15 : 13.5, color: iconColor),
+        labelPadding: EdgeInsets.symmetric(horizontal: isTablet ? 6 : 4),
         label: Text(
           label,
           style: GoogleFonts.plusJakartaSans(
