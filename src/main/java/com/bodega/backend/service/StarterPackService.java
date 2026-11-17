@@ -272,7 +272,39 @@ public class StarterPackService {
         {"7750182000710", "Bebida Rehidratante Powerade Mountain Blast 500ml", "Powerade", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/powerade_mountain_blast.png"},
         {"7750114009206", "Suavizante Downy Amanecer Botella 750ml", "Downy", "Limpieza y Cuidado del Hogar", "9.50", "7.60", "packshots/suavizante_downy_750ml.png"},
         {"7750114009213", "Jabón de Lavar Ropa Bolívar Clásico Azul 190g", "Bolívar", "Limpieza y Cuidado del Hogar", "3.50", "2.75", "packshots/jabon_bolivar_azul.png"},
-        {"7750110005185", "Helado Frío Rico D'Onofrio Multipack x4", "D'Onofrio", "Helados y Congelados", "14.50", "11.50", "packshots/helado_frio_rico_multipack.png"}
+        {"7750110005185", "Helado Frío Rico D'Onofrio Multipack x4", "D'Onofrio", "Helados y Congelados", "14.50", "11.50", "packshots/helado_frio_rico_multipack.png"},
+
+        // --- 14. VARIANTES DE TAMAÑO, SABOR Y PRESENTACIÓN (PERSONAL, 1L, 1.5L, 5KG, SIX-PACKS) ---
+        {"7750106001102", "Inca Kola Sabor Original 1 Litro", "Inca Kola", "Gaseosas y Bebidas", "4.50", "3.60", "packshots/inka_kola.png"},
+        {"7750106001119", "Inca Kola Sabor Original Lata 355ml", "Inca Kola", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/inka_kola_500ml.png"},
+        {"7750106002109", "Coca Cola Sabor Original 1 Litro", "Coca Cola", "Gaseosas y Bebidas", "4.50", "3.60", "packshots/coca_cola.png"},
+        {"7750106002116", "Coca Cola Sabor Original Lata 355ml", "Coca Cola", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/coca_cola_500ml.png"},
+        {"7750182220385", "Gaseosa Fanta Naranja 1.5 Litros", "Fanta", "Gaseosas y Bebidas", "5.80", "4.60", "packshots/fanta.png"},
+        {"7750182000338", "Gaseosa Sprite Lima Limón 1.5 Litros", "Sprite", "Gaseosas y Bebidas", "5.80", "4.60", "packshots/sprite.png"},
+        {"775117011960",  "Agua Mineral San Mateo Con Gas 600ml", "San Mateo", "Gaseosas y Bebidas", "1.60", "1.15", "packshots/agua_san_mateo_600ml.png"},
+        {"7750111006601", "Cerveza Pilsen Callao Six-Pack Latas 355ml", "Pilsen Callao", "Bebidas Alcohólicas", "23.50", "19.20", "packshots/cerveza_pilsen.png"},
+        {"7750111006618", "Cerveza Cristal Six-Pack Latas 355ml", "Cristal", "Bebidas Alcohólicas", "22.50", "18.50", "packshots/cerveza_cristal_lata.png"},
+        {"7750106006039", "Cerveza Cusqueña Dorada 620ml Retornable", "Cusqueña", "Bebidas Alcohólicas", "7.50", "6.00", "packshots/cerveza_cusquena_dorada.png"},
+        {"750106419173",  "Cerveza Corona Extra Six-Pack Botella 355ml", "Corona", "Bebidas Alcohólicas", "34.00", "27.50", "packshots/cerveza_corona.png"},
+        {"7750108003303", "Leche Gloria Azul Evaporada Chica 170g", "Gloria", "Lácteos y Derivados", "2.40", "1.95", "packshots/leche_gloria_azul.png"},
+        {"7750108003310", "Leche Gloria Azul Evaporada Six-Pack x6 Latas 400g", "Gloria", "Lácteos y Derivados", "24.00", "21.00", "packshots/leche_gloria_azul.png"},
+        {"7750108003327", "Yogur Gloria Fresa Botella Personal 185g", "Gloria", "Lácteos y Derivados", "2.20", "1.70", "packshots/yogur_gloria_fresa.png"},
+        {"7750108003334", "Yogur Gloria Vainilla Botella Personal 185g", "Gloria", "Lácteos y Derivados", "2.20", "1.70", "packshots/yogur_gloria_vainilla.png"},
+        {"7750108003341", "Yogur Gloria Durazno Botella 1 Litro", "Gloria", "Lácteos y Derivados", "6.20", "5.00", "packshots/yogur_gloria_vainilla_1kg.png"},
+        {"7750115010301", "Galleta Casino Menta 68g", "Victoria", "Golosinas y Chocolates", "1.00", "0.75", "packshots/galleta_casino.png"},
+        {"7750115010318", "Galleta Casino Chocolate 68g", "Victoria", "Golosinas y Chocolates", "1.00", "0.75", "packshots/galleta_casino.png"},
+        {"7750115010325", "Galleta Tentación Vainilla 70g", "Victoria", "Golosinas y Chocolates", "1.00", "0.75", "packshots/galleta_tentacion.png"},
+        {"7750115010332", "Galleta Oreo Original Paquete x4 (36g)", "Oreo", "Golosinas y Chocolates", "1.20", "0.90", "packshots/galleta_oreo.png"},
+        {"7750115010349", "Pastillas Halls Menta Eucalipto", "Halls", "Golosinas y Chocolates", "1.00", "0.70", "packshots/halls_menta.png"},
+        {"7750109004409", "Arroz Extra Costeño Bolsa 5kg Familiar", "Costeño", "Abarrotes y Despensa", "21.50", "18.20", "packshots/arroz_costeno.png"},
+        {"7750109004416", "Arroz Superior Faraón Bolsa 5kg Familiar", "Faraón", "Abarrotes y Despensa", "20.50", "17.50", "packshots/arroz_faraon.png"},
+        {"7750116011100", "Avena Precocida 3 Ositos Bolsa Familiar 500g", "3 Ositos", "Panadería y Desayuno", "3.80", "2.95", "packshots/avena_tres_ositos.png"},
+        {"7750116011117", "Café Soluble Nescafé Tradición Doypack 50g", "Nescafé", "Panadería y Desayuno", "6.20", "4.90", "packshots/cafe_nescafe.png"},
+        {"7750114009305", "Detergente Bolívar Blanco Activo Bolsa 450g", "Bolívar", "Limpieza y Cuidado del Hogar", "4.80", "3.80", "packshots/detergente_bolivar.png"},
+        {"7750114009312", "Detergente Ace Limpieza Completa Bolsa 330g", "Ace", "Limpieza y Cuidado del Hogar", "3.80", "3.00", "packshots/detergente_ace.png"},
+        {"7750114009329", "Lejía Clorox Tradicional Botella 680ml", "Clorox", "Limpieza y Cuidado del Hogar", "2.20", "1.70", "packshots/lejia_clorox.png"},
+        {"7750107002108", "Hot Dog de Pollo San Fernando Económico 250g", "San Fernando", "Embutidos y Fiambrería", "3.20", "2.50", "packshots/hot_dog_pollo.png"},
+        {"7750107002115", "Jamonada de Pollo San Fernando Económica 200g", "San Fernando", "Embutidos y Fiambrería", "3.50", "2.75", "packshots/jamonada_pollo.png"}
     };
 
     /**
