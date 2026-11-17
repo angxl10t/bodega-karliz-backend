@@ -255,7 +255,24 @@ public class StarterPackService {
         {"7750112007035", "Cigarrillos Hamilton Rojo Cajetilla x20", "Hamilton", "Cigarrillos y Tabaco", "15.00", "12.50", "packshots/cigarros_hamilton.png"},
         {"7750112007042", "Cigarrillos Pall Mall Blue Cajetilla x20", "Pall Mall", "Cigarrillos y Tabaco", "15.00", "12.50", "packshots/cigarros_pall_mall.png"},
         {"7750112007059", "Fósforos La Llama Paquete x10 cajas", "La Llama", "Cigarrillos y Tabaco", "2.00", "1.40", "packshots/fosforos_la_llama.png"},
-        {"7750112007066", "Encendedor Tokai Descartable", "Tokai", "Cigarrillos y Tabaco", "1.50", "1.00", "packshots/encendedor_tokai.png"}
+        {"7750112007066", "Encendedor Tokai Descartable", "Tokai", "Cigarrillos y Tabaco", "1.50", "1.00", "packshots/encendedor_tokai.png"},
+
+        // --- 13. EXPANSIÓN COMERCIAL DE ALTA ROTACIÓN (PERÚ) ---
+        {"7613036615501", "Bebida Achocolatada Milo Nestlé Lata 400g", "Nestlé", "Panadería y Desayuno", "16.50", "13.40", "packshots/milo_nestle_400g.png"},
+        {"7613036615518", "Chocolate Princesa D'Onofrio Clásico 30g", "D'Onofrio", "Golosinas y Chocolates", "2.00", "1.50", "packshots/chocolate_princesa.png"},
+        {"7750115010202", "Galleta Pícaras Bañadas en Chocolate 40g", "Costa", "Golosinas y Chocolates", "1.20", "0.85", "packshots/galleta_picaras.png"},
+        {"7750109004300", "Sopa Instantánea Ajinomen Pollo 80g", "Ajinomoto", "Abarrotes y Despensa", "2.00", "1.50", "packshots/ajinomen_pollo.png"},
+        {"7750243030410", "Ketchup AlaCena Doypack 380g", "AlaCena", "Abarrotes y Despensa", "5.50", "4.30", "packshots/ketchup_alacena_380g.png"},
+        {"7750109004317", "Sillao Kikko Clásico Botella 500ml", "Kikko", "Abarrotes y Despensa", "4.20", "3.30", "packshots/sillao_kikko_500ml.png"},
+        {"7750109004324", "Filete de Atún Campomar en Aceite Vegetal 170g", "Campomar", "Abarrotes y Despensa", "5.80", "4.60", "packshots/atun_campomar_170g.png"},
+        {"7750108003204", "Huevos Pardos La Calera Bandeja x15 unidades", "La Calera", "Lácteos y Derivados", "9.50", "7.80", "packshots/huevos_la_calera_x15.png"},
+        {"7613036615525", "Leche Evaporada Ideal Cremosa Nestlé 395g", "Nestlé", "Lácteos y Derivados", "4.00", "3.40", "packshots/leche_ideal_cremosa.png"},
+        {"7750670010917", "Papas Artesanales Inka Chips Sal Marina 135g", "Inka Chips", "Snacks y Piqueos", "6.50", "5.10", "packshots/inka_chips_sal_marina.png"},
+        {"7758574005596", "Cheese Tris Personal 44g", "Frito-Lay", "Snacks y Piqueos", "1.50", "1.10", "packshots/cheese_tris_44g.png"},
+        {"7750182000710", "Bebida Rehidratante Powerade Mountain Blast 500ml", "Powerade", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/powerade_mountain_blast.png"},
+        {"7750114009206", "Suavizante Downy Amanecer Botella 750ml", "Downy", "Limpieza y Cuidado del Hogar", "9.50", "7.60", "packshots/suavizante_downy_750ml.png"},
+        {"7750114009213", "Jabón de Lavar Ropa Bolívar Clásico Azul 190g", "Bolívar", "Limpieza y Cuidado del Hogar", "3.50", "2.75", "packshots/jabon_bolivar_azul.png"},
+        {"7750110005185", "Helado Frío Rico D'Onofrio Multipack x4", "D'Onofrio", "Helados y Congelados", "14.50", "11.50", "packshots/helado_frio_rico_multipack.png"}
     };
 
     /**
