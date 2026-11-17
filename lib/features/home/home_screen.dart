@@ -21,6 +21,7 @@ import '../../core/lock_service.dart';
 import '../../core/widgets/karliz_lock_screen.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/responsive_layout.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
 import '../productos/sugerencias_precio_modal.dart';
@@ -277,32 +278,43 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _mostrarPanelAdmin() {
     HapticFeedback.lightImpact();
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 480,
       builder: (bottomSheetContext) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
+        final isWide = ResponsiveLayout.isTabletOrLarger(context);
         final cardBg = isDark
             ? AppTheme.cardDarkElevated
             : const Color(0xFFF8FAFC);
         final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
         return Align(
-          alignment: Alignment.bottomCenter,
+          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Container(
               decoration: BoxDecoration(
                 color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
+                borderRadius: isWide
+                    ? BorderRadius.circular(24)
+                    : const BorderRadius.vertical(
+                        top: Radius.circular(28),
+                      ),
+                border: isDark
+                    ? Border.all(
+                        color: AppTheme.borderDarkElevated,
+                        width: 1.2,
+                      )
+                    : Border.all(
+                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        width: 1.0,
+                      ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                    blurRadius: isWide ? 30 : 20,
+                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
                   ),
                 ],
               ),
@@ -310,28 +322,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 top: false,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.88,
+                    maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.88),
                   ),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                    padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 14, 20, 20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Manija superior
-                        Center(
-                          child: Container(
-                            width: 38,
-                            height: 4.5,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF334155)
-                                  : const Color(0xFFCBD5E1),
-                              borderRadius: BorderRadius.circular(10),
+                        // Manija superior solo en móvil
+                        if (!isWide) ...[
+                          Center(
+                            child: Container(
+                              width: 38,
+                              height: 4.5,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFCBD5E1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 14),
+                          const SizedBox(height: 14),
+                        ],
 
                         // Cabecera: Título y Cerrar
                         Row(
@@ -1205,107 +1219,140 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _mostrarGuiaDidactica() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF334155)
-                      : const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
+      maxWidth: 520,
+      builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
+        return Align(
+          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDark : Colors.white,
+                borderRadius: isWide
+                    ? BorderRadius.circular(24)
+                    : const BorderRadius.vertical(top: Radius.circular(28)),
+                border: isDark
+                    ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                    : Border.all(
+                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        width: 1.0,
+                      ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                    blurRadius: isWide ? 30 : 20,
+                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                const CajaYaLogoMark(size: 38),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Guía Rápida CajaYa POS',
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(22, isWide ? 20 : 16, 22, 28),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!isWide) ...[
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFCBD5E1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                        ],
+                        Row(
+                          children: [
+                            const CajaYaLogoMark(size: 38),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Guía Rápida CajaYa POS',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Organización inteligente en 5 módulos',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: AppTheme.getAdaptiveMutedText(isDark),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(LucideIcons.x, size: 20),
+                              tooltip: 'Cerrar',
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        'Organización inteligente en 5 módulos',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppTheme.getAdaptiveMutedText(isDark),
+                        const SizedBox(height: 18),
+                        _buildGuideItem(
+                          icon: LucideIcons.layoutGrid,
+                          title: '1. Inicio (Panel de Control)',
+                          desc: 'Revisa el valor de tu mercadería, alertas de stock por agotarse y accesos directos.',
+                          isDark: isDark,
                         ),
-                      ),
-                    ],
+                        _buildGuideItem(
+                          icon: LucideIcons.shoppingBag,
+                          title: '2. POS (Cobrar Venta)',
+                          desc: 'Toca productos para armar la canasta, elige Efectivo/Yape/Plin/Tarjeta y cobra al instante.',
+                          isDark: isDark,
+                        ),
+                        _buildGuideItem(
+                          icon: LucideIcons.banknote,
+                          title: '3. Caja (Arqueo & Historial)',
+                          desc: 'Consulta el total recaudado del día por método de pago y audita o anula ventas pasadas.',
+                          isDark: isDark,
+                        ),
+                        _buildGuideItem(
+                          icon: LucideIcons.boxes,
+                          title: '4. Stock (Inventario & Kardex)',
+                          desc: 'Semáforo visual de inventario (Óptimo, Bajo, Crítico), edición de precios y Kardex.',
+                          isDark: isDark,
+                        ),
+                        _buildGuideItem(
+                          icon: LucideIcons.truck,
+                          title: '5. Compras (Proveedores)',
+                          desc: 'Ingresa facturas o boletas de tus proveedores para abastecer tu almacén con múltiples productos a la vez.',
+                          isDark: isDark,
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('¡Entendido, a trabajar!'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(LucideIcons.x, size: 20),
-                  tooltip: 'Cerrar',
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            _buildGuideItem(
-              icon: LucideIcons.layoutGrid,
-              title: '1. Inicio (Panel de Control)',
-              desc: 'Revisa el valor de tu mercadería, alertas de stock por agotarse y accesos directos.',
-              isDark: isDark,
-            ),
-            _buildGuideItem(
-              icon: LucideIcons.shoppingBag,
-              title: '2. POS (Cobrar Venta)',
-              desc: 'Toca productos para armar la canasta, elige Efectivo/Yape/Plin/Tarjeta y cobra al instante.',
-              isDark: isDark,
-            ),
-            _buildGuideItem(
-              icon: LucideIcons.banknote,
-              title: '3. Caja (Arqueo & Historial)',
-              desc: 'Consulta el total recaudado del día por método de pago y audita o anula ventas pasadas.',
-              isDark: isDark,
-            ),
-            _buildGuideItem(
-              icon: LucideIcons.boxes,
-              title: '4. Stock (Inventario & Kardex)',
-              desc: 'Semáforo visual de inventario (Óptimo, Bajo, Crítico), edición de precios y Kardex.',
-              isDark: isDark,
-            ),
-            _buildGuideItem(
-              icon: LucideIcons.truck,
-              title: '5. Compras (Proveedores)',
-              desc: 'Ingresa facturas o boletas de tus proveedores para abastecer tu almacén con múltiples productos a la vez.',
-              isDark: isDark,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('¡Entendido, a trabajar!'),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -1444,145 +1491,169 @@ class _HomeScreenState extends State<HomeScreen> {
         ? const Color(0xFF334155)
         : const Color(0xFFE2E8F0);
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          border: Border.all(color: borderColor),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF334155)
-                      : const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      maxWidth: 520,
+      builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
+        return Align(
+          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                borderRadius: isWide
+                    ? BorderRadius.circular(24)
+                    : const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: borderColor),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                    blurRadius: isWide ? 30 : 20,
+                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    LucideIcons.scale,
-                    color: Color(0xFF6366F1),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Marco Legal & Cumplimiento',
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
+              padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
                           color: isDark
-                              ? Colors.white
-                              : const Color(0xFF0F172A),
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      Text(
-                        'Transparencia, protección al consumidor y privacidad',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          color: AppTheme.getAdaptiveMutedText(isDark),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: const Icon(
+                          LucideIcons.scale,
+                          color: Color(0xFF6366F1),
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Marco Legal & Cumplimiento',
+                              style: GoogleFonts.outfit(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              'Transparencia, protección al consumidor y privacidad',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                color: AppTheme.getAdaptiveMutedText(isDark),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, size: 20),
+                        tooltip: 'Cerrar',
+                        onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-            _buildModalMenuTile(
-              isDark: isDark,
-              cardBg: cardBg,
-              borderColor: borderColor,
-              icon: LucideIcons.bookOpen,
-              iconColor: const Color(0xFF0D9488),
-              iconBg: const Color(0xFF0D9488).withValues(alpha: 0.12),
-              title: 'Libro de Reclamaciones Virtual',
-              subtitle:
-                  'Formulario oficial INDECOPI y seguimiento correlativo anual',
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        LibroReclamacionesScreen(tiendaNombre: _nombreBodega),
+                  _buildModalMenuTile(
+                    isDark: isDark,
+                    cardBg: cardBg,
+                    borderColor: borderColor,
+                    icon: LucideIcons.bookOpen,
+                    iconColor: const Color(0xFF0D9488),
+                    iconBg: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                    title: 'Libro de Reclamaciones Virtual',
+                    subtitle:
+                        'Formulario oficial INDECOPI y seguimiento correlativo anual',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              LibroReclamacionesScreen(tiendaNombre: _nombreBodega),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
-            _buildModalMenuTile(
-              isDark: isDark,
-              cardBg: cardBg,
-              borderColor: borderColor,
-              icon: LucideIcons.fileText,
-              iconColor: const Color(0xFF2563EB),
-              iconBg: const Color(0xFF2563EB).withValues(alpha: 0.12),
-              title: 'Términos y Condiciones del Servicio',
-              subtitle: 'Ley del Bodeguero N° 30877, alcance del SaaS y responsabilidades',
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const TerminosCondicionesScreen(),
+                  _buildModalMenuTile(
+                    isDark: isDark,
+                    cardBg: cardBg,
+                    borderColor: borderColor,
+                    icon: LucideIcons.fileText,
+                    iconColor: const Color(0xFF2563EB),
+                    iconBg: const Color(0xFF2563EB).withValues(alpha: 0.12),
+                    title: 'Términos y Condiciones del Servicio',
+                    subtitle: 'Ley del Bodeguero N° 30877, alcance del SaaS y responsabilidades',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const TerminosCondicionesScreen(),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
-            _buildModalMenuTile(
-              isDark: isDark,
-              cardBg: cardBg,
-              borderColor: borderColor,
-              icon: LucideIcons.shieldCheck,
-              iconColor: const Color(0xFF16A34A),
-              iconBg: const Color(0xFF16A34A).withValues(alpha: 0.12),
-              title: 'Política de Privacidad de Datos',
-              subtitle:
-                  'Ley N° 29733, derechos ARCO y normativas de Google Play',
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PoliticaPrivacidadScreen(),
+                  _buildModalMenuTile(
+                    isDark: isDark,
+                    cardBg: cardBg,
+                    borderColor: borderColor,
+                    icon: LucideIcons.shieldCheck,
+                    iconColor: const Color(0xFF16A34A),
+                    iconBg: const Color(0xFF16A34A).withValues(alpha: 0.12),
+                    title: 'Política de Privacidad de Datos',
+                    subtitle:
+                        'Ley N° 29733, derechos ARCO y normativas de Google Play',
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PoliticaPrivacidadScreen(),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                  const SizedBox(height: 12),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

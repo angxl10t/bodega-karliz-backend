@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../catalogo_imagenes_service.dart';
+import '../responsive_layout.dart';
 import '../theme.dart';
+import 'adaptive_modal.dart';
 import 'product_image_widget.dart';
 
 /// Modal para seleccionar o cambiar la foto de un producto.
@@ -35,10 +37,9 @@ class CatalogoFotoPickerModal extends StatefulWidget {
     required ValueChanged<String?> onFotoSeleccionada,
     ValueChanged<ProductoStudioFoto?>? onItemSeleccionado,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) => CatalogoFotoPickerModal(
         initialUrl: initialUrl,
         productName: productName,
@@ -109,34 +110,58 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
     final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: isDark
-            ? const Border(
-                top: BorderSide(color: AppTheme.borderDarkElevated, width: 1.2),
-              )
-            : null,
-      ),
-      child: Column(
-        children: [
-          // Drag Handle
-          const SizedBox(height: 12),
-          Container(
-            width: 44,
-            height: 5,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppTheme.borderDarkElevated
-                  : const Color(0xFFE2E8F0),
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          const SizedBox(height: 14),
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-          // Header
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 620,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.85),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Drag Handle solo en móvil
+              if (!isWide) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: 44,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.borderDarkElevated
+                        : const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ],
+              SizedBox(height: isWide ? 20 : 14),
+
+              // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
@@ -337,6 +362,8 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 

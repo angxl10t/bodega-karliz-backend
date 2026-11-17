@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../home/bodega_service.dart';
 import '../productos/producto_service.dart';
 
@@ -15,10 +17,9 @@ class SugerenciasPrecioModal extends StatefulWidget {
     BuildContext context, {
     VoidCallback? onActualizado,
   }) async {
-    await showModalBottomSheet(
+    await AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 640,
       builder: (_) => SugerenciasPrecioModal(onActualizado: onActualizado),
     );
     // Refresco total de la ventana y el catálogo al cerrarse el modal
@@ -206,42 +207,61 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-    return Container(
-      constraints: BoxConstraints(maxHeight: size.height * 0.88, maxWidth: 720),
-      margin: EdgeInsets.symmetric(
-        horizontal: size.width > 720 ? (size.width - 720) / 2 : 0,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 20,
-            offset: Offset(0, -5),
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 640,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.88),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -5),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Barra de agarre superior
-          Container(
-            width: 44,
-            height: 4.5,
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Barra de agarre superior solo en móvil
+              if (!isWide) ...[
+                Container(
+                  width: 44,
+                  height: 4.5,
+                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ],
+              SizedBox(height: isWide ? 16 : 0),
 
-          // Cabecera del Modal
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 6, 16, 12),
-            child: Row(
+              // Cabecera del Modal
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 6, 16, 12),
+                child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
@@ -391,6 +411,8 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 

@@ -4,8 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/secure_storage_service.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/pago_yape_modal.dart';
 import 'bodega_service.dart';
 
@@ -30,10 +32,9 @@ class MiBodegaOnlineModal extends StatefulWidget {
     bool isPro = true,
     VoidCallback? onTelefonoUpdated,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 600,
       builder: (ctx) => MiBodegaOnlineModal(
         nombreBodega: nombreBodega,
         telefonoBodega: telefonoBodega,
@@ -183,36 +184,70 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
         '$catalogoUrl\n\n'
         'Elige tus productos y mándanos tu pedido por aquí para tenerlo listo al instante. ¡Gracias por tu preferencia!';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        24 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(24));
+
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 600,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
                   ),
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
               ),
-              Row(
+            ],
+          ),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            isWide ? 20 : 12,
+            20,
+            24 + (isWide ? 0 : MediaQuery.of(context).viewInsets.bottom),
+          ),
+          child: SafeArea(
+            top: isWide,
+            bottom: !isWide,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Manija superior solo en móvil
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ],
+                  Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -708,6 +743,8 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

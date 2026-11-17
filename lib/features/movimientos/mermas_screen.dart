@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/csv_exporter.dart';
@@ -61,10 +63,9 @@ class _MermasScreenState extends State<MermasScreen> {
   }
 
   void _mostrarRegistrarMermaModal() {
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) => _RegistrarMermaSheet(
         productoService: _productoService,
         mermasService: _mermasService,
@@ -881,18 +882,39 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
     return Align(
-      alignment: Alignment.bottomCenter,
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
+        constraints: BoxConstraints(
+          maxWidth: 620,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.92),
+        ),
         child: Container(
-          height: MediaQuery.of(context).size.height * 0.88,
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: isWide
+                ? BorderRadius.circular(24)
+                : const BorderRadius.vertical(top: Radius.circular(28)),
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+              ),
+            ],
           ),
           child: _isLoading
               ? const Center(
@@ -904,16 +926,19 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      // Barra de agarre
-                      Container(
-                        margin: const EdgeInsets.only(top: 10, bottom: 6),
-                        width: 44,
-                        height: 4.5,
-                        decoration: BoxDecoration(
-                          color: AppTheme.textMuted.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(3),
+                      // Barra de agarre solo en móvil
+                      if (!isWide) ...[
+                        Container(
+                          margin: const EdgeInsets.only(top: 10, bottom: 6),
+                          width: 44,
+                          height: 4.5,
+                          decoration: BoxDecoration(
+                            color: AppTheme.textMuted.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
                         ),
-                      ),
+                      ] else
+                        const SizedBox(height: 16),
 
                       // Cabecera
                       Padding(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../responsive_layout.dart';
 import '../theme.dart';
+import '../widgets/adaptive_modal.dart';
 import 'offline_models.dart';
 import 'offline_sync_manager.dart';
 
@@ -10,10 +12,9 @@ class OfflineQueueSheet extends StatelessWidget {
   const OfflineQueueSheet({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) => const OfflineQueueSheet(),
     );
   }
@@ -22,35 +23,40 @@ class OfflineQueueSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final syncManager = OfflineSyncManager.instance;
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
     return Align(
-      alignment: Alignment.bottomCenter,
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 620,
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.85 : 0.85),
         ),
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: resolvedRadius,
             border: isDark
-                ? const Border(
-                    top: BorderSide(
-                      color: AppTheme.borderDarkElevated,
-                      width: 1.2,
-                    ),
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
                   )
-                : null,
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 24,
-                offset: const Offset(0, -4),
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                blurRadius: isWide ? 30 : 24,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
               ),
             ],
           ),
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+          padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 14, 20, 20),
           child: ValueListenableBuilder<List<OfflineVenta>>(
             valueListenable: syncManager.pendingSalesNotifier,
             builder: (context, ventas, _) {
@@ -59,19 +65,22 @@ class OfflineQueueSheet extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Manija superior
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 4.5,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppTheme.borderDarkElevated
-                            : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(10),
+                  // Manija superior solo en móvil
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 4.5,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.borderDarkElevated
+                              : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 14),
+                  ],
                   const SizedBox(height: 14),
 
                   // Cabecera

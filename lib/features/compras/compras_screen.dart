@@ -14,7 +14,9 @@ import '../proveedores/proveedor_service.dart';
 import '../proveedores/nuevo_proveedor_sheet.dart';
 import 'compra_model.dart';
 import 'compra_service.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/debouncer.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../auth/auth_service.dart';
@@ -247,14 +249,11 @@ class _ComprasScreenState extends State<ComprasScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     String filtro = '';
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+      maxWidth: 620,
       builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         return StatefulBuilder(
           builder: (context, setModalState) {
             final proveedoresFiltrados = _safeProveedores.where((p) {
@@ -265,28 +264,54 @@ class _ComprasScreenState extends State<ComprasScreen>
             }).toList();
 
             return Align(
-              alignment: Alignment.bottomCenter,
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.75,
-                  padding: const EdgeInsets.all(22),
+                  height: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.75),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(32),
+                          ),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.fromLTRB(22, isWide ? 20 : 16, 22, 22),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(
-                        child: Container(
-                          width: 44,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppTheme.borderDarkElevated
-                                : const Color(0xFFE2E8F0),
-                            borderRadius: BorderRadius.circular(10),
+                      if (!isWide) ...[
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -515,14 +540,11 @@ class _ComprasScreenState extends State<ComprasScreen>
     final searchCtrl = TextEditingController();
     Timer? modalDebounce;
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+      maxWidth: 620,
       builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         String filtro = searchCtrl.text;
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -534,28 +556,54 @@ class _ComprasScreenState extends State<ComprasScreen>
             }).toList();
 
             return Align(
-              alignment: Alignment.bottomCenter,
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.85,
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                  height: MediaQuery.of(context).size.height * (isWide ? 0.88 : 0.85),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(32),
+                          ),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(
-                        child: Container(
-                          width: 44,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppTheme.borderDarkElevated
-                                : const Color(0xFFE2E8F0),
-                            borderRadius: BorderRadius.circular(10),
+                      if (!isWide) ...[
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1698,35 +1746,53 @@ class _ComprasScreenState extends State<ComprasScreen>
         .where((p) => p.stockActual <= p.stockMinimo)
         .toList();
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.all(20),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
+        return Align(
+          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 620,
+              maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.8),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                borderRadius: isWide
+                    ? BorderRadius.circular(24)
+                    : const BorderRadius.vertical(top: Radius.circular(24)),
+                border: isDark
+                    ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                    : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                    blurRadius: isWide ? 30 : 20,
+                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
                   ),
-                ),
+                ],
               ),
+              padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ],
               Row(
                 children: [
                   Container(
@@ -1920,10 +1986,12 @@ class _ComprasScreenState extends State<ComprasScreen>
               ],
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
-  }
+  },
+);
+}
 
   Widget _buildCajeroRestringido(bool isDark) {
     return Center(

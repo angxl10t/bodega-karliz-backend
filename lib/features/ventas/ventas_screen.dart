@@ -15,6 +15,7 @@ import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/karliz_sound_service.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/responsive_layout.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import '../../core/widgets/product_image_widget.dart';
@@ -1220,24 +1221,40 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   void _mostrarModalVentasEnEspera() {
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 580,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         return StatefulBuilder(
           builder: (context, setModalState) {
             final lista = VentaEnEsperaService.ventas;
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.75,
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
+            return Align(
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 580,
+                  maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.75),
                 ),
-              ),
-              child: Column(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(top: Radius.circular(24)),
+                    border: isDark
+                        ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                        : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
@@ -1546,9 +1563,11 @@ class _VentasScreenState extends State<VentasScreen>
                   ),
                 ],
               ),
-            );
-          },
+            ),
+          ),
         );
+      },
+    );
       },
     );
   }
@@ -1557,12 +1576,12 @@ class _VentasScreenState extends State<VentasScreen>
     // Sincronizar de inmediato con la nube al abrir la bandeja
     PedidoWebService.sincronizarConNube(forzar: true);
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         String filtroBusqueda = '';
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -1582,15 +1601,39 @@ class _VentasScreenState extends State<VentasScreen>
                                 p.telefonoCliente!.contains(filtroBusqueda)),
                       )
                       .toList();
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.8,
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
+            return Align(
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 620,
+                  maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.88 : 0.8),
                 ),
-              ),
-              child: Column(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
@@ -2076,9 +2119,11 @@ class _VentasScreenState extends State<VentasScreen>
                   ),
                 ],
               ),
-            );
-          },
+            ),
+          ),
         );
+      },
+    );
       },
     );
   }
@@ -3889,11 +3934,11 @@ class _VentasScreenState extends State<VentasScreen>
     final isLowStock =
         p.stockActual <= (p.stockMinimo > 0 ? p.stockMinimo : 5.0);
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 540,
       builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         return StatefulBuilder(
           builder: (context, setModalState) {
             final cartIdx = _carrito.indexWhere(
@@ -3903,42 +3948,55 @@ class _VentasScreenState extends State<VentasScreen>
             final inCartQty = inCart ? _carrito[cartIdx].cantidad : 0.0;
 
             return Align(
-              alignment: Alignment.bottomCenter,
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 540),
                 child: Container(
                   decoration: BoxDecoration(
                     color: cardBg,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(32),
-                    ),
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(32),
+                          ),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 20,
-                        offset: const Offset(0, -4),
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.fromLTRB(22, 14, 22, 28),
+                  padding: EdgeInsets.fromLTRB(22, isWide ? 20 : 14, 22, 28),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Píldora de arrastre superior
-                      Center(
-                        child: Container(
-                          width: 44,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppTheme.borderDarkElevated
-                                : const Color(0xFFE2E8F0),
-                            borderRadius: BorderRadius.circular(10),
+                      // Píldora de arrastre superior solo en móvil
+                      if (!isWide) ...[
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Fila de Encabezado: Categoría y Botón Cerrar
                       Row(
@@ -4403,11 +4461,11 @@ class _VentasScreenState extends State<VentasScreen>
     final searchCtrl = TextEditingController();
     Timer? modalDebounce;
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 680,
       builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         String query = '';
         bool soloPromociones = false;
         return StatefulBuilder(
@@ -4432,39 +4490,51 @@ class _VentasScreenState extends State<VentasScreen>
             }).toList();
 
             return Align(
-              alignment: Alignment.bottomCenter,
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.78,
+                  height: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.78),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(32),
-                    ),
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(32),
+                          ),
                     border: isDark
-                        ? const Border(
-                            top: BorderSide(
-                              color: AppTheme.borderDarkElevated,
-                              width: 1.2,
-                            ),
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
                           )
-                        : null,
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                      ),
+                    ],
                   ),
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                  padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 16),
                   child: Column(
                     children: [
-                      Container(
-                        width: 44,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.borderDarkElevated
-                              : const Color(0xFFE2E8F0),
-                          borderRadius: BorderRadius.circular(10),
+                      if (!isWide) ...[
+                        Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -10681,39 +10751,60 @@ class _VentasScreenState extends State<VentasScreen>
     Timer? searchDebounce;
     Future<List<Cliente>> clientesFuture = _clienteService.buscarClientes('');
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 640,
       builder: (bottomCtx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(bottomCtx);
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Align(
-              alignment: Alignment.bottomCenter,
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.78,
+                  height: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.78),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(28),
+                          ),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      const SizedBox(height: 12),
-                      Container(
-                        width: 40,
-                        height: 4.5,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.borderDarkElevated
-                              : const Color(0xFFCBD5E1),
-                          borderRadius: BorderRadius.circular(10),
+                      if (!isWide) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: 40,
+                          height: 4.5,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 14),
+                        const SizedBox(height: 14),
+                      ] else
+                        const SizedBox(height: 16),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 18),
                         child: Row(

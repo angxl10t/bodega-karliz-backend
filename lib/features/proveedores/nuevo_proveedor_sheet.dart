@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import 'proveedor_model.dart';
 import 'proveedor_service.dart';
 
@@ -17,10 +19,9 @@ class NuevoProveedorSheet extends StatefulWidget {
     BuildContext context, {
     Function(Proveedor)? onCreado,
   }) {
-    return showModalBottomSheet<Proveedor>(
+    return AdaptiveModal.show<Proveedor>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 560,
       builder: (ctx) => NuevoProveedorSheet(onProveedorCreado: onCreado),
     );
   }
@@ -142,29 +143,43 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
     final inputBg = isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8);
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(32));
+
     return Align(
-      alignment: Alignment.bottomCenter,
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 560,
-          maxHeight: MediaQuery.of(context).size.height * 0.90,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
         ),
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 30,
-                offset: const Offset(0, -6),
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 32 : 30,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
               ),
             ],
           ),
           padding: EdgeInsets.only(
             left: 22,
             right: 22,
-            top: 14,
+            top: isWide ? 20 : 14,
             bottom: 22 + bottomInset,
           ),
           child: Form(
@@ -174,20 +189,22 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Barra superior de agarre
-                  Center(
-                    child: Container(
-                      width: 44,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppTheme.borderDarkElevated
-                            : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(10),
+                  // Barra superior de agarre solo en móvil
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.borderDarkElevated
+                              : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 18),
+                    const SizedBox(height: 18),
+                  ],
 
                   // Cabecera del modal
                   Row(

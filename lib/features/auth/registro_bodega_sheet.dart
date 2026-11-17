@@ -6,16 +6,17 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'auth_service.dart';
 import 'selector_plan_registro_modal.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 
 class RegistroBodegaSheet extends StatefulWidget {
   const RegistroBodegaSheet({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) => const RegistroBodegaSheet(),
     );
   }
@@ -106,518 +107,568 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
-      ),
-      margin: EdgeInsets.only(bottom: bottomInset),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, -6),
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 620,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.92),
+        ),
+        child: Container(
+          margin: EdgeInsets.only(bottom: isWide ? 0 : bottomInset),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDark : Colors.white,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                blurRadius: isWide ? 30 : 24,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Barra de arrastre
-            const SizedBox(height: 12),
-            Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Header con título
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          LucideIcons.store,
-                          color: AppTheme.brandPrimary,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Registrar mi Negocio',
-                            style: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                          ),
-                          Text(
-                            '1 mes gratis (30 días) • Configuración en 1 minuto',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF334155),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      LucideIcons.x,
-                      size: 20,
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Barra de arrastre solo en móvil
+                if (!isWide) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 44,
+                    height: 4.5,
+                    decoration: BoxDecoration(
                       color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B),
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    onPressed: () => Navigator.pop(context),
                   ),
-                ],
-              ),
-            ),
-            const Divider(height: 20),
+                  const SizedBox(height: 14),
+                ] else
+                  const SizedBox(height: 16),
 
-            // Formulario scrolleable
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                // Header con título
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
                     children: [
-                      // Banner de bienvenida & autoconfiguración
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.brandPrimary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: AppTheme.brandPrimary.withValues(
-                              alpha: 0.25,
-                            ),
-                          ),
-                        ),
+                      Expanded(
                         child: Row(
                           children: [
-                            const Icon(
-                              LucideIcons.sparkles,
-                              color: AppTheme.brandPrimary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                'Tu bodega se creará con las 12 categorías estándar (Bebidas, Lácteos, Abarrotes, etc.) listas para usar.',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark
-                                      ? AppTheme.brandLight
-                                      : AppTheme.brandDark,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brandPrimary.withValues(
+                                  alpha: 0.12,
                                 ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                LucideIcons.store,
+                                color: AppTheme.brandPrimary,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Registrar mi Negocio',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    '1 mes gratis (30 días) • Configuración en 1 minuto',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-
-                      if (_errorMessage.isNotEmpty) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.alertRed.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppTheme.alertRed.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                LucideIcons.alertTriangle,
-                                color: AppTheme.alertRed,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _errorMessage,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.alertRed,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                      ],
-
-                      // 1. Nombre Comercial
-                      Text(
-                        'Nombre de la Bodega o Minimarket *',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                      IconButton(
+                        icon: Icon(
+                          LucideIcons.x,
+                          size: 20,
                           color: isDark
                               ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
+                              : const Color(0xFF64748B),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _nombreBodegaCtrl,
-                        decoration: const InputDecoration(
-                          hintText: 'Ej. Minimarket San Martín',
-                          prefixIcon: Icon(LucideIcons.store, size: 18),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty)
-                            return 'El nombre de la bodega es obligatorio';
-                          if (v.trim().length < 3) return 'Mínimo 3 caracteres';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 2. RUC / DNI & Teléfono
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final isVeryNarrow = constraints.maxWidth < 320;
-                          final rucField = Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'RUC / DNI (Opcional)',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : const Color(0xFF334155),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _rucCtrl,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(11),
-                                ],
-                                decoration: const InputDecoration(
-                                  hintText: '8 u 11 dígitos',
-                                  prefixIcon: Icon(
-                                    LucideIcons.fileText,
-                                    size: 18,
-                                  ),
-                                ),
-                                validator: (v) {
-                                  if (v == null || v.trim().isEmpty)
-                                    return null;
-                                  final clean = v.trim();
-                                  if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$')
-                                      .hasMatch(clean)) {
-                                    return 'Debe ser DNI (8 d.) o RUC (11 d.)';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ],
-                          );
-
-                          final telField = Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Teléfono (Opcional)',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : const Color(0xFF334155),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _telefonoCtrl,
-                                keyboardType: TextInputType.phone,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(9),
-                                ],
-                                decoration: const InputDecoration(
-                                  hintText: 'Ej. 987654321',
-                                  prefixIcon: Icon(LucideIcons.phone, size: 18),
-                                ),
-                                validator: (v) {
-                                  if (v == null || v.trim().isEmpty)
-                                    return null;
-                                  if (v.trim().length != 9) {
-                                    return 'Debe tener 9 dígitos';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ],
-                          );
-
-                          if (isVeryNarrow) {
-                            return Column(
-                              children: [
-                                rucField,
-                                const SizedBox(height: 14),
-                                telField,
-                              ],
-                            );
-                          }
-
-                          return Row(
-                            children: [
-                              Expanded(child: rucField),
-                              const SizedBox(width: 12),
-                              Expanded(child: telField),
-                            ],
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 3. Dirección
-                      Text(
-                        'Dirección de la Tienda (Opcional)',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _direccionCtrl,
-                        decoration: const InputDecoration(
-                          hintText: 'Ej. Av. Primavera 123, Surco',
-                          prefixIcon: Icon(LucideIcons.mapPin, size: 18),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      const Divider(),
-                      const SizedBox(height: 8),
-
-                      // 4. Credenciales de Administrador
-                      Text(
-                        'Cuenta Administradora (Dueño)',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.brandPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      Text(
-                        'Usuario Administrador *',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _adminUserCtrl,
-                        decoration: const InputDecoration(
-                          hintText: 'Ej. admin_sanmartin',
-                          prefixIcon: Icon(LucideIcons.user, size: 18),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty)
-                            return 'El usuario es obligatorio';
-                          if (v.trim().length < 3) return 'Mínimo 3 caracteres';
-                          final clean = v.trim().toLowerCase();
-                          if (clean == 'admin' || clean == 'superadmin') {
-                            return 'El usuario "$clean" está reservado. Usa ej. admin_mitienda';
-                          }
-                          if (v.trim().contains(' '))
-                            return 'No debe contener espacios';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      Text(
-                        'Correo Electrónico (Para recuperación de clave y avisos)',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _emailCtrl,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          hintText: 'Ej. micorreo@gmail.com (Opcional)',
-                          prefixIcon: Icon(LucideIcons.mail, size: 18),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return null;
-                          final clean = v.trim();
-                          if (!clean.contains('@') || !clean.contains('.')) {
-                            return 'Ingresa un correo electrónico válido';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-
-                      Text(
-                        'Contraseña Inicial (mínimo 8 caracteres) *',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _adminPassCtrl,
-                        obscureText: _obscurePass,
-                        decoration: InputDecoration(
-                          hintText: 'Contraseña segura',
-                          prefixIcon: const Icon(LucideIcons.lock, size: 18),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePass
-                                  ? LucideIcons.eyeOff
-                                  : LucideIcons.eye,
-                              size: 18,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF334155),
-                            ),
-                            onPressed: () =>
-                                setState(() => _obscurePass = !_obscurePass),
-                          ),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty)
-                            return 'La contraseña es obligatoria';
-                          if (v.trim().length < 8)
-                            return 'Mínimo 8 caracteres por seguridad';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // 5. Selector de Plan con Acceso a Modal Comparativo
-                      _buildPlanSelectorSection(isDark),
-                      const SizedBox(height: 24),
-
-                      // Botón Crear Bodega
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _selectedPlan == 'PRO'
-                                ? AppTheme.accentGreen
-                                : AppTheme.brandPrimary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 2,
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
-                                    ),
-                                  ),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      _selectedPlan == 'PRO'
-                                          ? LucideIcons.gift
-                                          : LucideIcons.rocket,
-                                      size: 20,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      _selectedPlan == 'PRO'
-                                          ? 'CREAR BODEGA & EMPEZAR (1 MES GRATIS)'
-                                          : 'CREAR BODEGA (PLAN BÁSICO)',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                 ),
-              ),
+                const Divider(height: 20),
+
+                // Formulario scrolleable
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Banner de bienvenida & autoconfiguración
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.brandPrimary.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: AppTheme.brandPrimary.withValues(
+                                  alpha: 0.25,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  LucideIcons.sparkles,
+                                  color: AppTheme.brandPrimary,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Tu bodega se creará con las 12 categorías estándar (Bebidas, Lácteos, Abarrotes, etc.) listas para usar.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? AppTheme.brandLight
+                                          : AppTheme.brandDark,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          if (_errorMessage.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.alertRed.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppTheme.alertRed.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.alertTriangle,
+                                    color: AppTheme.alertRed,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.alertRed,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                          ],
+
+                          // 1. Nombre Comercial
+                          Text(
+                            'Nombre de la Bodega o Minimarket *',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _nombreBodegaCtrl,
+                            decoration: const InputDecoration(
+                              hintText: 'Ej. Minimarket San Martín',
+                              prefixIcon: Icon(LucideIcons.store, size: 18),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty)
+                                return 'El nombre de la bodega es obligatorio';
+                              if (v.trim().length < 3)
+                                return 'Mínimo 3 caracteres';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 2. RUC / DNI & Teléfono
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isVeryNarrow = constraints.maxWidth < 320;
+                              final rucField = Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'RUC / DNI (Opcional)',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _rucCtrl,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(11),
+                                    ],
+                                    decoration: const InputDecoration(
+                                      hintText: '8 u 11 dígitos',
+                                      prefixIcon: Icon(
+                                        LucideIcons.fileText,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    validator: (v) {
+                                      if (v == null || v.trim().isEmpty)
+                                        return null;
+                                      final clean = v.trim();
+                                      if (!RegExp(r'^(?:[0-9]{8}|[0-9]{11})$')
+                                          .hasMatch(clean)) {
+                                        return 'Debe ser DNI (8 d.) o RUC (11 d.)';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ],
+                              );
+
+                              final telField = Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Teléfono (Opcional)',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _telefonoCtrl,
+                                    keyboardType: TextInputType.phone,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(9),
+                                    ],
+                                    decoration: const InputDecoration(
+                                      hintText: 'Ej. 987654321',
+                                      prefixIcon: Icon(
+                                        LucideIcons.phone,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    validator: (v) {
+                                      if (v == null || v.trim().isEmpty)
+                                        return null;
+                                      if (v.trim().length != 9) {
+                                        return 'Debe tener 9 dígitos';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ],
+                              );
+
+                              if (isVeryNarrow) {
+                                return Column(
+                                  children: [
+                                    rucField,
+                                    const SizedBox(height: 14),
+                                    telField,
+                                  ],
+                                );
+                              }
+
+                              return Row(
+                                children: [
+                                  Expanded(child: rucField),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: telField),
+                                ],
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // 3. Dirección
+                          Text(
+                            'Dirección de la Tienda (Opcional)',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _direccionCtrl,
+                            decoration: const InputDecoration(
+                              hintText: 'Ej. Av. Primavera 123, Surco',
+                              prefixIcon: Icon(LucideIcons.mapPin, size: 18),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+
+                          const Divider(),
+                          const SizedBox(height: 8),
+
+                          // 4. Credenciales de Administrador
+                          Text(
+                            'Cuenta Administradora (Dueño)',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.brandPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          Text(
+                            'Usuario Administrador *',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _adminUserCtrl,
+                            decoration: const InputDecoration(
+                              hintText: 'Ej. admin_sanmartin',
+                              prefixIcon: Icon(LucideIcons.user, size: 18),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty)
+                                return 'El usuario es obligatorio';
+                              if (v.trim().length < 3)
+                                return 'Mínimo 3 caracteres';
+                              final clean = v.trim().toLowerCase();
+                              if (clean == 'admin' || clean == 'superadmin') {
+                                return 'El usuario "$clean" está reservado. Usa ej. admin_mitienda';
+                              }
+                              if (v.trim().contains(' '))
+                                return 'No debe contener espacios';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          Text(
+                            'Correo Electrónico (Para recuperación de clave y avisos)',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _emailCtrl,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              hintText: 'Ej. micorreo@gmail.com (Opcional)',
+                              prefixIcon: Icon(LucideIcons.mail, size: 18),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) return null;
+                              final clean = v.trim();
+                              if (!clean.contains('@') ||
+                                  !clean.contains('.')) {
+                                return 'Ingresa un correo electrónico válido';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          Text(
+                            'Contraseña Inicial (mínimo 8 caracteres) *',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _adminPassCtrl,
+                            obscureText: _obscurePass,
+                            decoration: InputDecoration(
+                              hintText: 'Contraseña segura',
+                              prefixIcon: const Icon(
+                                LucideIcons.lock,
+                                size: 18,
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePass
+                                      ? LucideIcons.eyeOff
+                                      : LucideIcons.eye,
+                                  size: 18,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
+                                ),
+                                onPressed: () => setState(
+                                  () => _obscurePass = !_obscurePass,
+                                ),
+                              ),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty)
+                                return 'La contraseña es obligatoria';
+                              if (v.trim().length < 8)
+                                return 'Mínimo 8 caracteres por seguridad';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+
+                          // 5. Selector de Plan con Acceso a Modal Comparativo
+                          _buildPlanSelectorSection(isDark),
+                          const SizedBox(height: 24),
+
+                          // Botón Crear Bodega
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _submit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _selectedPlan == 'PRO'
+                                    ? AppTheme.accentGreen
+                                    : AppTheme.brandPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 2,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          _selectedPlan == 'PRO'
+                                              ? LucideIcons.gift
+                                              : LucideIcons.rocket,
+                                          size: 20,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Flexible(
+                                          child: Text(
+                                            _selectedPlan == 'PRO'
+                                                ? 'CREAR BODEGA & EMPEZAR (1 MES GRATIS)'
+                                                : 'CREAR BODEGA (PLAN BÁSICO)',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.white,
+                                              letterSpacing: 0.3,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

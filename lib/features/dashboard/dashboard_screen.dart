@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/theme.dart';
 import '../../core/responsive_layout.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/tab_deferred_refresh.dart';
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
@@ -2757,30 +2758,51 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   void _mostrarModalInstruccionPersonalizar(BuildContext context, bool isDark) {
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 480,
       builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Manija de arrastre
-              Container(
-                width: 38,
-                height: 4.5,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
+        return Align(
+          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Container(
+              padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 12, 20, 24),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                borderRadius: isWide
+                    ? BorderRadius.circular(24)
+                    : const BorderRadius.vertical(top: Radius.circular(24)),
+                border: isDark
+                    ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                    : Border.all(
+                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        width: 1.0,
+                      ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                    blurRadius: isWide ? 30 : 20,
+                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!isWide) ...[
+                    // Manija de arrastre
+                    Container(
+                      width: 38,
+                      height: 4.5,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
               // Icono táctil
               Container(
@@ -2885,7 +2907,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ],
           ),
-        );
+        ),
+      ),
+    );
       },
     );
   }

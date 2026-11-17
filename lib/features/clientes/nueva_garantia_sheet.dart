@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import 'cliente_model.dart';
 import 'garantia_botella_service.dart';
 
@@ -31,10 +33,9 @@ class NuevaGarantiaSheet extends StatefulWidget {
     int? cantidadInicial,
     String? tipoBotellaInicial,
   }) {
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 540,
       builder: (ctx) => NuevaGarantiaSheet(
         clientesDisponibles: clientesDisponibles,
         onGuardado: onGuardado,
@@ -188,32 +189,62 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
     final bgCard = isDark ? const Color(0xFF1E293B) : Colors.white;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      padding: EdgeInsets.only(bottom: bottomInset),
-      decoration: BoxDecoration(
-        color: bgCard,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Barra superior de agarre
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(24));
+
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 540,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
+        ),
+        child: Container(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          decoration: BoxDecoration(
+            color: bgCard,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
                   ),
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.18),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
               ),
-              const SizedBox(height: 16),
+            ],
+          ),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Barra superior de agarre solo en móvil
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white24 : Colors.black12,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
               // Título con ícono representativo de botella retornable
               Row(
@@ -774,6 +805,8 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

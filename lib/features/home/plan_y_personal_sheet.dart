@@ -20,7 +20,9 @@ import '../../core/widgets/plan_upgrade_modal.dart';
 
 import '../auth/auth_service.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 
 enum PlanSheetSeccion { todas, suscripcion, personal }
 
@@ -53,34 +55,21 @@ class PlanYPersonalSheet extends StatefulWidget {
 
   static Future<void> show(
     BuildContext context, {
-
     required String nombreBodega,
-
     required String plan,
-
     required String currentUsername,
-
     String? userRol,
-
     VoidCallback? onPlanUpdated,
     PlanSheetSeccion seccionInicial = PlanSheetSeccion.todas,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-
-      isScrollControlled: true,
-
-      backgroundColor: Colors.transparent,
-
+      maxWidth: 620,
       builder: (ctx) => PlanYPersonalSheet(
         nombreBodega: nombreBodega,
-
         plan: plan,
-
         currentUsername: currentUsername,
-
         userRol: userRol,
-
         onPlanUpdated: onPlanUpdated,
         seccionInicial: seccionInicial,
       ),
@@ -1868,68 +1857,75 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
 
+    final bool isWide = ResponsiveLayout.isTabletOrLarger(context);
     final isPro = _currentPlan.toUpperCase() == 'PRO';
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
     return Align(
-      alignment: Alignment.bottomCenter,
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
 
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620),
 
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.88,
+            maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.88),
           ),
 
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
 
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: resolvedRadius,
 
             border: isDark
-                ? const Border(
-                    top: BorderSide(
-                      color: AppTheme.borderDarkElevated,
-                      width: 1.2,
-                    ),
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
                   )
-                : null,
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
 
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.3),
 
-                blurRadius: 24,
+                blurRadius: isWide ? 30 : 24,
 
-                offset: const Offset(0, -4),
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
               ),
             ],
           ),
 
           child: SafeArea(
-            top: false,
+            top: isWide,
+            bottom: !isWide,
 
             child: Column(
               children: [
-                // Manija superior
+                // Manija superior solo en móvil
+                if (!isWide) ...[
+                  const SizedBox(height: 12),
 
-                const SizedBox(height: 12),
+                  Container(
+                    width: 44,
 
-                Container(
-                  width: 44,
+                    height: 4.5,
 
-                  height: 4.5,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.borderDarkElevated
+                          : const Color(0xFFCBD5E1),
 
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.borderDarkElevated
-                        : const Color(0xFFCBD5E1),
-
-                    borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                ),
+                ],
 
-                const SizedBox(height: 14),
+                SizedBox(height: isWide ? 18 : 14),
 
                 // Header
                 Padding(

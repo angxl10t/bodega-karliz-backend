@@ -14,6 +14,8 @@ import '../home/configuracion_ticket_modal.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
+import '../../core/responsive_layout.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
@@ -1935,14 +1937,14 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   void _mostrarCalculadoraConteoBilletes(double esperado) {
     final Map<double, int> conteo = Map<double, int>.from(_conteoBilletes);
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 580,
       builder: (sheetCtx) {
         return StatefulBuilder(
           builder: (dialogCtx, setModalState) {
             final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+            final isWide = ResponsiveLayout.isTabletOrLarger(dialogCtx);
             final double total = conteo.entries.fold(
               0.0,
               (acc, e) => acc + (e.key * e.value),
@@ -1970,30 +1972,51 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             }
 
             return Align(
-              alignment: Alignment.bottomCenter,
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 580),
                 child: Container(
-                  height: MediaQuery.of(dialogCtx).size.height * 0.85,
+                  height: MediaQuery.of(dialogCtx).size.height * (isWide ? 0.88 : 0.85),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      Container(
-                        margin: const EdgeInsets.only(top: 10, bottom: 6),
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.borderDarkElevated
-                              : const Color(0xFFCBD5E1),
-                          borderRadius: BorderRadius.circular(2),
+                      if (!isWide) ...[
+                        Container(
+                          margin: const EdgeInsets.only(top: 10, bottom: 6),
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
-                      ),
+                      ] else
+                        const SizedBox(height: 14),
                       Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,

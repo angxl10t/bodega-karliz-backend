@@ -4,16 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../core/permisos_cajero_service.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 
 class PermisosCajeroModal extends StatefulWidget {
   const PermisosCajeroModal({super.key});
 
   static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 560,
       builder: (ctx) => const PermisosCajeroModal(),
     );
   }
@@ -118,270 +119,316 @@ class _PermisosCajeroModalState extends State<PermisosCajeroModal> {
     final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
     final primaryColor = Theme.of(context).colorScheme.primary;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        20,
-        14,
-        20,
-        24 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Barra indicadora superior
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.borderDarkElevated
-                        : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-              // Cabecera con insignia de Rol
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      LucideIcons.shieldAlert,
-                      color: primaryColor,
-                      size: 24,
-                    ),
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            isWide ? 20 : 14,
+            20,
+            24 + (isWide ? 0 : MediaQuery.of(context).viewInsets.bottom),
+          ),
+          child: SafeArea(
+            top: isWide,
+            bottom: !isWide,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Barra indicadora superior solo en móvil
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.borderDarkElevated
+                              : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Cabecera con insignia de Rol
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          LucideIcons.shieldAlert,
+                          color: primaryColor,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Permisos de Cajero',
-                              style: GoogleFonts.outfit(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.textDark,
-                              ),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'Permisos de Cajero',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF38BDF8)
+                                        .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0xFF38BDF8)
+                                          .withValues(alpha: 0.4),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'ROL CAJERO',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF0284C7),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF38BDF8)
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: const Color(0xFF38BDF8)
-                                      .withValues(alpha: 0.4),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Text(
-                                'ROL CAJERO',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF0284C7),
-                                ),
+                            const SizedBox(height: 3),
+                            Text(
+                              'Controla qué acciones puede realizar el personal en turno sin solicitar el PIN del Administrador.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                                height: 1.3,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Controla qué acciones puede realizar el personal en turno sin solicitar el PIN del Administrador.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : const Color(0xFF64748B),
-                            height: 1.3,
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, size: 20),
+                        tooltip: 'Cerrar',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Barra de Presets Rápidos
+                  Text(
+                    'CONFIGURACIONES RÁPIDAS (PRESETS)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.6,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _buildPresetChip(
+                          icon: LucideIcons.shield,
+                          label: 'Máxima Seguridad',
+                          subtitle: 'Solo cobro exacto',
+                          isDark: isDark,
+                          primaryColor: primaryColor,
+                          onTap: () =>
+                              _aplicarPreset(PermisosCajero.seguridadMaxima()),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildPresetChip(
+                          icon: LucideIcons.badgeCheck,
+                          label: 'Estándar Bodega',
+                          subtitle: 'Recomendado',
+                          isDark: isDark,
+                          primaryColor: primaryColor,
+                          onTap: () => _aplicarPreset(
+                            PermisosCajero.estandarRecomendado(),
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildPresetChip(
+                          icon: LucideIcons.userCheck,
+                          label: 'Cajero Encargado',
+                          subtitle: 'Mayor autonomía',
+                          isDark: isDark,
+                          primaryColor: primaryColor,
+                          onTap: () =>
+                              _aplicarPreset(PermisosCajero.cajeroEncargado()),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Switch 1: Ver Costos de Compra y Margen
+                  _buildSwitchTile(
+                    isDark: isDark,
+                    primaryColor: primaryColor,
+                    icon: LucideIcons.eye,
+                    activeIconColor: const Color(0xFF8B5CF6),
+                    title: 'Ver Costos de Compra y Margen',
+                    subtitle: 'Permite al cajero ver el precio al por mayor (costo) y el porcentaje de ganancia en el inventario. Desactívalo para proteger la privacidad financiera.',
+                    value: _verCostos,
+                    onChanged: (val) => setState(() => _verCostos = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Switch 2: Aplicar Descuentos Manuales en Caja
+                  _buildSwitchTile(
+                    isDark: isDark,
+                    primaryColor: primaryColor,
+                    icon: LucideIcons.badgePercent,
+                    activeIconColor: const Color(0xFF10B981),
+                    title: 'Aplicar Descuentos en Mostrador',
+                    subtitle: 'Permite al cajero aplicar rebajas manuales o de cortesía a los clientes en el carrito sin solicitar el PIN del Administrador.',
+                    value: _aplicarDescuentos,
+                    onChanged: (val) =>
+                        setState(() => _aplicarDescuentos = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Switch 3: Anular Ventas y Vaciar Carrito sin PIN
+                  _buildSwitchTile(
+                    isDark: isDark,
+                    primaryColor: primaryColor,
+                    icon: LucideIcons.undo2,
+                    activeIconColor: const Color(0xFFEF4444),
+                    title: 'Anular Ventas sin PIN de Admin',
+                    subtitle: 'Si está desactivado, el cajero deberá solicitar el PIN del Administrador cada vez que quiera vaciar el carrito o cancelar una venta en curso.',
+                    value: _anularSinPin,
+                    onChanged: (val) => setState(() => _anularSinPin = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Switch 4: Modificar Precios y Catálogo
+                  _buildSwitchTile(
+                    isDark: isDark,
+                    primaryColor: primaryColor,
+                    icon: LucideIcons.tag,
+                    activeIconColor: const Color(0xFFF59E0B),
+                    title: 'Modificar Precios y Catálogo',
+                    subtitle: 'Si está desactivado, el cajero solo puede consultar el inventario para cobrar, pero no puede crear productos ni cambiar precios sin PIN de Admin.',
+                    value: _modificarPrecios,
+                    onChanged: (val) => setState(() => _modificarPrecios = val),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Switch 5: Ver Reportes Financieros y BI
+                  _buildSwitchTile(
+                    isDark: isDark,
+                    primaryColor: primaryColor,
+                    icon: LucideIcons.barChart3,
+                    activeIconColor: const Color(0xFF3B82F6),
+                    title: 'Acceso a Finanzas y Utilidades (BI)',
+                    subtitle: 'Si está desactivado, bloquea el acceso a las pantallas de Inteligencia de Negocios, utilidades netas y métricas de rentabilidad.',
+                    value: _verFinanzas,
+                    onChanged: (val) => setState(() => _verFinanzas = val),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Botón Guardar
+                  ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _guardar,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 2,
+                    ),
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Icon(LucideIcons.save, size: 18),
+                    label: Text(
+                      _isSaving
+                          ? 'Guardando...'
+                          : 'Guardar Configuración de Permisos',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 18),
-
-              // Barra de Presets Rápidos
-              Text(
-                'CONFIGURACIONES RÁPIDAS (PRESETS)',
-                style: GoogleFonts.outfit(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.6,
-                  color: isDark
-                      ? AppTheme.textDarkSecondary
-                      : const Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
-                    _buildPresetChip(
-                      icon: LucideIcons.shield,
-                      label: 'Máxima Seguridad',
-                      subtitle: 'Solo cobro exacto',
-                      isDark: isDark,
-                      primaryColor: primaryColor,
-                      onTap: () =>
-                          _aplicarPreset(PermisosCajero.seguridadMaxima()),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildPresetChip(
-                      icon: LucideIcons.badgeCheck,
-                      label: 'Estándar Bodega',
-                      subtitle: 'Recomendado',
-                      isDark: isDark,
-                      primaryColor: primaryColor,
-                      onTap: () =>
-                          _aplicarPreset(PermisosCajero.estandarRecomendado()),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildPresetChip(
-                      icon: LucideIcons.userCheck,
-                      label: 'Cajero Encargado',
-                      subtitle: 'Mayor autonomía',
-                      isDark: isDark,
-                      primaryColor: primaryColor,
-                      onTap: () =>
-                          _aplicarPreset(PermisosCajero.cajeroEncargado()),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Switch 1: Ver Costos de Compra y Margen
-              _buildSwitchTile(
-                isDark: isDark,
-                primaryColor: primaryColor,
-                icon: LucideIcons.eye,
-                activeIconColor: const Color(0xFF8B5CF6),
-                title: 'Ver Costos de Compra y Margen',
-                subtitle: 'Permite al cajero ver el precio al por mayor (costo) y el porcentaje de ganancia en el inventario. Desactívalo para proteger la privacidad financiera.',
-                value: _verCostos,
-                onChanged: (val) => setState(() => _verCostos = val),
-              ),
-              const SizedBox(height: 10),
-
-              // Switch 2: Aplicar Descuentos Manuales en Caja
-              _buildSwitchTile(
-                isDark: isDark,
-                primaryColor: primaryColor,
-                icon: LucideIcons.badgePercent,
-                activeIconColor: const Color(0xFF10B981),
-                title: 'Aplicar Descuentos en Mostrador',
-                subtitle: 'Permite al cajero aplicar rebajas manuales o de cortesía a los clientes en el carrito sin solicitar el PIN del Administrador.',
-                value: _aplicarDescuentos,
-                onChanged: (val) => setState(() => _aplicarDescuentos = val),
-              ),
-              const SizedBox(height: 10),
-
-              // Switch 3: Anular Ventas y Vaciar Carrito sin PIN
-              _buildSwitchTile(
-                isDark: isDark,
-                primaryColor: primaryColor,
-                icon: LucideIcons.undo2,
-                activeIconColor: const Color(0xFFEF4444),
-                title: 'Anular Ventas sin PIN de Admin',
-                subtitle: 'Si está desactivado, el cajero deberá solicitar el PIN del Administrador cada vez que quiera vaciar el carrito o cancelar una venta en curso.',
-                value: _anularSinPin,
-                onChanged: (val) => setState(() => _anularSinPin = val),
-              ),
-              const SizedBox(height: 10),
-
-              // Switch 4: Modificar Precios y Catálogo
-              _buildSwitchTile(
-                isDark: isDark,
-                primaryColor: primaryColor,
-                icon: LucideIcons.tag,
-                activeIconColor: const Color(0xFFF59E0B),
-                title: 'Modificar Precios y Catálogo',
-                subtitle: 'Si está desactivado, el cajero solo puede consultar el inventario para cobrar, pero no puede crear productos ni cambiar precios sin PIN de Admin.',
-                value: _modificarPrecios,
-                onChanged: (val) => setState(() => _modificarPrecios = val),
-              ),
-              const SizedBox(height: 10),
-
-              // Switch 5: Ver Reportes Financieros y BI
-              _buildSwitchTile(
-                isDark: isDark,
-                primaryColor: primaryColor,
-                icon: LucideIcons.barChart3,
-                activeIconColor: const Color(0xFF3B82F6),
-                title: 'Acceso a Finanzas y Utilidades (BI)',
-                subtitle: 'Si está desactivado, bloquea el acceso a las pantallas de Inteligencia de Negocios, utilidades netas y métricas de rentabilidad.',
-                value: _verFinanzas,
-                onChanged: (val) => setState(() => _verFinanzas = val),
-              ),
-              const SizedBox(height: 20),
-
-              // Botón Guardar
-              ElevatedButton.icon(
-                onPressed: _isSaving ? null : _guardar,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 2,
-                ),
-                icon: _isSaving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        ),
-                      )
-                    : const Icon(LucideIcons.save, size: 18),
-                label: Text(
-                  _isSaving
-                      ? 'Guardando...'
-                      : 'Guardar Configuración de Permisos',
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

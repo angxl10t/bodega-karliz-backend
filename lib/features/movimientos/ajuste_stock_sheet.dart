@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../productos/producto_model.dart';
 import '../productos/producto_service.dart';
 import 'movimiento_service.dart';
@@ -22,14 +24,9 @@ class AjusteStockSheet extends StatefulWidget {
     Producto producto,
     VoidCallback onAjusteCompletado,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
+      maxWidth: 560,
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: AjusteStockSheet(
@@ -242,26 +239,62 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
     final nuevoStock = _nuevoStockProyectado;
     final bool stockInvalido = _esSalida && nuevoStock < 0;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Tirador superior
-          Center(
-            child: Container(
-              width: 44,
-              height: 5,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppTheme.borderDarkElevated
-                    : const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(10),
+    final bool isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(32));
+
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 30 : 24,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 18),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(22, isWide ? 20 : 16, 22, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Tirador superior solo en móvil
+                if (!isWide) ...[
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.borderDarkElevated
+                            : const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                ],
 
           // Cabecera con datos del producto
           Row(
@@ -742,6 +775,9 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             ],
           ),
         ],
+      ),
+    ),
+        ),
       ),
     );
   }

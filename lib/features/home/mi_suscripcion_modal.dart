@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/pago_yape_modal.dart';
 import '../../core/widgets/plan_comparativa_table.dart';
 import 'bodega_service.dart';
@@ -26,10 +28,9 @@ class MiSuscripcionModal extends StatefulWidget {
     required String planActual,
     VoidCallback? onPlanUpdated,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) => MiSuscripcionModal(
         nombreBodega: nombreBodega,
         planActual: planActual,
@@ -133,42 +134,64 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
       statusIcon = LucideIcons.checkCircle2;
     }
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.90,
-      ),
-      margin: EdgeInsets.only(bottom: bottomInset),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, -6),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Barra de arrastre
-            const SizedBox(height: 12),
-            Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            const SizedBox(height: 14),
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-            // Cabecera
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 620,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
+        ),
+        child: Container(
+          margin: EdgeInsets.only(bottom: isWide ? 0 : bottomInset),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.3),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: isWide,
+            bottom: !isWide,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Barra de arrastre solo en móvil
+                if (!isWide) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 44,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ],
+                SizedBox(height: isWide ? 20 : 14),
+
+                // Cabecera
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -604,6 +627,8 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                     ),
             ),
           ],
+        ),
+      ),
         ),
       ),
     );

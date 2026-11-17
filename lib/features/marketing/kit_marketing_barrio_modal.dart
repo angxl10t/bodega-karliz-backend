@@ -5,8 +5,10 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/cajaya_vectors.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../home/bodega_service.dart';
 
 class KitMarketingBarrioModal extends StatefulWidget {
@@ -33,10 +35,9 @@ class KitMarketingBarrioModal extends StatefulWidget {
     String? slugOrId,
     int? bodegaId,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) => KitMarketingBarrioModal(
         nombreBodega: nombreBodega,
         telefono: telefono,
@@ -248,143 +249,173 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
-      ),
-      margin: EdgeInsets.only(bottom: bottomInset),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 20,
-            offset: const Offset(0, -6),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            // Barra de arrastre
-            const SizedBox(height: 12),
-            Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            const SizedBox(height: 14),
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-            // Cabecera
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 620,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.92),
+        ),
+        child: Container(
+          margin: EdgeInsets.only(bottom: isWide ? 0 : bottomInset),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.35),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: isWide,
+            bottom: !isWide,
+            child: Column(
+              children: [
+                // Barra de arrastre solo en móvil
+                if (!isWide) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 44,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ],
+                SizedBox(height: isWide ? 18 : 14),
+
+                // Cabecera
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF59E0B)
-                              .withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          LucideIcons.megaphone,
-                          color: Color(0xFFD97706),
-                          size: 22,
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF59E0B)
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                LucideIcons.megaphone,
+                                color: Color(0xFFD97706),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Viralidad & Marketing de Barrio',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'Llena tu bodega y fideliza a tus vecinos',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Viralidad & Marketing de Barrio',
-                            style: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                          ),
-                          Text(
-                            'Llena tu bodega y fideliza a tus vecinos',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
+                      IconButton(
+                        icon: Icon(
+                          LucideIcons.x,
+                          size: 20,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                        ),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: Icon(
-                      LucideIcons.x,
-                      size: 20,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
+                ),
+                const SizedBox(height: 8),
 
-            // Selector de Pestañas
-            TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelColor: AppTheme.brandPrimary,
-              indicatorColor: AppTheme.brandPrimary,
-              tabAlignment: TabAlignment.start,
-              tabs: const [
-                Tab(
-                  icon: Icon(LucideIcons.receipt, size: 16),
-                  text: 'Volante Térmico',
+                // Selector de Pestañas
+                TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  labelColor: AppTheme.brandPrimary,
+                  indicatorColor: AppTheme.brandPrimary,
+                  tabAlignment: TabAlignment.start,
+                  tabs: const [
+                    Tab(
+                      icon: Icon(LucideIcons.receipt, size: 16),
+                      text: 'Volante Térmico',
+                    ),
+                    Tab(
+                      icon: Icon(LucideIcons.qrCode, size: 16),
+                      text: 'Afiche Vitrina',
+                    ),
+                    Tab(
+                      icon: Icon(LucideIcons.messageCircle, size: 16),
+                      text: 'Difusión WhatsApp',
+                    ),
+                    Tab(
+                      icon: Icon(LucideIcons.users, size: 16),
+                      text: 'Referir Colega',
+                    ),
+                  ],
                 ),
-                Tab(
-                  icon: Icon(LucideIcons.qrCode, size: 16),
-                  text: 'Afiche Vitrina',
-                ),
-                Tab(
-                  icon: Icon(LucideIcons.messageCircle, size: 16),
-                  text: 'Difusión WhatsApp',
-                ),
-                Tab(
-                  icon: Icon(LucideIcons.users, size: 16),
-                  text: 'Referir Colega',
+                const Divider(height: 1),
+
+                // Contenido de las pestañas
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildTabVolanteTermico(isDark),
+                      _buildTabAficheVitrina(isDark),
+                      _buildTabDifusionVecinal(isDark),
+                      _buildTabReferidos(isDark),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const Divider(height: 1),
-
-            // Contenido de las pestañas
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildTabVolanteTermico(isDark),
-                  _buildTabAficheVitrina(isDark),
-                  _buildTabDifusionVecinal(isDark),
-                  _buildTabReferidos(isDark),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

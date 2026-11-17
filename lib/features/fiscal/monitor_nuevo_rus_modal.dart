@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../home/bodega_service.dart';
 import 'boleta_consolidada_modal.dart';
 import 'boleta_consolidada_service.dart';
@@ -16,10 +18,9 @@ class MonitorNuevoRusModal extends StatefulWidget {
     BuildContext context, {
     VoidCallback? onRegimenCambiado,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 640,
       builder: (_) =>
           MonitorNuevoRusModal(onRegimenCambiado: onRegimenCambiado),
     );
@@ -152,6 +153,46 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
     final esNuevoRus =
         _bodegaInfo?.esNuevoRus ?? (_resumenRus?.esNuevoRus ?? true);
 
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+
+    if (isWide) {
+      return Align(
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 640,
+            maxHeight: MediaQuery.sizeOf(context).height * 0.90,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: _buildModalContent(
+                context,
+                isDark,
+                cardBg,
+                borderColor,
+                esNuevoRus,
+                true,
+                null,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return DraggableScrollableSheet(
       initialChildSize: 0.88,
       minChildSize: 0.5,
@@ -162,22 +203,45 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           border: Border.all(color: borderColor),
         ),
-        child: Column(
-          children: [
-            // Barra superior drag handle
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF334155)
-                      : const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+        child: _buildModalContent(
+          context,
+          isDark,
+          cardBg,
+          borderColor,
+          esNuevoRus,
+          false,
+          scrollCtrl,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalContent(
+    BuildContext context,
+    bool isDark,
+    Color cardBg,
+    Color borderColor,
+    bool esNuevoRus,
+    bool isWide,
+    ScrollController? scrollCtrl,
+  ) {
+    return Column(
+      children: [
+        // Barra superior drag handle solo en móvil
+        if (!isWide)
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 44,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFCBD5E1),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
+          ),
 
             // Cabecera Modal
             Padding(
@@ -328,9 +392,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
                     ),
             ),
           ],
-        ),
-      ),
-    );
+        );
   }
 
   /// Tarjeta del Switch Principal de Régimen

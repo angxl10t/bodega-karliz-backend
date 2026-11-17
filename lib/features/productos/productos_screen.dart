@@ -22,7 +22,9 @@ import '../dashboard/dashboard_bi_screen.dart';
 import '../home/bodega_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/category_helper.dart';
 import '../../core/csv_exporter.dart';
 import '../../core/widgets/product_image_widget.dart';
@@ -1962,41 +1964,70 @@ class _ProductosScreenState extends State<ProductosScreen>
     final catColor = CategoryHelper.getColor(p.nombreCategoria, isDark);
     final categoriaNombre = p.nombreCategoria?.trim() ?? 'General';
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+      maxWidth: 580,
       builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         final double valorTotal = p.stockActual * p.precioVenta;
-        return SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(
-              22,
-              16,
-              22,
-              28 + MediaQuery.of(ctx).viewInsets.bottom,
+        return Align(
+          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 580,
+              maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.88 : 0.90),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.borderDarkElevated
-                          : const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                borderRadius: isWide
+                    ? BorderRadius.circular(24)
+                    : const BorderRadius.vertical(top: Radius.circular(32)),
+                border: isDark
+                    ? Border.all(
+                        color: AppTheme.borderDarkElevated,
+                        width: 1.2,
+                      )
+                    : Border.all(
+                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        width: 1.0,
+                      ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                    blurRadius: isWide ? 30 : 20,
+                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
                   ),
-                ),
-                const SizedBox(height: 18),
+                ],
+              ),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    22,
+                    isWide ? 20 : 16,
+                    22,
+                    28 + (isWide ? 0 : MediaQuery.of(ctx).viewInsets.bottom),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (!isWide) ...[
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                      ],
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -2601,7 +2632,10 @@ class _ProductosScreenState extends State<ProductosScreen>
               ],
             ),
           ),
-        );
+        ),
+      ),
+    ),
+    );
       },
     );
   }
@@ -2800,31 +2834,56 @@ class _ProductosScreenState extends State<ProductosScreen>
 
   void _mostrarModalLimitePlanBasico(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppTheme.borderDarkElevated
-                      : const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(10),
-                ),
+      maxWidth: 520,
+      builder: (ctx) {
+        final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
+        return Align(
+          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                borderRadius: isWide
+                    ? BorderRadius.circular(24)
+                    : const BorderRadius.vertical(top: Radius.circular(32)),
+                border: isDark
+                    ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                    : Border.all(
+                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        width: 1.0,
+                      ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                    blurRadius: isWide ? 30 : 20,
+                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
+              padding: EdgeInsets.fromLTRB(24, isWide ? 20 : 18, 24, 28),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (!isWide) ...[
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
             Align(
               alignment: Alignment.topRight,
               child: IconButton(
@@ -2968,6 +3027,10 @@ class _ProductosScreenState extends State<ProductosScreen>
           ],
         ),
       ),
+    ),
+    ),
+    );
+      },
     );
   }
 

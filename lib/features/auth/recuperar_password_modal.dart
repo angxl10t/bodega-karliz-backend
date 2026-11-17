@@ -6,7 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'auth_service.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 
 class RecuperarPasswordModal extends StatefulWidget {
   final String? initialIdentificador;
@@ -17,10 +19,9 @@ class RecuperarPasswordModal extends StatefulWidget {
     BuildContext context, {
     String? initialIdentificador,
   }) {
-    return showModalBottomSheet<String>(
+    return AdaptiveModal.show<String>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 520,
       builder: (ctx) =>
           RecuperarPasswordModal(initialIdentificador: initialIdentificador),
     );
@@ -228,44 +229,81 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-    return Container(
-      margin: EdgeInsets.only(top: 40, bottom: bottomInset),
-      constraints: const BoxConstraints(maxWidth: 520),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.15),
-            blurRadius: 28,
-            offset: const Offset(0, -6),
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 520,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
+        ),
+        child: Container(
+          margin: EdgeInsets.only(
+            top: isWide ? 0 : 40,
+            bottom: isWide ? 0 : bottomInset,
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Barra de arrastre superior
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 4.5,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF334155)
-                        : const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(3),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
                   ),
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 30 : 28,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
               ),
-              const SizedBox(height: 18),
+            ],
+          ),
+          child: SafeArea(
+            top: isWide,
+            bottom: !isWide,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Barra de arrastre superior solo en móvil; en desktop botón de cerrar
+                  if (!isWide) ...[
+                    Center(
+                      child: Container(
+                        width: 44,
+                        height: 4.5,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                  ] else ...[
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: const Icon(LucideIcons.x, size: 20),
+                        tooltip: 'Cerrar',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                  ],
 
               // Encabezado con Ícono y Título
               _buildHeader(isDark),
@@ -313,6 +351,8 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
               if (_step == 3) _buildPaso4Exito(isDark),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/plan_comparativa_table.dart';
 
 /// Modal especializado para comparar exhaustivamente y seleccionar el plan SaaS
@@ -19,10 +21,9 @@ class SelectorPlanRegistroModal extends StatefulWidget {
     BuildContext context, {
     String planActual = 'PRO',
   }) {
-    return showModalBottomSheet<String>(
+    return AdaptiveModal.show<String>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 620,
       builder: (ctx) => SelectorPlanRegistroModal(planActual: planActual),
     );
   }
@@ -47,39 +48,61 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final isPro = _planSeleccionado == 'PRO';
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.94,
-      ),
-      margin: EdgeInsets.only(bottom: bottomInset),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, -6),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            // Barra superior de arrastre
-            const SizedBox(height: 12),
-            Container(
-              width: 44,
-              height: 4.5,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFCBD5E1),
-                borderRadius: BorderRadius.circular(10),
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
+
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 620,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.90 : 0.94),
+        ),
+        child: Container(
+          margin: EdgeInsets.only(bottom: isWide ? 0 : bottomInset),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.35),
+                blurRadius: isWide ? 30 : 24,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
               ),
-            ),
-            const SizedBox(height: 14),
+            ],
+          ),
+          child: SafeArea(
+            top: isWide,
+            bottom: !isWide,
+            child: Column(
+              children: [
+                // Barra superior de arrastre solo en móvil
+                if (!isWide) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 44,
+                    height: 4.5,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ],
+                SizedBox(height: isWide ? 18 : 14),
 
             // Cabecera con título
             Padding(
@@ -343,6 +366,8 @@ class _SelectorPlanRegistroModalState extends State<SelectorPlanRegistroModal> {
               ),
             ),
           ],
+        ),
+      ),
         ),
       ),
     );

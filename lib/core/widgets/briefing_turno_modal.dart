@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../responsive_layout.dart';
 import '../theme.dart';
+import 'adaptive_modal.dart';
 import '../../features/auth/auth_service.dart';
 
 class _ConsejoItem {
@@ -81,10 +83,9 @@ class BriefingTurnoModal extends StatefulWidget {
     Function(int tabIndex)? onNavigateTab,
   }) {
     HapticFeedback.lightImpact();
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 650,
       builder: (ctx) => BriefingTurnoModal(
         username: username,
         userRol: userRol,
@@ -267,37 +268,43 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
     final bool isAdmin =
         _userRol.toUpperCase() == 'ADMIN' ||
         _userRol.toUpperCase() == 'SUPERADMIN';
+    final bool isWide = ResponsiveLayout.isTabletOrLarger(context);
     final List<_ConsejoItem> tips = isAdmin ? _consejosAdmin : _consejosCajero;
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
     return Align(
-      alignment: Alignment.bottomCenter,
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 650),
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.90,
+            maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
           ),
           decoration: BoxDecoration(
             color: cardBg,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: resolvedRadius,
             border: isDark
-                ? const Border(
-                    top: BorderSide(
-                      color: AppTheme.borderDarkElevated,
-                      width: 1.2,
-                    ),
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
                   )
-                : null,
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.2),
-                blurRadius: 28,
-                offset: const Offset(0, -6),
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 32 : 28,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
               ),
             ],
           ),
           child: SafeArea(
-            top: false,
+            top: isWide,
+            bottom: !isWide,
             child: _isLoading
                 ? const Padding(
                     padding: EdgeInsets.all(40),
@@ -309,25 +316,27 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                   )
                 : SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                    padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 12, 20, 24),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Manija superior de arrastre
-                        Center(
-                          child: Container(
-                            width: 42,
-                            height: 4.5,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppTheme.borderDarkElevated
-                                  : const Color(0xFFCBD5E1),
-                              borderRadius: BorderRadius.circular(10),
+                        // Manija superior de arrastre solo en móvil
+                        if (!isWide) ...[
+                          Center(
+                            child: Container(
+                              width: 42,
+                              height: 4.5,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppTheme.borderDarkElevated
+                                    : const Color(0xFFCBD5E1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 16),
+                        ],
 
                         // Encabezado Principal: Identidad, Rol y Turno en Vivo
                         _buildHeader(isDark, isAdmin),

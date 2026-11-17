@@ -13,7 +13,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/api_constants.dart';
 import '../../core/cajaya_vectors.dart';
 import '../../core/marca_detector_service.dart';
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/product_image_widget.dart';
 
 import 'package:provider/provider.dart';
@@ -2469,38 +2471,49 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         : 0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 540,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalCtx, setModalState) {
+            final isWide = ResponsiveLayout.isTabletOrLarger(modalCtx);
             final int cantActual = _carrito[id] ?? 0;
 
-            return Center(
+            return Align(
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 540),
                 child: Container(
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(28),
+                          ),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            width: 1.0,
+                          ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 24,
-                        offset: const Offset(0, -6),
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 24,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
                       ),
                     ],
                   ),
                   padding: EdgeInsets.fromLTRB(
                     22,
-                    14,
+                    isWide ? 20 : 14,
                     22,
-                    24 + MediaQuery.of(modalCtx).viewInsets.bottom,
+                    (isWide ? 24 : 24 + MediaQuery.of(modalCtx).viewInsets.bottom),
                   ),
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -2508,23 +2521,25 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Barra de arrastre superior
-                        Center(
-                          child: Container(
-                            width: 46,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  _colorMarca,
-                                  _colorMarca.withValues(alpha: 0.4),
-                                ],
+                        if (!isWide) ...[
+                          // Barra de arrastre superior
+                          Center(
+                            child: Container(
+                              width: 46,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    _colorMarca,
+                                    _colorMarca.withValues(alpha: 0.4),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 12),
+                        ],
 
                         // Encabezado: Volver al catálogo, Categoría y Botón Cerrar
                         Row(
@@ -3091,26 +3106,29 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final notasCtrl = _notasPedidoCtrl;
 
-    showModalBottomSheet(
+    AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 580,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalCtx, setModalState) {
+            final isWide = ResponsiveLayout.isTabletOrLarger(modalCtx);
             final mediaQuery = MediaQuery.of(modalCtx);
 
             if (_carrito.isEmpty) {
-              return Center(
+              return Align(
+                alignment: isWide ? Alignment.center : Alignment.bottomCenter,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 560),
                   child: Container(
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(28),
-                      ),
+                      borderRadius: isWide
+                          ? BorderRadius.circular(24)
+                          : const BorderRadius.vertical(top: Radius.circular(28)),
+                      border: isDark
+                          ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                          : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
                     ),
                     padding: const EdgeInsets.all(28),
                     child: Column(
@@ -3165,40 +3183,49 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
             final cartItemIds = _carrito.keys.toList();
 
-            return Center(
+            return Align(
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 580),
                 child: Container(
-                  height: mediaQuery.size.height * 0.85,
+                  height: mediaQuery.size.height * (isWide ? 0.88 : 0.85),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(
+                            top: Radius.circular(28),
+                          ),
+                    border: isDark
+                        ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                        : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 24,
-                        offset: const Offset(0, -6),
+                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        blurRadius: isWide ? 30 : 24,
+                        offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      // Barra de arrastre superior
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Container(
-                          width: 44,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF334155)
-                                : const Color(0xFFCBD5E1),
-                            borderRadius: BorderRadius.circular(10),
+                      // Barra de arrastre superior solo en móvil
+                      if (!isWide) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFCBD5E1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                      ),
+                      ] else
+                        const SizedBox(height: 16),
 
                       // Encabezado: Mi Pedido, Vaciar Pedido y Cerrar
                       Padding(

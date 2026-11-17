@@ -6,7 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../lock_service.dart';
+import '../responsive_layout.dart';
 import '../theme.dart';
+import 'adaptive_modal.dart';
 import '../../features/auth/auth_service.dart';
 
 /// Modal de Bloqueo POS con Teclado Numérico y Huella Digital
@@ -601,10 +603,9 @@ class ConfigurarPinModal extends StatefulWidget {
     BuildContext context, {
     required VoidCallback onPinGuardado,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 480,
       builder: (_) => ConfigurarPinModal(onPinGuardado: onPinGuardado),
     );
   }
@@ -664,29 +665,48 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(24, 16, 24, viewInsets + 24),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black12,
-                borderRadius: BorderRadius.circular(8),
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(24, isWide ? 20 : 16, 24, (isWide ? 24 : viewInsets + 24)),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDark : Colors.white,
+            borderRadius: isWide
+                ? BorderRadius.circular(24)
+                : const BorderRadius.vertical(top: Radius.circular(28)),
+            border: isDark
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
+                : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                blurRadius: isWide ? 30 : 20,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!isWide) ...[
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+              ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -857,6 +877,8 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 }

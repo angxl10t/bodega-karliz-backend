@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/adaptive_modal.dart';
 import '../categorias/categoria_model.dart';
 import '../categorias/categoria_service.dart';
 import '../../core/marca_detector_service.dart';
@@ -29,10 +31,9 @@ class CrearPromocionSheet extends StatefulWidget {
     SugerenciaComboHueso? sugerenciaHueso,
     required VoidCallback onSaved,
   }) {
-    return showModalBottomSheet(
+    return AdaptiveModal.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      maxWidth: 600,
       builder: (ctx) => CrearPromocionSheet(
         promocionEdit: promocionEdit,
         sugerenciaHueso: sugerenciaHueso,
@@ -313,42 +314,73 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isWide = ResponsiveLayout.isTabletOrLarger(context);
     final primaryColor = _parseColor(_colorBadge);
+    final resolvedRadius = isWide
+        ? BorderRadius.circular(24)
+        : const BorderRadius.vertical(top: Radius.circular(28));
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Center(
-                  child: Container(
-                    width: 44,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+    return Align(
+      alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 600,
+          maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.90 : 0.92),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+            borderRadius: resolvedRadius,
+            border: isDark
+                ? Border.all(
+                    color: AppTheme.borderDarkElevated,
+                    width: 1.2,
+                  )
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
                   ),
-                ),
-                const SizedBox(height: 16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.2),
+                blurRadius: isWide ? 32 : 24,
+                offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: SafeArea(
+            top: isWide,
+            bottom: !isWide,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Handle bar solo en móvil
+                    if (!isWide) ...[
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
-                // Header
+                    // Header
                 Row(
                   children: [
                     Container(
@@ -1656,6 +1688,8 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
               ],
             ),
           ),
+        ),
+      ),
         ),
       ),
     );
