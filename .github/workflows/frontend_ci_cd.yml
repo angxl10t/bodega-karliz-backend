@@ -41,7 +41,11 @@ jobs:
       - name: Auditoría de Formato de Código
         run: |
           echo "==> Verificando formato de código Dart..."
-          dart format --output=none --set-exit-if-changed lib/ test/
+          dart format --output=none --set-exit-if-changed lib/ test/ || {
+            echo "::error::Archivos con formato no conforme detectados:"
+            dart format --show-all lib/ test/ --dry-run
+            exit 1
+          }
 
       - name: Análisis Estático Estricto (Linter & Reglas de Calidad)
         run: |
@@ -87,6 +91,21 @@ jobs:
           publish_dir: ./build/web
           publish_branch: gh-pages
           commit_message: "deploy: build web de producción automatizado por CI/CD (${{ github.sha }})"
+
+      - name: Notificar y Verificar Despliegue en Render
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL || secrets.RENDER_FRONTEND_HOOK }}
+        run: |
+          if [ -n "$RENDER_HOOK" ]; then
+            echo "🚀 Disparando webhook de Render para frontend..."
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$RENDER_HOOK")
+            echo "Respuesta Render Webhook HTTP: $HTTP_STATUS"
+          else
+            echo "ℹ️ Render actualiza automáticamente al detectar el push a la rama gh-pages."
+          fi
+          echo "==> Verificando disponibilidad de la app en Render..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://cajaya-pos.onrender.com || echo "000")
+          echo "Status cajaya-pos.onrender.com: $STATUS"
 
   build-android-apk:
     name: Compilación de APK Android para Descarga

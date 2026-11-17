@@ -673,7 +673,12 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
         child: Container(
-          padding: EdgeInsets.fromLTRB(24, isWide ? 20 : 16, 24, (isWide ? 24 : viewInsets + 24)),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            isWide ? 20 : 16,
+            24,
+            (isWide ? 24 : viewInsets + 24),
+          ),
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDark : Colors.white,
             borderRadius: isWide
@@ -681,7 +686,10 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
                 : const BorderRadius.vertical(top: Radius.circular(28)),
             border: isDark
                 ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
-                : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+                : Border.all(
+                    color: isWide ? AppTheme.borderLight : Colors.transparent,
+                    width: 1.0,
+                  ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
@@ -707,178 +715,180 @@ class _ConfigurarPinModalState extends State<ConfigurarPinModal> {
                 ),
                 const SizedBox(height: 18),
               ],
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          LucideIcons.keyRound,
+                          size: 20,
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'PIN Rápido de Caja',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.brandInk,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      padding: const EdgeInsets.all(6),
+                      minimumSize: const Size(32, 32),
+                    ),
+                    icon: Icon(
+                      LucideIcons.x,
+                      size: 18,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                    tooltip: 'Cerrar',
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Ingresa un PIN de 4 números para desbloquear la caja rápidamente cuando esté inactiva:',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _pinCtrl1,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                obscureText: true,
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  letterSpacing: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: '••••',
+                  labelText: 'Nuevo PIN (4 dígitos)',
+                  prefixIcon: const Icon(LucideIcons.lockKeyhole, size: 18),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _pinCtrl2,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                obscureText: true,
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  letterSpacing: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: '••••',
+                  labelText: 'Confirma el PIN',
+                  prefixIcon: const Icon(LucideIcons.checkCheck, size: 18),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+              if (_error.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _error,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: AppTheme.alertRed,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      LucideIcons.keyRound,
-                      size: 20,
-                      color: AppTheme.brandPrimary,
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _guardando
+                          ? null
+                          : () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        side: BorderSide(
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : AppTheme.borderLight,
+                        ),
+                      ),
+                      child: Text(
+                        'Cancelar',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF475569),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    'PIN Rápido de Caja',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : AppTheme.brandInk,
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _guardando ? null : _guardar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.brandPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: _guardando
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Guardar PIN',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
                     ),
                   ),
                 ],
               ),
-              IconButton(
-                style: IconButton.styleFrom(
-                  padding: const EdgeInsets.all(6),
-                  minimumSize: const Size(32, 32),
-                ),
-                icon: Icon(
-                  LucideIcons.x,
-                  size: 18,
-                  color: isDark ? Colors.white70 : Colors.black54,
-                ),
-                tooltip: 'Cerrar',
-                onPressed: () => Navigator.pop(context),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Ingresa un PIN de 4 números para desbloquear la caja rápidamente cuando esté inactiva:',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              color: isDark
-                  ? AppTheme.textDarkSecondary
-                  : const Color(0xFF334155),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _pinCtrl1,
-            keyboardType: TextInputType.number,
-            maxLength: 4,
-            obscureText: true,
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              letterSpacing: 8,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: InputDecoration(
-              counterText: '',
-              hintText: '••••',
-              labelText: 'Nuevo PIN (4 dígitos)',
-              prefixIcon: const Icon(LucideIcons.lockKeyhole, size: 18),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _pinCtrl2,
-            keyboardType: TextInputType.number,
-            maxLength: 4,
-            obscureText: true,
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              letterSpacing: 8,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: InputDecoration(
-              counterText: '',
-              hintText: '••••',
-              labelText: 'Confirma el PIN',
-              prefixIcon: const Icon(LucideIcons.checkCheck, size: 18),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-          ),
-          if (_error.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Text(
-              _error,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                color: AppTheme.alertRed,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _guardando ? null : () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    side: BorderSide(
-                      color: isDark
-                          ? AppTheme.borderDark
-                          : AppTheme.borderLight,
-                    ),
-                  ),
-                  child: Text(
-                    'Cancelar',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF475569),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: _guardando ? null : _guardar,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.brandPrimary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: _guardando
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Text(
-                          'Guardar PIN',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14,
-                          ),
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
-    ),
-    ),
     );
   }
 }

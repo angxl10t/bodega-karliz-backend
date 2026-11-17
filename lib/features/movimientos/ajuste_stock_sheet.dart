@@ -257,10 +257,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
             color: cardBg,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,
@@ -296,306 +293,413 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                   const SizedBox(height: 18),
                 ],
 
-          // Cabecera con datos del producto
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: selectedColor.withValues(alpha: isDark ? 0.22 : 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: selectedColor.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    selectedConfig['icon'] as IconData,
-                    color: selectedColor,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Cabecera con datos del producto
+                Row(
                   children: [
-                    Text(
-                      'Ajuste de Inventario (Kardex)',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      '${widget.producto.nombre} • SKU: ${widget.producto.codigo}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF334155),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                style: IconButton.styleFrom(
-                  padding: const EdgeInsets.all(6),
-                  minimumSize: const Size(32, 32),
-                ),
-                icon: Icon(
-                  LucideIcons.x,
-                  size: 18,
-                  color: isDark ? Colors.white70 : Colors.black54,
-                ),
-                tooltip: 'Cerrar Ajuste',
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Selector de Motivo / Tipo de Ajuste
-          Text(
-            'Tipo de Ajuste',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : AppTheme.textDark,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _tipos.map((tipo) {
-                final bool isSelected = _tipoAjuste == tipo['id'];
-                final Color col = tipo['color'] as Color;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _tipoAjuste = tipo['id'] as String;
-                        // Sugerir primer motivo típico
-                        final sugeridos = _motivosSugeridos[_tipoAjuste];
-                        if (sugeridos != null &&
-                            sugeridos.isNotEmpty &&
-                            _motivoCtrl.text.isEmpty) {
-                          _motivoCtrl.text = sugeridos[0];
-                        }
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(14),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
+                    Container(
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? col.withValues(alpha: isDark ? 0.28 : 0.12)
-                            : (isDark
-                                  ? AppTheme.cardDarkSunken
-                                  : const Color(0xFFF8F9FA)),
-                        borderRadius: BorderRadius.circular(14),
+                        color: selectedColor.withValues(
+                          alpha: isDark ? 0.22 : 0.12,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isSelected
-                              ? col
-                              : (isDark
-                                    ? AppTheme.borderDark
-                                    : AppTheme.borderLight),
-                          width: isSelected ? 1.8 : 1.0,
+                          color: selectedColor.withValues(alpha: 0.35),
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Center(
+                        child: Icon(
+                          selectedConfig['icon'] as IconData,
+                          color: selectedColor,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            tipo['icon'] as IconData,
-                            size: 15,
-                            color: isSelected
-                                ? col
-                                : AppTheme.getAdaptiveMutedText(isDark),
-                          ),
-                          const SizedBox(width: 6),
                           Text(
-                            tipo['label'] as String,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: isSelected
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
-                              color: isSelected
-                                  ? col
-                                  : (isDark ? Colors.white : AppTheme.textDark),
+                            'Ajuste de Inventario (Kardex)',
+                            style: GoogleFonts.outfit(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            '${widget.producto.nombre} • SKU: ${widget.producto.codigo}',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // Visualizador de Stock Actual -> Nuevo Stock
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: stockInvalido
-                    ? AppTheme.alertRed
-                    : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Stock Actual',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF334155),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      style: IconButton.styleFrom(
+                        padding: const EdgeInsets.all(6),
+                        minimumSize: const Size(32, 32),
                       ),
-                    ),
-                    Text(
-                      '${widget.producto.stockActual.toStringAsFixed(1)} u.',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : AppTheme.textDark,
+                      icon: Icon(
+                        LucideIcons.x,
+                        size: 18,
+                        color: isDark ? Colors.white70 : Colors.black54,
                       ),
+                      tooltip: 'Cerrar Ajuste',
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
-                Icon(
-                  _esSalida ? LucideIcons.arrowRight : LucideIcons.arrowRight,
-                  color: selectedColor,
-                  size: 20,
+                const SizedBox(height: 18),
+
+                // Selector de Motivo / Tipo de Ajuste
+                Text(
+                  'Tipo de Ajuste',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      _esSalida ? 'Stock Restante' : 'Nuevo Stock',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: stockInvalido
-                            ? AppTheme.alertRed
-                            : (isDark
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _tipos.map((tipo) {
+                      final bool isSelected = _tipoAjuste == tipo['id'];
+                      final Color col = tipo['color'] as Color;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _tipoAjuste = tipo['id'] as String;
+                              // Sugerir primer motivo típico
+                              final sugeridos = _motivosSugeridos[_tipoAjuste];
+                              if (sugeridos != null &&
+                                  sugeridos.isNotEmpty &&
+                                  _motivoCtrl.text.isEmpty) {
+                                _motivoCtrl.text = sugeridos[0];
+                              }
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(14),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? col.withValues(alpha: isDark ? 0.28 : 0.12)
+                                  : (isDark
+                                        ? AppTheme.cardDarkSunken
+                                        : const Color(0xFFF8F9FA)),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected
+                                    ? col
+                                    : (isDark
+                                          ? AppTheme.borderDark
+                                          : AppTheme.borderLight),
+                                width: isSelected ? 1.8 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  tipo['icon'] as IconData,
+                                  size: 15,
+                                  color: isSelected
+                                      ? col
+                                      : AppTheme.getAdaptiveMutedText(isDark),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  tipo['label'] as String,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                    color: isSelected
+                                        ? col
+                                        : (isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Visualizador de Stock Actual -> Nuevo Stock
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.cardDarkSunken
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: stockInvalido
+                          ? AppTheme.alertRed
+                          : (isDark
+                                ? AppTheme.borderDark
+                                : AppTheme.borderLight),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Stock Actual',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
                                   ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF334155)),
+                                  : const Color(0xFF334155),
+                            ),
+                          ),
+                          Text(
+                            '${widget.producto.stockActual.toStringAsFixed(1)} u.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Icon(
+                        _esSalida
+                            ? LucideIcons.arrowRight
+                            : LucideIcons.arrowRight,
+                        color: selectedColor,
+                        size: 20,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            _esSalida ? 'Stock Restante' : 'Nuevo Stock',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: stockInvalido
+                                  ? AppTheme.alertRed
+                                  : (isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155)),
+                            ),
+                          ),
+                          Text(
+                            '${nuevoStock.toStringAsFixed(1)} u.',
+                            style: GoogleFonts.outfit(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: stockInvalido
+                                  ? AppTheme.alertRed
+                                  : (_esSalida
+                                        ? selectedColor
+                                        : AppTheme.accentGreen),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (stockInvalido) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.triangleAlert,
+                        size: 13,
+                        color: AppTheme.alertRed,
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Text(
+                          'La merma excede las existencias disponibles en tienda.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.alertRed,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 18),
+
+                // Cantidad a Ajustar
+                Text(
+                  'Cantidad a ${_esSalida ? "descontar" : "sumar"}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    IconButton.filledTonal(
+                      style: IconButton.styleFrom(
+                        backgroundColor: isDark
+                            ? AppTheme.cardDarkHighlight
+                            : const Color(0xFFF1F5F9),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(LucideIcons.minus, size: 18),
+                      onPressed: () {
+                        final cur = _cantidadParsed;
+                        if (cur > 1) {
+                          setState(
+                            () => _cantidadCtrl.text = (cur - 1)
+                                .toStringAsFixed(0),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _cantidadCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                          ),
+                          filled: true,
+                          fillColor: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF8F9FA),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : AppTheme.borderLight,
+                            ),
+                          ),
+                        ),
+                        onChanged: (_) => setState(() {}),
                       ),
                     ),
-                    Text(
-                      '${nuevoStock.toStringAsFixed(1)} u.',
-                      style: GoogleFonts.outfit(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                        color: stockInvalido
-                            ? AppTheme.alertRed
-                            : (_esSalida
-                                  ? selectedColor
-                                  : AppTheme.accentGreen),
+                    const SizedBox(width: 10),
+                    IconButton.filledTonal(
+                      style: IconButton.styleFrom(
+                        backgroundColor: isDark
+                            ? AppTheme.cardDarkHighlight
+                            : const Color(0xFFF1F5F9),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      icon: const Icon(LucideIcons.plus, size: 18),
+                      onPressed: () {
+                        final cur = _cantidadParsed;
+                        setState(
+                          () =>
+                              _cantidadCtrl.text = (cur + 1).toStringAsFixed(0),
+                        );
+                      },
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          if (stockInvalido) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Icon(
-                  LucideIcons.triangleAlert,
-                  size: 13,
-                  color: AppTheme.alertRed,
-                ),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Text(
-                    'La merma excede las existencias disponibles en tienda.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.alertRed,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-          const SizedBox(height: 18),
+                const SizedBox(height: 18),
 
-          // Cantidad a Ajustar
-          Text(
-            'Cantidad a ${_esSalida ? "descontar" : "sumar"}',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : AppTheme.textDark,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              IconButton.filledTonal(
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? AppTheme.cardDarkHighlight
-                      : const Color(0xFFF1F5F9),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                // Justificación / Motivo
+                Text(
+                  'Motivo / Justificación del Ajuste',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppTheme.textDark,
                   ),
                 ),
-                icon: const Icon(LucideIcons.minus, size: 18),
-                onPressed: () {
-                  final cur = _cantidadParsed;
-                  if (cur > 1) {
-                    setState(
-                      () => _cantidadCtrl.text = (cur - 1).toStringAsFixed(0),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextFormField(
-                  controller: _cantidadCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+                const SizedBox(height: 6),
+                // Chips de motivos rápidos
+                if (_motivosSugeridos[_tipoAjuste] != null) ...[
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: _motivosSugeridos[_tipoAjuste]!.map((mot) {
+                      final bool isSelected = _motivoCtrl.text == mot;
+                      return ActionChip(
+                        label: Text(
+                          mot,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? Colors.white
+                                : (isDark ? Colors.white : AppTheme.textDark),
+                          ),
+                        ),
+                        backgroundColor: isSelected
+                            ? AppTheme.brandPrimary
+                            : (isDark
+                                  ? AppTheme.cardDarkHighlight
+                                  : const Color(0xFFF1F5F9)),
+                        onPressed: () => setState(() => _motivoCtrl.text = mot),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        side: BorderSide.none,
+                      );
+                    }).toList(),
                   ),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  const SizedBox(height: 8),
+                ],
+                TextFormField(
+                  controller: _motivoCtrl,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                  maxLines: 2,
                   decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    hintText: 'Describe la razón del ajuste para auditoría...',
+                    hintStyle: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      color: AppTheme.getAdaptiveHintText(isDark),
+                    ),
                     filled: true,
                     fillColor: isDark
                         ? AppTheme.cardDarkSunken
@@ -609,174 +713,85 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
                       ),
                     ),
                   ),
-                  onChanged: (_) => setState(() {}),
                 ),
-              ),
-              const SizedBox(width: 10),
-              IconButton.filledTonal(
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? AppTheme.cardDarkHighlight
-                      : const Color(0xFFF1F5F9),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(LucideIcons.plus, size: 18),
-                onPressed: () {
-                  final cur = _cantidadParsed;
-                  setState(
-                    () => _cantidadCtrl.text = (cur + 1).toStringAsFixed(0),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
+                const SizedBox(height: 24),
 
-          // Justificación / Motivo
-          Text(
-            'Motivo / Justificación del Ajuste',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : AppTheme.textDark,
-            ),
-          ),
-          const SizedBox(height: 6),
-          // Chips de motivos rápidos
-          if (_motivosSugeridos[_tipoAjuste] != null) ...[
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: _motivosSugeridos[_tipoAjuste]!.map((mot) {
-                final bool isSelected = _motivoCtrl.text == mot;
-                return ActionChip(
-                  label: Text(
-                    mot,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.white : AppTheme.textDark),
-                    ),
-                  ),
-                  backgroundColor: isSelected
-                      ? AppTheme.brandPrimary
-                      : (isDark
-                            ? AppTheme.cardDarkHighlight
-                            : const Color(0xFFF1F5F9)),
-                  onPressed: () => setState(() => _motivoCtrl.text = mot),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  side: BorderSide.none,
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 8),
-          ],
-          TextFormField(
-            controller: _motivoCtrl,
-            style: GoogleFonts.plusJakartaSans(fontSize: 13),
-            maxLines: 2,
-            decoration: InputDecoration(
-              hintText: 'Describe la razón del ajuste para auditoría...',
-              hintStyle: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                color: AppTheme.getAdaptiveHintText(isDark),
-              ),
-              filled: true,
-              fillColor: isDark
-                  ? AppTheme.cardDarkSunken
-                  : const Color(0xFFF8F9FA),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Botones de acción
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    side: BorderSide(
-                      color: isDark
-                          ? AppTheme.borderDark
-                          : AppTheme.borderLight,
-                    ),
-                  ),
-                  onPressed: _isSaving ? null : () => Navigator.pop(context),
-                  child: Text(
-                    'Cancelar',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF334155),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: stockInvalido
-                        ? Colors.grey
-                        : selectedColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 2,
-                  ),
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                // Botones de acción
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                        )
-                      : const Icon(LucideIcons.check, size: 18),
-                  label: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      _isSaving ? 'Guardando...' : 'Confirmar Ajuste',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13.5,
+                          side: BorderSide(
+                            color: isDark
+                                ? AppTheme.borderDark
+                                : AppTheme.borderLight,
+                          ),
+                        ),
+                        onPressed: _isSaving
+                            ? null
+                            : () => Navigator.pop(context),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF334155),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  onPressed: (_isSaving || stockInvalido)
-                      ? null
-                      : _guardarAjuste,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: stockInvalido
+                              ? Colors.grey
+                              : selectedColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 2,
+                        ),
+                        icon: _isSaving
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(LucideIcons.check, size: 18),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _isSaving ? 'Guardando...' : 'Confirmar Ajuste',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13.5,
+                            ),
+                          ),
+                        ),
+                        onPressed: (_isSaving || stockInvalido)
+                            ? null
+                            : _guardarAjuste,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ],
-      ),
-    ),
         ),
       ),
     );

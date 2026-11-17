@@ -1235,7 +1235,9 @@ class _VentasScreenState extends State<VentasScreen>
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: 580,
-                  maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.75),
+                  maxHeight:
+                      MediaQuery.of(context).size.height *
+                      (isWide ? 0.85 : 0.75),
                 ),
                 child: Container(
                   decoration: BoxDecoration(
@@ -1244,96 +1246,63 @@ class _VentasScreenState extends State<VentasScreen>
                         ? BorderRadius.circular(24)
                         : const BorderRadius.vertical(top: Radius.circular(24)),
                     border: isDark
-                        ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
-                        : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
+                            width: 1.0,
+                          ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),
                   child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD97706)
-                                .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            LucideIcons.pauseCircle,
-                            color: Color(0xFFD97706),
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tickets en Espera (Park Cart)',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD97706)
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              Text(
-                                '${lista.length} tickets pausados en caja',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : AppTheme.textMuted,
-                                ),
+                              child: const Icon(
+                                LucideIcons.pauseCircle,
+                                color: Color(0xFFD97706),
+                                size: 22,
                               ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(LucideIcons.x, size: 20),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: lista.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
                               child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    LucideIcons.shoppingCart,
-                                    size: 48,
-                                    color: isDark
-                                        ? Colors.white24
-                                        : Colors.black26,
-                                  ),
-                                  const SizedBox(height: 12),
                                   Text(
-                                    'No hay tickets en espera',
+                                    'Tickets en Espera (Park Cart)',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
                                   Text(
-                                    'Cuando un cliente olvide un producto o vaya a sacar efectivo, presiona el icono de pausa en el carrito para seguir atendiendo a los demás clientes sin perder su canasta.',
-                                    textAlign: TextAlign.center,
+                                    '${lista.length} tickets pausados en caja',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
+                                      fontSize: 12,
                                       color: isDark
                                           ? AppTheme.textDarkSecondary
                                           : AppTheme.textMuted,
@@ -1342,127 +1311,180 @@ class _VentasScreenState extends State<VentasScreen>
                                 ],
                               ),
                             ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: lista.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 10),
-                            itemBuilder: (context, index) {
-                              final venta = lista[index];
-                              return Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? AppTheme.cardDarkElevated
-                                      : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? AppTheme.borderDark
-                                        : const Color(0xFFE2E8F0),
+                            IconButton(
+                              icon: const Icon(LucideIcons.x, size: 20),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: lista.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        LucideIcons.shoppingCart,
+                                        size: 48,
+                                        color: isDark
+                                            ? Colors.white24
+                                            : Colors.black26,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'No hay tickets en espera',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Cuando un cliente olvide un producto o vaya a sacar efectivo, presiona el icono de pausa en el carrito para seguir atendiendo a los demás clientes sin perder su canasta.',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12.5,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            venta.etiqueta,
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 15.5,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFD97706)
-                                                .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            venta.tiempoTranscurrido,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: const Color(0xFFD97706),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      '${venta.items.length} productos (${venta.totalUnidades.toStringAsFixed(venta.totalUnidades % 1 == 0 ? 0 : 2)} u.) • Comprobante: ${venta.tipoComprobante}',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : AppTheme.textMuted,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Total: S/ ${venta.totalNeto.toStringAsFixed(2)}',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppTheme.brandPrimary,
-                                      ),
-                                    ),
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: lista.length,
+                                separatorBuilder: (_, _) =>
                                     const SizedBox(height: 10),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
+                                itemBuilder: (context, index) {
+                                  final venta = lista[index];
+                                  return Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppTheme.cardDarkElevated
+                                          : const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppTheme.borderDark
+                                            : const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        IconButton(
-                                          icon: const Icon(
-                                            LucideIcons.trash2,
-                                            size: 18,
-                                            color: AppTheme.alertRed,
-                                          ),
-                                          tooltip: 'Descartar ticket',
-                                          onPressed: () async {
-                                            await VentaEnEsperaService.eliminar(
-                                              venta.id,
-                                            );
-                                            setModalState(() {});
-                                          },
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                venta.etiqueta,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 15.5,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFD97706)
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                venta.tiempoTranscurrido,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: const Color(
+                                                        0xFFD97706,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 8),
-                                        FilledButton.icon(
-                                          style: FilledButton.styleFrom(
-                                            backgroundColor:
-                                                AppTheme.brandPrimary,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 14,
-                                              vertical: 8,
-                                            ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          '${venta.items.length} productos (${venta.totalUnidades.toStringAsFixed(venta.totalUnidades % 1 == 0 ? 0 : 2)} u.) • Comprobante: ${venta.tipoComprobante}',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : AppTheme.textMuted,
                                           ),
-                                          icon: const Icon(
-                                            LucideIcons.play,
-                                            size: 15,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Total: S/ ${venta.totalNeto.toStringAsFixed(2)}',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppTheme.brandPrimary,
                                           ),
-                                          label: const Text('Recuperar a Caja'),
-                                          onPressed: () async {
-                                            if (_carrito.isNotEmpty) {
-                                              final sobreescribir =
-                                                  await showDialog<bool>(
-                                                    context: context,
-                                                    builder: (dCtx) =>
-                                                        AlertDialog(
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                LucideIcons.trash2,
+                                                size: 18,
+                                                color: AppTheme.alertRed,
+                                              ),
+                                              tooltip: 'Descartar ticket',
+                                              onPressed: () async {
+                                                await VentaEnEsperaService.eliminar(
+                                                  venta.id,
+                                                );
+                                                setModalState(() {});
+                                              },
+                                            ),
+                                            const SizedBox(width: 8),
+                                            FilledButton.icon(
+                                              style: FilledButton.styleFrom(
+                                                backgroundColor:
+                                                    AppTheme.brandPrimary,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 14,
+                                                      vertical: 8,
+                                                    ),
+                                              ),
+                                              icon: const Icon(
+                                                LucideIcons.play,
+                                                size: 15,
+                                              ),
+                                              label: const Text(
+                                                'Recuperar a Caja',
+                                              ),
+                                              onPressed: () async {
+                                                if (_carrito.isNotEmpty) {
+                                                  final sobreescribir =
+                                                      await showDialog<bool>(
+                                                        context: context,
+                                                        builder: (dCtx) => AlertDialog(
                                                           title: const Text(
                                                             '¿Reemplazar canasta actual?',
                                                           ),
@@ -1492,82 +1514,86 @@ class _VentasScreenState extends State<VentasScreen>
                                                             ),
                                                           ],
                                                         ),
+                                                      );
+                                                  if (sobreescribir != true)
+                                                    return;
+                                                  final actualPausada = VentaEnEspera(
+                                                    id: DateTime.now()
+                                                        .millisecondsSinceEpoch
+                                                        .toString(),
+                                                    fecha: DateTime.now(),
+                                                    etiqueta:
+                                                        'Venta rápida ${_carrito.length} items',
+                                                    items: List<CartItem>.from(
+                                                      _carrito,
+                                                    ),
+                                                    cliente:
+                                                        _clienteSeleccionado,
+                                                    metodoPago: _metodoPago,
+                                                    tipoComprobante:
+                                                        _tipoComprobante,
+                                                    descuentoManualCarrito:
+                                                        _descuentoManualCarrito,
+                                                    descuentoManualMotivo:
+                                                        _descuentoManualMotivo,
+                                                    aplicarPromocionesWeb:
+                                                        _aplicarPromocionesWeb,
                                                   );
-                                              if (sobreescribir != true) return;
-                                              final actualPausada = VentaEnEspera(
-                                                id: DateTime.now()
-                                                    .millisecondsSinceEpoch
-                                                    .toString(),
-                                                fecha: DateTime.now(),
-                                                etiqueta:
-                                                    'Venta rápida ${_carrito.length} items',
-                                                items: List<CartItem>.from(
-                                                  _carrito,
-                                                ),
-                                                cliente: _clienteSeleccionado,
-                                                metodoPago: _metodoPago,
-                                                tipoComprobante:
-                                                    _tipoComprobante,
-                                                descuentoManualCarrito:
-                                                    _descuentoManualCarrito,
-                                                descuentoManualMotivo:
-                                                    _descuentoManualMotivo,
-                                                aplicarPromocionesWeb:
-                                                    _aplicarPromocionesWeb,
-                                              );
-                                              await VentaEnEsperaService.ponerEnEspera(
-                                                actualPausada,
-                                              );
-                                            }
+                                                  await VentaEnEsperaService.ponerEnEspera(
+                                                    actualPausada,
+                                                  );
+                                                }
 
-                                            final recuperada =
-                                                await VentaEnEsperaService.recuperar(
-                                                  venta.id,
-                                                );
-                                            if (recuperada != null) {
-                                              setState(() {
-                                                _carrito.clear();
-                                                _carrito.addAll(
-                                                  recuperada.items,
-                                                );
-                                                _clienteSeleccionado =
-                                                    recuperada.cliente;
-                                                _metodoPago =
-                                                    recuperada.metodoPago;
-                                                _tipoComprobante =
-                                                    recuperada.tipoComprobante;
-                                                _descuentoManualCarrito =
-                                                    recuperada
-                                                        .descuentoManualCarrito;
-                                                _descuentoManualMotivo =
-                                                    recuperada
-                                                        .descuentoManualMotivo ??
-                                                    '';
-                                                _aplicarPromocionesWeb =
-                                                    recuperada
-                                                        .aplicarPromocionesWeb;
-                                              });
-                                              KarlizSoundService.instance
-                                                  .playBarcodeBeep();
-                                            }
-                                            if (ctx.mounted) Navigator.pop(ctx);
-                                          },
+                                                final recuperada =
+                                                    await VentaEnEsperaService.recuperar(
+                                                      venta.id,
+                                                    );
+                                                if (recuperada != null) {
+                                                  setState(() {
+                                                    _carrito.clear();
+                                                    _carrito.addAll(
+                                                      recuperada.items,
+                                                    );
+                                                    _clienteSeleccionado =
+                                                        recuperada.cliente;
+                                                    _metodoPago =
+                                                        recuperada.metodoPago;
+                                                    _tipoComprobante =
+                                                        recuperada
+                                                            .tipoComprobante;
+                                                    _descuentoManualCarrito =
+                                                        recuperada
+                                                            .descuentoManualCarrito;
+                                                    _descuentoManualMotivo =
+                                                        recuperada
+                                                            .descuentoManualMotivo ??
+                                                        '';
+                                                    _aplicarPromocionesWeb =
+                                                        recuperada
+                                                            .aplicarPromocionesWeb;
+                                                  });
+                                                  KarlizSoundService.instance
+                                                      .playBarcodeBeep();
+                                                }
+                                                if (ctx.mounted)
+                                                  Navigator.pop(ctx);
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
-      },
-    );
       },
     );
   }
@@ -1606,170 +1632,74 @@ class _VentasScreenState extends State<VentasScreen>
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: 620,
-                  maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.88 : 0.8),
+                  maxHeight:
+                      MediaQuery.of(context).size.height *
+                      (isWide ? 0.88 : 0.8),
                 ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(24),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(24)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),
                   child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0D9488)
-                                .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            LucideIcons.globe,
-                            color: Color(0xFF0D9488),
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Bandeja de Pedidos Web',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0D9488)
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              Text(
-                                '${PedidoWebService.pedidosPendientes.length} pedidos web pendientes de atención',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : AppTheme.textMuted,
-                                ),
+                              child: const Icon(
+                                LucideIcons.globe,
+                                color: Color(0xFF0D9488),
+                                size: 22,
                               ),
-                            ],
-                          ),
-                        ),
-                        ValueListenableBuilder<bool>(
-                          valueListenable:
-                              PedidoWebService.estaSincronizandoNotifier,
-                          builder: (context, sincronizando, _) {
-                            return IconButton(
-                              icon: sincronizando
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Color(0xFF0D9488),
-                                      ),
-                                    )
-                                  : const Icon(
-                                      LucideIcons.refreshCw,
-                                      size: 18,
-                                      color: Color(0xFF0D9488),
-                                    ),
-                              tooltip: 'Sincronizar con la nube',
-                              onPressed: sincronizando
-                                  ? null
-                                  : () async {
-                                      await PedidoWebService.sincronizarConNube(
-                                        forzar: true,
-                                      );
-                                      setModalState(() {});
-                                    },
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(LucideIcons.x, size: 20),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-                    child: TextField(
-                      onChanged: (val) => setModalState(
-                        () => filtroBusqueda = val.trim().toLowerCase(),
-                      ),
-                      decoration: InputDecoration(
-                        hintText:
-                            'Buscar por código #W-XXXX, cliente o teléfono...',
-                        prefixIcon: const Icon(LucideIcons.search, size: 18),
-                        isDense: true,
-                        filled: true,
-                        fillColor: isDark
-                            ? AppTheme.cardDarkSunken
-                            : const Color(0xFFF1F5F9),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: lista.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
                               child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(
-                                    LucideIcons.globe,
-                                    size: 48,
-                                    color: isDark
-                                        ? Colors.white24
-                                        : Colors.black26,
-                                  ),
-                                  const SizedBox(height: 12),
                                   Text(
-                                    'No hay pedidos web registrados',
+                                    'Bandeja de Pedidos Web',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
                                   Text(
-                                    'Cuando los clientes armen su pedido desde el catálogo web de la bodega, aparecerán aquí para cargarlos al carrito en 1 toque.',
-                                    textAlign: TextAlign.center,
+                                    '${PedidoWebService.pedidosPendientes.length} pedidos web pendientes de atención',
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
+                                      fontSize: 12,
                                       color: isDark
                                           ? AppTheme.textDarkSecondary
                                           : AppTheme.textMuted,
@@ -1778,352 +1708,472 @@ class _VentasScreenState extends State<VentasScreen>
                                 ],
                               ),
                             ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: lista.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final pedido = lista[index];
-                              final esPendiente = pedido.estado == 'PENDIENTE';
-                              return Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? AppTheme.cardDarkElevated
-                                      : const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: esPendiente
-                                        ? const Color(0xFF0D9488)
-                                        : (isDark
-                                              ? AppTheme.borderDark
-                                              : const Color(0xFFE2E8F0)),
-                                    width: esPendiente ? 1.5 : 1.0,
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 7,
-                                            vertical: 2,
+                            ValueListenableBuilder<bool>(
+                              valueListenable:
+                                  PedidoWebService.estaSincronizandoNotifier,
+                              builder: (context, sincronizando, _) {
+                                return IconButton(
+                                  icon: sincronizando
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Color(0xFF0D9488),
                                           ),
-                                          margin: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF0D9488)
-                                                .withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            border: Border.all(
-                                              color: const Color(0xFF0D9488)
-                                                  .withValues(alpha: 0.3),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            pedido.codigoDisplay,
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w800,
-                                              color: const Color(0xFF0D9488),
-                                            ),
-                                          ),
+                                        )
+                                      : const Icon(
+                                          LucideIcons.refreshCw,
+                                          size: 18,
+                                          color: Color(0xFF0D9488),
                                         ),
-                                        Expanded(
-                                          child: Text(
-                                            pedido.nombreCliente,
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: esPendiente
-                                                ? const Color(0xFF0D9488)
-                                                      .withValues(alpha: 0.15)
-                                                : Colors.grey.withValues(
-                                                    alpha: 0.15,
-                                                  ),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            esPendiente
-                                                ? 'PENDIENTE'
-                                                : pedido.estado,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w800,
-                                              color: esPendiente
-                                                  ? const Color(0xFF0D9488)
-                                                  : AppTheme.getAdaptiveMutedText(
-                                                      isDark,
-                                                    ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (pedido.telefonoCliente != null &&
-                                        pedido.telefonoCliente!.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            LucideIcons.phone,
-                                            size: 14,
-                                            color: AppTheme.brandPrimary,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            pedido.telefonoCliente!,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
+                                  tooltip: 'Sincronizar con la nube',
+                                  onPressed: sincronizando
+                                      ? null
+                                      : () async {
+                                          await PedidoWebService.sincronizarConNube(
+                                            forzar: true,
+                                          );
+                                          setModalState(() {});
+                                        },
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(LucideIcons.x, size: 20),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+                        child: TextField(
+                          onChanged: (val) => setModalState(
+                            () => filtroBusqueda = val.trim().toLowerCase(),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Buscar por código #W-XXXX, cliente o teléfono...',
+                            prefixIcon: const Icon(
+                              LucideIcons.search,
+                              size: 18,
+                            ),
+                            isDense: true,
+                            filled: true,
+                            fillColor: isDark
+                                ? AppTheme.cardDarkSunken
+                                : const Color(0xFFF1F5F9),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: lista.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        LucideIcons.globe,
+                                        size: 48,
+                                        color: isDark
+                                            ? Colors.white24
+                                            : Colors.black26,
                                       ),
-                                    ],
-                                    if (pedido.notas != null &&
-                                        pedido.notas!.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 12),
                                       Text(
-                                        'Nota: ${pedido.notas!}',
+                                        'No hay pedidos web registrados',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Cuando los clientes armen su pedido desde el catálogo web de la bodega, aparecerán aquí para cargarlos al carrito en 1 toque.',
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 12,
-                                          fontStyle: FontStyle.italic,
+                                          fontSize: 12.5,
                                           color: isDark
                                               ? AppTheme.textDarkSecondary
                                               : AppTheme.textMuted,
                                         ),
                                       ),
                                     ],
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? AppTheme.cardDarkSunken
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          for (final it in pedido.items)
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 2,
-                                                  ),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    '${it.cantidad.toStringAsFixed(it.cantidad % 1 == 0 ? 0 : 2)}x',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color: AppTheme
-                                                              .brandPrimary,
-                                                        ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Text(
-                                                      it.nombre,
-                                                      style:
-                                                          GoogleFonts.plusJakartaSans(
-                                                            fontSize: 12,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    'S/ ${it.subtotal.toStringAsFixed(2)}',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                        ],
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: lista.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final pedido = lista[index];
+                                  final esPendiente =
+                                      pedido.estado == 'PENDIENTE';
+                                  return Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppTheme.cardDarkElevated
+                                          : const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: esPendiente
+                                            ? const Color(0xFF0D9488)
+                                            : (isDark
+                                                  ? AppTheme.borderDark
+                                                  : const Color(0xFFE2E8F0)),
+                                        width: esPendiente ? 1.5 : 1.0,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          'Total: S/ ${pedido.total.toStringAsFixed(2)}',
-                                          style: GoogleFonts.outfit(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w900,
-                                            color: AppTheme.brandPrimary,
-                                          ),
-                                        ),
                                         Row(
                                           children: [
-                                            IconButton(
-                                              icon: const Icon(
-                                                LucideIcons.trash2,
-                                                size: 18,
-                                                color: AppTheme.alertRed,
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 7,
+                                                    vertical: 2,
+                                                  ),
+                                              margin: const EdgeInsets.only(
+                                                right: 8,
                                               ),
-                                              tooltip: 'Eliminar pedido',
-                                              onPressed: () async {
-                                                await PedidoWebService.eliminarPedido(
-                                                  pedido.idPedido,
-                                                  idPedidoWeb:
-                                                      pedido.idPedidoWeb,
-                                                );
-                                                setModalState(() {});
-                                              },
-                                            ),
-                                            if (esPendiente) ...[
-                                              const SizedBox(width: 6),
-                                              FilledButton.icon(
-                                                style: FilledButton.styleFrom(
-                                                  backgroundColor: const Color(
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF0D9488)
+                                                    .withValues(alpha: 0.12),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: const Color(0xFF0D9488)
+                                                      .withValues(alpha: 0.3),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                pedido.codigoDisplay,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: const Color(
                                                     0xFF0D9488,
                                                   ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          10,
-                                                        ),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                pedido.nombreCliente,
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
                                                   ),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 14,
-                                                        vertical: 8,
+                                              decoration: BoxDecoration(
+                                                color: esPendiente
+                                                    ? const Color(
+                                                        0xFF0D9488,
+                                                      ).withValues(alpha: 0.15)
+                                                    : Colors.grey.withValues(
+                                                        alpha: 0.15,
                                                       ),
-                                                ),
-                                                icon: const Icon(
-                                                  LucideIcons.shoppingBag,
-                                                  size: 15,
-                                                ),
-                                                label: const Text(
-                                                  'Cargar al Carrito',
-                                                ),
-                                                onPressed: () async {
-                                                  int itemsCargados = 0;
-                                                  setState(() {
-                                                    for (final itemWeb
-                                                        in pedido.items) {
-                                                      Producto? prod;
-                                                      for (final p
-                                                          in _productosDisponibles) {
-                                                        if (p.idProducto ==
-                                                            itemWeb
-                                                                .idProducto) {
-                                                          prod = p;
-                                                          break;
-                                                        }
-                                                      }
-                                                      if (prod == null) {
-                                                        final nomLimpio =
-                                                            itemWeb.nombre
-                                                                .trim()
-                                                                .toLowerCase();
-                                                        for (final p
-                                                            in _productosDisponibles) {
-                                                          if (p.nombre
-                                                                  .trim()
-                                                                  .toLowerCase() ==
-                                                              nomLimpio) {
-                                                            prod = p;
-                                                            break;
-                                                          }
-                                                        }
-                                                      }
-
-                                                      if (prod != null) {
-                                                        _agregarAlCarrito(
-                                                          prod,
-                                                          playSound: false,
-                                                          cantidad:
-                                                              itemWeb.cantidad,
-                                                        );
-                                                        itemsCargados++;
-                                                      }
-                                                    }
-
-                                                    _identificarCliente = true;
-                                                    _clienteNombreController
-                                                            .text =
-                                                        pedido.nombreCliente;
-                                                    if (pedido
-                                                            .ahorroPromociones >
-                                                        0) {
-                                                      _aplicarPromocionesWeb =
-                                                          true;
-                                                    }
-                                                  });
-
-                                                  await PedidoWebService.marcarComoCargadoEnPos(
-                                                    pedido.idPedido,
-                                                    idPedidoWeb:
-                                                        pedido.idPedidoWeb,
-                                                  );
-                                                  KarlizSoundService.instance
-                                                      .playBarcodeBeep();
-
-                                                  if (ctx.mounted) {
-                                                    Navigator.pop(ctx);
-                                                    ScaffoldMessenger.of(
-                                                      ctx,
-                                                    ).showSnackBar(
-                                                      SnackBar(
-                                                        content: Text(
-                                                          '¡Pedido de ${pedido.nombreCliente} ($itemsCargados productos) cargado al carrito!',
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                esPendiente
+                                                    ? 'PENDIENTE'
+                                                    : pedido.estado,
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: esPendiente
+                                                      ? const Color(0xFF0D9488)
+                                                      : AppTheme.getAdaptiveMutedText(
+                                                          isDark,
                                                         ),
-                                                        backgroundColor:
-                                                            const Color(
-                                                              0xFF0D9488,
-                                                            ),
-                                                      ),
-                                                    );
-                                                  }
-                                                },
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (pedido.telefonoCliente != null &&
+                                            pedido
+                                                .telefonoCliente!
+                                                .isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                LucideIcons.phone,
+                                                size: 14,
+                                                color: AppTheme.brandPrimary,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                pedido.telefonoCliente!,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
                                               ),
                                             ],
+                                          ),
+                                        ],
+                                        if (pedido.notas != null &&
+                                            pedido.notas!.isNotEmpty) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Nota: ${pedido.notas!}',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 12,
+                                              fontStyle: FontStyle.italic,
+                                              color: isDark
+                                                  ? AppTheme.textDarkSecondary
+                                                  : AppTheme.textMuted,
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 8),
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppTheme.cardDarkSunken
+                                                : Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              for (final it in pedido.items)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 2,
+                                                      ),
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        '${it.cantidad.toStringAsFixed(it.cantidad % 1 == 0 ? 0 : 2)}x',
+                                                        style:
+                                                            GoogleFonts.plusJakartaSans(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color: AppTheme
+                                                                  .brandPrimary,
+                                                            ),
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      Expanded(
+                                                        child: Text(
+                                                          it.nombre,
+                                                          style:
+                                                              GoogleFonts.plusJakartaSans(
+                                                                fontSize: 12,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'S/ ${it.subtotal.toStringAsFixed(2)}',
+                                                        style:
+                                                            GoogleFonts.plusJakartaSans(
+                                                              fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              'Total: S/ ${pedido.total.toStringAsFixed(2)}',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w900,
+                                                color: AppTheme.brandPrimary,
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    LucideIcons.trash2,
+                                                    size: 18,
+                                                    color: AppTheme.alertRed,
+                                                  ),
+                                                  tooltip: 'Eliminar pedido',
+                                                  onPressed: () async {
+                                                    await PedidoWebService.eliminarPedido(
+                                                      pedido.idPedido,
+                                                      idPedidoWeb:
+                                                          pedido.idPedidoWeb,
+                                                    );
+                                                    setModalState(() {});
+                                                  },
+                                                ),
+                                                if (esPendiente) ...[
+                                                  const SizedBox(width: 6),
+                                                  FilledButton.icon(
+                                                    style: FilledButton.styleFrom(
+                                                      backgroundColor:
+                                                          const Color(
+                                                            0xFF0D9488,
+                                                          ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              10,
+                                                            ),
+                                                      ),
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 14,
+                                                            vertical: 8,
+                                                          ),
+                                                    ),
+                                                    icon: const Icon(
+                                                      LucideIcons.shoppingBag,
+                                                      size: 15,
+                                                    ),
+                                                    label: const Text(
+                                                      'Cargar al Carrito',
+                                                    ),
+                                                    onPressed: () async {
+                                                      int itemsCargados = 0;
+                                                      setState(() {
+                                                        for (final itemWeb
+                                                            in pedido.items) {
+                                                          Producto? prod;
+                                                          for (final p
+                                                              in _productosDisponibles) {
+                                                            if (p.idProducto ==
+                                                                itemWeb
+                                                                    .idProducto) {
+                                                              prod = p;
+                                                              break;
+                                                            }
+                                                          }
+                                                          if (prod == null) {
+                                                            final nomLimpio =
+                                                                itemWeb.nombre
+                                                                    .trim()
+                                                                    .toLowerCase();
+                                                            for (final p
+                                                                in _productosDisponibles) {
+                                                              if (p.nombre
+                                                                      .trim()
+                                                                      .toLowerCase() ==
+                                                                  nomLimpio) {
+                                                                prod = p;
+                                                                break;
+                                                              }
+                                                            }
+                                                          }
+
+                                                          if (prod != null) {
+                                                            _agregarAlCarrito(
+                                                              prod,
+                                                              playSound: false,
+                                                              cantidad: itemWeb
+                                                                  .cantidad,
+                                                            );
+                                                            itemsCargados++;
+                                                          }
+                                                        }
+
+                                                        _identificarCliente =
+                                                            true;
+                                                        _clienteNombreController
+                                                            .text = pedido
+                                                            .nombreCliente;
+                                                        if (pedido
+                                                                .ahorroPromociones >
+                                                            0) {
+                                                          _aplicarPromocionesWeb =
+                                                              true;
+                                                        }
+                                                      });
+
+                                                      await PedidoWebService.marcarComoCargadoEnPos(
+                                                        pedido.idPedido,
+                                                        idPedidoWeb:
+                                                            pedido.idPedidoWeb,
+                                                      );
+                                                      KarlizSoundService
+                                                          .instance
+                                                          .playBarcodeBeep();
+
+                                                      if (ctx.mounted) {
+                                                        Navigator.pop(ctx);
+                                                        ScaffoldMessenger.of(
+                                                          ctx,
+                                                        ).showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                              '¡Pedido de ${pedido.nombreCliente} ($itemsCargados productos) cargado al carrito!',
+                                                            ),
+                                                            backgroundColor:
+                                                                const Color(
+                                                                  0xFF0D9488,
+                                                                ),
+                                                          ),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
                                           ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
-      },
-    );
       },
     );
   }
@@ -3956,23 +4006,27 @@ class _VentasScreenState extends State<VentasScreen>
                     color: cardBg,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(32),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(32)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),
@@ -4494,28 +4548,34 @@ class _VentasScreenState extends State<VentasScreen>
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.78),
+                  height:
+                      MediaQuery.of(context).size.height *
+                      (isWide ? 0.85 : 0.78),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(32),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(32)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),
@@ -10763,28 +10823,34 @@ class _VentasScreenState extends State<VentasScreen>
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.78),
+                  height:
+                      MediaQuery.of(context).size.height *
+                      (isWide ? 0.85 : 0.78),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(28),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(28)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),

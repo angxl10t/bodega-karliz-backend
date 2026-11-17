@@ -280,16 +280,14 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
         constraints: const BoxConstraints(maxWidth: 650),
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
+            maxHeight:
+                MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.90),
           ),
           decoration: BoxDecoration(
             color: cardBg,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,

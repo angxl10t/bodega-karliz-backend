@@ -252,10 +252,7 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
             color: cardBg,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,
@@ -305,54 +302,54 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
                     ),
                   ],
 
-              // Encabezado con Ícono y Título
-              _buildHeader(isDark),
-              const SizedBox(height: 20),
+                  // Encabezado con Ícono y Título
+                  _buildHeader(isDark),
+                  const SizedBox(height: 20),
 
-              // Mensaje de Error si existe
-              if (_errorMessage.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.red.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        LucideIcons.alertTriangle,
-                        color: Colors.red,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          _errorMessage,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red.shade700,
-                          ),
+                  // Mensaje de Error si existe
+                  if (_errorMessage.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.red.withValues(alpha: 0.3),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+                      child: Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.alertTriangle,
+                            color: Colors.red,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _errorMessage,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
-              // Contenido dinámico según el paso
-              if (_step == 0) _buildPaso1Identificacion(isDark),
-              if (_step == 1) _buildPaso2CodigoOtp(isDark),
-              if (_step == 2) _buildPaso3NuevaPassword(isDark),
-              if (_step == 3) _buildPaso4Exito(isDark),
-            ],
+                  // Contenido dinámico según el paso
+                  if (_step == 0) _buildPaso1Identificacion(isDark),
+                  if (_step == 1) _buildPaso2CodigoOtp(isDark),
+                  if (_step == 2) _buildPaso3NuevaPassword(isDark),
+                  if (_step == 3) _buildPaso4Exito(isDark),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
         ),
       ),
     );

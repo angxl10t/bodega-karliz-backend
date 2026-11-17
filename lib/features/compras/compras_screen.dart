@@ -268,28 +268,34 @@ class _ComprasScreenState extends State<ComprasScreen>
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.75),
+                  height:
+                      MediaQuery.of(context).size.height *
+                      (isWide ? 0.85 : 0.75),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(32),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(32)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),
@@ -560,28 +566,34 @@ class _ComprasScreenState extends State<ComprasScreen>
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: Container(
-                  height: MediaQuery.of(context).size.height * (isWide ? 0.88 : 0.85),
+                  height:
+                      MediaQuery.of(context).size.height *
+                      (isWide ? 0.88 : 0.85),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(32),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(32)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),
@@ -1756,7 +1768,8 @@ class _ComprasScreenState extends State<ComprasScreen>
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: 620,
-              maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.8),
+              maxHeight:
+                  MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.8),
             ),
             child: Container(
               decoration: BoxDecoration(
@@ -1766,7 +1779,12 @@ class _ComprasScreenState extends State<ComprasScreen>
                     : const BorderRadius.vertical(top: Radius.circular(24)),
                 border: isDark
                     ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
-                    : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+                    : Border.all(
+                        color: isWide
+                            ? AppTheme.borderLight
+                            : Colors.transparent,
+                        width: 1.0,
+                      ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
@@ -1793,205 +1811,209 @@ class _ComprasScreenState extends State<ComprasScreen>
                       ),
                     ),
                   ],
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentGreen.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      LucideIcons.sparkles,
-                      color: AppTheme.accentGreen,
-                      size: 20,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          LucideIcons.sparkles,
+                          color: AppTheme.accentGreen,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Sugerencia de Reposición',
+                              style: GoogleFonts.outfit(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
+                              ),
+                            ),
+                            Text(
+                              'Productos con stock mínimo o crítico para pedir hoy',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(LucideIcons.x, size: 20),
+                        tooltip: 'Cerrar',
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sugerencia de Reposición',
+                  const SizedBox(height: 16),
+                  if (productosCriticos.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            const Icon(
+                              LucideIcons.checkCircle2,
+                              color: AppTheme.accentGreen,
+                              size: 40,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              '¡Tu inventario está abastecido!',
+                              style: GoogleFonts.outfit(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'No hay productos con stock por debajo del límite mínimo.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppTheme.getAdaptiveMutedText(isDark),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            OutlinedButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Cerrar Ventana'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else ...[
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: productosCriticos.length,
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 1),
+                        itemBuilder: (ctx, i) {
+                          final p = productosCriticos[i];
+                          final cantidadSugerida =
+                              ((p.stockMinimo * 2) - p.stockActual).clamp(
+                                1.0,
+                                999.0,
+                              );
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: CircleAvatar(
+                              backgroundColor: const Color(0xFFFEE2E2),
+                              radius: 18,
+                              child: const Icon(
+                                LucideIcons.packageMinus,
+                                size: 16,
+                                color: AppTheme.alertRed,
+                              ),
+                            ),
+                            title: Text(
+                              p.nombre,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Stock actual: ${p.stockActual.toInt()} | Mínimo: ${p.stockMinimo.toInt()}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                color: AppTheme.alertRed,
+                              ),
+                            ),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentGreen.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'Pedir: ${cantidadSugerida.toInt()}',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.accentGreen,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentGreen,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.send, size: 16),
+                        label: Text(
+                          'Enviar Pedido por WhatsApp al Proveedor',
                           style: GoogleFonts.outfit(
-                            fontSize: 17,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
-                        Text(
-                          'Productos con stock mínimo o crítico para pedir hoy',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
+                        onPressed: () async {
+                          final buffer = StringBuffer();
+                          buffer.writeln('📦 *PEDIDO DE REPOSICIÓN - BODEGA*');
+                          buffer.writeln(
+                            'Hola estimado proveedor, por favor programar el siguiente pedido:',
+                          );
+                          buffer.writeln('');
+                          for (final p in productosCriticos) {
+                            final cant = ((p.stockMinimo * 2) - p.stockActual)
+                                .clamp(1.0, 999.0)
+                                .toInt();
+                            buffer.writeln('• *${p.nombre}*: $cant unidades');
+                          }
+                          buffer.writeln('');
+                          buffer.writeln('Muchas gracias.');
+                          final url = Uri.parse(
+                            'https://wa.me/?text=${Uri.encodeComponent(buffer.toString())}',
+                          );
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                        },
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(LucideIcons.x, size: 20),
-                    tooltip: 'Cerrar',
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 16),
-              if (productosCriticos.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        const Icon(
-                          LucideIcons.checkCircle2,
-                          color: AppTheme.accentGreen,
-                          size: 40,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '¡Tu inventario está abastecido!',
-                          style: GoogleFonts.outfit(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'No hay productos con stock por debajo del límite mínimo.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppTheme.getAdaptiveMutedText(isDark),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        OutlinedButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: const Text('Cerrar Ventana'),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else ...[
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: productosCriticos.length,
-                    separatorBuilder: (context, index) =>
-                        const Divider(height: 1),
-                    itemBuilder: (ctx, i) {
-                      final p = productosCriticos[i];
-                      final cantidadSugerida =
-                          ((p.stockMinimo * 2) - p.stockActual).clamp(
-                            1.0,
-                            999.0,
-                          );
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFFFEE2E2),
-                          radius: 18,
-                          child: const Icon(
-                            LucideIcons.packageMinus,
-                            size: 16,
-                            color: AppTheme.alertRed,
-                          ),
-                        ),
-                        title: Text(
-                          p.nombre,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        subtitle: Text(
-                          'Stock actual: ${p.stockActual.toInt()} | Mínimo: ${p.stockMinimo.toInt()}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: AppTheme.alertRed,
-                          ),
-                        ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.accentGreen.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Pedir: ${cantidadSugerida.toInt()}',
-                            style: GoogleFonts.outfit(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.accentGreen,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    icon: const Icon(LucideIcons.send, size: 16),
-                    label: Text(
-                      'Enviar Pedido por WhatsApp al Proveedor',
-                      style: GoogleFonts.outfit(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    onPressed: () async {
-                      final buffer = StringBuffer();
-                      buffer.writeln('📦 *PEDIDO DE REPOSICIÓN - BODEGA*');
-                      buffer.writeln(
-                        'Hola estimado proveedor, por favor programar el siguiente pedido:',
-                      );
-                      buffer.writeln('');
-                      for (final p in productosCriticos) {
-                        final cant = ((p.stockMinimo * 2) - p.stockActual)
-                            .clamp(1.0, 999.0)
-                            .toInt();
-                        buffer.writeln('• *${p.nombre}*: $cant unidades');
-                      }
-                      buffer.writeln('');
-                      buffer.writeln('Muchas gracias.');
-                      final url = Uri.parse(
-                        'https://wa.me/?text=${Uri.encodeComponent(buffer.toString())}',
-                      );
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(
-                          url,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
-  },
-);
-}
+  }
 
   Widget _buildCajeroRestringido(bool isDark) {
     return Center(

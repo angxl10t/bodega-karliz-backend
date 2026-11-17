@@ -153,10 +153,7 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
             color: cardBg,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,
@@ -192,443 +189,450 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
                 SizedBox(height: isWide ? 20 : 14),
 
                 // Cabecera
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary.withValues(
-                              alpha: 0.12,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            LucideIcons.crown,
-                            color: AppTheme.brandPrimary,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Mi Plan y Suscripción',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.brandPrimary.withValues(
+                                  alpha: 0.12,
                                 ),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              Text(
-                                widget.nombreBodega.isNotEmpty
-                                    ? widget.nombreBodega
-                                    : 'CajaYa Cloud POS',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(
-                      LucideIcons.x,
-                      size: 20,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 20),
-
-            // Contenido Scrolleable
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // 1. Tarjeta de Estado del Plan Actual
-                          Container(
-                            padding: const EdgeInsets.all(18),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: isDark
-                                    ? [
-                                        const Color(0xFF1E293B),
-                                        const Color(0xFF0F172A),
-                                      ]
-                                    : [
-                                        const Color(0xFFF8FAFC),
-                                        const Color(0xFFEEF2F6),
-                                      ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isDark
-                                    ? const Color(0xFF334155)
-                                    : const Color(0xFFE2E8F0),
+                              child: const Icon(
+                                LucideIcons.crown,
+                                color: AppTheme.brandPrimary,
+                                size: 22,
                               ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  alignment: WrapAlignment.spaceBetween,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            isPro
-                                                ? 'Plan Minimarket PRO'
-                                                : 'Plan Bodega Básico',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 17.5,
-                                              fontWeight: FontWeight.w900,
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : AppTheme.textDark,
-                                            ),
-                                          ),
-                                        ),
-                                        if (isPro) ...[
-                                          const SizedBox(width: 6),
-                                          const Icon(
-                                            LucideIcons.sparkles,
-                                            color: Color(0xFFF59E0B),
-                                            size: 16,
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: statusColor.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: statusColor.withValues(
-                                            alpha: 0.35,
-                                          ),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            statusIcon,
-                                            color: statusColor,
-                                            size: 13,
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Flexible(
-                                            child: Text(
-                                              statusText,
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w800,
-                                                color: statusColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  isPro
-                                      ? 'Tarifa: S/ 79.00 /mes (o S/ 199 trimestral) • Catálogo Ilimitado + Ventas Online'
-                                      : 'Tarifa: S/ 39.00 /mes (o S/ 99 trimestral) • POS Rápido + Caja Diaria',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.brandPrimary,
-                                  ),
-                                ),
-                                if (_fechaVencimiento != null) ...[
-                                  const SizedBox(height: 6),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    'Fecha de Corte / Renovación: ${_fechaVencimiento!.day}/${_fechaVencimiento!.month}/${_fechaVencimiento!.year}',
+                                    'Mi Plan y Suscripción',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    widget.nombreBodega.isNotEmpty
+                                        ? widget.nombreBodega
+                                        : 'CajaYa Cloud POS',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
                                       color: isDark
                                           ? AppTheme.textDarkSecondary
                                           : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-
-                          // 2. Información de Cobro Transparente (Gestión Directa por Macro / Sin Débito Automático)
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: AppTheme.brandPrimary.withValues(
-                                alpha: 0.08,
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: AppTheme.brandPrimary.withValues(
-                                  alpha: 0.2,
-                                ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  LucideIcons.shieldCheck,
-                                  color: AppTheme.brandPrimary,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Gestión de Cobro 100% Controlada',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w800,
-                                          color: isDark
-                                              ? AppTheme.brandLight
-                                              : AppTheme.brandDark,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'No realizamos débitos automáticos en tarjeta. El pago mensual se coordina de forma directa vía Yape, Plin o WhatsApp.',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDark
-                                              ? AppTheme.textDarkSecondary
-                                              : const Color(0xFF475569),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 18),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: Icon(
+                          LucideIcons.x,
+                          size: 20,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 20),
 
-                          // 3. Botones de Acción (Renovación y Soporte)
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final yapeBtn = ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF732283),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 13,
-                                    horizontal: 12,
+                // Contenido Scrolleable
+                Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // 1. Tarjeta de Estado del Plan Actual
+                              Container(
+                                padding: const EdgeInsets.all(18),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isDark
+                                        ? [
+                                            const Color(0xFF1E293B),
+                                            const Color(0xFF0F172A),
+                                          ]
+                                        : [
+                                            const Color(0xFFF8FAFC),
+                                            const Color(0xFFEEF2F6),
+                                          ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                icon: const Icon(LucideIcons.qrCode, size: 18),
-                                label: Text(
-                                  'Pagar con Yape / Plin',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  PagoYapeModal.show(
-                                    context,
-                                    planInicial: widget.planActual,
-                                    onPlanUpdated: widget.onPlanUpdated,
-                                  );
-                                },
-                              );
-                              final whatsappBtn = OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF16A34A),
-                                  side: const BorderSide(
-                                    color: Color(0xFF16A34A),
-                                    width: 1.5,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 13,
-                                    horizontal: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFE2E8F0),
                                   ),
                                 ),
-                                icon: const Icon(
-                                  LucideIcons.messageCircle,
-                                  size: 18,
-                                ),
-                                label: Text(
-                                  'WhatsApp Oficial',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                onPressed: _contactarWhatsAppComercial,
-                              );
-
-                              if (constraints.maxWidth < 330) {
-                                return Column(
+                                child: Column(
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    yapeBtn,
-                                    const SizedBox(height: 10),
-                                    whatsappBtn,
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      alignment: WrapAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                isPro
+                                                    ? 'Plan Minimarket PRO'
+                                                    : 'Plan Bodega Básico',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 17.5,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : AppTheme.textDark,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isPro) ...[
+                                              const SizedBox(width: 6),
+                                              const Icon(
+                                                LucideIcons.sparkles,
+                                                color: Color(0xFFF59E0B),
+                                                size: 16,
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: statusColor.withValues(
+                                              alpha: 0.15,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: statusColor.withValues(
+                                                alpha: 0.35,
+                                              ),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                statusIcon,
+                                                color: statusColor,
+                                                size: 13,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Flexible(
+                                                child: Text(
+                                                  statusText,
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: statusColor,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      isPro
+                                          ? 'Tarifa: S/ 79.00 /mes (o S/ 199 trimestral) • Catálogo Ilimitado + Ventas Online'
+                                          : 'Tarifa: S/ 39.00 /mes (o S/ 99 trimestral) • POS Rápido + Caja Diaria',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.brandPrimary,
+                                      ),
+                                    ),
+                                    if (_fechaVencimiento != null) ...[
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Fecha de Corte / Renovación: ${_fechaVencimiento!.day}/${_fechaVencimiento!.month}/${_fechaVencimiento!.year}',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w500,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
                                   ],
-                                );
-                              }
-                              return Row(
-                                children: [
-                                  Expanded(child: yapeBtn),
-                                  const SizedBox(width: 10),
-                                  Expanded(child: whatsappBtn),
-                                ],
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 22),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
 
-                          // 4. Beneficios incluidos en el Plan Activo
-                          Text(
-                            isPro
-                                ? 'INCLUIDO EN TU PLAN MINIMARKET PRO:'
-                                : 'INCLUIDO EN TU PLAN BODEGA BÁSICO:',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF64748B),
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
+                              // 2. Información de Cobro Transparente (Gestión Directa por Macro / Sin Débito Automático)
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.brandPrimary.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: AppTheme.brandPrimary.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.shieldCheck,
+                                      color: AppTheme.brandPrimary,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Gestión de Cobro 100% Controlada',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.w800,
+                                              color: isDark
+                                                  ? AppTheme.brandLight
+                                                  : AppTheme.brandDark,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'No realizamos débitos automáticos en tarjeta. El pago mensual se coordina de forma directa vía Yape, Plin o WhatsApp.',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                              color: isDark
+                                                  ? AppTheme.textDarkSecondary
+                                                  : const Color(0xFF475569),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 18),
 
-                          if (isPro) ...[
-                            _buildFeatureItem(
-                              icon: LucideIcons.shoppingBag,
-                              title: 'Catálogo Digital "Mi Bodega Online"',
-                              subtitle: 'Enlace web propio para recibir pedidos de clientes por WhatsApp sin comisiones.',
-                              isDark: isDark,
-                            ),
-                            _buildFeatureItem(
-                              icon: LucideIcons.infinity,
-                              title: 'Inventario y Catálogo Ilimitado',
-                              subtitle: 'Registra todos los productos, códigos y presentaciones de tu minimarket.',
-                              isDark: isDark,
-                            ),
-                            _buildFeatureItem(
-                              icon: LucideIcons.badgePercent,
-                              title: 'Promociones 3x2, Combos y Detector Hueso',
-                              subtitle: 'Campañas automáticas y alertas de capital inmovilizado.',
-                              isDark: isDark,
-                            ),
-                            _buildFeatureItem(
-                              icon: LucideIcons.eyeOff,
-                              title:
-                                  'Auditoría Ciega, BI & Cierre por WhatsApp',
-                              subtitle: 'Control anti-robo hormiga, utilidad neta y resumen al dueño.',
-                              isDark: isDark,
-                            ),
-                          ] else ...[
-                            _buildFeatureItem(
-                              icon: LucideIcons.scanBarcode,
-                              title: 'POS Rápido & Tickets Térmicos 58/80mm',
-                              subtitle: 'Cobro ágil con escáner de código de barras e impresión directa.',
-                              isDark: isDark,
-                            ),
-                            _buildFeatureItem(
-                              icon: LucideIcons.package,
-                              title: 'Inventario Activo (Hasta 150 productos)',
-                              subtitle: 'Control de stock en tiempo real y alertas de vencimiento básicas.',
-                              isDark: isDark,
-                            ),
-                            _buildFeatureItem(
-                              icon: LucideIcons.wallet,
-                              title:
-                                  'Caja Diaria, Yape/Plin y Libreta de Fiados',
-                              subtitle: 'Apertura, egresos, arqueo de turno y cuentas por cobrar de vecinos.',
-                              isDark: isDark,
-                            ),
-                            _buildFeatureItem(
-                              icon: LucideIcons.users,
-                              title: 'Modo Offline & Personal Ilimitado',
-                              subtitle: 'Vende incluso sin internet con roles de administrador y cajeros.',
-                              isDark: isDark,
-                            ),
-                          ],
+                              // 3. Botones de Acción (Renovación y Soporte)
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final yapeBtn = ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF732283),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 13,
+                                        horizontal: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                      LucideIcons.qrCode,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      'Pagar con Yape / Plin',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      PagoYapeModal.show(
+                                        context,
+                                        planInicial: widget.planActual,
+                                        onPlanUpdated: widget.onPlanUpdated,
+                                      );
+                                    },
+                                  );
+                                  final whatsappBtn = OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFF16A34A),
+                                      side: const BorderSide(
+                                        color: Color(0xFF16A34A),
+                                        width: 1.5,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 13,
+                                        horizontal: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                      LucideIcons.messageCircle,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      'WhatsApp Oficial',
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    onPressed: _contactarWhatsAppComercial,
+                                  );
 
-                          const SizedBox(height: 10),
-                          PlanComparativaTable(
-                            highlightedPlan: isPro ? 'PRO' : 'BASICO',
-                            title: 'COMPARATIVA DETALLADA: BÁSICO VS PRO',
+                                  if (constraints.maxWidth < 330) {
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        yapeBtn,
+                                        const SizedBox(height: 10),
+                                        whatsappBtn,
+                                      ],
+                                    );
+                                  }
+                                  return Row(
+                                    children: [
+                                      Expanded(child: yapeBtn),
+                                      const SizedBox(width: 10),
+                                      Expanded(child: whatsappBtn),
+                                    ],
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 22),
+
+                              // 4. Beneficios incluidos en el Plan Activo
+                              Text(
+                                isPro
+                                    ? 'INCLUIDO EN TU PLAN MINIMARKET PRO:'
+                                    : 'INCLUIDO EN TU PLAN BODEGA BÁSICO:',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
+                              if (isPro) ...[
+                                _buildFeatureItem(
+                                  icon: LucideIcons.shoppingBag,
+                                  title: 'Catálogo Digital "Mi Bodega Online"',
+                                  subtitle: 'Enlace web propio para recibir pedidos de clientes por WhatsApp sin comisiones.',
+                                  isDark: isDark,
+                                ),
+                                _buildFeatureItem(
+                                  icon: LucideIcons.infinity,
+                                  title: 'Inventario y Catálogo Ilimitado',
+                                  subtitle: 'Registra todos los productos, códigos y presentaciones de tu minimarket.',
+                                  isDark: isDark,
+                                ),
+                                _buildFeatureItem(
+                                  icon: LucideIcons.badgePercent,
+                                  title: 'Promociones 3x2, Combos y Detector Hueso',
+                                  subtitle: 'Campañas automáticas y alertas de capital inmovilizado.',
+                                  isDark: isDark,
+                                ),
+                                _buildFeatureItem(
+                                  icon: LucideIcons.eyeOff,
+                                  title: 'Auditoría Ciega, BI & Cierre por WhatsApp',
+                                  subtitle: 'Control anti-robo hormiga, utilidad neta y resumen al dueño.',
+                                  isDark: isDark,
+                                ),
+                              ] else ...[
+                                _buildFeatureItem(
+                                  icon: LucideIcons.scanBarcode,
+                                  title:
+                                      'POS Rápido & Tickets Térmicos 58/80mm',
+                                  subtitle: 'Cobro ágil con escáner de código de barras e impresión directa.',
+                                  isDark: isDark,
+                                ),
+                                _buildFeatureItem(
+                                  icon: LucideIcons.package,
+                                  title:
+                                      'Inventario Activo (Hasta 150 productos)',
+                                  subtitle: 'Control de stock en tiempo real y alertas de vencimiento básicas.',
+                                  isDark: isDark,
+                                ),
+                                _buildFeatureItem(
+                                  icon: LucideIcons.wallet,
+                                  title: 'Caja Diaria, Yape/Plin y Libreta de Fiados',
+                                  subtitle: 'Apertura, egresos, arqueo de turno y cuentas por cobrar de vecinos.',
+                                  isDark: isDark,
+                                ),
+                                _buildFeatureItem(
+                                  icon: LucideIcons.users,
+                                  title: 'Modo Offline & Personal Ilimitado',
+                                  subtitle: 'Vende incluso sin internet con roles de administrador y cajeros.',
+                                  isDark: isDark,
+                                ),
+                              ],
+
+                              const SizedBox(height: 10),
+                              PlanComparativaTable(
+                                highlightedPlan: isPro ? 'PRO' : 'BASICO',
+                                title: 'COMPARATIVA DETALLADA: BÁSICO VS PRO',
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
         ),
       ),
     );

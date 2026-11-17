@@ -207,10 +207,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
             color: bgCard,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,
@@ -246,447 +243,288 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                     const SizedBox(height: 16),
                   ],
 
-              // Título con ícono representativo de botella retornable
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      LucideIcons.wine,
-                      color: Color(0xFF2563EB),
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dejar Dinero por Botellas',
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
-                          ),
+                  // Título con ícono representativo de botella retornable
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB)
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        Text(
-                          'Garantía en custodia que se devuelve al entregar el envase',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : AppTheme.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      LucideIcons.x,
-                      size: 20,
-                      color: isDark ? Colors.white70 : const Color(0xFF475569),
-                    ),
-                    tooltip: 'Cerrar',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 36,
-                      minHeight: 36,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-
-              // Selector opcional de Vecino Registrado
-              if (widget.clientesDisponibles.isNotEmpty) ...[
-                Text(
-                  'Vincular con Vecino de Libreta (Opcional)',
-                  style: GoogleFonts.outfit(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white70 : AppTheme.textDark,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF0F172A)
-                        : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark
-                          ? const Color(0xFF334155)
-                          : const Color(0xFFE2E8F0),
-                    ),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<Cliente?>(
-                      isExpanded: true,
-                      value: _clienteSeleccionado,
-                      hint: Text(
-                        'Seleccionar vecino de la lista (o escribir abajo)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          color: AppTheme.getAdaptiveHintText(isDark),
+                        child: const Icon(
+                          LucideIcons.wine,
+                          color: Color(0xFF2563EB),
+                          size: 22,
                         ),
                       ),
-                      dropdownColor: isDark
-                          ? const Color(0xFF1E293B)
-                          : Colors.white,
-                      items: [
-                        DropdownMenuItem<Cliente?>(
-                          value: null,
-                          child: Text(
-                            '-- Persona no registrada (escribir nombre manual) --',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                        ...widget.clientesDisponibles.map(
-                          (c) => DropdownMenuItem<Cliente?>(
-                            value: c,
-                            child: Text(
-                              '${c.nombreCompleto} ${c.telefono != null ? "(${c.telefono})" : ""}',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w600,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dejar Dinero por Botellas',
+                              style: GoogleFonts.outfit(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
                               ),
                             ),
-                          ),
+                            Text(
+                              'Garantía en custodia que se devuelve al entregar el envase',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : AppTheme.textMuted,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                      onChanged: _seleccionarCliente,
-                    ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          LucideIcons.x,
+                          size: 20,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF475569),
+                        ),
+                        tooltip: 'Cerrar',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 14),
-              ],
+                  const SizedBox(height: 18),
 
-              // Nombre de la Persona
-              Text(
-                'Nombre de la Persona *',
-                style: GoogleFonts.outfit(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : AppTheme.textDark,
-                ),
-              ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _nombreCtrl,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  hintText: 'Ej. Don Carlos, Vecino del 2do piso',
-                  prefixIcon: const Icon(LucideIcons.user, size: 18),
-                  filled: true,
-                  fillColor: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return 'Ingrese el nombre de la persona';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-
-              // Teléfono (Opcional)
-              Text(
-                'Teléfono / Celular (Opcional)',
-                style: GoogleFonts.outfit(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : AppTheme.textDark,
-                ),
-              ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _telefonoCtrl,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  hintText: 'Ej. 987654321',
-                  prefixIcon: const Icon(LucideIcons.phone, size: 18),
-                  filled: true,
-                  fillColor: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Cantidad de Botellas
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Cantidad de Botellas',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          'Botellas de vidrio que se lleva',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppTheme.getAdaptiveMutedText(isDark),
-                          ),
-                        ),
-                      ],
+                  // Selector opcional de Vecino Registrado
+                  if (widget.clientesDisponibles.isNotEmpty) ...[
+                    Text(
+                      'Vincular con Vecino de Libreta (Opcional)',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white70 : AppTheme.textDark,
+                      ),
                     ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF0F172A)
-                          : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(LucideIcons.minus, size: 16),
-                          onPressed: _cantidadBotellas > 1
-                              ? () {
-                                  setState(() {
-                                    _cantidadBotellas--;
-                                    _recalcularMonto();
-                                  });
-                                }
-                              : null,
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF0F172A)
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
-                          ),
-                          child: Text(
-                            '$_cantidadBotellas',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<Cliente?>(
+                          isExpanded: true,
+                          value: _clienteSeleccionado,
+                          hint: Text(
+                            'Seleccionar vecino de la lista (o escribir abajo)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5,
+                              color: AppTheme.getAdaptiveHintText(isDark),
                             ),
                           ),
+                          dropdownColor: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
+                          items: [
+                            DropdownMenuItem<Cliente?>(
+                              value: null,
+                              child: Text(
+                                '-- Persona no registrada (escribir nombre manual) --',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            ...widget.clientesDisponibles.map(
+                              (c) => DropdownMenuItem<Cliente?>(
+                                value: c,
+                                child: Text(
+                                  '${c.nombreCompleto} ${c.telefono != null ? "(${c.telefono})" : ""}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: _seleccionarCliente,
                         ),
-                        IconButton(
-                          icon: const Icon(LucideIcons.plus, size: 16),
-                          onPressed: () {
-                            setState(() {
-                              _cantidadBotellas++;
-                              _recalcularMonto();
-                            });
-                          },
-                        ),
-                      ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+
+                  // Nombre de la Persona
+                  Text(
+                    'Nombre de la Persona *',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white70 : AppTheme.textDark,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Presets rápidos de cantidad
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [1, 2, 3, 4, 6, 12].map((cant) {
-                  final isSel = _cantidadBotellas == cant;
-                  return ChoiceChip(
-                    label: Text('$cant ${cant == 1 ? "botella" : "botellas"}'),
-                    selected: isSel,
-                    selectedColor: AppTheme.brandPrimary,
-                    labelStyle: GoogleFonts.outfit(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: isSel
-                          ? Colors.white
-                          : (isDark ? Colors.white70 : AppTheme.textDark),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _nombreCtrl,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      hintText: 'Ej. Don Carlos, Vecino del 2do piso',
+                      prefixIcon: const Icon(LucideIcons.user, size: 18),
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
-                    onSelected: (sel) {
-                      if (sel) {
-                        setState(() {
-                          _cantidadBotellas = cant;
-                          _recalcularMonto();
-                        });
+                    validator: (val) {
+                      if (val == null || val.trim().isEmpty) {
+                        return 'Ingrese el nombre de la persona';
                       }
+                      return null;
                     },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
+                  ),
+                  const SizedBox(height: 14),
 
-              // Tipo de Botella / Envase
-              Text(
-                'Tipo de Envase / Botella',
-                style: GoogleFonts.outfit(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _tiposBotellasComunes.map((tipo) {
-                  final isSel = _tipoBotella == tipo;
-                  return FilterChip(
-                    label: Text(tipo),
-                    selected: isSel,
-                    selectedColor: const Color(0xFF2563EB)
-                        .withValues(alpha: 0.2),
-                    checkmarkColor: const Color(0xFF2563EB),
-                    labelStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
+                  // Teléfono (Opcional)
+                  Text(
+                    'Teléfono / Celular (Opcional)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
                       fontWeight: FontWeight.w700,
-                      color: isSel
-                          ? const Color(0xFF2563EB)
-                          : (isDark ? Colors.white70 : AppTheme.textDark),
-                    ),
-                    onSelected: (sel) {
-                      if (sel) {
-                        setState(() {
-                          _tipoBotella = tipo;
-                          if (tipo.contains('Cerveza')) {
-                            _montoUnitarioSugerido = 2.00;
-                          } else if (tipo.contains('Gaseosa')) {
-                            _montoUnitarioSugerido = 2.00;
-                          } else if (tipo.contains('Bidón')) {
-                            _montoUnitarioSugerido = 10.00;
-                          }
-                          _recalcularMonto();
-                        });
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-
-              // Monto en Dinero Dejado en Garantía
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Monto en Dinero Dejado (S/) *',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Text(
-                          'Total retenido que se devolverá al cliente',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppTheme.getAdaptiveMutedText(isDark),
-                          ),
-                        ),
-                      ],
+                      color: isDark ? Colors.white70 : AppTheme.textDark,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _montoCtrl,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF16A34A),
-                ),
-                decoration: InputDecoration(
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    child: Text(
-                      'S/',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF16A34A),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _telefonoCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      hintText: 'Ej. 987654321',
+                      prefixIcon: const Icon(LucideIcons.phone, size: 18),
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
-                  filled: true,
-                  fillColor: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty)
-                    return 'Ingrese el monto de dinero';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
+                  const SizedBox(height: 16),
 
-              // Chips de sugerencia de precio unitario con contexto comercial
-              Text(
-                'Tarifa sugerida por envase',
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.getAdaptiveMutedText(isDark),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children:
-                    [
-                      {'tarifa': 1.00, 'label': 'S/ 1.00 (Personal)'},
-                      {'tarifa': 2.00, 'label': 'S/ 2.00 (Cerveza / 1L)'},
-                      {'tarifa': 2.50, 'label': 'S/ 2.50'},
-                      {'tarifa': 3.00, 'label': 'S/ 3.00 (Familiar)'},
-                      {'tarifa': 5.00, 'label': 'S/ 5.00 (Caja)'},
-                      {'tarifa': 10.00, 'label': 'S/ 10.00 (Bidón)'},
-                    ].map((item) {
-                      final tarifa = item['tarifa'] as double;
-                      final label = item['label'] as String;
-                      final isSel =
-                          (_montoUnitarioSugerido - tarifa).abs() < 0.01;
+                  // Cantidad de Botellas
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cantidad de Botellas',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              'Botellas de vidrio que se lleva',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                color: AppTheme.getAdaptiveMutedText(isDark),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(LucideIcons.minus, size: 16),
+                              onPressed: _cantidadBotellas > 1
+                                  ? () {
+                                      setState(() {
+                                        _cantidadBotellas--;
+                                        _recalcularMonto();
+                                      });
+                                    }
+                                  : null,
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              child: Text(
+                                '$_cantidadBotellas',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(LucideIcons.plus, size: 16),
+                              onPressed: () {
+                                setState(() {
+                                  _cantidadBotellas++;
+                                  _recalcularMonto();
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Presets rápidos de cantidad
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [1, 2, 3, 4, 6, 12].map((cant) {
+                      final isSel = _cantidadBotellas == cant;
                       return ChoiceChip(
-                        label: Text(label),
+                        label: Text(
+                          '$cant ${cant == 1 ? "botella" : "botellas"}',
+                        ),
                         selected: isSel,
-                        selectedColor: const Color(0xFF2563EB),
-                        backgroundColor: isDark
-                            ? const Color(0xFF0F172A)
-                            : const Color(0xFFF1F5F9),
+                        selectedColor: AppTheme.brandPrimary,
                         labelStyle: GoogleFonts.outfit(
-                          fontSize: 11,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: isSel
                               ? Colors.white
@@ -694,119 +532,290 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                         ),
                         onSelected: (sel) {
                           if (sel) {
-                            HapticFeedback.selectionClick();
                             setState(() {
-                              _montoUnitarioSugerido = tarifa;
+                              _cantidadBotellas = cant;
                               _recalcularMonto();
                             });
                           }
                         },
                       );
                     }).toList(),
-              ),
-              const SizedBox(height: 16),
-
-              // Notas / Observaciones
-              Text(
-                'Notas u Observaciones (Opcional)',
-                style: GoogleFonts.outfit(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _notasCtrl,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  hintText: 'Ej. Dejó billete de S/ 10, botellas de Cristal retornables',
-                  filled: true,
-                  fillColor: isDark
-                      ? const Color(0xFF0F172A)
-                      : const Color(0xFFF8FAFC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-              // Botones Cancelar y Guardar
-              Row(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: SizedBox(
-                      height: 48,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: isDark
-                              ? const Color(0xFFCBD5E1)
-                              : const Color(0xFF475569),
-                          side: BorderSide(
-                            color: isDark
-                                ? const Color(0xFF334155)
-                                : const Color(0xFFCBD5E1),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
+                  // Tipo de Botella / Envase
+                  Text(
+                    'Tipo de Envase / Botella',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _tiposBotellasComunes.map((tipo) {
+                      final isSel = _tipoBotella == tipo;
+                      return FilterChip(
+                        label: Text(tipo),
+                        selected: isSel,
+                        selectedColor: const Color(0xFF2563EB)
+                            .withValues(alpha: 0.2),
+                        checkmarkColor: const Color(0xFF2563EB),
+                        labelStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: isSel
+                              ? const Color(0xFF2563EB)
+                              : (isDark ? Colors.white70 : AppTheme.textDark),
                         ),
-                        onPressed: () => Navigator.pop(context),
+                        onSelected: (sel) {
+                          if (sel) {
+                            setState(() {
+                              _tipoBotella = tipo;
+                              if (tipo.contains('Cerveza')) {
+                                _montoUnitarioSugerido = 2.00;
+                              } else if (tipo.contains('Gaseosa')) {
+                                _montoUnitarioSugerido = 2.00;
+                              } else if (tipo.contains('Bidón')) {
+                                _montoUnitarioSugerido = 10.00;
+                              }
+                              _recalcularMonto();
+                            });
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Monto en Dinero Dejado en Garantía
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Monto en Dinero Dejado (S/) *',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              'Total retenido que se devolverá al cliente',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                color: AppTheme.getAdaptiveMutedText(isDark),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _montoCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF16A34A),
+                    ),
+                    decoration: InputDecoration(
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         child: Text(
-                          'Cancelar',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
+                          'S/',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF16A34A),
                           ),
                         ),
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (val) {
+                      if (val == null || val.trim().isEmpty)
+                        return 'Ingrese el monto de dinero';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Chips de sugerencia de precio unitario con contexto comercial
+                  Text(
+                    'Tarifa sugerida por envase',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children:
+                        [
+                          {'tarifa': 1.00, 'label': 'S/ 1.00 (Personal)'},
+                          {'tarifa': 2.00, 'label': 'S/ 2.00 (Cerveza / 1L)'},
+                          {'tarifa': 2.50, 'label': 'S/ 2.50'},
+                          {'tarifa': 3.00, 'label': 'S/ 3.00 (Familiar)'},
+                          {'tarifa': 5.00, 'label': 'S/ 5.00 (Caja)'},
+                          {'tarifa': 10.00, 'label': 'S/ 10.00 (Bidón)'},
+                        ].map((item) {
+                          final tarifa = item['tarifa'] as double;
+                          final label = item['label'] as String;
+                          final isSel =
+                              (_montoUnitarioSugerido - tarifa).abs() < 0.01;
+                          return ChoiceChip(
+                            label: Text(label),
+                            selected: isSel,
+                            selectedColor: const Color(0xFF2563EB),
+                            backgroundColor: isDark
+                                ? const Color(0xFF0F172A)
+                                : const Color(0xFFF1F5F9),
+                            labelStyle: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: isSel
+                                  ? Colors.white
+                                  : (isDark
+                                        ? Colors.white70
+                                        : AppTheme.textDark),
+                            ),
+                            onSelected: (sel) {
+                              if (sel) {
+                                HapticFeedback.selectionClick();
+                                setState(() {
+                                  _montoUnitarioSugerido = tarifa;
+                                  _recalcularMonto();
+                                });
+                              }
+                            },
+                          );
+                        }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Notas / Observaciones
+                  Text(
+                    'Notas u Observaciones (Opcional)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    controller: _notasCtrl,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      hintText: 'Ej. Dejó billete de S/ 10, botellas de Cristal retornables',
+                      filled: true,
+                      fillColor: isDark
+                          ? const Color(0xFF0F172A)
+                          : const Color(0xFFF8FAFC),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 2,
-                    child: SizedBox(
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                  const SizedBox(height: 24),
+
+                  // Botones Cancelar y Guardar
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox(
+                          height: 48,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF475569),
+                              side: BorderSide(
+                                color: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFCBD5E1),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              'Cancelar',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
-                          elevation: 2,
                         ),
-                        icon: _guardando
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(LucideIcons.check, size: 18),
-                        label: Text(
-                          _guardando
-                              ? 'Guardando...'
-                              : 'Registrar Garantía de Botellas',
-                          style: GoogleFonts.outfit(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        onPressed: _guardando ? null : _guardar,
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 2,
+                            ),
+                            icon: _guardando
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(LucideIcons.check, size: 18),
+                            label: Text(
+                              _guardando
+                                  ? 'Guardando...'
+                                  : 'Registrar Garantía de Botellas',
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            onPressed: _guardando ? null : _guardar,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
         ),
       ),
     );

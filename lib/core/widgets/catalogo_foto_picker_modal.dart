@@ -127,10 +127,7 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
             color: cardBg,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,
@@ -162,208 +159,213 @@ class _CatalogoFotoPickerModalState extends State<CatalogoFotoPickerModal>
               SizedBox(height: isWide ? 20 : 14),
 
               // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.surfaceTintDark
-                        : AppTheme.surfaceTint,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.surfaceTintDark
+                            : AppTheme.surfaceTint,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        LucideIcons.camera,
+                        color: AppTheme.brandPrimary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Foto del Producto',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                          Text(
+                            'Formato profesional de estudio (Vista Frontal 1:1)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF334155),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(LucideIcons.x, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Tabs
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: isDark ? Colors.white : AppTheme.brandPrimary,
+                  unselectedLabelColor: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF475569),
+                  labelStyle: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                  indicator: BoxDecoration(
+                    color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    LucideIcons.camera,
-                    color: AppTheme.brandPrimary,
-                    size: 20,
-                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  padding: const EdgeInsets.all(4),
+                  tabs: const [
+                    Tab(
+                      iconMargin: EdgeInsets.zero,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.sparkles, size: 15),
+                          SizedBox(width: 6),
+                          Text('Catálogo Oficial'),
+                        ],
+                      ),
+                    ),
+                    Tab(
+                      iconMargin: EdgeInsets.zero,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(LucideIcons.link, size: 15),
+                          SizedBox(width: 6),
+                          Text('URL Propia'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Foto del Producto',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+              const SizedBox(height: 12),
+
+              // Tab Content
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Tab 1: Catálogo Oficial de Packshots
+                    _buildCatalogoTab(isDark, borderColor),
+
+                    // Tab 2: URL Personalizada
+                    _buildUrlTab(isDark, borderColor),
+                  ],
+                ),
+              ),
+
+              // Footer Actions
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppTheme.cardDarkElevated
+                      : const Color(0xFFF8FAFC),
+                  border: Border(top: BorderSide(color: borderColor)),
+                ),
+                child: Row(
+                  children: [
+                    if (_selectedUrl != null && _selectedUrl!.isNotEmpty) ...[
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.alertRed,
+                          side: const BorderSide(
+                            color: AppTheme.alertRed,
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.trash2, size: 16),
+                        label: Text(
+                          'Quitar Foto',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                        onPressed: () {
+                          widget.onItemSeleccionado?.call(null);
+                          widget.onFotoSeleccionada(null);
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.brandPrimary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        onPressed: () {
+                          widget.onItemSeleccionado?.call(_selectedItem);
+                          widget.onFotoSeleccionada(_selectedUrl);
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          _selectedUrl != null && _selectedUrl!.isNotEmpty
+                              ? 'Aplicar Foto Seleccionada'
+                              : 'Cerrar sin Cambios',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      Text(
-                        'Formato profesional de estudio (Vista Frontal 1:1)',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF334155),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(LucideIcons.x, size: 20),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // Tabs
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: isDark ? Colors.white : AppTheme.brandPrimary,
-              unselectedLabelColor: isDark
-                  ? AppTheme.textDarkSecondary
-                  : const Color(0xFF475569),
-              labelStyle: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
               ),
-              indicator: BoxDecoration(
-                color: isDark ? AppTheme.cardDark : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              padding: const EdgeInsets.all(4),
-              tabs: const [
-                Tab(
-                  iconMargin: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(LucideIcons.sparkles, size: 15),
-                      SizedBox(width: 6),
-                      Text('Catálogo Oficial'),
-                    ],
-                  ),
-                ),
-                Tab(
-                  iconMargin: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(LucideIcons.link, size: 15),
-                      SizedBox(width: 6),
-                      Text('URL Propia'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
-          const SizedBox(height: 12),
-
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Tab 1: Catálogo Oficial de Packshots
-                _buildCatalogoTab(isDark, borderColor),
-
-                // Tab 2: URL Personalizada
-                _buildUrlTab(isDark, borderColor),
-              ],
-            ),
-          ),
-
-          // Footer Actions
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppTheme.cardDarkElevated
-                  : const Color(0xFFF8FAFC),
-              border: Border(top: BorderSide(color: borderColor)),
-            ),
-            child: Row(
-              children: [
-                if (_selectedUrl != null && _selectedUrl!.isNotEmpty) ...[
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.alertRed,
-                      side: const BorderSide(
-                        color: AppTheme.alertRed,
-                        width: 1,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                    ),
-                    icon: const Icon(LucideIcons.trash2, size: 16),
-                    label: Text(
-                      'Quitar Foto',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                    onPressed: () {
-                      widget.onItemSeleccionado?.call(null);
-                      widget.onFotoSeleccionada(null);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.brandPrimary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: () {
-                      widget.onItemSeleccionado?.call(_selectedItem);
-                      widget.onFotoSeleccionada(_selectedUrl);
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      _selectedUrl != null && _selectedUrl!.isNotEmpty
-                          ? 'Aplicar Foto Seleccionada'
-                          : 'Cerrar sin Cambios',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
-    ),
-    ),
     );
   }
 

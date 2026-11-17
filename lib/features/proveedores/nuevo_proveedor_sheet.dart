@@ -160,10 +160,7 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
             color: isDark ? AppTheme.cardDarkElevated : Colors.white,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,

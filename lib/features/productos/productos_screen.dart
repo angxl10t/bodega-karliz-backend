@@ -1975,7 +1975,8 @@ class _ProductosScreenState extends State<ProductosScreen>
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: 580,
-              maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.88 : 0.90),
+              maxHeight:
+                  MediaQuery.of(context).size.height * (isWide ? 0.88 : 0.90),
             ),
             child: Container(
               decoration: BoxDecoration(
@@ -1984,12 +1985,11 @@ class _ProductosScreenState extends State<ProductosScreen>
                     ? BorderRadius.circular(24)
                     : const BorderRadius.vertical(top: Radius.circular(32)),
                 border: isDark
-                    ? Border.all(
-                        color: AppTheme.borderDarkElevated,
-                        width: 1.2,
-                      )
+                    ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                     : Border.all(
-                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        color: isWide
+                            ? AppTheme.borderLight
+                            : Colors.transparent,
                         width: 1.0,
                       ),
                 boxShadow: [
@@ -2028,614 +2028,647 @@ class _ProductosScreenState extends State<ProductosScreen>
                         ),
                         const SizedBox(height: 18),
                       ],
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Packshot de Estudio Frontal en Gran Detalle (130 px)
-                    ProductImageWidget(
-                      imagenUrl: p.imagenUrl,
-                      nombre: p.nombre,
-                      codigoBarras: p.codigoBarras,
-                      categoria: p.nombreCategoria,
-                      size: 130,
-                      borderRadius: 24,
-                      isDark: isDark,
-                      padding: 8,
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            p.nombre,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
+                          // Packshot de Estudio Frontal en Gran Detalle (130 px)
+                          ProductImageWidget(
+                            imagenUrl: p.imagenUrl,
+                            nombre: p.nombre,
+                            codigoBarras: p.codigoBarras,
+                            categoria: p.nombreCategoria,
+                            size: 130,
+                            borderRadius: 24,
+                            isDark: isDark,
+                            padding: 8,
                           ),
-                          const SizedBox(height: 5),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: catColor.withValues(
-                                    alpha: isDark ? 0.18 : 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  categoriaNombre.toUpperCase(),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: catColor,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? const Color(0xFF1E293B)
-                                      : const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? const Color(0xFF334155)
-                                        : const Color(0xFFCBD5E1),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Text(
-                                  'SKU: ${p.codigo}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? const Color(0xFFCBD5E1)
-                                        : const Color(0xFF334155),
-                                  ),
-                                ),
-                              ),
-                              if (p.marca != null && p.marca!.isNotEmpty)
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  'Marca: ${p.marca}',
+                                  p.nombre,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    color: AppTheme.getAdaptiveMutedText(
-                                      isDark,
-                                    ),
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
                                 ),
-                              if (p.codigoBarras != null &&
-                                  p.codigoBarras!.isNotEmpty &&
-                                  p.codigoBarras != p.codigo)
-                                Text(
-                                  'EAN: ${p.codigoBarras}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11,
-                                    color: AppTheme.getAdaptiveMutedText(
-                                      isDark,
-                                    ),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              if (p.controlaVencimiento)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 7,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: Colors.amber.shade700.withValues(
-                                        alpha: 0.5,
+                                const SizedBox(height: 5),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 2,
                                       ),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        LucideIcons.calendarClock,
-                                        size: 10,
-                                        color: Colors.amber.shade700,
+                                      decoration: BoxDecoration(
+                                        color: catColor.withValues(
+                                          alpha: isDark ? 0.18 : 0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Perecible / Vencimiento',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 10.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? Colors.amber.shade300
-                                              : Colors.amber.shade900,
+                                      child: Text(
+                                        categoriaNombre.toUpperCase(),
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: catColor,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? const Color(0xFF1E293B)
+                                            : const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? const Color(0xFF334155)
+                                              : const Color(0xFFCBD5E1),
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'SKU: ${p.codigo}',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? const Color(0xFFCBD5E1)
+                                              : const Color(0xFF334155),
+                                        ),
+                                      ),
+                                    ),
+                                    if (p.marca != null && p.marca!.isNotEmpty)
+                                      Text(
+                                        'Marca: ${p.marca}',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12,
+                                          color: AppTheme.getAdaptiveMutedText(
+                                            isDark,
+                                          ),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    if (p.codigoBarras != null &&
+                                        p.codigoBarras!.isNotEmpty &&
+                                        p.codigoBarras != p.codigo)
+                                      Text(
+                                        'EAN: ${p.codigoBarras}',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 11,
+                                          color: AppTheme.getAdaptiveMutedText(
+                                            isDark,
+                                          ),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    if (p.controlaVencimiento)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.amber.shade700
+                                                .withValues(alpha: 0.5),
+                                            width: 0.8,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              LucideIcons.calendarClock,
+                                              size: 10,
+                                              color: Colors.amber.shade700,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Perecible / Vencimiento',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 10.5,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark
+                                                        ? Colors.amber.shade300
+                                                        : Colors.amber.shade900,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                            ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          IconButton(
+                            style: IconButton.styleFrom(
+                              padding: const EdgeInsets.all(6),
+                              minimumSize: const Size(32, 32),
+                            ),
+                            icon: Icon(
+                              LucideIcons.x,
+                              size: 18,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                            tooltip: 'Cerrar Detalle',
+                            onPressed: () => Navigator.pop(ctx),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    IconButton(
-                      style: IconButton.styleFrom(
-                        padding: const EdgeInsets.all(6),
-                        minimumSize: const Size(32, 32),
-                      ),
-                      icon: Icon(
-                        LucideIcons.x,
-                        size: 18,
-                        color: isDark ? Colors.white70 : Colors.black54,
-                      ),
-                      tooltip: 'Cerrar Detalle',
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.cardDarkSunken
-                        : const Color(0xFFF8F9FA),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isDark
-                          ? AppTheme.borderDark
-                          : AppTheme.borderLight,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Precio Venta',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF334155),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'S/ ${p.precioVenta.toStringAsFixed(2)}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.brandPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const SizedBox(height: 20),
                       Container(
-                        width: 1,
-                        height: 38,
-                        color: isDark
-                            ? AppTheme.borderDark
-                            : AppTheme.borderLight,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.borderDark
+                                : AppTheme.borderLight,
+                          ),
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              'Stock Actual',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF334155),
-                                fontWeight: FontWeight.w700,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Precio Venta',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppTheme.brandPrimary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} unid.',
-                              style: GoogleFonts.outfit(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.textDark,
+                            Container(
+                              width: 1,
+                              height: 38,
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : AppTheme.borderLight,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Stock Actual',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${p.stockActual % 1 == 0 ? p.stockActual.toInt().toString() : p.stockActual.toStringAsFixed(2)} unid.',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 38,
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : AppTheme.borderLight,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Valor Stock',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'S/ ${valorTotal.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.accentGreen,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Container(
-                        width: 1,
-                        height: 38,
-                        color: isDark
-                            ? AppTheme.borderDark
-                            : AppTheme.borderLight,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Valor Stock',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF334155),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'S/ ${valorTotal.toStringAsFixed(2)}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.accentGreen,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_esAdmin || PermisosCajeroService.puedeVerCostos) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8B5CF6)
-                          .withValues(alpha: isDark ? 0.15 : 0.08),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              LucideIcons.badgePercent,
-                              size: 16,
-                              color: Color(0xFF8B5CF6),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Costo Compra: S/ ${p.costoUnitarioEstimado.toStringAsFixed(2)}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? const Color(0xFFDDD6FE)
-                                    : const Color(0xFF5B21B6),
-                              ),
-                            ),
-                          ],
-                        ),
+                      if (_esAdmin || PermisosCajeroService.puedeVerCostos) ...[
+                        const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
+                            horizontal: 14,
+                            vertical: 10,
                           ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF8B5CF6)
-                                .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'Margen: ${p.precioVenta > 0 ? (((p.precioVenta - p.costoUnitarioEstimado) / p.precioVenta) * 100).toStringAsFixed(1) : "0.0"}%',
-                            style: GoogleFonts.outfit(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? const Color(0xFFDDD6FE)
-                                  : const Color(0xFF5B21B6),
+                                .withValues(alpha: isDark ? 0.15 : 0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFF8B5CF6)
+                                  .withValues(alpha: 0.3),
                             ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.badgePercent,
+                                    size: 16,
+                                    color: Color(0xFF8B5CF6),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Costo Compra: S/ ${p.costoUnitarioEstimado.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? const Color(0xFFDDD6FE)
+                                          : const Color(0xFF5B21B6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8B5CF6)
+                                      .withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Margen: ${p.precioVenta > 0 ? (((p.precioVenta - p.costoUnitarioEstimado) / p.precioVenta) * 100).toStringAsFixed(1) : "0.0"}%',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? const Color(0xFFDDD6FE)
+                                        : const Color(0xFF5B21B6),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-                if (p.controlaVencimiento) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color:
-                          (p.diasParaVencer != null && p.diasParaVencer! <= 0)
-                          ? const Color(0xFFEF4444)
-                                .withValues(alpha: isDark ? 0.15 : 0.08)
-                          : (p.diasParaVencer != null && p.diasParaVencer! <= 7)
-                          ? const Color(0xFFEA580C)
-                                .withValues(alpha: isDark ? 0.15 : 0.08)
-                          : const Color(0xFFD97706)
-                                .withValues(alpha: isDark ? 0.15 : 0.08),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color:
-                            (p.diasParaVencer != null && p.diasParaVencer! <= 0)
-                            ? const Color(0xFFEF4444).withValues(alpha: 0.35)
-                            : (p.diasParaVencer != null &&
-                                  p.diasParaVencer! <= 7)
-                            ? const Color(0xFFEA580C).withValues(alpha: 0.35)
-                            : const Color(0xFFD97706).withValues(alpha: 0.35),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              (p.diasParaVencer != null &&
-                                      p.diasParaVencer! <= 0)
-                                  ? LucideIcons.alertOctagon
-                                  : (p.diasParaVencer != null &&
-                                        p.diasParaVencer! <= 7)
-                                  ? LucideIcons.zap
-                                  : LucideIcons.rotateCw,
-                              size: 16,
+                      if (p.controlaVencimiento) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color:
+                                (p.diasParaVencer != null &&
+                                    p.diasParaVencer! <= 0)
+                                ? const Color(0xFFEF4444)
+                                      .withValues(alpha: isDark ? 0.15 : 0.08)
+                                : (p.diasParaVencer != null &&
+                                      p.diasParaVencer! <= 7)
+                                ? const Color(0xFFEA580C)
+                                      .withValues(alpha: isDark ? 0.15 : 0.08)
+                                : const Color(0xFFD97706)
+                                      .withValues(alpha: isDark ? 0.15 : 0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
                               color:
                                   (p.diasParaVencer != null &&
                                       p.diasParaVencer! <= 0)
                                   ? const Color(0xFFEF4444)
+                                        .withValues(alpha: 0.35)
                                   : (p.diasParaVencer != null &&
                                         p.diasParaVencer! <= 7)
                                   ? const Color(0xFFEA580C)
-                                  : const Color(0xFFD97706),
+                                        .withValues(alpha: 0.35)
+                                  : const Color(0xFFD97706)
+                                        .withValues(alpha: 0.35),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                p.fechaVencimiento != null
-                                    ? 'Lote FIFO • Vence: ${p.fechaVencimiento!.day}/${p.fechaVencimiento!.month}/${p.fechaVencimiento!.year} (${p.diasParaVencer != null && p.diasParaVencer! <= 0 ? "Vencido hace ${p.diasParaVencer!.abs()}d" : "En ${p.diasParaVencer} días"})'
-                                    : 'Control FIFO activo (Sin fecha registrada)',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
-                                ),
-                              ),
-                            ),
-                            if (_esAdmin ||
-                                PermisosCajeroService.puedeModificarPrecios)
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(ctx);
-                                  final now = DateTime.now();
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate:
-                                        p.fechaVencimiento ??
-                                        now.add(const Duration(days: 30)),
-                                    firstDate: now.subtract(
-                                      const Duration(days: 365),
-                                    ),
-                                    lastDate: now.add(
-                                      const Duration(days: 365 * 3),
-                                    ),
-                                    helpText: 'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
-                                    confirmText: 'GUARDAR',
-                                    cancelText: 'CANCELAR',
-                                  );
-                                  if (picked != null) {
-                                    final actualizado = p.copyWith(
-                                      fechaVencimiento: picked,
-                                    );
-                                    final ok = await _productoService
-                                        .actualizarProducto(actualizado);
-                                    if (ok && mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Lote FIFO de "${p.nombre}" actualizado al ${picked.day}/${picked.month}/${picked.year}',
-                                          ),
-                                          backgroundColor: AppTheme.accentGreen,
-                                        ),
-                                      );
-                                      _cargarProductos();
-                                    }
-                                  }
-                                },
-                                child: const Text(
-                                  'Rotar / Fecha',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    (p.diasParaVencer != null &&
+                                            p.diasParaVencer! <= 0)
+                                        ? LucideIcons.alertOctagon
+                                        : (p.diasParaVencer != null &&
+                                              p.diasParaVencer! <= 7)
+                                        ? LucideIcons.zap
+                                        : LucideIcons.rotateCw,
+                                    size: 16,
+                                    color:
+                                        (p.diasParaVencer != null &&
+                                            p.diasParaVencer! <= 0)
+                                        ? const Color(0xFFEF4444)
+                                        : (p.diasParaVencer != null &&
+                                              p.diasParaVencer! <= 7)
+                                        ? const Color(0xFFEA580C)
+                                        : const Color(0xFFD97706),
                                   ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      p.fechaVencimiento != null
+                                          ? 'Lote FIFO • Vence: ${p.fechaVencimiento!.day}/${p.fechaVencimiento!.month}/${p.fechaVencimiento!.year} (${p.diasParaVencer != null && p.diasParaVencer! <= 0 ? "Vencido hace ${p.diasParaVencer!.abs()}d" : "En ${p.diasParaVencer} días"})'
+                                          : 'Control FIFO activo (Sin fecha registrada)',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                    ),
+                                  ),
+                                  if (_esAdmin ||
+                                      PermisosCajeroService
+                                          .puedeModificarPrecios)
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.pop(ctx);
+                                        final now = DateTime.now();
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate:
+                                              p.fechaVencimiento ??
+                                              now.add(const Duration(days: 30)),
+                                          firstDate: now.subtract(
+                                            const Duration(days: 365),
+                                          ),
+                                          lastDate: now.add(
+                                            const Duration(days: 365 * 3),
+                                          ),
+                                          helpText: 'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
+                                          confirmText: 'GUARDAR',
+                                          cancelText: 'CANCELAR',
+                                        );
+                                        if (picked != null) {
+                                          final actualizado = p.copyWith(
+                                            fechaVencimiento: picked,
+                                          );
+                                          final ok = await _productoService
+                                              .actualizarProducto(actualizado);
+                                          if (ok && mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Lote FIFO de "${p.nombre}" actualizado al ${picked.day}/${picked.month}/${picked.year}',
+                                                ),
+                                                backgroundColor:
+                                                    AppTheme.accentGreen,
+                                              ),
+                                            );
+                                            _cargarProductos();
+                                          }
+                                        }
+                                      },
+                                      child: const Text(
+                                        'Rotar / Fecha',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                (p.diasParaVencer != null &&
+                                        p.diasParaVencer! <= 0)
+                                    ? '⚠️ REGLA FIFO: Retirar inmediatamente de exhibición para evitar multas sanitarias. Registrar merma o devolución a proveedor.'
+                                    : (p.diasParaVencer != null &&
+                                          p.diasParaVencer! <= 7)
+                                    ? '⚡ REGLA FIFO: Salida prioritaria urgente. Exhibir al frente del mostrador o crear descuento express para liquidar el stock.'
+                                    : '📦 REGLA FIFO: Rotación en repisa. Colocar este lote adelante de los productos que vencen más tarde.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                  height: 1.3,
                                 ),
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          (p.diasParaVencer != null && p.diasParaVencer! <= 0)
-                              ? '⚠️ REGLA FIFO: Retirar inmediatamente de exhibición para evitar multas sanitarias. Registrar merma o devolución a proveedor.'
-                              : (p.diasParaVencer != null &&
-                                    p.diasParaVencer! <= 7)
-                              ? '⚡ REGLA FIFO: Salida prioritaria urgente. Exhibir al frente del mostrador o crear descuento express para liquidar el stock.'
-                              : '📦 REGLA FIFO: Rotación en repisa. Colocar este lote adelante de los productos que vencen más tarde.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : const Color(0xFF64748B),
-                            height: 1.3,
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.brandPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    icon: const Icon(LucideIcons.fileSpreadsheet, size: 16),
-                    label: Text(
-                      'Ver Historial de Movimientos (Kardex)',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12.5,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const KardexScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    if (_esAdmin ||
-                        PermisosCajeroService.puedeModificarPrecios) ...[
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            side: const BorderSide(
-                              color: AppTheme.brandDark,
-                              width: 1.2,
-                            ),
-                            foregroundColor: AppTheme.brandDark,
+                      const SizedBox(height: 14),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.brandPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
                           ),
-                          icon: const Icon(LucideIcons.scale, size: 15),
+                          icon: const Icon(
+                            LucideIcons.fileSpreadsheet,
+                            size: 16,
+                          ),
                           label: Text(
-                            'AJUSTAR',
+                            'Ver Historial de Movimientos (Kardex)',
                             style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12.5,
                             ),
                           ),
                           onPressed: () {
                             Navigator.pop(ctx);
-                            AjusteStockSheet.show(context, p, _cargarProductos);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            side: const BorderSide(
-                              color: AppTheme.brandPrimary,
-                              width: 1.2,
-                            ),
-                            foregroundColor: AppTheme.brandPrimary,
-                          ),
-                          icon: const Icon(LucideIcons.pencil, size: 15),
-                          label: Text(
-                            'EDITAR',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12,
-                            ),
-                          ),
-                          onPressed: () async {
-                            Navigator.pop(ctx);
-                            if (AuthService.esCajero &&
-                                !PermisosCajeroService.puedeModificarPrecios) {
-                              final auth = await SolicitarPinDialog.mostrar(
-                                context,
-                                titulo: 'Modo Cajero Protegido',
-                                mensaje: 'Se requiere PIN de Administrador para modificar precios o catálogo.',
-                              );
-                              if (!auth) return;
-                            }
-                            if (!mounted) return;
-                            EditarProductoSheet.show(
+                            Navigator.push(
                               context,
-                              p,
-                              _cargarProductos,
+                              MaterialPageRoute(
+                                builder: (_) => const KardexScreen(),
+                              ),
                             );
                           },
                         ),
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          backgroundColor: AppTheme.brandPrimary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          if (_esAdmin ||
+                              PermisosCajeroService.puedeModificarPrecios) ...[
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  side: const BorderSide(
+                                    color: AppTheme.brandDark,
+                                    width: 1.2,
+                                  ),
+                                  foregroundColor: AppTheme.brandDark,
+                                ),
+                                icon: const Icon(LucideIcons.scale, size: 15),
+                                label: Text(
+                                  'AJUSTAR',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  AjusteStockSheet.show(
+                                    context,
+                                    p,
+                                    _cargarProductos,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  side: const BorderSide(
+                                    color: AppTheme.brandPrimary,
+                                    width: 1.2,
+                                  ),
+                                  foregroundColor: AppTheme.brandPrimary,
+                                ),
+                                icon: const Icon(LucideIcons.pencil, size: 15),
+                                label: Text(
+                                  'EDITAR',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  Navigator.pop(ctx);
+                                  if (AuthService.esCajero &&
+                                      !PermisosCajeroService
+                                          .puedeModificarPrecios) {
+                                    final auth =
+                                        await SolicitarPinDialog.mostrar(
+                                          context,
+                                          titulo: 'Modo Cajero Protegido',
+                                          mensaje: 'Se requiere PIN de Administrador para modificar precios o catálogo.',
+                                        );
+                                    if (!auth) return;
+                                  }
+                                  if (!mounted) return;
+                                  EditarProductoSheet.show(
+                                    context,
+                                    p,
+                                    _cargarProductos,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                backgroundColor: AppTheme.brandPrimary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                              ),
+                              icon: const Icon(LucideIcons.check, size: 16),
+                              label: Text(
+                                'LISTO',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
                           ),
-                        ),
-                        icon: const Icon(LucideIcons.check, size: 16),
-                        label: Text(
-                          'LISTO',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13,
-                          ),
-                        ),
-                        onPressed: () => Navigator.pop(ctx),
+                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    ),
-    );
+        );
       },
     );
   }
@@ -2852,7 +2885,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                 border: isDark
                     ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                     : Border.all(
-                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        color: isWide
+                            ? AppTheme.borderLight
+                            : Colors.transparent,
                         width: 1.0,
                       ),
                 boxShadow: [
@@ -2884,152 +2919,154 @@ class _ProductosScreenState extends State<ProductosScreen>
                       ),
                       const SizedBox(height: 20),
                     ],
-            Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                style: IconButton.styleFrom(
-                  padding: const EdgeInsets.all(6),
-                  minimumSize: const Size(32, 32),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        style: IconButton.styleFrom(
+                          padding: const EdgeInsets.all(6),
+                          minimumSize: const Size(32, 32),
+                        ),
+                        icon: Icon(
+                          LucideIcons.x,
+                          size: 18,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                        ),
+                        tooltip: 'Cerrar',
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ),
+                    Center(
+                      child: Container(
+                        width: 58,
+                        height: 58,
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          LucideIcons.crown,
+                          color: AppTheme.brandPrimary,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Límite de Catálogo - Plan BÁSICO',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Has alcanzado el límite de 150 productos activos para el Plan BÁSICO. Pasa al Plan PRO para desbloquear todo el potencial de tu negocio:',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.cardDarkSunken
+                            : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : AppTheme.borderLight,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildVentajaPro(
+                            'Catálogo y Productos Ilimitados',
+                            'Registra todos los SKUs que necesites sin tope de 150 items.',
+                            isDark,
+                          ),
+                          const SizedBox(height: 10),
+                          _buildVentajaPro(
+                            'Mi Bodega Online (WhatsApp)',
+                            'Catálogo digital con link propio para pedidos de clientes por chat.',
+                            isDark,
+                          ),
+                          const SizedBox(height: 10),
+                          _buildVentajaPro(
+                            'Detector de Productos Hueso',
+                            'Alertas de mercadería sin rotación en 30 días para liberar capital.',
+                            isDark,
+                          ),
+                          const SizedBox(height: 10),
+                          _buildVentajaPro(
+                            'Auditoría Rápida por Pasillo',
+                            'Conteo físico anti-robo en solo 5 minutos por estante.',
+                            isDark,
+                          ),
+                          const SizedBox(height: 10),
+                          _buildVentajaPro(
+                            'Termómetro de Meta Diaria & Horas Punta',
+                            'Seguimiento de ventas y afluencia de clientes en tiempo real.',
+                            isDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: AppTheme.brandPrimary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        PagoYapeModal.show(
+                          context,
+                          planInicial: 'PRO',
+                          onPlanUpdated: _cargarProductos,
+                        );
+                      },
+                      icon: const Icon(LucideIcons.sparkles, size: 18),
+                      label: Text(
+                        'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(
+                        'Continuar con límite de 150 (Plan Básico)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                icon: Icon(
-                  LucideIcons.x,
-                  size: 18,
-                  color: isDark ? Colors.white70 : Colors.black54,
-                ),
-                tooltip: 'Cerrar',
-                onPressed: () => Navigator.pop(ctx),
               ),
             ),
-            Center(
-              child: Container(
-                width: 58,
-                height: 58,
-                decoration: BoxDecoration(
-                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.crown,
-                  color: AppTheme.brandPrimary,
-                  size: 28,
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Límite de Catálogo - Plan BÁSICO',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(
-                fontSize: 19,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.textDark,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Has alcanzado el límite de 150 productos activos para el Plan BÁSICO. Pasa al Plan PRO para desbloquear todo el potencial de tu negocio:',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isDark
-                    ? AppTheme.textDarkSecondary
-                    : const Color(0xFF334155),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppTheme.cardDarkSunken
-                    : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                ),
-              ),
-              child: Column(
-                children: [
-                  _buildVentajaPro(
-                    'Catálogo y Productos Ilimitados',
-                    'Registra todos los SKUs que necesites sin tope de 150 items.',
-                    isDark,
-                  ),
-                  const SizedBox(height: 10),
-                  _buildVentajaPro(
-                    'Mi Bodega Online (WhatsApp)',
-                    'Catálogo digital con link propio para pedidos de clientes por chat.',
-                    isDark,
-                  ),
-                  const SizedBox(height: 10),
-                  _buildVentajaPro(
-                    'Detector de Productos Hueso',
-                    'Alertas de mercadería sin rotación en 30 días para liberar capital.',
-                    isDark,
-                  ),
-                  const SizedBox(height: 10),
-                  _buildVentajaPro(
-                    'Auditoría Rápida por Pasillo',
-                    'Conteo físico anti-robo en solo 5 minutos por estante.',
-                    isDark,
-                  ),
-                  const SizedBox(height: 10),
-                  _buildVentajaPro(
-                    'Termómetro de Meta Diaria & Horas Punta',
-                    'Seguimiento de ventas y afluencia de clientes en tiempo real.',
-                    isDark,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                backgroundColor: AppTheme.brandPrimary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                PagoYapeModal.show(
-                  context,
-                  planInicial: 'PRO',
-                  onPlanUpdated: _cargarProductos,
-                );
-              },
-              icon: const Icon(LucideIcons.sparkles, size: 18),
-              label: Text(
-                'Mejorar a Plan PRO con Yape / Plin (S/ 100 /mes)',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13.5,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Continuar con límite de 150 (Plan Básico)',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? AppTheme.textDarkSecondary
-                      : const Color(0xFF64748B),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-    ),
-    );
+          ),
+        );
       },
     );
   }

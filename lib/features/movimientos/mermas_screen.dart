@@ -900,10 +900,7 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                 ? BorderRadius.circular(24)
                 : const BorderRadius.vertical(top: Radius.circular(28)),
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,

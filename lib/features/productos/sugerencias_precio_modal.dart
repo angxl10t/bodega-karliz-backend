@@ -225,10 +225,7 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
             color: cardBg,
             borderRadius: resolvedRadius,
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,
@@ -251,7 +248,9 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
                   height: 4.5,
                   margin: const EdgeInsets.only(top: 12, bottom: 8),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                    color: isDark
+                        ? const Color(0xFF475569)
+                        : const Color(0xFFCBD5E1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -262,157 +261,161 @@ class _SugerenciasPrecioModalState extends State<SugerenciasPrecioModal> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 6, 16, 12),
                 child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    LucideIcons.sparkles,
-                    color: Color(0xFF7C3AED),
-                    size: 22,
-                  ),
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        LucideIcons.sparkles,
+                        color: Color(0xFF7C3AED),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Sugerencias del SuperAdmin',
+                            style: GoogleFonts.outfit(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                            ),
+                          ),
+                          Text(
+                            'Actualizaciones propuestas para tus productos. Tú decides si aceptarlas.',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(LucideIcons.x, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+
+              // Botones de acción masiva (si hay varias)
+              if (_sugerencias.length > 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 4,
+                  ),
+                  child: Row(
                     children: [
                       Text(
-                        'Sugerencias del SuperAdmin',
+                        '${_sugerencias.length} pendientes',
                         style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: isDark
-                              ? Colors.white
-                              : const Color(0xFF0F172A),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF7C3AED),
                         ),
                       ),
-                      Text(
-                        'Actualizaciones propuestas para tus productos. Tú decides si aceptarlas.',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
+                      const Spacer(),
+                      TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF64748B),
+                          visualDensity: VisualDensity.compact,
                         ),
+                        icon: const Icon(LucideIcons.x, size: 15),
+                        label: const Text('Rechazar Todas'),
+                        onPressed: _isProcessingBatch ? null : _rechazarTodas,
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentGreen,
+                          foregroundColor: Colors.white,
+                          visualDensity: VisualDensity.compact,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.checkCheck, size: 15),
+                        label: const Text('Aceptar Todas'),
+                        onPressed: _isProcessingBatch ? null : _aceptarTodas,
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(LucideIcons.x, size: 20),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
 
-          // Botones de acción masiva (si hay varias)
-          if (_sugerencias.length > 1)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              child: Row(
-                children: [
-                  Text(
-                    '${_sugerencias.length} pendientes',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF7C3AED),
-                    ),
-                  ),
-                  const Spacer(),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    icon: const Icon(LucideIcons.x, size: 15),
-                    label: const Text('Rechazar Todas'),
-                    onPressed: _isProcessingBatch ? null : _rechazarTodas,
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.accentGreen,
-                      foregroundColor: Colors.white,
-                      visualDensity: VisualDensity.compact,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+              const Divider(height: 1),
+
+              // Contenido: Lista o Vacío
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _sugerencias.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(18),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                LucideIcons.badgeCheck,
+                                color: Color(0xFF10B981),
+                                size: 40,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Text(
+                              '¡Estás al día!',
+                              style: GoogleFonts.outfit(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'No hay sugerencias de precios o datos pendientes de revisar.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                        itemCount: _sugerencias.length,
+                        separatorBuilder: (ctx, idx) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final item = _sugerencias[index];
+                          return _buildCardSugerencia(item, isDark);
+                        },
                       ),
-                    ),
-                    icon: const Icon(LucideIcons.checkCheck, size: 15),
-                    label: const Text('Aceptar Todas'),
-                    onPressed: _isProcessingBatch ? null : _aceptarTodas,
-                  ),
-                ],
               ),
-            ),
-
-          const Divider(height: 1),
-
-          // Contenido: Lista o Vacío
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _sugerencias.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFF1F5F9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            LucideIcons.badgeCheck,
-                            color: Color(0xFF10B981),
-                            size: 40,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          '¡Estás al día!',
-                          style: GoogleFonts.outfit(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'No hay sugerencias de precios o datos pendientes de revisar.',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                    itemCount: _sugerencias.length,
-                    separatorBuilder: (ctx, idx) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final item = _sugerencias[index];
-                      return _buildCardSugerencia(item, isDark);
-                    },
-                  ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-    ),
     );
   }
 

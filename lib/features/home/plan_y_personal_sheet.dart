@@ -1871,7 +1871,8 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.88),
+            maxHeight:
+                MediaQuery.sizeOf(context).height * (isWide ? 0.88 : 0.88),
           ),
 
           decoration: BoxDecoration(
@@ -1880,10 +1881,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
             borderRadius: resolvedRadius,
 
             border: isDark
-                ? Border.all(
-                    color: AppTheme.borderDarkElevated,
-                    width: 1.2,
-                  )
+                ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                 : Border.all(
                     color: isWide ? AppTheme.borderLight : Colors.transparent,
                     width: 1.0,

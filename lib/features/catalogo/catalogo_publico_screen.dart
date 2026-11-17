@@ -2489,23 +2489,27 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(28),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(28)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 24,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -6),
                       ),
                     ],
                   ),
@@ -2513,7 +2517,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     22,
                     isWide ? 20 : 14,
                     22,
-                    (isWide ? 24 : 24 + MediaQuery.of(modalCtx).viewInsets.bottom),
+                    (isWide
+                        ? 24
+                        : 24 + MediaQuery.of(modalCtx).viewInsets.bottom),
                   ),
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -3125,10 +3131,20 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: isWide
                           ? BorderRadius.circular(24)
-                          : const BorderRadius.vertical(top: Radius.circular(28)),
+                          : const BorderRadius.vertical(
+                              top: Radius.circular(28),
+                            ),
                       border: isDark
-                          ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
-                          : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+                          ? Border.all(
+                              color: AppTheme.borderDarkElevated,
+                              width: 1.2,
+                            )
+                          : Border.all(
+                              color: isWide
+                                  ? AppTheme.borderLight
+                                  : Colors.transparent,
+                              width: 1.0,
+                            ),
                     ),
                     padding: const EdgeInsets.all(28),
                     child: Column(
@@ -3193,17 +3209,27 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(28),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(28)),
                     border: isDark
-                        ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
-                        : Border.all(color: isWide ? AppTheme.borderLight : Colors.transparent, width: 1.0),
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
+                            width: 1.0,
+                          ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 24,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -6),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -6),
                       ),
                     ],
                   ),

@@ -2777,7 +2777,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 border: isDark
                     ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                     : Border.all(
-                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        color: isWide
+                            ? AppTheme.borderLight
+                            : Colors.transparent,
                         width: 1.0,
                       ),
                 boxShadow: [
@@ -2804,112 +2806,113 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 16),
                   ],
 
-              // Icono táctil
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.hand,
-                  color: AppTheme.brandPrimary,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Texto requerido
-              Text(
-                'Mantén apretada una operación para agregar a acceso directo',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  fontSize: 16.5,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.textDark,
-                  height: 1.25,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              Text(
-                'Para personalizar qué operaciones aparecen en tu pantalla de inicio, ve a cualquier categoría (Almacén, Ventas & Web o Gestión) y mantén presionado el dedo sobre cualquier tarjeta durante un segundo.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  color: isDark
-                      ? AppTheme.textDarkSecondary
-                      : const Color(0xFF64748B),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Pasos claros
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isDark ? AppTheme.cardDark : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark
-                        ? AppTheme.borderDark
-                        : const Color(0xFFE2E8F0),
+                  // Icono táctil
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      LucideIcons.hand,
+                      color: AppTheme.brandPrimary,
+                      size: 30,
+                    ),
                   ),
-                ),
-                child: Column(
-                  children: [
-                    _buildPasoItem(
-                      numero: '1',
-                      texto: 'Entra a la pestaña que desees (ej: Almacén o Ventas).',
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 10),
-                    _buildPasoItem(
-                      numero: '2',
-                      texto: 'Mantén pulsada la tarjeta por 1 segundo.',
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 10),
-                    _buildPasoItem(
-                      numero: '3',
-                      texto:
-                          '¡Listo! Quedará fijada o removida de tus Favoritos.',
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
+                  const SizedBox(height: 14),
 
-              // Botón de acción principal
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.brandPrimary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(
-                    'Entendido, ¡voy a probarlo!',
+                  // Texto requerido
+                  Text(
+                    'Mantén apretada una operación para agregar a acceso directo',
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppTheme.textDark,
+                      height: 1.25,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'Para personalizar qué operaciones aparecen en tu pantalla de inicio, ve a cualquier categoría (Almacén, Ventas & Web o Gestión) y mantén presionado el dedo sobre cualquier tarjeta durante un segundo.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Pasos claros
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.cardDark
+                          : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildPasoItem(
+                          numero: '1',
+                          texto: 'Entra a la pestaña que desees (ej: Almacén o Ventas).',
+                          isDark: isDark,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildPasoItem(
+                          numero: '2',
+                          texto: 'Mantén pulsada la tarjeta por 1 segundo.',
+                          isDark: isDark,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildPasoItem(
+                          numero: '3',
+                          texto: '¡Listo! Quedará fijada o removida de tus Favoritos.',
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Botón de acción principal
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.brandPrimary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () => Navigator.pop(ctx),
+                      child: Text(
+                        'Entendido, ¡voy a probarlo!',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        );
       },
     );
   }

@@ -298,16 +298,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: isDark ? AppTheme.cardDark : Colors.white,
                 borderRadius: isWide
                     ? BorderRadius.circular(24)
-                    : const BorderRadius.vertical(
-                        top: Radius.circular(28),
-                      ),
+                    : const BorderRadius.vertical(top: Radius.circular(28)),
                 border: isDark
-                    ? Border.all(
-                        color: AppTheme.borderDarkElevated,
-                        width: 1.2,
-                      )
+                    ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                     : Border.all(
-                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        color: isWide
+                            ? AppTheme.borderLight
+                            : Colors.transparent,
                         width: 1.0,
                       ),
                 boxShadow: [
@@ -322,7 +319,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 top: false,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.88),
+                    maxHeight:
+                        MediaQuery.of(context).size.height *
+                        (isWide ? 0.85 : 0.88),
                   ),
                   child: SingleChildScrollView(
                     padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 14, 20, 20),
@@ -1237,7 +1236,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: isDark
                     ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
                     : Border.all(
-                        color: isWide ? AppTheme.borderLight : Colors.transparent,
+                        color: isWide
+                            ? AppTheme.borderLight
+                            : Colors.transparent,
                         width: 1.0,
                       ),
                 boxShadow: [
@@ -1285,14 +1286,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                     style: GoogleFonts.outfit(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : AppTheme.textDark,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
                                     ),
                                   ),
                                   Text(
                                     'Organización inteligente en 5 módulos',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
-                                      color: AppTheme.getAdaptiveMutedText(isDark),
+                                      color: AppTheme.getAdaptiveMutedText(
+                                        isDark,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1502,7 +1507,9 @@ class _HomeScreenState extends State<HomeScreen> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF8FAFC),
                 borderRadius: isWide
                     ? BorderRadius.circular(24)
                     : const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1540,7 +1547,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                          color: const Color(0xFF6366F1)
+                              .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -1591,15 +1599,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     iconColor: const Color(0xFF0D9488),
                     iconBg: const Color(0xFF0D9488).withValues(alpha: 0.12),
                     title: 'Libro de Reclamaciones Virtual',
-                    subtitle:
-                        'Formulario oficial INDECOPI y seguimiento correlativo anual',
+                    subtitle: 'Formulario oficial INDECOPI y seguimiento correlativo anual',
                     onTap: () {
                       Navigator.pop(ctx);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              LibroReclamacionesScreen(tiendaNombre: _nombreBodega),
+                          builder: (_) => LibroReclamacionesScreen(
+                            tiendaNombre: _nombreBodega,
+                          ),
                         ),
                       );
                     },
@@ -1635,8 +1643,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     iconColor: const Color(0xFF16A34A),
                     iconBg: const Color(0xFF16A34A).withValues(alpha: 0.12),
                     title: 'Política de Privacidad de Datos',
-                    subtitle:
-                        'Ley N° 29733, derechos ARCO y normativas de Google Play',
+                    subtitle: 'Ley N° 29733, derechos ARCO y normativas de Google Play',
                     onTap: () {
                       Navigator.pop(ctx);
                       Navigator.push(

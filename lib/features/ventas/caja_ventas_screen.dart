@@ -1976,28 +1976,34 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 580),
                 child: Container(
-                  height: MediaQuery.of(dialogCtx).size.height * (isWide ? 0.88 : 0.85),
+                  height:
+                      MediaQuery.of(dialogCtx).size.height *
+                      (isWide ? 0.88 : 0.85),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(
-                            top: Radius.circular(24),
-                          ),
+                        : const BorderRadius.vertical(top: Radius.circular(24)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
                             width: 1.2,
                           )
                         : Border.all(
-                            color: isWide ? AppTheme.borderLight : Colors.transparent,
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
                             width: 1.0,
                           ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
+                        ),
                         blurRadius: isWide ? 30 : 20,
-                        offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),

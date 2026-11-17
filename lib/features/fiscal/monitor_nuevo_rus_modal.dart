@@ -243,156 +243,154 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
             ),
           ),
 
-            // Cabecera Modal
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0284C7).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      LucideIcons.landmark,
-                      color: Color(0xFF0284C7),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Frente Fiscal & Tributario',
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
-                          ),
-                        ),
-                        Text(
-                          'Realidad del bodeguero peruano • Ley N° 30877',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(LucideIcons.x, size: 20),
-                    tooltip: 'Cerrar',
-                  ),
-                ],
+        // Cabecera Modal
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  LucideIcons.landmark,
+                  color: Color(0xFF0284C7),
+                  size: 24,
+                ),
               ),
-            ),
-            const Divider(height: 1),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Frente Fiscal & Tributario',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Realidad del bodeguero peruano • Ley N° 30877',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(LucideIcons.x, size: 20),
+                tooltip: 'Cerrar',
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
 
-            // Contenido Scrolleable
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppTheme.brandPrimary,
+        // Contenido Scrolleable
+        Expanded(
+          child: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: AppTheme.brandPrimary,
+                  ),
+                )
+              : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.alertTriangle,
+                        size: 40,
+                        color: AppTheme.alertRed,
                       ),
-                    )
-                  : _errorMessage != null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            LucideIcons.alertTriangle,
-                            size: 40,
-                            color: AppTheme.alertRed,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(_errorMessage!),
-                          const SizedBox(height: 12),
-                          ElevatedButton(
-                            onPressed: _cargarDatos,
-                            child: const Text('Reintentar'),
-                          ),
-                        ],
+                      const SizedBox(height: 12),
+                      Text(_errorMessage!),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _cargarDatos,
+                        child: const Text('Reintentar'),
                       ),
-                    )
-                  : ListView(
-                      controller: scrollCtrl,
-                      padding: const EdgeInsets.all(20),
-                      children: [
-                        // 1. Selector Maestro: ¿Comercio en el Nuevo RUS?
-                        _buildCardSwitchRegimen(
+                    ],
+                  ),
+                )
+              : ListView(
+                  controller: scrollCtrl,
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    // 1. Selector Maestro: ¿Comercio en el Nuevo RUS?
+                    _buildCardSwitchRegimen(
+                      isDark: isDark,
+                      cardBg: cardBg,
+                      borderColor: borderColor,
+                      esNuevoRus: esNuevoRus,
+                    ),
+                    const SizedBox(height: 18),
+
+                    // 2. Contenido según Régimen
+                    if (esNuevoRus) ...[
+                      // MONITOR DEL NUEVO RUS (SEMÁFORO Y CUOTAS)
+                      if (_resumenRus != null) ...[
+                        _buildResumenCuotaCard(
                           isDark: isDark,
                           cardBg: cardBg,
                           borderColor: borderColor,
-                          esNuevoRus: esNuevoRus,
+                          resumen: _resumenRus!,
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
 
-                        // 2. Contenido según Régimen
-                        if (esNuevoRus) ...[
-                          // MONITOR DEL NUEVO RUS (SEMÁFORO Y CUOTAS)
-                          if (_resumenRus != null) ...[
-                            _buildResumenCuotaCard(
-                              isDark: isDark,
-                              cardBg: cardBg,
-                              borderColor: borderColor,
-                              resumen: _resumenRus!,
-                            ),
-                            const SizedBox(height: 16),
+                        _buildTermometroVentas(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          resumen: _resumenRus!,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildCardBoletaConsolidada(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                        ),
+                        const SizedBox(height: 16),
 
-                            _buildTermometroVentas(
-                              isDark: isDark,
-                              cardBg: cardBg,
-                              borderColor: borderColor,
-                              resumen: _resumenRus!,
-                            ),
-                            const SizedBox(height: 16),
-                            _buildCardBoletaConsolidada(
-                              isDark: isDark,
-                              cardBg: cardBg,
-                              borderColor: borderColor,
-                            ),
-                            const SizedBox(height: 16),
+                        _buildDesgloseMetricas(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          resumen: _resumenRus!,
+                        ),
+                        const SizedBox(height: 16),
 
-                            _buildDesgloseMetricas(
-                              isDark: isDark,
-                              cardBg: cardBg,
-                              borderColor: borderColor,
-                              resumen: _resumenRus!,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _buildGuiaPagoSunat(
-                              isDark: isDark,
-                              cardBg: cardBg,
-                              borderColor: borderColor,
-                              resumen: _resumenRus!,
-                            ),
-                          ],
-                        ] else ...[
-                          // BODEGA INDEPENDIENTE (SIN SUNAT / SIN RUC)
-                          _buildCardBodegaInformal(
-                            isDark: isDark,
-                            cardBg: cardBg,
-                            borderColor: borderColor,
-                          ),
-                        ],
-                        const SizedBox(height: 24),
+                        _buildGuiaPagoSunat(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          borderColor: borderColor,
+                          resumen: _resumenRus!,
+                        ),
                       ],
-                    ),
-            ),
-          ],
-        );
+                    ] else ...[
+                      // BODEGA INDEPENDIENTE (SIN SUNAT / SIN RUC)
+                      _buildCardBodegaInformal(
+                        isDark: isDark,
+                        cardBg: cardBg,
+                        borderColor: borderColor,
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
+        ),
+      ],
+    );
   }
 
   /// Tarjeta del Switch Principal de Régimen
