@@ -668,41 +668,51 @@ public class StarterPackService {
     /**
      * Sincroniza el catálogo comercial completo hacia la bodega indicada, preservando los productos
      * ya existentes e inicializando los productos faltantes con {@code stockInicialNuevos}.
-     * Sin @Transactional envolvente para que un fallback individual en PostgreSQL nunca herede
-     * una transacción abortada.
+     * Evita tocar proxies lazy de Hibernate fuera de sesión (open-in-view=false).
      */
     public int provisionarStarterPackParaBodega(Bodega bodega, BigDecimal stockInicialNuevos) {
         if (bodega == null || bodega.getIdBodega() == null) return 0;
         Long idBodega = bodega.getIdBodega();
         BigDecimal stockNuevo = stockInicialNuevos != null ? stockInicialNuevos : BigDecimal.ZERO;
 
-        log.info("[StarterPackService] Provisionando Starter Pack comercial para Bodega '{}' (ID: {})...",
-                bodega.getNombreComercial(), idBodega);
+        // Asegurar una instancia completamente inicializada de Bodega (nunca proxy lazy)
+        Bodega bodegaManaged = bodega;
+        if (bodegaRepository != null) {
+            bodegaManaged = bodegaRepository.findById(idBodega).orElse(bodega);
+        }
+        String nombreBodega = bodegaManaged.getNombreComercial() != null ? bodegaManaged.getNombreComercial() : ("ID " + idBodega);
 
-        Map<String, Categoria> categoriasMap = asegurarCategoriasCanonicas(bodega);
+        log.info("[StarterPackService] Provisionando Starter Pack comercial para Bodega '{}' (ID: {})...",
+                nombreBodega, idBodega);
+
+        Map<String, Categoria> categoriasMap = asegurarCategoriasCanonicas(bodegaManaged);
 
         Categoria fallbackCat = categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega).stream()
                 .findFirst().orElse(null);
 
-        List<Producto> existentes = productoRepository.findByBodega_IdBodega(idBodega);
-        Map<String, Producto> porCodigoBarras = new HashMap<>();
-        Map<String, Producto> porNombreNorm = new HashMap<>();
+        // Cargar llaves existentes en memoria (sin tocar proxies lazy de Producto.bodega / Producto.categoria)
+        Map<String, Long> idPorCodigoBarras = new HashMap<>();
+        Map<String, String> imgPorCodigoBarras = new HashMap<>();
+        Map<String, Long> idPorNombreNorm = new HashMap<>();
         Set<String> codigosExistentes = new HashSet<>();
-        for (Producto prod : existentes) {
-            if (prod.getCodigoBarras() != null && !prod.getCodigoBarras().isBlank()) {
-                porCodigoBarras.putIfAbsent(prod.getCodigoBarras().trim(), prod);
-            }
-            if (prod.getNombre() != null && !prod.getNombre().isBlank()) {
-                porNombreNorm.putIfAbsent(prod.getNombre().trim().toLowerCase(Locale.ROOT), prod);
-            }
-            if (prod.getCodigo() != null && !prod.getCodigo().isBlank()) {
-                codigosExistentes.add(prod.getCodigo().trim());
+
+        List<Producto> existentes = productoRepository.findByBodega_IdBodega(idBodega);
+        if (existentes != null) {
+            for (Producto prod : existentes) {
+                Long pid = prod.getIdProducto();
+                if (prod.getCodigoBarras() != null && !prod.getCodigoBarras().isBlank()) {
+                    String eanKey = prod.getCodigoBarras().trim();
+                    idPorCodigoBarras.putIfAbsent(eanKey, pid);
+                    imgPorCodigoBarras.putIfAbsent(eanKey, prod.getImagenUrl());
+                }
+                if (prod.getNombre() != null && !prod.getNombre().isBlank()) {
+                    idPorNombreNorm.putIfAbsent(prod.getNombre().trim().toLowerCase(Locale.ROOT), pid);
+                }
+                if (prod.getCodigo() != null && !prod.getCodigo().isBlank()) {
+                    codigosExistentes.add(prod.getCodigo().trim());
+                }
             }
         }
-
-        Set<Producto> porGuardar = new LinkedHashSet<>();
-        int creados = 0;
-        int actualizados = 0;
 
         // Unir presets activos de BD + catálogo canónico en memoria (garantiza que las nuevas olas siempre estén presentes)
         Map<String, StarterPackItemRecord> itemsPorEan = new LinkedHashMap<>();
@@ -737,6 +747,10 @@ public class StarterPackService {
             ));
         }
 
+        List<Producto> nuevosPorGuardar = new ArrayList<>();
+        int creados = 0;
+        int actualizados = 0;
+
         for (StarterPackItemRecord item : itemsPorEan.values()) {
             String codigoBarras = item.codigoBarras();
             String nombre = item.nombre();
@@ -749,46 +763,34 @@ public class StarterPackService {
             Categoria categoria = categoriasMap.getOrDefault(catNombre.toLowerCase(Locale.ROOT).trim(), fallbackCat);
             if (categoria == null) continue;
 
+            String eanTrim = codigoBarras != null ? codigoBarras.trim() : null;
             String nombreKey = nombre != null ? nombre.trim().toLowerCase(Locale.ROOT) : "";
-            Producto existente = codigoBarras != null ? porCodigoBarras.get(codigoBarras.trim()) : null;
-            if (existente == null && !nombreKey.isEmpty()) {
-                existente = porNombreNorm.get(nombreKey);
+
+            Long idExistente = eanTrim != null ? idPorCodigoBarras.get(eanTrim) : null;
+            if (idExistente == null && !nombreKey.isEmpty()) {
+                idExistente = idPorNombreNorm.get(nombreKey);
             }
-            if (existente != null) {
-                boolean mod = false;
-                if ((existente.getImagenUrl() == null || existente.getImagenUrl().isBlank()
-                        || existente.getImagenUrl().startsWith("http")) && imagenUrl != null && !imagenUrl.isBlank()) {
-                    existente.setImagenUrl(imagenUrl);
-                    mod = true;
-                }
-                if ((existente.getMarca() == null || existente.getMarca().isBlank()) && marca != null) {
-                    existente.setMarca(marca);
-                    mod = true;
-                }
-                if (existente.getCategoria() == null) {
-                    existente.setCategoria(categoria);
-                    mod = true;
-                }
-                if (existente.getPrecioVenta() == null || existente.getPrecioVenta().compareTo(BigDecimal.ZERO) <= 0) {
-                    existente.setPrecioVenta(venta);
-                    mod = true;
-                }
-                if (existente.getPrecioCosto() == null || existente.getPrecioCosto().compareTo(BigDecimal.ZERO) <= 0) {
-                    existente.setPrecioCosto(costo);
-                    mod = true;
-                }
-                if (mod) {
-                    porGuardar.add(existente);
-                    actualizados++;
+
+            if (idExistente != null) {
+                // Enriquecer imagen faltante o externa vía JDBC directo (cero proxies lazy)
+                String imgActual = eanTrim != null ? imgPorCodigoBarras.get(eanTrim) : null;
+                if (jdbcTemplate != null && imagenUrl != null && !imagenUrl.isBlank()
+                        && (imgActual == null || imgActual.isBlank() || imgActual.startsWith("http"))) {
+                    try {
+                        jdbcTemplate.update(
+                                "UPDATE productos SET imagen_url = ? WHERE id_producto = ? AND (imagen_url IS NULL OR imagen_url = '' OR imagen_url LIKE 'http%')",
+                                imagenUrl, idExistente
+                        );
+                        actualizados++;
+                    } catch (Exception ignored) {}
                 }
                 continue;
             }
 
-            // Generar codigo unico para el producto dentro del tenant sin consultas N+1
-            String codigoBase = "PROD-" + codigoBarras;
+            // Generar código único para el producto dentro del tenant sin consultas N+1
+            String codigoBase = "PROD-" + eanTrim;
             String codigo = codigoBase;
             if (codigosExistentes.contains(codigo)) {
-                codigo = codigoBase + "-" + (System.currentTimeMillis() % 1000);
                 int sufijo = 1;
                 while (codigosExistentes.contains(codigo)) {
                     codigo = codigoBase + "-" + sufijo++;
@@ -798,7 +800,7 @@ public class StarterPackService {
 
             Producto p = new Producto();
             p.setCodigo(codigo);
-            p.setCodigoBarras(codigoBarras);
+            p.setCodigoBarras(eanTrim);
             p.setNombre(nombre);
             p.setMarca(marca);
             p.setPrecioVenta(venta);
@@ -808,38 +810,41 @@ public class StarterPackService {
             p.setControlaVencimiento(false);
             p.setImagenUrl(imagenUrl);
             p.setCategoria(categoria);
-            p.setBodega(bodega);
+            p.setBodega(bodegaManaged);
             p.setEstado(true);
 
-            porGuardar.add(p);
-            if (codigoBarras != null && !codigoBarras.isBlank()) {
-                porCodigoBarras.putIfAbsent(codigoBarras.trim(), p);
+            nuevosPorGuardar.add(p);
+            if (eanTrim != null && !eanTrim.isBlank()) {
+                idPorCodigoBarras.putIfAbsent(eanTrim, -1L);
             }
             if (!nombreKey.isEmpty()) {
-                porNombreNorm.putIfAbsent(nombreKey, p);
+                idPorNombreNorm.putIfAbsent(nombreKey, -1L);
             }
             creados++;
         }
 
-        if (!porGuardar.isEmpty()) {
+        if (!nuevosPorGuardar.isEmpty()) {
             try {
-                productoRepository.saveAll(porGuardar);
+                productoRepository.saveAll(nuevosPorGuardar);
             } catch (Exception batchEx) {
                 log.warn("[StarterPackService] Batch saveAll falló para Bodega '{}', guardando individualmente: {}",
-                        bodega.getNombreComercial(), batchEx.getMessage());
-                for (Producto itemProd : porGuardar) {
+                        nombreBodega, batchEx.getMessage());
+                int guardadosIndiv = 0;
+                for (Producto itemProd : nuevosPorGuardar) {
                     try {
                         productoRepository.save(itemProd);
+                        guardadosIndiv++;
                     } catch (Exception itemEx) {
                         log.debug("[StarterPackService] Producto '{}' omitido por restricción: {}",
                                 itemProd.getNombre(), itemEx.getMessage());
                     }
                 }
+                creados = guardadosIndiv;
             }
         }
 
-        log.info("[StarterPackService] Starter Pack completado para Bodega '{}': {} creados, {} enriquecidos.",
-                bodega.getNombreComercial(), creados, actualizados);
+        log.info("[StarterPackService] Starter Pack completado para Bodega '{}' (ID {}): {} creados, {} enriquecidos.",
+                nombreBodega, idBodega, creados, actualizados);
         return creados;
     }
 
@@ -944,8 +949,9 @@ public class StarterPackService {
      * Enriquecimiento integral del catálogo comercial (Olas 1-7: 407 productos y 13 categorías):
      * 1. Sincroniza el Preset Global del SuperAdmin.
      * 2. Repara imágenes heredadas rotas o externas.
-     * 3. Agrega productos faltantes en Bodega KARLIZ con stock comercial visible (18 unid.)
-     *    y en las demás bodegas activas con stock = 0 (preservando su inventario real).
+     * 3. Agrega productos faltantes en Bodega KARLIZ (cualquier ID cuyo nombre incluya KARLIZ)
+     *    con stock comercial visible (18 unid.) y en las demás bodegas activas con stock = 0
+     *    (preservando su inventario real).
      */
     public void enriquecerCatalogoBodegaKarliz(Bodega bodegaKarliz) {
         try {
@@ -953,31 +959,50 @@ public class StarterPackService {
             repararImagenesLegadasEnProductos();
 
             int karlizNuevos = 0;
-            Long idKarliz = (bodegaKarliz != null) ? bodegaKarliz.getIdBodega() : null;
-            if (idKarliz != null) {
-                karlizNuevos = provisionarStarterPackParaBodega(bodegaKarliz, new BigDecimal("18.000"));
-            }
-
             int otrasBodegas = 0;
             int otrosProductos = 0;
+            Set<Long> procesadas = new HashSet<>();
+            List<String> detalle = new ArrayList<>();
+
+            List<Bodega> todas = new ArrayList<>();
             if (bodegaRepository != null) {
-                List<Bodega> todas = bodegaRepository.findAll();
-                if (todas != null) {
-                    for (Bodega b : todas) {
-                        if (b != null && b.getIdBodega() != null
-                                && Boolean.TRUE.equals(b.getEstado())
-                                && !b.getIdBodega().equals(idKarliz)) {
-                            otrosProductos += provisionarStarterPackParaBodega(b, BigDecimal.ZERO);
-                            otrasBodegas++;
-                        }
-                    }
+                List<Bodega> dbBodegas = bodegaRepository.findAll();
+                if (dbBodegas != null) {
+                    todas.addAll(dbBodegas);
                 }
+            }
+            if (bodegaKarliz != null && bodegaKarliz.getIdBodega() != null
+                    && todas.stream().noneMatch(b -> bodegaKarliz.getIdBodega().equals(b.getIdBodega()))) {
+                todas.add(bodegaKarliz);
+            }
+
+            for (Bodega b : todas) {
+                if (b == null || b.getIdBodega() == null || !procesadas.add(b.getIdBodega())) {
+                    continue;
+                }
+                if (!Boolean.TRUE.equals(b.getEstado())) {
+                    continue;
+                }
+                String nombre = b.getNombreComercial() != null ? b.getNombreComercial().trim() : "";
+                boolean esKarliz = nombre.toUpperCase(Locale.ROOT).contains("KARLIZ")
+                        || (bodegaKarliz != null && b.getIdBodega().equals(bodegaKarliz.getIdBodega()));
+
+                BigDecimal stockIni = esKarliz ? new BigDecimal("18.000") : BigDecimal.ZERO;
+                int creados = provisionarStarterPackParaBodega(b, stockIni);
+                if (esKarliz) {
+                    karlizNuevos += creados;
+                } else {
+                    otrasBodegas++;
+                    otrosProductos += creados;
+                }
+                detalle.add("B" + b.getIdBodega() + "(+" + creados + ")");
             }
 
             ultimoResumenSincronizacion = "OK(presets_nuevos=" + presetsNuevos
                     + ",karliz_nuevos=" + karlizNuevos
                     + ",otras_bodegas=" + otrasBodegas
                     + ",otros_nuevos=" + otrosProductos
+                    + ",bodegas=[" + String.join(",", detalle) + "]"
                     + ",catalogo_total=" + PRODUCTOS_STARTER_PACK.length + ")";
         } catch (Exception e) {
             ultimoResumenSincronizacion = "ERR:" + e.getClass().getSimpleName() + ":" + e.getMessage();
