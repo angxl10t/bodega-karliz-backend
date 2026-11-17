@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+
+  <script>
+    // Soporte dinámico de base href para GitHub Pages (/bodega-karliz-backend/) y Render (/)
+    (function() {
+      var path = window.location.pathname;
+      if (path.indexOf('/bodega-karliz-backend') === 0) {
+        var baseTag = document.querySelector('base');
+        if (baseTag) {
+          baseTag.setAttribute('href', '/bodega-karliz-backend/');
+        }
+      } else if (path.startsWith('/bodega-sistema')) {
+        var _sub = path.replace(/^\/bodega-sistema\/?/, '/') || '/';
+        window.location.replace(_sub + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="CajaYa POS - Punto de Venta & Control de Inventario">
+  <meta name="theme-color" content="#FFFFFF">
+  
+  <!-- Directivas Anti-Caché para Actualización Inmediata en Navegador -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com blob:; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://*.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:* data: blob: wss:; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+
+  <!-- iOS meta tags & icons (PWA Add to Home Screen) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CajaYa POS">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>CajaYa POS - Punto de Venta & Control de Inventario</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    :root {
+      --bg-color: #FFFFFF;
+      --wordmark-grad: linear-gradient(135deg, #1D4ED8 0%, #2563EB 55%, #06B6D4 100%);
+      --pos-bg: linear-gradient(135deg, #2563EB, #1D4ED8);
+      --pos-color: #FFFFFF;
+      --pos-shadow: rgba(37, 99, 235, 0.35);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #090A0F;
+        --wordmark-grad: linear-gradient(135deg, #38BDF8 0%, #2563EB 55%, #60A5FA 100%);
+        --pos-bg: linear-gradient(135deg, #2563EB, #1D4ED8);
+        --pos-color: #FFFFFF;
+        --pos-shadow: rgba(37, 99, 235, 0.5);
+      }
+    }
+    html, body {
+      background-color: var(--bg-color);
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    }
+    #loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      background-color: var(--bg-color);
+    }
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      animation: rappiEntrance 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards,
+                 rappiBreathe 2.4s ease-in-out infinite 0.7s;
+      transform-origin: center center;
+    }
+    .wordmark {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: -1.4px;
+      line-height: 1;
+      background: var(--wordmark-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+    .pos-pill {
+      display: inline-block;
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.0px;
+      line-height: 1;
+      padding: 5px 9px;
+      border-radius: 8px;
+      background: var(--pos-bg);
+      color: var(--pos-color);
+      box-shadow: 0 4px 12px var(--pos-shadow);
+      margin-bottom: 2px;
+    }
+
+    @keyframes rappiEntrance {
+      0% {
+        opacity: 0;
+        transform: scale(0.85);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    @keyframes rappiBreathe {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.02);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-container">
+    <div class="brand-mark">
+      <span class="wordmark">CajaYa</span>
+      <span class="pos-pill">POS</span>
+    </div>
+  </div>
+
+
+  <script>
+    // Registro de Service Worker para habilitación de PWA e instalación en Escritorio (Chrome / Edge)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js?v=22').catch(function(err) {
+          console.warn('PWA service worker registration notice:', err);
+        });
+      });
+    }
+  </script>
+
+  <script src="flutter_bootstrap.js?v=1.0.25_v22" async></script>
+</body>
+</html>
