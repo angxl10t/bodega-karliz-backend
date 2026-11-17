@@ -72,34 +72,35 @@ public class DataInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         log.info("[DataInitializer] Verificando e inicializando estructura multi-tenant y usuarios...");
 
-        // 0. Asegurar columnas de la tabla bodegas para prevenir errores de mapeo JPA
-        asegurarColumnasBodegas();
+        try {
+            // 0. Asegurar columnas de la tabla bodegas para prevenir errores de mapeo JPA
+            asegurarColumnasBodegas();
 
-        // 1. Asegurar que Bodega 1 (Bodega KARLIZ) exista
-        Bodega bodegaKarliz = inicializarBodegaKarliz();
+            // 1. Asegurar que Bodega 1 (Bodega KARLIZ) exista
+            Bodega bodegaKarliz = inicializarBodegaKarliz();
 
-        // 2. Vincular registros huérfanos a Bodega Karliz
-        vincularRegistrosHuerfanos(bodegaKarliz);
+            // 2. Vincular registros huérfanos a Bodega Karliz
+            vincularRegistrosHuerfanos(bodegaKarliz);
 
-        // 3. Configurar usuarios del sistema (Superadmin desvinculado, Admin de Karliz, Cajero)
-        inicializarUsuarios(bodegaKarliz);
+            // 3. Configurar usuarios del sistema (Superadmin desvinculado, Admin de Karliz, Cajero)
+            inicializarUsuarios(bodegaKarliz);
 
-        // 4. Sanitizar atajos y categorías basura (Bebidas Refrescantes 128/342/431/556/658) y unificar duplicados
-        starterPackService.sanitizarCategoriasYAtajos();
+            // 4. Sanitizar atajos y categorías basura (Bebidas Refrescantes 128/342/431/556/658) y unificar duplicados
+            starterPackService.sanitizarCategoriasYAtajos();
 
-        // 4.1. Inicializar preset global de catálogo para el SuperAdmin si la tabla está vacía
-        starterPackService.inicializarPresetGlobalSiVacio();
+            // 4.1. Inicializar preset global de catálogo para el SuperAdmin si la tabla está vacía
+            starterPackService.inicializarPresetGlobalSiVacio();
 
-        // 5. Enriquecer catálogo comercial y starter pack para Bodega KARLIZ y nuevas tiendas
-        starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
+            // 5. Enriquecer catálogo comercial y starter pack para Bodega KARLIZ y nuevas tiendas
+            starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
 
-        // 6. Normalizar y canonicizar marcas de productos en base de datos
-        normalizarMarcasDeProductos();
+            // 6. Normalizar y canonicizar marcas de productos en base de datos
+            normalizarMarcasDeProductos();
 
-        // 7. Actualizar precios a tarifas reales y cómodas de bodega de barrio peruana
-        // 7. Tarifas personalizadas de bodegas registradas se preservan intactas en producción (sin sobrescritura en arranque).
-
-        log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
+            log.info("[DataInitializer] Inicialización multi-tenant completada exitosamente.");
+        } catch (Exception e) {
+            log.warn("[DataInitializer] La inicialización de datos en arranque se difiere o no pudo completarse de inmediato: {}. La aplicación seguirá ejecutándose.", e.getMessage());
+        }
     }
 
     private void normalizarMarcasDeProductos() {

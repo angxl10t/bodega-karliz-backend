@@ -47,6 +47,7 @@ public class DataSourceConfig {
         hikariConfig.setPassword(config.password);
 
         // Optimización PgBouncer / Supabase Transaction Pooler
+        hikariConfig.setInitializationFailTimeout(-1);
         hikariConfig.setMaximumPoolSize(12);
         hikariConfig.setMinimumIdle(3);
         hikariConfig.setConnectionTimeout(30000);
