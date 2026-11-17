@@ -22,6 +22,11 @@ import java.util.*;
 public class StarterPackService {
 
     private static final Logger log = LoggerFactory.getLogger(StarterPackService.class);
+    private static volatile String ultimoResumenSincronizacion = "PENDIENTE";
+
+    public static String getUltimoResumenSincronizacion() {
+        return ultimoResumenSincronizacion;
+    }
 
     private final JdbcTemplate jdbcTemplate;
     private final BodegaRepository bodegaRepository;
@@ -656,10 +661,20 @@ public class StarterPackService {
      * Los productos se inicializan con stock = 0.000 para no adulterar el inventario inicial del dueño,
      * pero quedan listos para venta y recepción de compras.
      */
-    @Transactional
     public void provisionarStarterPackParaBodega(Bodega bodega) {
-        if (bodega == null || bodega.getIdBodega() == null) return;
+        provisionarStarterPackParaBodega(bodega, BigDecimal.ZERO);
+    }
+
+    /**
+     * Sincroniza el catálogo comercial completo hacia la bodega indicada, preservando los productos
+     * ya existentes e inicializando los productos faltantes con {@code stockInicialNuevos}.
+     * Sin @Transactional envolvente para que un fallback individual en PostgreSQL nunca herede
+     * una transacción abortada.
+     */
+    public int provisionarStarterPackParaBodega(Bodega bodega, BigDecimal stockInicialNuevos) {
+        if (bodega == null || bodega.getIdBodega() == null) return 0;
         Long idBodega = bodega.getIdBodega();
+        BigDecimal stockNuevo = stockInicialNuevos != null ? stockInicialNuevos : BigDecimal.ZERO;
 
         log.info("[StarterPackService] Provisionando Starter Pack comercial para Bodega '{}' (ID: {})...",
                 bodega.getNombreComercial(), idBodega);
@@ -671,10 +686,14 @@ public class StarterPackService {
 
         List<Producto> existentes = productoRepository.findByBodega_IdBodega(idBodega);
         Map<String, Producto> porCodigoBarras = new HashMap<>();
+        Map<String, Producto> porNombreNorm = new HashMap<>();
         Set<String> codigosExistentes = new HashSet<>();
         for (Producto prod : existentes) {
             if (prod.getCodigoBarras() != null && !prod.getCodigoBarras().isBlank()) {
                 porCodigoBarras.putIfAbsent(prod.getCodigoBarras().trim(), prod);
+            }
+            if (prod.getNombre() != null && !prod.getNombre().isBlank()) {
+                porNombreNorm.putIfAbsent(prod.getNombre().trim().toLowerCase(Locale.ROOT), prod);
             }
             if (prod.getCodigo() != null && !prod.getCodigo().isBlank()) {
                 codigosExistentes.add(prod.getCodigo().trim());
@@ -685,21 +704,24 @@ public class StarterPackService {
         int creados = 0;
         int actualizados = 0;
 
-        List<StarterPackItemRecord> itemsToClone = new ArrayList<>();
+        // Unir presets activos de BD + catálogo canónico en memoria (garantiza que las nuevas olas siempre estén presentes)
+        Map<String, StarterPackItemRecord> itemsPorEan = new LinkedHashMap<>();
         try {
             if (starterPackPresetRepository != null) {
                 List<StarterPackPreset> dbPresets = starterPackPresetRepository.findByActivoTrueOrderByIdPresetAsc();
-                if (dbPresets != null && !dbPresets.isEmpty()) {
+                if (dbPresets != null) {
                     for (StarterPackPreset p : dbPresets) {
-                        itemsToClone.add(new StarterPackItemRecord(
-                                p.getCodigoBarras(),
-                                p.getNombre(),
-                                p.getMarca(),
-                                p.getCategoria(),
-                                p.getPrecioVenta(),
-                                p.getPrecioCosto(),
-                                p.getImagenUrl()
-                        ));
+                        if (p.getCodigoBarras() != null && !p.getCodigoBarras().isBlank()) {
+                            itemsPorEan.putIfAbsent(p.getCodigoBarras().trim(), new StarterPackItemRecord(
+                                    p.getCodigoBarras().trim(),
+                                    p.getNombre(),
+                                    p.getMarca(),
+                                    p.getCategoria(),
+                                    p.getPrecioVenta(),
+                                    p.getPrecioCosto(),
+                                    p.getImagenUrl()
+                            ));
+                        }
                     }
                 }
             }
@@ -707,16 +729,15 @@ public class StarterPackService {
             log.warn("[StarterPackService] Error al consultar preset global en BD, usando memoria: {}", e.getMessage());
         }
 
-        if (itemsToClone.isEmpty()) {
-            for (String[] pData : PRODUCTOS_STARTER_PACK) {
-                itemsToClone.add(new StarterPackItemRecord(
-                        pData[0], pData[1], pData[2], pData[3],
-                        new BigDecimal(pData[4]), new BigDecimal(pData[5]), pData[6]
-                ));
-            }
+        for (String[] pData : PRODUCTOS_STARTER_PACK) {
+            String ean = pData[0].trim();
+            itemsPorEan.putIfAbsent(ean, new StarterPackItemRecord(
+                    ean, pData[1], pData[2], pData[3],
+                    new BigDecimal(pData[4]), new BigDecimal(pData[5]), pData[6]
+            ));
         }
 
-        for (StarterPackItemRecord item : itemsToClone) {
+        for (StarterPackItemRecord item : itemsPorEan.values()) {
             String codigoBarras = item.codigoBarras();
             String nombre = item.nombre();
             String marca = item.marca();
@@ -725,13 +746,18 @@ public class StarterPackService {
             BigDecimal costo = item.costo();
             String imagenUrl = item.imagenUrl();
 
-            Categoria categoria = categoriasMap.getOrDefault(catNombre.toLowerCase().trim(), fallbackCat);
+            Categoria categoria = categoriasMap.getOrDefault(catNombre.toLowerCase(Locale.ROOT).trim(), fallbackCat);
             if (categoria == null) continue;
 
+            String nombreKey = nombre != null ? nombre.trim().toLowerCase(Locale.ROOT) : "";
             Producto existente = codigoBarras != null ? porCodigoBarras.get(codigoBarras.trim()) : null;
+            if (existente == null && !nombreKey.isEmpty()) {
+                existente = porNombreNorm.get(nombreKey);
+            }
             if (existente != null) {
                 boolean mod = false;
-                if ((existente.getImagenUrl() == null || existente.getImagenUrl().isBlank()) && imagenUrl != null) {
+                if ((existente.getImagenUrl() == null || existente.getImagenUrl().isBlank()
+                        || existente.getImagenUrl().startsWith("http")) && imagenUrl != null && !imagenUrl.isBlank()) {
                     existente.setImagenUrl(imagenUrl);
                     mod = true;
                 }
@@ -777,7 +803,7 @@ public class StarterPackService {
             p.setMarca(marca);
             p.setPrecioVenta(venta);
             p.setPrecioCosto(costo);
-            p.setStockActual(BigDecimal.ZERO); // Inventario inicial en 0 para integridad contable
+            p.setStockActual(stockNuevo);
             p.setStockMinimo(new BigDecimal("5.000"));
             p.setControlaVencimiento(false);
             p.setImagenUrl(imagenUrl);
@@ -789,25 +815,174 @@ public class StarterPackService {
             if (codigoBarras != null && !codigoBarras.isBlank()) {
                 porCodigoBarras.putIfAbsent(codigoBarras.trim(), p);
             }
+            if (!nombreKey.isEmpty()) {
+                porNombreNorm.putIfAbsent(nombreKey, p);
+            }
             creados++;
         }
 
         if (!porGuardar.isEmpty()) {
-            productoRepository.saveAll(porGuardar);
+            try {
+                productoRepository.saveAll(porGuardar);
+            } catch (Exception batchEx) {
+                log.warn("[StarterPackService] Batch saveAll falló para Bodega '{}', guardando individualmente: {}",
+                        bodega.getNombreComercial(), batchEx.getMessage());
+                for (Producto itemProd : porGuardar) {
+                    try {
+                        productoRepository.save(itemProd);
+                    } catch (Exception itemEx) {
+                        log.debug("[StarterPackService] Producto '{}' omitido por restricción: {}",
+                                itemProd.getNombre(), itemEx.getMessage());
+                    }
+                }
+            }
         }
 
         log.info("[StarterPackService] Starter Pack completado para Bodega '{}': {} creados, {} enriquecidos.",
                 bodega.getNombreComercial(), creados, actualizados);
+        return creados;
     }
 
     /**
-     * Enriquecimiento del catálogo de Bodega Karliz: preserva stocks actuales existentes,
-     * agrega las bebidas y productos faltantes con stock = 0, y actualiza URLs de packshots.
+     * Sincroniza en modo aditivo e idempotente el catálogo comercial expandido (407 productos)
+     * con la tabla {@code catalogo_starter_pack_global}, sin borrar personalizaciones del SuperAdmin.
      */
-    @Transactional
+    public int sincronizarPresetGlobalConCatalogoComercial() {
+        if (starterPackPresetRepository == null) return 0;
+        try {
+            List<StarterPackPreset> existentes = starterPackPresetRepository.findAll();
+            Map<String, StarterPackPreset> porEan = new HashMap<>();
+            if (existentes != null) {
+                for (StarterPackPreset p : existentes) {
+                    if (p.getCodigoBarras() != null) {
+                        porEan.put(p.getCodigoBarras().trim(), p);
+                    }
+                }
+            }
+
+            List<StarterPackPreset> porGuardar = new ArrayList<>();
+            int nuevos = 0;
+            for (String[] pData : PRODUCTOS_STARTER_PACK) {
+                String ean = pData[0].trim();
+                String img = pData[6] != null ? pData[6].trim() : null;
+                StarterPackPreset actual = porEan.get(ean);
+                if (actual == null) {
+                    porGuardar.add(StarterPackPreset.builder()
+                            .codigoBarras(ean)
+                            .nombre(pData[1].trim())
+                            .marca(pData[2] != null ? pData[2].trim() : null)
+                            .categoria(pData[3].trim())
+                            .precioVenta(new BigDecimal(pData[4]))
+                            .precioCosto(new BigDecimal(pData[5]))
+                            .imagenUrl(img)
+                            .activo(true)
+                            .build());
+                    nuevos++;
+                } else if (img != null && !img.isBlank()
+                        && (actual.getImagenUrl() == null || actual.getImagenUrl().isBlank()
+                        || actual.getImagenUrl().startsWith("http"))) {
+                    actual.setImagenUrl(img);
+                    porGuardar.add(actual);
+                }
+            }
+
+            if (!porGuardar.isEmpty()) {
+                try {
+                    starterPackPresetRepository.saveAll(porGuardar);
+                } catch (Exception batchEx) {
+                    log.warn("[StarterPackService] Batch preset saveAll falló, guardando individualmente: {}", batchEx.getMessage());
+                    for (StarterPackPreset preset : porGuardar) {
+                        try {
+                            starterPackPresetRepository.save(preset);
+                        } catch (Exception ignored) {
+                            // Ya existía en BD
+                        }
+                    }
+                }
+                log.info("[StarterPackService] Preset global sincronizado: {} nuevos productos comerciales añadidos (total catálogo: {}).",
+                        nuevos, PRODUCTOS_STARTER_PACK.length);
+            }
+            return nuevos;
+        } catch (Exception e) {
+            log.warn("[StarterPackService] Aviso sincronizando preset global: {}", e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Repara de forma idempotente imágenes heredadas incorrectas o externas en la tabla {@code productos}.
+     */
+    public void repararImagenesLegadasEnProductos() {
+        if (jdbcTemplate == null) return;
+        String[] updates = {
+            "UPDATE productos SET imagen_url = 'packshots/lavavajilla_ayudin.png' WHERE nombre ILIKE '%Ayudín%' AND imagen_url = 'packshots/crema_tari.png'",
+            "UPDATE productos SET imagen_url = 'packshots/lavavajilla_sapolio.png' WHERE nombre ILIKE '%Sapolio%' AND imagen_url = 'packshots/crema_tari.png'",
+            "UPDATE productos SET imagen_url = 'packshots/fosforos_la_llama.png' WHERE nombre ILIKE '%Fósforos La Llama%' AND imagen_url = 'packshots/crema_tari.png'",
+            "UPDATE productos SET imagen_url = 'packshots/mostaza_alacena.png' WHERE nombre ILIKE '%Mostaza AlaCena%' AND (imagen_url IS NULL OR imagen_url = '' OR imagen_url = 'packshots/concordia_pina.png')",
+            "UPDATE productos SET imagen_url = 'packshots/coca_cola.png' WHERE nombre ILIKE 'Coca Cola 1.5L%' AND imagen_url ILIKE 'http%'",
+            "UPDATE productos SET imagen_url = 'packshots/coca_cola_3l.png' WHERE nombre ILIKE '%Coca Cola%3 L%' AND imagen_url = 'packshots/coca_cola.png'",
+            "UPDATE productos SET imagen_url = 'packshots/inka_kola.png' WHERE nombre ILIKE 'Inca Kola 1.5L%' AND imagen_url = 'packshots/inka_kola_3l.png'",
+            "UPDATE productos SET imagen_url = 'packshots/inka_kola_500ml.png' WHERE nombre ILIKE '%Inca Kola%500ml%' AND imagen_url = 'packshots/inka_kola.png'",
+            "UPDATE productos SET imagen_url = 'packshots/fanta_500ml.png' WHERE nombre ILIKE '%Fanta%500ml%' AND imagen_url = 'packshots/fanta.png'",
+            "UPDATE productos SET imagen_url = 'packshots/atun_primor.png' WHERE nombre ILIKE '%Atún Primor%' AND imagen_url = 'packshots/aceite_primor.png'",
+            "UPDATE productos SET imagen_url = 'packshots/ketchup_alacena_380g.png' WHERE (nombre ILIKE '%Kétchup AlaCena%' OR nombre ILIKE '%Ketchup AlaCena%') AND imagen_url <> 'packshots/ketchup_alacena_380g.png'",
+            "UPDATE productos SET imagen_url = 'packshots/cigarros_hamilton.png' WHERE nombre ILIKE '%Hamilton%' AND (imagen_url IS NULL OR imagen_url = '' OR imagen_url = 'packshots/helado_jet.png')",
+            "UPDATE productos SET nombre = 'Marlboro Gold Box Cajetilla x20', imagen_url = 'packshots/cigarros_malboro.png' WHERE nombre ILIKE 'Malboro Gold%' AND (imagen_url IS NULL OR imagen_url = '' OR imagen_url = 'packshots/helado_jet.png')",
+            "UPDATE productos SET imagen_url = 'packshots/cigarros_pall_mall.png' WHERE nombre ILIKE '%Pall Mall%' AND (imagen_url IS NULL OR imagen_url = '' OR imagen_url = 'packshots/helado_jet.png')",
+            "UPDATE productos SET imagen_url = 'packshots/cigarros_lucky_strike.png' WHERE nombre ILIKE '%Lucky Strike%' AND (imagen_url IS NULL OR imagen_url = '' OR imagen_url = 'packshots/helado_jet.png')"
+        };
+        for (String sql : updates) {
+            try {
+                jdbcTemplate.execute(sql);
+            } catch (Exception e) {
+                log.debug("[StarterPackService] Ajuste de imagen omitido: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Enriquecimiento integral del catálogo comercial (Olas 1-7: 407 productos y 13 categorías):
+     * 1. Sincroniza el Preset Global del SuperAdmin.
+     * 2. Repara imágenes heredadas rotas o externas.
+     * 3. Agrega productos faltantes en Bodega KARLIZ con stock comercial visible (18 unid.)
+     *    y en las demás bodegas activas con stock = 0 (preservando su inventario real).
+     */
     public void enriquecerCatalogoBodegaKarliz(Bodega bodegaKarliz) {
-        if (bodegaKarliz == null || bodegaKarliz.getIdBodega() == null) return;
-        provisionarStarterPackParaBodega(bodegaKarliz);
+        try {
+            int presetsNuevos = sincronizarPresetGlobalConCatalogoComercial();
+            repararImagenesLegadasEnProductos();
+
+            int karlizNuevos = 0;
+            Long idKarliz = (bodegaKarliz != null) ? bodegaKarliz.getIdBodega() : null;
+            if (idKarliz != null) {
+                karlizNuevos = provisionarStarterPackParaBodega(bodegaKarliz, new BigDecimal("18.000"));
+            }
+
+            int otrasBodegas = 0;
+            int otrosProductos = 0;
+            if (bodegaRepository != null) {
+                List<Bodega> todas = bodegaRepository.findAll();
+                if (todas != null) {
+                    for (Bodega b : todas) {
+                        if (b != null && b.getIdBodega() != null
+                                && Boolean.TRUE.equals(b.getEstado())
+                                && !b.getIdBodega().equals(idKarliz)) {
+                            otrosProductos += provisionarStarterPackParaBodega(b, BigDecimal.ZERO);
+                            otrasBodegas++;
+                        }
+                    }
+                }
+            }
+
+            ultimoResumenSincronizacion = "OK(presets_nuevos=" + presetsNuevos
+                    + ",karliz_nuevos=" + karlizNuevos
+                    + ",otras_bodegas=" + otrasBodegas
+                    + ",otros_nuevos=" + otrosProductos
+                    + ",catalogo_total=" + PRODUCTOS_STARTER_PACK.length + ")";
+        } catch (Exception e) {
+            ultimoResumenSincronizacion = "ERR:" + e.getClass().getSimpleName() + ":" + e.getMessage();
+            log.warn("[StarterPackService] Error en enriquecerCatalogoBodegaKarliz: {}", e.getMessage(), e);
+        }
     }
 
     /**

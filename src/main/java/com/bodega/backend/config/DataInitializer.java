@@ -86,13 +86,26 @@ public class DataInitializer implements ApplicationRunner {
             inicializarUsuarios(bodegaKarliz);
 
             // 4. Sanitizar atajos y categorías basura (Bebidas Refrescantes 128/342/431/556/658) y unificar duplicados
-            starterPackService.sanitizarCategoriasYAtajos();
+            try {
+                starterPackService.sanitizarCategoriasYAtajos();
+            } catch (Exception sanEx) {
+                log.warn("[DataInitializer] Aviso en sanitización de categorías: {}", sanEx.getMessage());
+            }
 
             // 4.1. Inicializar preset global de catálogo para el SuperAdmin si la tabla está vacía
-            starterPackService.inicializarPresetGlobalSiVacio();
+            try {
+                starterPackService.inicializarPresetGlobalSiVacio();
+            } catch (Exception presetEx) {
+                log.warn("[DataInitializer] Aviso inicializando preset global: {}", presetEx.getMessage());
+            }
 
-            // 5. Enriquecer catálogo comercial y starter pack para Bodega KARLIZ y nuevas tiendas
-            starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
+            // 5. Sincronizar catálogo comercial expandido (Olas 1-7: 407 productos y 13 categorías)
+            // en el preset global, Bodega KARLIZ (con stock visible) y demás bodegas activas
+            try {
+                starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
+            } catch (Exception syncEx) {
+                log.warn("[DataInitializer] Error en sincronización del catálogo comercial: {}", syncEx.getMessage());
+            }
 
             // 6. Normalizar y canonicizar marcas de productos en base de datos
             normalizarMarcasDeProductos();

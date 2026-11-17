@@ -101,6 +101,9 @@ public class HealthController {
         Map<String, Object> response = new HashMap<>();
         response.put("service", "cajaya-pos-backend");
         response.put("version", "1.4.2-enterprise");
+        response.put("catalog_revision", "waves-1-7-407");
+        response.put("migrations_status", com.bodega.backend.config.PostgresMigrationRunner.getLastExecutionSummary());
+        response.put("catalog_sync", com.bodega.backend.service.StarterPackService.getUltimoResumenSincronizacion());
         response.put("tenant_engine", "multitenant_enterprise_v4");
         response.put("timestamp", Instant.now().toString());
 

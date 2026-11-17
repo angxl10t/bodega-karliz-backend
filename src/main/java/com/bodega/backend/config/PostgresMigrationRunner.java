@@ -32,6 +32,11 @@ import java.util.Locale;
 public class PostgresMigrationRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(PostgresMigrationRunner.class);
+    private static volatile String lastExecutionSummary = "NOT_RUN";
+
+    public static String getLastExecutionSummary() {
+        return lastExecutionSummary;
+    }
 
     // Nota: v23_update_real_bodega_street_prices.sql se excluye del arranque para no sobrescribir tarifas personalizadas de cada bodega.
     public static final List<String> DEFAULT_MIGRATION_LOCATIONS = List.of(
@@ -110,6 +115,7 @@ public class PostgresMigrationRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         if (!enabled || locations.isEmpty()) {
+            lastExecutionSummary = "DISABLED_OR_EMPTY(enabled=" + enabled + ",count=" + locations.size() + ")";
             log.debug("[PostgresMigrationRunner] Migraciones SQL deshabilitadas o sin scripts configurados.");
             return;
         }
@@ -117,10 +123,12 @@ public class PostgresMigrationRunner implements ApplicationRunner {
         try (Connection testConn = dataSource.getConnection()) {
             String productName = testConn.getMetaData().getDatabaseProductName();
             if (productName == null || !productName.toLowerCase(Locale.ROOT).contains("postgresql")) {
+                lastExecutionSummary = "SKIPPED_NON_PG(" + productName + ")";
                 log.info("[PostgresMigrationRunner] Motor '{}' detectado; se omiten scripts exclusivos de PostgreSQL.", productName);
                 return;
             }
         } catch (Exception ex) {
+            lastExecutionSummary = "METADATA_ERR:" + ex.getClass().getSimpleName();
             log.warn("[PostgresMigrationRunner] Error verificando motor de base de datos: {}", ex.getMessage());
             if (!continueOnError) {
                 throw ex;
@@ -183,6 +191,7 @@ public class PostgresMigrationRunner implements ApplicationRunner {
             }
         }
 
+        lastExecutionSummary = "OK(scripts=" + scriptsExecuted + ",stmts=" + statementsExecuted + ",warns=" + warnings + ")";
         log.info("[PostgresMigrationRunner] {} scripts PostgreSQL procesados ({} sentencias ejecutadas, {} avisos idempotentes).",
                 scriptsExecuted, statementsExecuted, warnings);
     }
