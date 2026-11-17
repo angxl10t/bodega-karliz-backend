@@ -26,6 +26,7 @@ import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
 import '../productos/sugerencias_precio_modal.dart';
 import 'configuracion_marca_modal.dart';
+import 'mi_bodega_online_modal.dart';
 import '../legal/libro_reclamaciones_screen.dart';
 import '../legal/terminos_condiciones_screen.dart';
 import '../legal/politica_privacidad_screen.dart';
@@ -677,6 +678,120 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
+                          // Acceso directo a Mi Bodega Online (Catálogo Web, Horarios & Delivery)
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              MiBodegaOnlineModal.show(
+                                context,
+                                nombreBodega: _nombreBodega,
+                                telefonoBodega: _bodegaInfo?.telefono ?? '',
+                                isPro:
+                                    _plan.toUpperCase() == 'PRO' ||
+                                    _plan.toUpperCase() == 'CORPORATIVO',
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppTheme.cardDarkHighlight
+                                    : const Color(0xFFF0FDF4),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: const Color(0xFF10B981)
+                                      .withValues(alpha: 0.35),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF10B981)
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.globe,
+                                      color: Color(0xFF10B981),
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                'Mi Bodega Online',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : AppTheme.textDark,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF10B981)
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: const Text(
+                                                'WEB & DELIVERY',
+                                                style: TextStyle(
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Color(0xFF10B981),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          'Gestiona abierto/cerrado, delivery rápido y enlace web',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark
+                                        ? Colors.white54
+                                        : const Color(0xFF94A3B8),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           // Acceso directo a Configuración de Marca y Colores (Plan PRO)
                           InkWell(
                             onTap: () {
@@ -2894,6 +3009,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
+                  _buildSidebarActionTile(
+                    icon: LucideIcons.globe,
+                    label: 'Mi Bodega Online',
+                    color: const Color(0xFF10B981),
+                    badge: 'Web',
+                    isDark: isDark,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      MiBodegaOnlineModal.show(
+                        context,
+                        nombreBodega: _nombreBodega,
+                        telefonoBodega: _bodegaInfo?.telefono ?? '',
+                        isPro:
+                            _plan.toUpperCase() == 'PRO' ||
+                            _plan.toUpperCase() == 'CORPORATIVO',
+                      );
+                    },
+                  ),
                   _buildSidebarActionTile(
                     icon: LucideIcons.slidersHorizontal,
                     label: 'Panel & Configuración',
