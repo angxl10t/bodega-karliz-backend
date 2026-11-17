@@ -597,20 +597,16 @@ public class BodegaService {
 
 
         } else if (dto.getLogoUrl() != null && dto.getLogoUrl().isBlank()) {
-
-
-
             bodega.setLogoUrl(null);
-
-
-
         }
 
+        if (dto.getCatalogoAbierto() != null) {
+            bodega.setCatalogoAbierto(dto.getCatalogoAbierto());
+        }
 
-
-
-
-
+        if (dto.getDeliveryActivo() != null) {
+            bodega.setDeliveryActivo(dto.getDeliveryActivo());
+        }
 
         Bodega guardada = bodegaRepository.save(bodega);
 
@@ -1326,16 +1322,10 @@ public class BodegaService {
 
 
         dto.setUltimoCorrelativoBoleta(b.getUltimoCorrelativoBoleta());
-
-
-
         dto.setUltimoCorrelativoFactura(b.getUltimoCorrelativoFactura());
 
-
-
-
-
-
+        dto.setCatalogoAbierto(b.getCatalogoAbierto() != null ? b.getCatalogoAbierto() : true);
+        dto.setDeliveryActivo(b.getDeliveryActivo() != null ? b.getDeliveryActivo() : true);
 
         // Cuotas SaaS por Plan
 

@@ -36,4 +36,8 @@ public class BodegaDTO {
     private Integer limiteProductos;
     private Long totalProductosActivos;
     private Boolean limiteAlcanzado;
+
+    // Configuración Operativa "Mi Bodega Online"
+    private Boolean catalogoAbierto;
+    private Boolean deliveryActivo;
 }

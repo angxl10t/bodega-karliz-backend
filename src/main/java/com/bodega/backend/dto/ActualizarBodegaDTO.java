@@ -32,4 +32,8 @@ public class ActualizarBodegaDTO {
 
     @Pattern(regexp = "^$|^(NUEVO_RUS|INFORMAL|RER|MYPE_TRIBUTARIO|REGIMEN_GENERAL)$", message = "El régimen tributario debe ser: NUEVO_RUS o INFORMAL")
     private String regimenTributario;
+
+    // Configuración Operativa "Mi Bodega Online"
+    private Boolean catalogoAbierto;
+    private Boolean deliveryActivo;
 }

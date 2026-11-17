@@ -85,4 +85,11 @@ public class Bodega {
 
     @Column(name = "ultimo_correlativo_factura")
     private Long ultimoCorrelativoFactura = 0L;
+
+    // Configuración Operativa Catálogo Digital "Mi Bodega Online"
+    @Column(name = "catalogo_abierto")
+    private Boolean catalogoAbierto = true;
+
+    @Column(name = "delivery_activo")
+    private Boolean deliveryActivo = true;
 }
