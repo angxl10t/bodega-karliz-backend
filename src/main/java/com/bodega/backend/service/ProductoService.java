@@ -72,7 +72,6 @@ public class ProductoService {
         this.bodegaRepository = bodegaRepository;
     }
 
-    @PostConstruct
     @Transactional
     public void liberarCodigosInactivos() {
         try {

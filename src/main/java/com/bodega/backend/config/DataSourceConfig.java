@@ -18,7 +18,7 @@ public class DataSourceConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
 
-    public static final String DEFAULT_SUPABASE_URL = "jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres";
+    public static final String DEFAULT_SUPABASE_URL = "jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&prepareThreshold=0";
     public static final String DEFAULT_SUPABASE_USER = "postgres.rmdbcmnoanyqumjlfphy";
 
     private final Environment environment;
