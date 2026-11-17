@@ -69,7 +69,8 @@ public class PostgresMigrationRunner implements ApplicationRunner {
             "classpath:db/migration/v35_expand_bodega_catalog_wave3.sql",
             "classpath:db/migration/v36_expand_mascotas_y_bodega_wave4.sql",
             "classpath:db/migration/v37_expand_bodega_catalog_wave5.sql",
-            "classpath:db/migration/v38_expand_bodega_catalog_wave6.sql"
+            "classpath:db/migration/v38_expand_bodega_catalog_wave6.sql",
+            "classpath:db/migration/v39_expand_bodega_catalog_wave7.sql"
     );
 
     private final DataSource dataSource;
