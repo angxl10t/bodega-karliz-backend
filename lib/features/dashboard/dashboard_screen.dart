@@ -17,8 +17,6 @@ import '../auth/auth_service.dart';
 import '../home/plan_y_personal_sheet.dart';
 import '../home/bodega_service.dart';
 import '../home/configuracion_ticket_modal.dart';
-import '../../core/offline/offline_queue_sheet.dart';
-import '../../core/widgets/briefing_turno_modal.dart';
 import '../ventas/venta_model.dart';
 import '../ventas/venta_service.dart';
 import '../clientes/cliente_model.dart';
@@ -1585,111 +1583,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
 
-                      // Live Dot (Acceso directo a cola offline)
-                      InkWell(
-                        onTap: () => OfflineQueueSheet.show(context),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppTheme.accentGreen.withValues(alpha: 0.15)
-                                : const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppTheme.accentGreen.withValues(alpha: 0.4)
-                                  : const Color(0xFF86EFAC),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const _PulsingLiveDot(),
-                              const SizedBox(width: 5),
-                              Text(
-                                'En Vivo',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: isDark
-                                      ? const Color(0xFF86EFAC)
-                                      : const Color(0xFF15803D),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-
-                      // Botón Acceso Rápido a Consejos de Turno (Modal Ejecutivo)
-                      InkWell(
-                        onTap: () {
-                          BriefingTurnoModal.show(
-                            context,
-                            username: _username,
-                            userRol: _userRol,
-                            nombreBodega: _nombreBodega,
-                            onNavigateTab: widget.onNavigateTab,
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF38BDF8)
-                                      .withValues(alpha: 0.18)
-                                : const Color(0xFFF0FDF4),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF38BDF8)
-                                        .withValues(alpha: 0.45)
-                                  : const Color(0xFFBBF7D0),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                LucideIcons.sparkles,
-                                size: 11,
-                                color: isDark
-                                    ? const Color(0xFF38BDF8)
-                                    : const Color(0xFF16A34A),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Consejos',
-                                style: GoogleFonts.outfit(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF15803D),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Badge sutil de quiebre de stock si hay productos críticos
+                      // Badge sutil de quiebre de stock si hay productos críticos (Alerta por Excepción)
                       if (criticos.isNotEmpty) ...[
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         InkWell(
                           onTap: () =>
                               widget.onNavigateTab(3), // Tab Inventario
@@ -1886,46 +1783,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.transparent
-                          : const Color(0xFFE2E8F0),
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        LucideIcons.checkCheck,
-                        size: 11,
-                        color: AppTheme.accentGreen,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'POS Activo',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: isDark
-                              ? const Color(0xFFE2E8F0)
-                              : const Color(0xFF334155),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -3683,73 +3540,6 @@ class _CraftMetricTileState extends State<_CraftMetricTile> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _PulsingLiveDot extends StatefulWidget {
-  const _PulsingLiveDot();
-
-  @override
-  State<_PulsingLiveDot> createState() => _PulsingLiveDotState();
-}
-
-class _PulsingLiveDotState extends State<_PulsingLiveDot>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    );
-    _animation = Tween<double>(
-      begin: 0.45,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    final bool isTest = WidgetsBinding.instance.runtimeType.toString().contains(
-      'Test',
-    );
-    if (!isTest) {
-      _controller.repeat(reverse: true);
-    } else {
-      _controller.value = 1.0;
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, _) {
-        return Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.accentGreen.withValues(alpha: _animation.value),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.accentGreen.withValues(
-                  alpha: 0.45 * _animation.value,
-                ),
-                blurRadius: 4,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
