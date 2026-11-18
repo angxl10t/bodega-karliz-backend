@@ -1321,73 +1321,27 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: Text(
-                        titulo,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
-              if (actionLabel != null && onAction != null) ...[
-                const SizedBox(width: 4),
-                InkWell(
-                  mouseCursor: SystemMouseCursors.click,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    onAction();
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.cardDarkHighlight
-                          : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: isDark
-                            ? AppTheme.borderDark
-                            : const Color(0xFFE2E8F0),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Text(
-                      actionLabel,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                      ),
-                    ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  titulo,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
                   ),
                 ),
-              ],
+              ),
             ],
           ),
           const SizedBox(height: 6),
@@ -1404,6 +1358,41 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
               ),
             ),
           ),
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 5),
+            InkWell(
+              mouseCursor: SystemMouseCursors.click,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onAction();
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppTheme.cardDarkHighlight
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
+                    width: 0.8,
+                  ),
+                ),
+                child: Text(
+                  actionLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -3022,6 +3011,33 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     required bool esHoy,
     required List<CierreCaja> diasPasados,
   }) {
+    final double ef = totalEfectivo;
+    final double yp = totalYape;
+    final double pl = totalPlin;
+    final double tj = totalTarjeta;
+    final double cr = totalCredito;
+    final double sumaCanales = ef + yp + pl + tj + cr;
+
+    final colorEfectivo = isDark
+        ? const Color(0xFF34D399)
+        : AppTheme.accentGreen;
+    final colorYape = isDark
+        ? const Color(0xFFE879F9)
+        : const Color(0xFF9333EA);
+    final colorPlin = isDark
+        ? const Color(0xFF38BDF8)
+        : const Color(0xFF0284C7);
+    final colorTarjeta = isDark
+        ? const Color(0xFF818CF8)
+        : const Color(0xFF2563EB);
+    final colorCredito = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFD97706);
+
+    final double ticketPromedio = cantidadVentas > 0
+        ? (totalVendido / cantidadVentas)
+        : 0.0;
+
     return RefreshIndicator(
       onRefresh: _cargarDatos,
       color: AppTheme.brandPrimary,
@@ -3125,9 +3141,9 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                   const SizedBox(height: 14),
                 ],
 
-                // Tarjeta Principal de Cierre del Día
+                // Tarjeta Principal de Cierre del Día (Superficie limpia, neutra)
                 Container(
-                  padding: const EdgeInsets.all(22),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDark : Colors.white,
                     borderRadius: BorderRadius.circular(22),
@@ -3139,9 +3155,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.brandPrimary.withValues(alpha: 0.06),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.2 : 0.03,
+                        ),
+                        blurRadius: 14,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -3150,64 +3168,76 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: esHoy
-                                  ? (isDark
-                                        ? const Color(0xFF064E3B)
-                                        : const Color(0xFFD1FAE5))
-                                  : (isDark
-                                        ? const Color(0xFF1E293B)
-                                        : const Color(0xFFE0E7FF)),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              children: [
-                                if (esHoy) ...[
-                                  Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: AppTheme.accentGreen,
-                                      shape: BoxShape.circle,
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: esHoy
+                                    ? (isDark
+                                          ? const Color(0xFF064E3B)
+                                          : const Color(0xFFD1FAE5))
+                                    : (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFE0E7FF)),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (esHoy) ...[
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.accentGreen,
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Caja Abierta Hoy',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? const Color(0xFF6EE7B7)
-                                          : const Color(0xFF065F46),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        'Caja Abierta Hoy',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? const Color(0xFF6EE7B7)
+                                              : const Color(0xFF065F46),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ] else ...[
-                                  const Icon(
-                                    LucideIcons.checkCheck,
-                                    size: 13,
-                                    color: Color(0xFF4338CA),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    'Cierre Concluido',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? const Color(0xFFA5B4FC)
-                                          : const Color(0xFF4338CA),
+                                  ] else ...[
+                                    const Icon(
+                                      LucideIcons.checkCheck,
+                                      size: 13,
+                                      color: Color(0xFF4338CA),
                                     ),
-                                  ),
+                                    const SizedBox(width: 5),
+                                    Flexible(
+                                      child: Text(
+                                        'Cierre Concluido',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? const Color(0xFFA5B4FC)
+                                              : const Color(0xFF4338CA),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           Text(
                             '${_fechaSeleccionada.day}/${_fechaSeleccionada.month}/${_fechaSeleccionada.year}',
                             style: GoogleFonts.plusJakartaSans(
@@ -3224,7 +3254,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                             ? 'TOTAL RECAUDADO EN EL DÍA'
                             : 'TOTAL RECAUDADO (${_formatearFechaCorta(_fechaSeleccionada).toUpperCase()})',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w800,
                           color: AppTheme.getAdaptiveMutedText(isDark),
                           letterSpacing: 0.5,
@@ -3238,25 +3268,77 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                         builder: (context, val, _) => Text(
                           'S/ ${val.toStringAsFixed(2)}',
                           style: GoogleFonts.outfit(
-                            fontSize: 36,
+                            fontSize: 34,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -0.5,
-                            color: AppTheme.brandPrimary,
+                            color: isDark ? Colors.white : AppTheme.textDark,
                             fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$cantidadVentas ventas registradas',
+                        '$cantidadVentas ventas registradas · Ticket prom. S/ ${ticketPromedio.toStringAsFixed(2)}',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
                         ),
                       ),
+
+                      // Tira Proporcional de Canales de Cobro en Móvil
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: SizedBox(
+                          height: 7,
+                          child: sumaCanales <= 0
+                              ? Container(
+                                  color: isDark
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFFE2E8F0),
+                                )
+                              : Row(
+                                  children: [
+                                    if (ef > 0)
+                                      Expanded(
+                                        flex: ((ef / sumaCanales) * 1000)
+                                            .round(),
+                                        child: Container(color: colorEfectivo),
+                                      ),
+                                    if (yp > 0)
+                                      Expanded(
+                                        flex: ((yp / sumaCanales) * 1000)
+                                            .round(),
+                                        child: Container(color: colorYape),
+                                      ),
+                                    if (pl > 0)
+                                      Expanded(
+                                        flex: ((pl / sumaCanales) * 1000)
+                                            .round(),
+                                        child: Container(color: colorPlin),
+                                      ),
+                                    if (tj > 0)
+                                      Expanded(
+                                        flex: ((tj / sumaCanales) * 1000)
+                                            .round(),
+                                        child: Container(color: colorTarjeta),
+                                      ),
+                                    if (cr > 0)
+                                      Expanded(
+                                        flex: ((cr / sumaCanales) * 1000)
+                                            .round(),
+                                        child: Container(color: colorCredito),
+                                      ),
+                                  ],
+                                ),
+                        ),
+                      ),
+
                       if (!esHoy && cantidadVentas > 0) ...[
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(
@@ -3293,6 +3375,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                   ),
                 ),
                 const SizedBox(height: 18),
+
+                // SECCIÓN: ARQUEO DE TURNO & CUADRE DE CAJA (Prioridad operativa en móvil)
+                _buildArqueoYCuadreCard(isDark),
+                const SizedBox(height: 22),
 
                 // Título de Métodos
                 Text(
@@ -3332,7 +3418,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                           titulo: 'Yape Móvil',
                           monto: totalYape,
                           icon: LucideIcons.smartphone,
-                          color: const Color(0xFF7C3AED),
+                          color: colorYape,
                           isDark: isDark,
                           descripcion: 'Pagos recibidos por código QR',
                         ),
@@ -3341,7 +3427,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                           titulo: 'Plin',
                           monto: totalPlin,
                           icon: LucideIcons.smartphone,
-                          color: const Color(0xFF0284C7),
+                          color: colorPlin,
                           isDark: isDark,
                           descripcion: 'Transferencias interbancarias',
                         ),
@@ -3350,7 +3436,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                           titulo: 'Tarjetas / POS',
                           monto: totalTarjeta,
                           icon: LucideIcons.creditCard,
-                          color: const Color(0xFF2563EB),
+                          color: colorTarjeta,
                           isDark: isDark,
                           descripcion: 'Cobros débito / crédito',
                         ),
@@ -3360,7 +3446,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                             titulo: 'Crédito / Fiados',
                             monto: totalCredito,
                             icon: LucideIcons.handCoins,
-                            color: const Color(0xFFD97706),
+                            color: colorCredito,
                             isDark: isDark,
                             descripcion: 'Pendiente de cobro en Libreta',
                           ),
@@ -3368,10 +3454,6 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                     );
                   },
                 ),
-                const SizedBox(height: 24),
-
-                // SECCIÓN: ARQUEO DE TURNO & CUADRE DE CAJA
-                _buildArqueoYCuadreCard(isDark),
                 const SizedBox(height: 24),
 
                 // SECCIÓN: HISTÓRICO DE DÍAS ANTERIORES
@@ -3750,7 +3832,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         ],
 
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           decoration: BoxDecoration(
             color: isDark ? AppTheme.cardDark : Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -3759,223 +3841,252 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.brandPrimary.withValues(alpha: 0.04),
-                blurRadius: 14,
-                offset: const Offset(0, 3),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Estado del Turno + Fecha + Ventas
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.cardDarkHighlight
-                          : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: isDark
-                            ? AppTheme.borderDark
-                            : const Color(0xFFE2E8F0),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        if (esHoy) ...[
+                  // Estado del Turno + Fecha + Ventas
+                  Flexible(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
                           Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: AppTheme.accentGreen,
-                              shape: BoxShape.circle,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.cardDarkHighlight
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppTheme.borderDark
+                                    : const Color(0xFFE2E8F0),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (esHoy) ...[
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.accentGreen,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'TURNO EN CURSO',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF475569),
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ] else ...[
+                                  Icon(
+                                    LucideIcons.checkCheck,
+                                    size: 14,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF64748B),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'TURNO CONCLUIDO',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF475569),
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'TURNO EN CURSO',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF475569),
-                              letterSpacing: 0.4,
+                          const SizedBox(width: 12),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                LucideIcons.calendar,
+                                size: 15,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _formatearFechaCompleta(_fechaSeleccionada),
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
                             ),
-                          ),
-                        ] else ...[
-                          Icon(
-                            LucideIcons.checkCheck,
-                            size: 14,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : const Color(0xFF64748B),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'TURNO CONCLUIDO',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF475569),
-                              letterSpacing: 0.4,
+                            decoration: BoxDecoration(
+                              color: AppTheme.brandPrimary.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '$cantidadVentas ventas',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.brandPrimary,
+                              ),
                             ),
                           ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
+
+                  // Acciones Rápidas
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        LucideIcons.calendar,
-                        size: 16,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF64748B),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          side: BorderSide(
+                            color: isDark
+                                ? AppTheme.borderDark
+                                : AppTheme.borderLight,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(
+                          LucideIcons.wallet,
+                          size: 14,
+                          color: Color(0xFF2563EB),
+                        ),
+                        label: Text(
+                          'Base: S/ ${fondo.toStringAsFixed(2)}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                        onPressed: _mostrarModalFondoInicial,
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE11D48)
+                              .withValues(alpha: isDark ? 0.12 : 0.08),
+                          foregroundColor: const Color(0xFFE11D48),
+                          side: BorderSide(
+                            color: const Color(0xFFE11D48)
+                                .withValues(alpha: isDark ? 0.35 : 0.25),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.minusCircle, size: 14),
+                        label: Text(
+                          '+ Egreso',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        onPressed: _mostrarModalRegistrarEgreso,
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        tooltip: 'Imprimir Ticket Térmico de Arqueo',
+                        style: IconButton.styleFrom(
+                          backgroundColor: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF1F5F9),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(
+                          LucideIcons.printer,
+                          size: 17,
+                          color: AppTheme.brandPrimary,
+                        ),
+                        onPressed: _imprimirTicketArqueo,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        _formatearFechaCompleta(_fechaSeleccionada),
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+                      IconButton(
+                        tooltip: 'Actualizar corte de caja',
+                        style: IconButton.styleFrom(
+                          backgroundColor: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF1F5F9),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
+                        icon: const Icon(
+                          LucideIcons.refreshCw,
+                          size: 16,
+                          color: AppTheme.brandPrimary,
+                        ),
+                        onPressed: _cargarDatos,
                       ),
                     ],
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '$cantidadVentas ventas registradas',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.brandPrimary,
-                      ),
-                    ),
-                  ),
                 ],
               ),
-
-              // Selector de Fecha Rápido
+              const SizedBox(height: 10),
+              Divider(
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                height: 1,
+              ),
+              const SizedBox(height: 10),
+              // Selector de Fecha Rápido en su propia fila completa
               _buildFiltrosFecha(isDark),
-
-              // Acciones Rápidas
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      side: BorderSide(
-                        color: isDark
-                            ? AppTheme.borderDark
-                            : AppTheme.borderLight,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(
-                      LucideIcons.wallet,
-                      size: 15,
-                      color: Color(0xFF2563EB),
-                    ),
-                    label: Text(
-                      'Base: S/ ${fondo.toStringAsFixed(2)}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                    ),
-                    onPressed: _mostrarModalFondoInicial,
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE11D48),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(LucideIcons.minusCircle, size: 15),
-                    label: Text(
-                      '+ Egreso',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    onPressed: _mostrarModalRegistrarEgreso,
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    tooltip: 'Imprimir Ticket Térmico de Arqueo',
-                    style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? AppTheme.cardDarkSunken
-                          : const Color(0xFFF1F5F9),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(
-                      LucideIcons.printer,
-                      size: 18,
-                      color: AppTheme.brandPrimary,
-                    ),
-                    onPressed: _imprimirTicketArqueo,
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton(
-                    tooltip: 'Actualizar corte de caja',
-                    style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? AppTheme.cardDarkSunken
-                          : const Color(0xFFF1F5F9),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(
-                      LucideIcons.refreshCw,
-                      size: 17,
-                      color: AppTheme.brandPrimary,
-                    ),
-                    onPressed: _cargarDatos,
-                  ),
-                ],
-              ),
             ],
           ),
         ),
@@ -4063,7 +4174,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     VoidCallback? onAction,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -4085,13 +4196,13 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 34,
-                height: 34,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF1E293B)
                       : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isDark
                         ? const Color(0xFF334155)
@@ -4099,7 +4210,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                     width: 0.8,
                   ),
                 ),
-                child: Icon(icon, size: 17, color: color),
+                child: Icon(icon, size: 15, color: color),
               ),
               if (actionLabel != null && onAction != null)
                 InkWell(
@@ -4110,8 +4221,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                   borderRadius: BorderRadius.circular(6),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+                      horizontal: 6,
+                      vertical: 2.5,
                     ),
                     decoration: BoxDecoration(
                       color: isDark
@@ -4128,7 +4239,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                     child: Text(
                       actionLabel,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                         color: color,
                       ),
@@ -4137,7 +4248,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             titulo,
             maxLines: 1,
@@ -4193,6 +4304,33 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     required double totalTarjeta,
     required double totalCredito,
   }) {
+    final double ef = totalEfectivo;
+    final double yp = totalYape;
+    final double pl = totalPlin;
+    final double tj = totalTarjeta;
+    final double cr = totalCredito;
+    final double sumaCanales = ef + yp + pl + tj + cr;
+
+    final colorEfectivo = isDark
+        ? const Color(0xFF34D399)
+        : AppTheme.accentGreen;
+    final colorYape = isDark
+        ? const Color(0xFFE879F9)
+        : const Color(0xFF9333EA);
+    final colorPlin = isDark
+        ? const Color(0xFF38BDF8)
+        : const Color(0xFF0284C7);
+    final colorTarjeta = isDark
+        ? const Color(0xFF818CF8)
+        : const Color(0xFF2563EB);
+    final colorCredito = isDark
+        ? const Color(0xFFFBBF24)
+        : const Color(0xFFD97706);
+
+    final double ticketPromedio = cantidadVentas > 0
+        ? (totalVendido / cantidadVentas)
+        : 0.0;
+
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -4203,8 +4341,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.brandPrimary.withValues(alpha: 0.04),
-            blurRadius: 14,
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 12,
             offset: const Offset(0, 3),
           ),
         ],
@@ -4215,47 +4353,100 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           // Header de Total Vendido y Botón Boletas
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'TOTAL RECAUDADO EN EL TURNO',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.getAdaptiveMutedText(isDark),
-                      letterSpacing: 0.5,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Text(
+                          'TOTAL RECAUDADO EN EL TURNO',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.getAdaptiveMutedText(isDark),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accentGreen.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppTheme.accentGreen.withValues(
+                                alpha: 0.25,
+                              ),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.accentGreen,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4.5),
+                              Text(
+                                'Multi-Canal',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? const Color(0xFF34D399)
+                                      : const Color(0xFF059669),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0.0, end: totalVendido),
-                    duration: const Duration(milliseconds: 750),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, val, _) => Text(
-                      'S/ ${val.toStringAsFixed(2)}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                        color: AppTheme.brandPrimary,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                    const SizedBox(height: 4),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: totalVendido),
+                      duration: const Duration(milliseconds: 750),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, val, _) => Text(
+                        'S/ ${val.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    '$cantidadVentas ventas registradas en todos los canales de pago',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B),
+                    Text(
+                      '$cantidadVentas ventas registradas · Ticket prom. S/ ${ticketPromedio.toStringAsFixed(2)}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 12),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(
@@ -4286,6 +4477,79 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
               ),
             ],
           ),
+          const SizedBox(height: 16),
+
+          // Tira Proporcional de Canales de Cobro (Calma Visual)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Distribución por Canal de Cobro',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
+                    ),
+                  ),
+                  Text(
+                    '100% conciliado',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? const Color(0xFF34D399)
+                          : const Color(0xFF059669),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: SizedBox(
+                  height: 8,
+                  child: sumaCanales <= 0
+                      ? Container(
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : const Color(0xFFE2E8F0),
+                        )
+                      : Row(
+                          children: [
+                            if (ef > 0)
+                              Expanded(
+                                flex: ((ef / sumaCanales) * 1000).round(),
+                                child: Container(color: colorEfectivo),
+                              ),
+                            if (yp > 0)
+                              Expanded(
+                                flex: ((yp / sumaCanales) * 1000).round(),
+                                child: Container(color: colorYape),
+                              ),
+                            if (pl > 0)
+                              Expanded(
+                                flex: ((pl / sumaCanales) * 1000).round(),
+                                child: Container(color: colorPlin),
+                              ),
+                            if (tj > 0)
+                              Expanded(
+                                flex: ((tj / sumaCanales) * 1000).round(),
+                                child: Container(color: colorTarjeta),
+                              ),
+                            if (cr > 0)
+                              Expanded(
+                                flex: ((cr / sumaCanales) * 1000).round(),
+                                child: Container(color: colorCredito),
+                              ),
+                          ],
+                        ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 18),
           Divider(
             color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
@@ -4306,58 +4570,55 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           ),
           const SizedBox(height: 12),
 
-          // Canales Digitales y POS en Grid
-          LayoutBuilder(
-            builder: (context, c) {
-              final double w =
-                  (c.maxWidth - (totalCredito > 0 ? 30 : 20)) /
-                  (totalCredito > 0 ? 4 : 3);
-              return Row(
-                children: [
-                  _buildCanalPagoTile(
-                    width: w,
-                    titulo: 'Yape Móvil',
-                    monto: totalYape,
-                    icon: LucideIcons.smartphone,
-                    color: const Color(0xFF7C3AED),
+          // Canales Digitales y POS en Grid Flexible
+          Row(
+            children: [
+              Expanded(
+                child: _buildCanalPagoTile(
+                  titulo: 'Yape Móvil',
+                  monto: totalYape,
+                  icon: LucideIcons.smartphone,
+                  color: colorYape,
+                  isDark: isDark,
+                  descripcion: 'QR / Billetera BCP',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildCanalPagoTile(
+                  titulo: 'Plin',
+                  monto: totalPlin,
+                  icon: LucideIcons.smartphone,
+                  color: colorPlin,
+                  isDark: isDark,
+                  descripcion: 'QR Interbancario',
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildCanalPagoTile(
+                  titulo: 'Tarjetas / POS',
+                  monto: totalTarjeta,
+                  icon: LucideIcons.creditCard,
+                  color: colorTarjeta,
+                  isDark: isDark,
+                  descripcion: 'Izipay / Niubiz',
+                ),
+              ),
+              if (totalCredito > 0) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildCanalPagoTile(
+                    titulo: 'Fiados / Crédito',
+                    monto: totalCredito,
+                    icon: LucideIcons.handCoins,
+                    color: colorCredito,
                     isDark: isDark,
-                    descripcion: 'QR / Billetera BCP',
+                    descripcion: 'En Libreta de Fiados',
                   ),
-                  const SizedBox(width: 10),
-                  _buildCanalPagoTile(
-                    width: w,
-                    titulo: 'Plin',
-                    monto: totalPlin,
-                    icon: LucideIcons.smartphone,
-                    color: const Color(0xFF0284C7),
-                    isDark: isDark,
-                    descripcion: 'QR Interbancario',
-                  ),
-                  const SizedBox(width: 10),
-                  _buildCanalPagoTile(
-                    width: w,
-                    titulo: 'Tarjetas / POS',
-                    monto: totalTarjeta,
-                    icon: LucideIcons.creditCard,
-                    color: const Color(0xFF2563EB),
-                    isDark: isDark,
-                    descripcion: 'Izipay / Niubiz',
-                  ),
-                  if (totalCredito > 0) ...[
-                    const SizedBox(width: 10),
-                    _buildCanalPagoTile(
-                      width: w,
-                      titulo: 'Fiados / Crédito',
-                      monto: totalCredito,
-                      icon: LucideIcons.handCoins,
-                      color: const Color(0xFFD97706),
-                      isDark: isDark,
-                      descripcion: 'En Libreta de Fiados',
-                    ),
-                  ],
-                ],
-              );
-            },
+                ),
+              ],
+            ],
           ),
         ],
       ),
@@ -4379,9 +4640,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFE11D48)
-                .withValues(alpha: isDark ? 0.04 : 0.03),
-            blurRadius: 14,
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 12,
             offset: const Offset(0, 3),
           ),
         ],
@@ -4392,59 +4652,69 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE11D48)
-                          .withValues(alpha: isDark ? 0.2 : 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      LucideIcons.trendingDown,
-                      size: 17,
-                      color: Color(0xFFE11D48),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Bitácora de Egresos y Salidas (${listaEgresos.length})',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : AppTheme.textDark,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE11D48)
-                          .withValues(alpha: isDark ? 0.15 : 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '-S/ ${totalEgresos.toStringAsFixed(2)}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFFE11D48),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE11D48)
+                            .withValues(alpha: isDark ? 0.2 : 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        LucideIcons.trendingDown,
+                        size: 17,
+                        color: Color(0xFFE11D48),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        'Bitácora de Egresos y Salidas (${listaEgresos.length})',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE11D48)
+                            .withValues(alpha: isDark ? 0.15 : 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '-S/ ${totalEgresos.toStringAsFixed(2)}',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFFE11D48),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
                   backgroundColor: const Color(0xFFE11D48)
-                      .withValues(alpha: isDark ? 0.2 : 0.1),
+                      .withValues(alpha: isDark ? 0.12 : 0.08),
                   foregroundColor: const Color(0xFFE11D48),
-                  elevation: 0,
+                  side: BorderSide(
+                    color: const Color(0xFFE11D48)
+                        .withValues(alpha: isDark ? 0.35 : 0.25),
+                  ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 8,
@@ -4520,11 +4790,12 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                   decoration: BoxDecoration(
                     color: isDark
                         ? AppTheme.cardDarkSunken
-                        : const Color(0xFFFFF1F2),
+                        : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFFE11D48)
-                          .withValues(alpha: isDark ? 0.2 : 0.15),
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : const Color(0xFFE2E8F0),
                     ),
                   ),
                   child: Row(
@@ -4536,7 +4807,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE11D48)
-                              .withValues(alpha: 0.15),
+                              .withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -4616,29 +4887,36 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Histórico y Auditoría de Días Anteriores',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : AppTheme.textDark,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Histórico y Auditoría de Días Anteriores',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Consulta los cierres pasados y el reporte Z de cada jornada',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B),
+                    Text(
+                      'Consulta los cierres pasados y el reporte Z de cada jornada',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -4796,17 +5074,22 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'EFECTIVO ESPERADO EN GAVETA',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF64748B),
-                        letterSpacing: 0.5,
+                    Flexible(
+                      child: Text(
+                        'EFECTIVO ESPERADO EN GAVETA',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -4917,14 +5200,19 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Desglose por Denominación',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.textDark,
+              Flexible(
+                child: Text(
+                  'Desglose por Denominación',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
                 ),
               ),
+              const SizedBox(width: 6),
               TextButton.icon(
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
@@ -5375,7 +5663,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: esSeleccionado
-              ? (isDark ? const Color(0xFF132A2B) : AppTheme.surfaceTint)
+              ? (isDark ? AppTheme.surfaceTintDark : AppTheme.surfaceTint)
               : (isDark ? AppTheme.cardDark : Colors.white),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
@@ -5670,51 +5958,108 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         ? (isDark ? const Color(0xFF34D399) : const Color(0xFF059669))
         : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569));
 
-    return Container(
-      width: width,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isCompact =
+            (width != null && width < 260) || constraints.maxWidth < 260;
+
+        if (isCompact) {
+          return Container(
+            width: width,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
+              color: isDark ? AppTheme.cardDark : Colors.white,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE2E8F0),
-                width: 0.8,
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  titulo,
-                  style: GoogleFonts.outfit(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : AppTheme.textDark,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Icon(icon, color: iconColor, size: 16),
+                    ),
+                    Flexible(
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0.0, end: monto),
+                        duration: const Duration(milliseconds: 700),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, val, _) => Text(
+                          'S/ ${val.toStringAsFixed(2)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        titulo,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
                 Text(
                   descripcion,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w500,
                     color: isDark
                         ? AppTheme.textDarkSecondary
@@ -5723,23 +6068,112 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
                 ),
               ],
             ),
-          ),
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0.0, end: monto),
-            duration: const Duration(milliseconds: 700),
-            curve: Curves.easeOutCubic,
-            builder: (context, val, _) => Text(
-              'S/ ${val.toStringAsFixed(2)}',
-              style: GoogleFonts.outfit(
-                fontSize: 16.5,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.textDark,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
+          );
+        }
+
+        return Container(
+          width: width,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDark : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              width: 1,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
+                    width: 0.8,
+                  ),
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            titulo,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.outfit(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      descripcion,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: monto),
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.easeOutCubic,
+                builder: (context, val, _) => Text(
+                  'S/ ${val.toStringAsFixed(2)}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
