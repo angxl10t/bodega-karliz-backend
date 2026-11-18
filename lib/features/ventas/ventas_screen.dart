@@ -1023,24 +1023,43 @@ class _VentasScreenState extends State<VentasScreen>
     KarlizSoundService.instance.playBarcodeBeep();
     final res = await ThermalTicketService.abrirGavetaDinero();
     if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(LucideIcons.vault, color: Colors.white, size: 20),
+            Icon(
+              res.exito ? LucideIcons.vault : LucideIcons.alertCircle,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 res.exito
                     ? '¡Pulso de apertura enviado a la gaveta de dinero!'
                     : res.mensaje,
-                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
         ),
-        backgroundColor: res.exito ? AppTheme.accentGreen : AppTheme.alertRed,
-        duration: const Duration(seconds: 2),
+        backgroundColor: res.exito
+            ? AppTheme.accentGreen
+            : const Color(0xFF334155),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: Duration(seconds: res.exito ? 2 : 5),
+        action: res.exito
+            ? null
+            : SnackBarAction(
+                label: 'Configurar',
+                textColor: const Color(0xFF60A5FA),
+                onPressed: () => ConfiguracionTicketModal.show(context),
+              ),
       ),
     );
   }

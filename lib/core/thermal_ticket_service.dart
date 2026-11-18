@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -1009,25 +1011,32 @@ class ThermalTicketService {
 
     // Modo 1: RawBT (Bluetooth SPP/BLE, USB y Network)
     if (cfg.modoConexion == 'rawbt') {
-      try {
-        final b64 = base64Encode(escPosBytes);
-        final rawbtUri = Uri.parse(
-          'rawbt:data:application/octet-stream;base64,$b64',
-        );
+      // El esquema de URL `rawbt:` solo existe en Android con la app RawBT instalada.
+      // En navegadores Web o Desktop Windows/macOS/Linux abrirlo genera un enlace roto.
+      final bool supportsRawBtScheme =
+          !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
-        final launched = await launchUrl(
-          rawbtUri,
-          mode: LaunchMode.externalApplication,
-        );
-        if (launched) {
-          return const PrintResult(
-            exito: true,
-            mensaje: 'Ticket enviado a la impresora térmica vía RawBT.',
+      if (supportsRawBtScheme) {
+        try {
+          final b64 = base64Encode(escPosBytes);
+          final rawbtUri = Uri.parse(
+            'rawbt:data:application/octet-stream;base64,$b64',
           );
-        }
-      } catch (_) {}
 
-      // Intentar fallback al servidor local de RawBT (http://127.0.0.1:40213/)
+          final launched = await launchUrl(
+            rawbtUri,
+            mode: LaunchMode.externalApplication,
+          );
+          if (launched) {
+            return const PrintResult(
+              exito: true,
+              mensaje: 'Ticket enviado a la impresora térmica vía RawBT.',
+            );
+          }
+        } catch (_) {}
+      }
+
+      // Intentar fallback al servidor local / puente ESC/POS (ej. http://127.0.0.1:40213/)
       try {
         final response = await http
             .post(
@@ -1035,15 +1044,50 @@ class ThermalTicketService {
               body: escPosBytes,
               headers: {'Content-Type': 'application/octet-stream'},
             )
-            .timeout(const Duration(milliseconds: 1800));
+            .timeout(const Duration(milliseconds: 1500));
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           return const PrintResult(
             exito: true,
-            mensaje: 'Ticket impreso directamente vía RawBT Local Bridge.',
+            mensaje: 'Comando enviado directamente vía puente local ESC/POS.',
           );
         }
       } catch (_) {}
+
+      // En Web, si se trata de imprimir un comprobante con texto, abrir impresión del navegador
+      if (kIsWeb && receiptText.isNotEmpty) {
+        try {
+          final html = generatePrintableHtml(
+            receiptText,
+            widthMm: cfg.anchoPapel == width80mm ? 80 : 58,
+          );
+          final uri = Uri.dataFromString(
+            html,
+            mimeType: 'text/html',
+            encoding: utf8,
+          );
+          final launched = await launchUrl(
+            uri,
+            mode: LaunchMode.platformDefault,
+          );
+          if (launched) {
+            return const PrintResult(
+              exito: true,
+              mensaje:
+                  'Comprobante enviado al diálogo de impresión del navegador.',
+            );
+          }
+        } catch (_) {}
+      }
+
+      if (!supportsRawBtScheme) {
+        return PrintResult(
+          exito: false,
+          mensaje: receiptText.isEmpty
+              ? 'No se detectó un puente local de gaveta (${cfg.servidorLocalUrl}). En navegador requiere Servidor Local ESC/POS o usar la app Windows/Android.'
+              : 'No se detectó el puente local de impresión (${cfg.servidorLocalUrl}). Activa "Impresión Navegador" o "Servidor Local" en Ticket.',
+        );
+      }
 
       return const PrintResult(
         exito: false,
@@ -1160,6 +1204,14 @@ class ThermalTicketService {
     ConfiguracionTicket? config,
   }) async {
     final cfg = config ?? ConfiguracionTicketService.actual;
+
+    if (cfg.modoConexion == 'navegador') {
+      return const PrintResult(
+        exito: false,
+        mensaje: 'El modo Navegador no envía pulsos RJ11 a la gaveta. Configura "Servidor Local" en Ticket / Impresora o usa la app Windows/Android.',
+      );
+    }
+
     final List<int> pulseBytes = List.from(openDrawerBytes);
 
     return imprimirTicketDirecto(

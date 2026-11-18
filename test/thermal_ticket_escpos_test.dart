@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bodega_mobile/core/configuracion_ticket_service.dart';
 import 'package:bodega_mobile/core/thermal_ticket_service.dart';
@@ -330,6 +332,30 @@ void main() {
 
       final textDecoded = utf8.decode(bytesCash, allowMalformed: true);
       expect(textDecoded, contains('DEUDA CANCELADA'));
+    });
+
+    test('abrirGavetaDinero returns clear error in navegador mode without launching broken rawbt URL', () async {
+      const config = ConfiguracionTicket(modoConexion: 'navegador');
+      final res = await ThermalTicketService.abrirGavetaDinero(config: config);
+      expect(res.exito, isFalse);
+      expect(res.mensaje, contains('Servidor Local'));
+    });
+
+    test('abrirGavetaDinero on non-Android platform skips rawbt: scheme and fails gracefully when bridge is offline', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      try {
+        const config = ConfiguracionTicket(
+          modoConexion: 'rawbt',
+          servidorLocalUrl: 'http://127.0.0.1:49999/',
+        );
+        final res = await ThermalTicketService.abrirGavetaDinero(
+          config: config,
+        );
+        expect(res.exito, isFalse);
+        expect(res.mensaje, contains('puente local'));
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
   });
 }
