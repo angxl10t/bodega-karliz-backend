@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final Set<int> _loadedTabs = {0};
   final ValueNotifier<int> _activeTabNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<int> _topBarRevision = ValueNotifier<int>(0);
   late final List<Widget> _screens;
   String _username = 'admin';
   String _userRol = 'ADMIN';
@@ -116,6 +117,14 @@ class _HomeScreenState extends State<HomeScreen> {
         onNavigateTab: _selectTab,
         activeTabNotifier: _activeTabNotifier,
         tabIndex: 0,
+        topBarActionsBuilder: (ctx) => ValueListenableBuilder<int>(
+          valueListenable: _topBarRevision,
+          builder: (c, _, _) {
+            final dark = c.watch<ThemeProvider>().isDarkMode;
+            final width = MediaQuery.of(c).size.width;
+            return _buildInlineTopBarControls(c, dark, width);
+          },
+        ),
       ),
       VentasScreen(activeTabNotifier: _activeTabNotifier, tabIndex: 1),
       CajaVentasScreen(activeTabNotifier: _activeTabNotifier, tabIndex: 2),
@@ -131,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     _inactivityTimer?.cancel();
     _activeTabNotifier.dispose();
+    _topBarRevision.dispose();
     super.dispose();
   }
 
@@ -197,6 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _nombreBodega = results[2];
         _plan = results[3];
       });
+      _topBarRevision.value++;
 
       // Sincronización en segundo plano del plan real de la bodega desde la nube
       BodegaService()
@@ -1969,183 +1980,198 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
         child: Scaffold(
-          appBar: AppBar(
-            titleSpacing: 16,
-            elevation: 0,
-            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Container(
-                height: 1,
-                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-              ),
-            ),
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CajaYaLogoMark(size: 34),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          appBar: _selectedIndex == 0
+              ? null
+              : AppBar(
+                  titleSpacing: 16,
+                  elevation: 0,
+                  backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(1),
+                    child: Container(
+                      height: 1,
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                  title: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              _nombreBodega.isNotEmpty
-                                  ? _nombreBodega
-                                  : 'CajaYa POS',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.textDark,
-                              ),
-                            ),
-                          ),
-                          if (screenWidth >= 440) ...[
-                            const SizedBox(width: 7),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6.5,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppTheme.cardDarkHighlight
-                                    : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppTheme.borderDark
-                                      : const Color(0xFFE2E8F0),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 5,
-                                    height: 5,
-                                    decoration: const BoxDecoration(
-                                      color: AppTheme.accentGreen,
-                                      shape: BoxShape.circle,
+                      const CajaYaLogoMark(size: 34),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    _nombreBodega.isNotEmpty
+                                        ? _nombreBodega
+                                        : 'CajaYa POS',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.2,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
                                     ),
                                   ),
-                                  const SizedBox(width: 4.5),
-                                  Text(
-                                    'CLOUD POS',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
+                                ),
+                                if (screenWidth >= 440) ...[
+                                  const SizedBox(width: 7),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6.5,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
                                       color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF64748B),
+                                          ? AppTheme.cardDarkHighlight
+                                          : const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? AppTheme.borderDark
+                                            : const Color(0xFFE2E8F0),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 5,
+                                          height: 5,
+                                          decoration: const BoxDecoration(
+                                            color: AppTheme.accentGreen,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4.5),
+                                        Text(
+                                          'CLOUD POS',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.5,
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 1),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Caja #01',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10.5,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF475569),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                              ),
-                              child: Text(
-                                '•',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppTheme.getAdaptiveHintText(isDark),
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () => OfflineQueueSheet.show(context),
-                              borderRadius: BorderRadius.circular(6),
-                              child: ValueListenableBuilder<List<OfflineVenta>>(
-                                valueListenable: OfflineSyncManager
-                                    .instance
-                                    .pendingSalesNotifier,
-                                builder: (context, ventas, _) {
-                                  final hasPending = ventas.isNotEmpty;
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          color: hasPending
-                                              ? const Color(0xFFF59E0B)
-                                              : AppTheme.accentGreen,
-                                          shape: BoxShape.circle,
+                            const SizedBox(height: 1),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Caja #01',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10.5,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF475569),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                    ),
+                                    child: Text(
+                                      '•',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: AppTheme.getAdaptiveHintText(
+                                          isDark,
                                         ),
                                       ),
-                                      const SizedBox(width: 4.5),
-                                      Text(
-                                        hasPending
-                                            ? '${ventas.length} por subir'
-                                            : 'En Línea',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 10.5,
-                                          color: hasPending
-                                              ? const Color(0xFFD97706)
-                                              : AppTheme.accentGreen,
-                                          fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () =>
+                                        OfflineQueueSheet.show(context),
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: ValueListenableBuilder<List<OfflineVenta>>(
+                                      valueListenable: OfflineSyncManager
+                                          .instance
+                                          .pendingSalesNotifier,
+                                      builder: (context, ventas, _) {
+                                        final hasPending = ventas.isNotEmpty;
+                                        return Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: BoxDecoration(
+                                                color: hasPending
+                                                    ? const Color(0xFFF59E0B)
+                                                    : AppTheme.accentGreen,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4.5),
+                                            Text(
+                                              hasPending
+                                                  ? '${ventas.length} por subir'
+                                                  : 'En Línea',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 10.5,
+                                                    color: hasPending
+                                                        ? const Color(
+                                                            0xFFD97706,
+                                                          )
+                                                        : AppTheme.accentGreen,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                    ),
+                                    child: Text(
+                                      '•',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: AppTheme.getAdaptiveHintText(
+                                          isDark,
                                         ),
                                       ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                              ),
-                              child: Text(
-                                '•',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppTheme.getAdaptiveHintText(isDark),
-                                ),
-                              ),
-                            ),
-                            Text(
-                              'CajaYa',
-                              style: GoogleFonts.outfit(
-                                fontSize: 10.5,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF64748B),
-                                fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'CajaYa',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 10.5,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -2153,301 +2179,307 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-            actions: [
-              // Botón de alternancia de orientación (Mostrador Horizontal / Rotación libre)
-              if (isWideScreen || ResponsiveLayout.isPhysicalTablet(context))
-                Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: Center(
-                    child: IconButton.filledTonal(
-                      style: IconButton.styleFrom(
-                        backgroundColor: isDark
-                            ? AppTheme.cardDarkElevated
-                            : const Color(0xFFF1F5F9),
-                        foregroundColor: ResponsiveLayout.isLandscape(context)
-                            ? AppTheme.brandPrimary
-                            : (isDark
-                                  ? Colors.white70
-                                  : const Color(0xFF475569)),
-                        padding: const EdgeInsets.all(8),
-                        minimumSize: const Size(36, 36),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  actions: [
+                    // Botón de alternancia de orientación (Mostrador Horizontal / Rotación libre)
+                    if (isWideScreen ||
+                        ResponsiveLayout.isPhysicalTablet(context))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Center(
+                          child: IconButton.filledTonal(
+                            style: IconButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? AppTheme.cardDarkElevated
+                                  : const Color(0xFFF1F5F9),
+                              foregroundColor:
+                                  ResponsiveLayout.isLandscape(context)
+                                  ? AppTheme.brandPrimary
+                                  : (isDark
+                                        ? Colors.white70
+                                        : const Color(0xFF475569)),
+                              padding: const EdgeInsets.all(8),
+                              minimumSize: const Size(36, 36),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            tooltip: ResponsiveLayout.isLandscape(context)
+                                ? 'Modo Mostrador Horizontal activo (Toca para rotación libre)'
+                                : 'Activar Modo Mostrador Horizontal',
+                            icon: Icon(
+                              ResponsiveLayout.isLandscape(context)
+                                  ? LucideIcons.tablet
+                                  : LucideIcons.smartphone,
+                              size: 18,
+                            ),
+                            onPressed: () async {
+                              if (ResponsiveLayout.isLandscape(context)) {
+                                await ResponsiveLayout.unlockOrientation();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text(
+                                        'Rotación de pantalla libre activada',
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                await ResponsiveLayout.lockLandscape();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text(
+                                        'Modo Mostrador Horizontal activado',
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          ),
                         ),
                       ),
-                      tooltip: ResponsiveLayout.isLandscape(context)
-                          ? 'Modo Mostrador Horizontal activo (Toca para rotación libre)'
-                          : 'Activar Modo Mostrador Horizontal',
-                      icon: Icon(
-                        ResponsiveLayout.isLandscape(context)
-                            ? LucideIcons.tablet
-                            : LucideIcons.smartphone,
-                        size: 18,
+
+                    // Botón rápido de alternancia de tema con efecto de gota de agua líquida
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Center(
+                        child: WaterDropThemeButton(
+                          isDark: isDark,
+                          onToggle: () =>
+                              context.read<ThemeProvider>().toggleTheme(),
+                          iconSize: 18,
+                          padding: const EdgeInsets.all(8),
+                          borderRadius: 12,
+                          backgroundColor: isDark
+                              ? AppTheme.cardDarkElevated
+                              : const Color(0xFFF1F5F9),
+                          borderColor: isDark
+                              ? AppTheme.borderDark
+                              : const Color(0xFFCBD5E1),
+                        ),
                       ),
-                      onPressed: () async {
-                        if (ResponsiveLayout.isLandscape(context)) {
-                          await ResponsiveLayout.unlockOrientation();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  'Rotación de pantalla libre activada',
-                                ),
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            );
-                          }
-                        } else {
-                          await ResponsiveLayout.lockLandscape();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  'Modo Mostrador Horizontal activado',
-                                ),
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            );
-                          }
-                        }
-                      },
                     ),
-                  ),
-                ),
 
-              // Botón rápido de alternancia de tema con efecto de gota de agua líquida
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Center(
-                  child: WaterDropThemeButton(
-                    isDark: isDark,
-                    onToggle: () => context.read<ThemeProvider>().toggleTheme(),
-                    iconSize: 18,
-                    padding: const EdgeInsets.all(8),
-                    borderRadius: 12,
-                    backgroundColor: isDark
-                        ? AppTheme.cardDarkElevated
-                        : const Color(0xFFF1F5F9),
-                    borderColor: isDark
-                        ? AppTheme.borderDark
-                        : const Color(0xFFCBD5E1),
-                  ),
-                ),
-              ),
-
-              // Botón de Pantalla Completa Mostrador (Windows Desktop & Web PC)
-              if (WindowService.instance.isSupported)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Center(
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable:
-                          WindowService.instance.isFullScreenNotifier,
-                      builder: (context, isFullScreen, _) {
-                        return IconButton.filledTonal(
-                          style: IconButton.styleFrom(
-                            backgroundColor: isDark
-                                ? AppTheme.cardDarkElevated
-                                : const Color(0xFFF1F5F9),
-                            foregroundColor: isFullScreen
-                                ? AppTheme.brandPrimary
-                                : (isDark
-                                      ? Colors.white70
-                                      : const Color(0xFF475569)),
-                            padding: const EdgeInsets.all(8),
-                            minimumSize: const Size(36, 36),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          tooltip: isFullScreen
-                              ? 'Salir de Pantalla Completa (F11)'
-                              : 'Pantalla Completa Mostrador (F11)',
-                          icon: Icon(
-                            isFullScreen
-                                ? LucideIcons.minimize
-                                : LucideIcons.maximize,
-                            size: 18,
-                          ),
-                          onPressed: () async {
-                            final isFull = await WindowService.instance
-                                .toggleFullScreen();
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    isFull
-                                        ? 'Modo Pantalla Completa activado (F11)'
-                                        : 'Modo Ventana restaurado',
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                  behavior: SnackBarBehavior.floating,
+                    // Botón de Pantalla Completa Mostrador (Windows Desktop & Web PC)
+                    if (WindowService.instance.isSupported)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Center(
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable:
+                                WindowService.instance.isFullScreenNotifier,
+                            builder: (context, isFullScreen, _) {
+                              return IconButton.filledTonal(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? AppTheme.cardDarkElevated
+                                      : const Color(0xFFF1F5F9),
+                                  foregroundColor: isFullScreen
+                                      ? AppTheme.brandPrimary
+                                      : (isDark
+                                            ? Colors.white70
+                                            : const Color(0xFF475569)),
+                                  padding: const EdgeInsets.all(8),
+                                  minimumSize: const Size(36, 36),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
+                                tooltip: isFullScreen
+                                    ? 'Salir de Pantalla Completa (F11)'
+                                    : 'Pantalla Completa Mostrador (F11)',
+                                icon: Icon(
+                                  isFullScreen
+                                      ? LucideIcons.minimize
+                                      : LucideIcons.maximize,
+                                  size: 18,
+                                ),
+                                onPressed: () async {
+                                  final isFull = await WindowService.instance
+                                      .toggleFullScreen();
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isFull
+                                              ? 'Modo Pantalla Completa activado (F11)'
+                                              : 'Modo Ventana restaurado',
+                                        ),
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
                               );
-                            }
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-              // Botón Oficial de Perfil & Admin en la esquina superior derecha
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Center(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: _mostrarPanelAdmin,
-                      borderRadius: BorderRadius.circular(22),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.cardDarkElevated
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.borderDark
-                                : const Color(0xFFCBD5E1),
-                            width: 1.2,
+                            },
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isDark
-                                  ? Colors.black.withValues(alpha: 0.25)
-                                  : Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 4,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF334155)
-                                    : const Color(0xFFE2E8F0),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  _userRol == 'CAJERO'
-                                      ? LucideIcons.userCheck
-                                      : (_userRol == 'SUPERADMIN'
-                                            ? LucideIcons.shieldAlert
-                                            : LucideIcons.shieldCheck),
-                                  size: 13,
-                                  color: isDark
-                                      ? const Color(0xFFF1F5F9)
-                                      : const Color(0xFF334155),
-                                ),
-                              ),
-                            ),
-                            if (screenWidth >= 360) ...[
-                              const SizedBox(width: 6),
-                              Text(
-                                _userRol == 'CAJERO'
-                                    ? 'Cajero'
-                                    : (_userRol == 'SUPERADMIN'
-                                          ? 'Super'
-                                          : 'Admin'),
-                                style: GoogleFonts.outfit(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(width: 4),
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: AppTheme.accentGreen,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              LucideIcons.chevronDown,
-                              size: 13,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : const Color(0xFF334155),
-                            ),
-                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              if (_userRol == 'SUPERADMIN')
-                _buildSuperAdminAuditBanner(context, isDark),
-              if (!_anuncioDismissed &&
-                  _anuncioGlobal.isNotEmpty &&
-                  _anuncioGlobal['activo'] == true)
-                _buildAnuncioGlobalBanner(context, isDark),
-              ValueListenableBuilder<int>(
-                valueListenable: BodegaService.sugerenciasPendientesNotifier,
-                builder: (context, pendientes, _) {
-                  if (pendientes <= 0) return const SizedBox.shrink();
-                  return _buildSugerenciasAlertBanner(
-                    context,
-                    isDark,
-                    pendientes,
-                  );
-                },
-              ),
-              if (_userRol == 'ADMIN' &&
-                  _diasRestantesPlan != null &&
-                  _diasRestantesPlan! <= 5)
-                _buildSuscripcionAlertBanner(context, isDark),
-              Expanded(
-                child: Row(
-                  children: [
-                    if (isWideScreen)
-                      _buildDesktopSidebar(context, isDark, isDesktop),
-                    Expanded(
-                      child: AnimatedIndexedStack(
-                        index: _selectedIndex.clamp(0, _screens.length - 1),
-                        children: _builtScreens,
+
+                    // Botón Oficial de Perfil & Admin en la esquina superior derecha
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Center(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _mostrarPanelAdmin,
+                            borderRadius: BorderRadius.circular(22),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppTheme.cardDarkElevated
+                                    : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppTheme.borderDark
+                                      : const Color(0xFFCBD5E1),
+                                  width: 1.2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isDark
+                                        ? Colors.black.withValues(alpha: 0.25)
+                                        : Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        _userRol == 'CAJERO'
+                                            ? LucideIcons.userCheck
+                                            : (_userRol == 'SUPERADMIN'
+                                                  ? LucideIcons.shieldAlert
+                                                  : LucideIcons.shieldCheck),
+                                        size: 13,
+                                        color: isDark
+                                            ? const Color(0xFFF1F5F9)
+                                            : const Color(0xFF334155),
+                                      ),
+                                    ),
+                                  ),
+                                  if (screenWidth >= 360) ...[
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _userRol == 'CAJERO'
+                                          ? 'Cajero'
+                                          : (_userRol == 'SUPERADMIN'
+                                                ? 'Super'
+                                                : 'Admin'),
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.accentGreen,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    LucideIcons.chevronDown,
+                                    size: 13,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF334155),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+          body: SafeArea(
+            top: _selectedIndex == 0,
+            bottom: false,
+            child: Column(
+              children: [
+                if (_userRol == 'SUPERADMIN')
+                  _buildSuperAdminAuditBanner(context, isDark),
+                if (!_anuncioDismissed &&
+                    _anuncioGlobal.isNotEmpty &&
+                    _anuncioGlobal['activo'] == true)
+                  _buildAnuncioGlobalBanner(context, isDark),
+                ValueListenableBuilder<int>(
+                  valueListenable: BodegaService.sugerenciasPendientesNotifier,
+                  builder: (context, pendientes, _) {
+                    if (pendientes <= 0) return const SizedBox.shrink();
+                    return _buildSugerenciasAlertBanner(
+                      context,
+                      isDark,
+                      pendientes,
+                    );
+                  },
+                ),
+                if (_userRol == 'ADMIN' &&
+                    _diasRestantesPlan != null &&
+                    _diasRestantesPlan! <= 5)
+                  _buildSuscripcionAlertBanner(context, isDark),
+                Expanded(
+                  child: Row(
+                    children: [
+                      if (isWideScreen)
+                        _buildDesktopSidebar(context, isDark, isDesktop),
+                      Expanded(
+                        child: AnimatedIndexedStack(
+                          index: _selectedIndex.clamp(0, _screens.length - 1),
+                          children: _builtScreens,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           bottomNavigationBar: isWideScreen
               ? null
@@ -2458,6 +2490,138 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
         ),
       ),
+    );
+  }
+
+  /// Controles compactos (Tema, Pantalla Completa F11 y Perfil/Admin)
+  /// integrados en la cabecera unificada del Inicio para eliminar el doble TopBar.
+  Widget _buildInlineTopBarControls(
+    BuildContext context,
+    bool isDark,
+    double screenWidth,
+  ) {
+    final bool showFullscreen =
+        WindowService.instance.isSupported && screenWidth >= 760;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        WaterDropThemeButton(
+          isDark: isDark,
+          onToggle: () => context.read<ThemeProvider>().toggleTheme(),
+          iconSize: 17,
+          padding: const EdgeInsets.all(8),
+          borderRadius: 11,
+          backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+          borderColor: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+        ),
+        if (showFullscreen) ...[
+          const SizedBox(width: 6),
+          ValueListenableBuilder<bool>(
+            valueListenable: WindowService.instance.isFullScreenNotifier,
+            builder: (context, isFullScreen, _) {
+              return IconButton.filledTonal(
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+                  foregroundColor: isFullScreen
+                      ? AppTheme.brandPrimary
+                      : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                  padding: const EdgeInsets.all(8),
+                  minimumSize: const Size(36, 36),
+                  side: BorderSide(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFCBD5E1),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                ),
+                tooltip: isFullScreen
+                    ? 'Salir de Pantalla Completa (F11)'
+                    : 'Pantalla Completa Mostrador (F11)',
+                icon: Icon(
+                  isFullScreen ? LucideIcons.minimize : LucideIcons.maximize,
+                  size: 16,
+                ),
+                onPressed: () async {
+                  final isFull = await WindowService.instance
+                      .toggleFullScreen();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isFull
+                              ? 'Modo Pantalla Completa activado (F11)'
+                              : 'Modo Ventana restaurado',
+                        ),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+          ),
+        ],
+        const SizedBox(width: 6),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _mostrarPanelAdmin,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.cardDark : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.accentGreen,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  if (screenWidth >= 360) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      _userRol == 'CAJERO'
+                          ? 'Cajero'
+                          : (_userRol == 'SUPERADMIN' ? 'Super' : 'Admin'),
+                      style: GoogleFonts.outfit(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 4),
+                  Icon(
+                    LucideIcons.chevronDown,
+                    size: 13,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF475569),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -3040,64 +3204,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Mini Card de Estado Cloud / Conexión (Aprovechamiento visual del espacio inferior)
-          if (!_railCollapsed)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF0F172A).withValues(alpha: 0.5)
-                      : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isDark
-                        ? AppTheme.borderDark
-                        : const Color(0xFFE2E8F0),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.accentGreen,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Cloud POS Online',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      LucideIcons.cloudCheck,
-                      size: 14,
-                      color: isDark
-                          ? const Color(0xFF94A3B8)
-                          : const Color(0xFF64748B),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
           // 3. Footer Lateral (Usuario en Turno, F11, Modo Oscuro, Versión)
           _buildSidebarFooter(isDark),
         ],
@@ -3138,7 +3244,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -3149,7 +3255,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          const CajaYaLogoMark(size: 26),
+          const CajaYaLogoMark(size: 28),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -3157,23 +3263,59 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'CajaYa POS',
-                  style: GoogleFonts.outfit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppTheme.brandPrimary,
-                  ),
-                ),
-                Text(
-                  _nombreBodega,
+                  _nombreBodega.isNotEmpty ? _nombreBodega : 'CajaYa POS',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? AppTheme.textDarkSecondary
-                        : const Color(0xFF64748B),
+                  style: GoogleFonts.outfit(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                InkWell(
+                  onTap: () => OfflineQueueSheet.show(context),
+                  borderRadius: BorderRadius.circular(6),
+                  child: ValueListenableBuilder<List<OfflineVenta>>(
+                    valueListenable:
+                        OfflineSyncManager.instance.pendingSalesNotifier,
+                    builder: (context, ventas, _) {
+                      final hasPending = ventas.isNotEmpty;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: hasPending
+                                  ? const Color(0xFFF59E0B)
+                                  : AppTheme.accentGreen,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              hasPending
+                                  ? '${ventas.length} por subir'
+                                  : 'En línea',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: hasPending
+                                    ? const Color(0xFFD97706)
+                                    : (isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

@@ -2,16 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:bodega_mobile/features/dashboard/dashboard_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
 
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({
       'jwt_token': 'test_token',
       'plan_bodega': 'PRO',
       'user_rol': 'ADMIN',
+      'username': 'admin',
       'nombre_bodega': 'Bodega San José',
     });
     SharedPreferences.setMockInitialValues({
@@ -22,9 +28,9 @@ void main() {
   });
 
   testWidgets(
-    'DashboardScreen renderiza Hub de Operaciones por categorías y pestaña Favoritos',
+    'DashboardScreen renderiza Accesos rápidos, modal Todas las Herramientas y buscador global',
     (tester) async {
-      await tester.binding.setSurfaceSize(const Size(1000, 2000));
+      await tester.binding.setSurfaceSize(const Size(1280, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
@@ -36,74 +42,55 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      // Verificar cabecera del hub y selector de favoritos
-      expect(find.text('Operaciones & Herramientas'), findsOneWidget);
-      expect(find.text('Personalizar'), findsOneWidget);
-
-      // Verificar las 4 pestañas de categorías tipo píldora
-      expect(find.text('Favoritos'), findsOneWidget);
-      expect(find.text('Almacén'), findsOneWidget);
-      expect(find.text('Ventas & Web'), findsOneWidget);
-      expect(find.text('Gestión'), findsOneWidget);
-
-      // Por defecto en pestaña Favoritos: muestra los favoritos y la tarjeta para añadir
-      expect(find.text('+ Nuevo Producto'), findsOneWidget);
-      expect(find.text('Compras & Lotes'), findsOneWidget);
-      expect(find.text('+ Añadir Favorito'), findsOneWidget);
-
-      // Cambiar a pestaña Almacén
-      await tester.tap(find.text('Almacén'));
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Control Vencimientos'), findsOneWidget);
-      expect(find.text('Registro de Mermas'), findsOneWidget);
-      expect(find.text('Kardex Auditoría'), findsOneWidget);
-
-      // Cambiar a pestaña Ventas & Web
-      await tester.tap(find.text('Ventas & Web'));
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Mi Bodega Online'), findsOneWidget);
-      expect(find.text('Promociones & Combos'), findsOneWidget);
-      expect(find.text('Analítica & Rentabilidad'), findsOneWidget);
-
-      // Cambiar a pestaña Gestión
-      await tester.tap(find.text('Gestión'));
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Impresora Térmica'), findsOneWidget);
-
-      // Abrir modal de instrucción de personalización
-      await tester.tap(find.text('Personalizar'));
-      await tester.pump();
-      await tester.pumpAndSettle();
-
+      // Cabecera unificada con saludo y buscador global
+      expect(find.text('Hola, admin'), findsOneWidget);
+      expect(find.text('Nueva Venta'), findsOneWidget);
       expect(
-        find.text(
-          'Mantén apretada una operación para agregar a acceso directo',
+        find.byWidgetPredicate(
+          (w) =>
+              w is TextField &&
+              (w.decoration?.hintText?.contains('Buscar producto') ?? false),
         ),
         findsOneWidget,
       );
-      expect(find.text('Entendido, ¡voy a probarlo!'), findsOneWidget);
 
-      await tester.tap(find.text('Entendido, ¡voy a probarlo!'));
+      // Sección de Accesos rápidos con favoritos guardados + defaults
+      expect(find.text('Accesos rápidos'), findsOneWidget);
+      expect(find.text('+ Nuevo Producto'), findsOneWidget);
+      expect(find.text('Compras & Lotes'), findsOneWidget);
+      expect(find.textContaining('Ver todas ('), findsOneWidget);
+
+      // Probar buscador global de módulos
+      await tester.enterText(find.byType(TextField).first, 'Kardex');
       await tester.pump();
+      expect(find.textContaining('MÓDULOS Y HERRAMIENTAS'), findsOneWidget);
+      expect(find.text('Kardex Auditoría'), findsAtLeastNWidgets(1));
+
+      // Limpiar búsqueda
+      await tester.enterText(find.byType(TextField).first, '');
+      await tester.pump();
+
+      // Abrir modal de Todas las Herramientas
+      await tester.tap(find.textContaining('Ver todas ('));
       await tester.pumpAndSettle();
 
-      // Regresar a Favoritos y probar mantener presionado (Long Press) para togglear
-      await tester.tap(find.text('Favoritos'));
-      await tester.pump();
+      expect(find.text('Todas las Herramientas'), findsOneWidget);
+      expect(find.text('ALMACÉN'), findsOneWidget);
+      expect(find.text('VENTAS & WEB'), findsOneWidget);
+      expect(find.text('GESTIÓN & HARDWARE'), findsOneWidget);
+      expect(find.text('Control Vencimientos'), findsOneWidget);
+      expect(find.text('Mi Bodega Online'), findsAtLeastNWidgets(1));
+      expect(find.text('Impresora Térmica'), findsAtLeastNWidgets(1));
+
+      // Cerrar modal y probar long-press en favorito
+      await tester.tapAt(const Offset(10, 10));
       await tester.pumpAndSettle();
 
       await tester.longPress(find.text('Compras & Lotes'));
       await tester.pump();
-
       expect(
         find.textContaining(
-          'Se quitó "Compras & Lotes" de tus accesos directos',
+          'Se quitó "Compras & Lotes" de tus accesos rápidos',
         ),
         findsOneWidget,
       );
