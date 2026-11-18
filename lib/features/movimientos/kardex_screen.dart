@@ -310,12 +310,13 @@ class _KardexScreenState extends State<KardexScreen> {
     int totalEdiciones,
     int totalDevoluciones,
   ) {
+    final int totalTodos = _movimientos.length;
     return Column(
       children: [
         // Banner Didáctico
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: const DidacticBanner(
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: DidacticBanner(
             title: 'Auditoría Integral de Kardex',
             description: 'Rastrea en tiempo real ventas, compras, mermas de stock y auditoría administrativa de cambios de precios, nombres y catálogo con sus respectivas insignias.',
             icon: LucideIcons.fileSpreadsheet,
@@ -336,47 +337,53 @@ class _KardexScreenState extends State<KardexScreen> {
                   '$totalEntradas',
                   AppTheme.accentGreen,
                   isDark,
-                  width: 85,
+                  width: 90,
+                  tipoFiltro: 'ENTRADA',
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildKpiChip(
                   'Salidas',
                   '$totalSalidas',
                   AppTheme.brandPrimary,
                   isDark,
-                  width: 85,
+                  width: 90,
+                  tipoFiltro: 'SALIDA',
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildKpiChip(
                   'Mermas',
                   '$totalAjustes',
                   AppTheme.alertRed,
                   isDark,
-                  width: 85,
+                  width: 90,
+                  tipoFiltro: 'AJUSTE',
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildKpiChip(
                   'Precios',
                   '$totalPrecios',
                   const Color(0xFF8B5CF6),
                   isDark,
-                  width: 85,
+                  width: 90,
+                  tipoFiltro: 'PRECIO',
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildKpiChip(
-                  'Ediciones',
+                  'Catálogo',
                   '$totalEdiciones',
                   const Color(0xFF0284C7),
                   isDark,
-                  width: 85,
+                  width: 90,
+                  tipoFiltro: 'EDICION',
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _buildKpiChip(
                   'Devolución',
                   '$totalDevoluciones',
                   AppTheme.infoIndigo,
                   isDark,
-                  width: 88,
+                  width: 94,
+                  tipoFiltro: 'DEVOLUCION',
                 ),
               ],
             ),
@@ -385,21 +392,24 @@ class _KardexScreenState extends State<KardexScreen> {
 
         // Filtros y Buscador
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           child: Column(
             children: [
               Container(
+                height: 42,
                 decoration: BoxDecoration(
                   color: isDark ? AppTheme.cardDarkSunken : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
                   ),
                 ),
                 child: TextField(
                   controller: _searchController,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: isDark ? Colors.white : AppTheme.textDark,
                   ),
@@ -407,12 +417,12 @@ class _KardexScreenState extends State<KardexScreen> {
                     hintText: 'Filtrar por producto, motivo o usuario...',
                     hintStyle: GoogleFonts.plusJakartaSans(
                       color: AppTheme.getAdaptiveHintText(isDark),
-                      fontSize: 13,
+                      fontSize: 12.5,
                     ),
-                    prefixIcon: const Icon(LucideIcons.search, size: 18),
+                    prefixIcon: const Icon(LucideIcons.search, size: 17),
                     suffixIcon: _filtroTexto.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(LucideIcons.x, size: 16),
+                            icon: const Icon(LucideIcons.x, size: 15),
                             onPressed: () {
                               _searchDebouncer.cancel();
                               _searchController.clear();
@@ -422,8 +432,8 @@ class _KardexScreenState extends State<KardexScreen> {
                         : null,
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                      horizontal: 14,
+                      vertical: 10,
                     ),
                   ),
                   onChanged: (val) => _searchDebouncer.run(() {
@@ -444,22 +454,54 @@ class _KardexScreenState extends State<KardexScreen> {
                 physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: [
-                    _buildFilterChip('TODOS', 'Todos', isDark),
+                    _buildFilterChip('TODOS', 'Todos', totalTodos, isDark),
                     const SizedBox(width: 6),
-                    _buildFilterChip('ENTRADA', 'Entradas (Compras)', isDark),
+                    _buildFilterChip(
+                      'ENTRADA',
+                      'Compras',
+                      totalEntradas,
+                      isDark,
+                      accentColor: AppTheme.accentGreen,
+                    ),
                     const SizedBox(width: 6),
-                    _buildFilterChip('SALIDA', 'Salidas (Ventas)', isDark),
+                    _buildFilterChip(
+                      'SALIDA',
+                      'Ventas',
+                      totalSalidas,
+                      isDark,
+                      accentColor: AppTheme.brandPrimary,
+                    ),
                     const SizedBox(width: 6),
-                    _buildFilterChip('AJUSTE', 'Mermas y Ajustes', isDark),
+                    _buildFilterChip(
+                      'AJUSTE',
+                      'Mermas',
+                      totalAjustes,
+                      isDark,
+                      accentColor: AppTheme.alertRed,
+                    ),
                     const SizedBox(width: 6),
-                    _buildFilterChip('PRECIO', 'Cambios de Precio', isDark),
+                    _buildFilterChip(
+                      'PRECIO',
+                      'Precios',
+                      totalPrecios,
+                      isDark,
+                      accentColor: const Color(0xFF8B5CF6),
+                    ),
                     const SizedBox(width: 6),
-                    _buildFilterChip('EDICION', 'Edición de Catálogo', isDark),
+                    _buildFilterChip(
+                      'EDICION',
+                      'Catálogo',
+                      totalEdiciones,
+                      isDark,
+                      accentColor: const Color(0xFF0284C7),
+                    ),
                     const SizedBox(width: 6),
                     _buildFilterChip(
                       'DEVOLUCION',
-                      'Devoluciones / Anulaciones',
+                      'Devoluciones',
+                      totalDevoluciones,
                       isDark,
+                      accentColor: AppTheme.infoIndigo,
                     ),
                   ],
                 ),
@@ -531,6 +573,12 @@ class _KardexScreenState extends State<KardexScreen> {
                     isDark,
                     filtrados,
                     seleccionado,
+                    totalEntradas: totalEntradas,
+                    totalSalidas: totalSalidas,
+                    totalAjustes: totalAjustes,
+                    totalPrecios: totalPrecios,
+                    totalEdiciones: totalEdiciones,
+                    totalDevoluciones: totalDevoluciones,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -560,80 +608,83 @@ class _KardexScreenState extends State<KardexScreen> {
     int totalEdiciones,
     int totalDevoluciones,
   ) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildKpiCardDesktop(
-            label: 'Entradas',
-            count: '$totalEntradas',
-            color: AppTheme.accentGreen,
-            icon: LucideIcons.arrowDownLeft,
-            subtitulo: 'Compras de stock',
-            tipoFiltro: 'ENTRADA',
-            isDark: isDark,
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildKpiCardDesktop(
+              label: 'Entradas',
+              count: '$totalEntradas',
+              color: AppTheme.accentGreen,
+              icon: LucideIcons.arrowDownLeft,
+              subtitulo: 'Compras de stock',
+              tipoFiltro: 'ENTRADA',
+              isDark: isDark,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildKpiCardDesktop(
-            label: 'Salidas',
-            count: '$totalSalidas',
-            color: AppTheme.brandPrimary,
-            icon: LucideIcons.arrowUpRight,
-            subtitulo: 'Ventas en caja POS',
-            tipoFiltro: 'SALIDA',
-            isDark: isDark,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildKpiCardDesktop(
+              label: 'Salidas',
+              count: '$totalSalidas',
+              color: AppTheme.brandPrimary,
+              icon: LucideIcons.arrowUpRight,
+              subtitulo: 'Ventas en caja POS',
+              tipoFiltro: 'SALIDA',
+              isDark: isDark,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildKpiCardDesktop(
-            label: 'Mermas',
-            count: '$totalAjustes',
-            color: AppTheme.alertRed,
-            icon: LucideIcons.packageMinus,
-            subtitulo: 'Roturas y vencidos',
-            tipoFiltro: 'AJUSTE',
-            isDark: isDark,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildKpiCardDesktop(
+              label: 'Mermas',
+              count: '$totalAjustes',
+              color: AppTheme.alertRed,
+              icon: LucideIcons.packageMinus,
+              subtitulo: 'Roturas y vencidos',
+              tipoFiltro: 'AJUSTE',
+              isDark: isDark,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildKpiCardDesktop(
-            label: 'Precios',
-            count: '$totalPrecios',
-            color: const Color(0xFF8B5CF6),
-            icon: LucideIcons.tag,
-            subtitulo: 'Auditados Admin',
-            tipoFiltro: 'PRECIO',
-            isDark: isDark,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildKpiCardDesktop(
+              label: 'Precios',
+              count: '$totalPrecios',
+              color: const Color(0xFF8B5CF6),
+              icon: LucideIcons.tag,
+              subtitulo: 'Auditados Admin',
+              tipoFiltro: 'PRECIO',
+              isDark: isDark,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildKpiCardDesktop(
-            label: 'Catálogo',
-            count: '$totalEdiciones',
-            color: const Color(0xFF0284C7),
-            icon: LucideIcons.filePenLine,
-            subtitulo: 'Datos y códigos',
-            tipoFiltro: 'EDICION',
-            isDark: isDark,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildKpiCardDesktop(
+              label: 'Catálogo',
+              count: '$totalEdiciones',
+              color: const Color(0xFF0284C7),
+              icon: LucideIcons.filePenLine,
+              subtitulo: 'Datos y códigos',
+              tipoFiltro: 'EDICION',
+              isDark: isDark,
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildKpiCardDesktop(
-            label: 'Devolución',
-            count: '$totalDevoluciones',
-            color: AppTheme.infoIndigo,
-            icon: LucideIcons.rotateCcw,
-            subtitulo: 'Anulaciones POS',
-            tipoFiltro: 'DEVOLUCION',
-            isDark: isDark,
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildKpiCardDesktop(
+              label: 'Devolución',
+              count: '$totalDevoluciones',
+              color: AppTheme.infoIndigo,
+              icon: LucideIcons.rotateCcw,
+              subtitulo: 'Anulaciones POS',
+              tipoFiltro: 'DEVOLUCION',
+              isDark: isDark,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -652,6 +703,7 @@ class _KardexScreenState extends State<KardexScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
+          HapticFeedback.selectionClick();
           setState(() {
             _filtroTipo = isSelected ? 'TODOS' : tipoFiltro;
           });
@@ -659,7 +711,6 @@ class _KardexScreenState extends State<KardexScreen> {
         borderRadius: BorderRadius.circular(18),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: isSelected
                 ? color.withValues(alpha: isDark ? 0.18 : 0.08)
@@ -668,72 +719,100 @@ class _KardexScreenState extends State<KardexScreen> {
             border: Border.all(
               color: isSelected
                   ? color
-                  : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
-              width: isSelected ? 1.8 : 1.2,
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+              width: isSelected ? 2.0 : 1.2,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: color.withValues(alpha: 0.15),
-                      blurRadius: 8,
+                      color: color.withValues(alpha: 0.16),
+                      blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
                   ]
-                : null,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF64748B),
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.2 : 0.02,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: isDark ? 0.2 : 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(icon, color: color, size: 15),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                count,
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : AppTheme.textDark,
+                  ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 4.5,
+                  child: Container(color: color),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitulo,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              label,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: color.withValues(
+                                alpha: isDark ? 0.2 : 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(icon, color: color, size: 14),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        count,
+                        style: GoogleFonts.outfit(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitulo,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -743,14 +822,21 @@ class _KardexScreenState extends State<KardexScreen> {
   Widget _buildPanelTablaMovimientosDesktop(
     bool isDark,
     List<MovimientoInventario> filtrados,
-    MovimientoInventario? seleccionado,
-  ) {
+    MovimientoInventario? seleccionado, {
+    required int totalEntradas,
+    required int totalSalidas,
+    required int totalAjustes,
+    required int totalPrecios,
+    required int totalEdiciones,
+    required int totalDevoluciones,
+  }) {
+    final int totalTodos = _movimientos.length;
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
           width: 1.2,
         ),
       ),
@@ -768,11 +854,11 @@ class _KardexScreenState extends State<KardexScreen> {
                     color: isDark
                         ? AppTheme.cardDarkSunken
                         : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isDark
                           ? AppTheme.borderDark
-                          : AppTheme.borderLight,
+                          : const Color(0xFFE2E8F0),
                     ),
                   ),
                   child: TextField(
@@ -801,7 +887,7 @@ class _KardexScreenState extends State<KardexScreen> {
                           : null,
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 14,
                         vertical: 10,
                       ),
                     ),
@@ -822,7 +908,7 @@ class _KardexScreenState extends State<KardexScreen> {
                       ? AppTheme.cardDarkSunken
                       : const Color(0xFFF1F5F9),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 tooltip: 'Actualizar movimientos',
@@ -839,19 +925,55 @@ class _KardexScreenState extends State<KardexScreen> {
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
-                _buildFilterChip('TODOS', 'Todos', isDark),
+                _buildFilterChip('TODOS', 'Todos', totalTodos, isDark),
                 const SizedBox(width: 6),
-                _buildFilterChip('ENTRADA', 'Compras', isDark),
+                _buildFilterChip(
+                  'ENTRADA',
+                  'Compras',
+                  totalEntradas,
+                  isDark,
+                  accentColor: AppTheme.accentGreen,
+                ),
                 const SizedBox(width: 6),
-                _buildFilterChip('SALIDA', 'Ventas', isDark),
+                _buildFilterChip(
+                  'SALIDA',
+                  'Ventas',
+                  totalSalidas,
+                  isDark,
+                  accentColor: AppTheme.brandPrimary,
+                ),
                 const SizedBox(width: 6),
-                _buildFilterChip('AJUSTE', 'Mermas', isDark),
+                _buildFilterChip(
+                  'AJUSTE',
+                  'Mermas',
+                  totalAjustes,
+                  isDark,
+                  accentColor: AppTheme.alertRed,
+                ),
                 const SizedBox(width: 6),
-                _buildFilterChip('PRECIO', 'Precios', isDark),
+                _buildFilterChip(
+                  'PRECIO',
+                  'Precios',
+                  totalPrecios,
+                  isDark,
+                  accentColor: const Color(0xFF8B5CF6),
+                ),
                 const SizedBox(width: 6),
-                _buildFilterChip('EDICION', 'Catálogo', isDark),
+                _buildFilterChip(
+                  'EDICION',
+                  'Catálogo',
+                  totalEdiciones,
+                  isDark,
+                  accentColor: const Color(0xFF0284C7),
+                ),
                 const SizedBox(width: 6),
-                _buildFilterChip('DEVOLUCION', 'Devoluciones', isDark),
+                _buildFilterChip(
+                  'DEVOLUCION',
+                  'Devoluciones',
+                  totalDevoluciones,
+                  isDark,
+                  accentColor: AppTheme.infoIndigo,
+                ),
               ],
             ),
           ),
@@ -1957,74 +2079,163 @@ class _KardexScreenState extends State<KardexScreen> {
     Color color,
     bool isDark, {
     double? width,
+    String? tipoFiltro,
   }) {
-    final chip = Container(
-      width: width,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+    final isSelected = tipoFiltro != null && _filtroTipo == tipoFiltro;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: tipoFiltro != null
+            ? () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _filtroTipo = isSelected ? 'TODOS' : tipoFiltro;
+                });
+              }
+            : null,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: width,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? color.withValues(alpha: isDark ? 0.2 : 0.08)
+                : (isDark ? AppTheme.cardDark : Colors.white),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isSelected
+                  ? color
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+              width: isSelected ? 1.6 : 1.0,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Stack(
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 3.5,
+                  child: Container(color: color),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 8,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        count,
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        label,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5,
+                          color: color,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            count,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              color: isDark
-                  ? AppTheme.textDarkSecondary
-                  : const Color(0xFF334155),
-              fontWeight: FontWeight.w700,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
     );
-
-    if (width != null) {
-      return chip;
-    }
-    return Expanded(child: chip);
   }
 
-  Widget _buildFilterChip(String key, String label, bool isDark) {
+  Widget _buildFilterChip(
+    String key,
+    String label,
+    int count,
+    bool isDark, {
+    Color? accentColor,
+  }) {
     final isSelected = _filtroTipo == key;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      labelStyle: GoogleFonts.plusJakartaSans(
-        fontSize: 12,
-        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected
-            ? AppTheme.brandPrimary
-            : (isDark ? AppTheme.textDarkSecondary : const Color(0xFF334155)),
+    final color = accentColor ?? AppTheme.brandPrimary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _filtroTipo = key);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? color.withValues(alpha: isDark ? 0.22 : 0.1)
+                : (isDark ? AppTheme.cardDark : Colors.white),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? color
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected
+                      ? (isDark ? Colors.white : color)
+                      : (isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF475569)),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? color.withValues(alpha: isDark ? 0.4 : 0.2)
+                      : (isDark
+                            ? AppTheme.cardDarkSunken
+                            : const Color(0xFFF1F5F9)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: isSelected
+                        ? (isDark ? Colors.white : color)
+                        : (isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B)),
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      selectedColor: isDark
-          ? AppTheme.brandPrimary.withValues(alpha: 0.2)
-          : AppTheme.surfaceTint,
-      backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
-      side: BorderSide(
-        color: isSelected
-            ? AppTheme.brandPrimary
-            : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      onSelected: (_) => setState(() => _filtroTipo = key),
     );
   }
 
@@ -2210,179 +2421,265 @@ class _KardexScreenState extends State<KardexScreen> {
         ? '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')} ${fecha.hour.toString().padLeft(2, '0')}:${fecha.minute.toString().padLeft(2, '0')}'
         : 'Reciente';
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardDark : Colors.white,
+    final cantFormateada = m.cantidad % 1 == 0
+        ? m.cantidad.toInt().toString()
+        : m.cantidad.toStringAsFixed(2);
+
+    final String variacionTexto;
+    if (detalle.esAuditoriaAdmin) {
+      variacionTexto = 'Auditado';
+    } else if (detalle.badgeText.startsWith('+')) {
+      variacionTexto = '+$cantFormateada u.';
+    } else {
+      variacionTexto = '-$cantFormateada u.';
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          _mostrarFichaAuditoriaModal(m, isDark);
+        },
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-          width: 1.2,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icono principal identificador (diferenciado de la flecha de stock)
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: detalle.color.withValues(alpha: isDark ? 0.18 : 0.12),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: detalle.color.withValues(alpha: isDark ? 0.35 : 0.22),
-                width: 1,
-              ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDark : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+              width: 1.2,
             ),
-            child: Icon(detalle.icon, color: detalle.color, size: 20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Stack(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 4.5,
+                  child: Container(color: detalle.color),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Fila superior: Insignia + Fecha
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: detalle.color.withValues(
+                                alpha: isDark ? 0.22 : 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: detalle.color.withValues(
+                                  alpha: isDark ? 0.4 : 0.25,
+                                ),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  detalle.badgeIcon,
+                                  size: 11,
+                                  color: detalle.color,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  detalle.badgeText,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: detalle.color,
+                                    letterSpacing: 0.3,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            fechaStr,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Nombre de Producto
+                      Text(
                         m.nombreProducto,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w800,
                           fontSize: 13.5,
                           color: isDark ? Colors.white : AppTheme.textDark,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  m.motivo.isNotEmpty ? m.motivo : 'Movimiento de inventario',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    height: 1.35,
-                    color: isDark
-                        ? AppTheme.textDarkSecondary
-                        : const Color(0xFF334155),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    Text(
-                      fechaStr,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10.5,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF334155),
+                      const SizedBox(height: 3),
+
+                      // Motivo
+                      Text(
+                        m.motivo.isNotEmpty
+                            ? m.motivo
+                            : 'Movimiento de inventario',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          height: 1.35,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF475569),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    if (m.usuarioResponsable != null &&
-                        m.usuarioResponsable!.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
+                      const SizedBox(height: 8),
+
+                      // Banda inferior hundida: Responsable + Variación / Prompt táctil
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
                             color: isDark
-                                ? const Color(0xFF1E293B)
+                                ? AppTheme.borderDark
                                 : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                LucideIcons.userCheck,
-                                size: 10,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  m.usuarioResponsable!,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? AppTheme.textDarkMuted
-                                        : const Color(0xFF334155),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  LucideIcons.user,
+                                  size: 11,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF94A3B8),
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  m.usuarioResponsable ?? 'Sistema',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF475569),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  variacionTexto,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: detalle.color,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 13,
+                                  color: AppTheme.brandPrimary,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+        ),
+      ),
+    );
+  }
 
-          // Insignia lateral derecha
-          if (detalle.esAuditoriaAdmin)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-              decoration: BoxDecoration(
-                color: detalle.color.withValues(alpha: isDark ? 0.2 : 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: detalle.color.withValues(alpha: isDark ? 0.45 : 0.25),
-                  width: 1.1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(detalle.badgeIcon, size: 11, color: detalle.color),
-                  const SizedBox(width: 4),
-                  Text(
-                    detalle.badgeText,
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: detalle.color,
-                      letterSpacing: 0.5,
+  void _mostrarFichaAuditoriaModal(MovimientoInventario m, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.cardDark : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(
+            top: 12,
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                ],
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: detalle.color.withValues(alpha: isDark ? 0.18 : 0.1),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: detalle.color.withValues(alpha: isDark ? 0.35 : 0.2),
-                  width: 1.1,
                 ),
-              ),
-              child: Text(
-                detalle.badgeText,
-                style: GoogleFonts.outfit(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  color: detalle.color,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
+                const SizedBox(height: 12),
+                _buildCardFichaAuditoria(isDark, m),
+              ],
             ),
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 }
