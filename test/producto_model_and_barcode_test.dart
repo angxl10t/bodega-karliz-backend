@@ -286,13 +286,35 @@ void main() {
     test('Correctly maps retail categories to Lucide icons', () {
       expect(CategoryHelper.getIcon('Bebidas'), LucideIcons.cupSoda);
       expect(CategoryHelper.getIcon('Gaseosas y Jugos'), LucideIcons.cupSoda);
-      expect(CategoryHelper.getIcon('Snacks y Piqueos'), LucideIcons.cookie);
+      expect(CategoryHelper.getIcon('Bebidas Alcohólicas'), LucideIcons.wine);
+      expect(CategoryHelper.getIcon('Snacks y Piqueos'), LucideIcons.popcorn);
       expect(CategoryHelper.getIcon('Abarrotes'), LucideIcons.shoppingBasket);
       expect(
         CategoryHelper.getIcon('Limpieza del Hogar'),
         LucideIcons.sparkles,
       );
-      expect(CategoryHelper.getIcon('Lácteos y Huevos'), LucideIcons.egg);
+      expect(
+        CategoryHelper.getIcon('Cuidado Personal y Dental'),
+        LucideIcons.bath,
+      );
+      expect(CategoryHelper.getIcon('Lácteos y Huevos'), LucideIcons.milk);
+      expect(CategoryHelper.getIcon('Lácteos y Derivados'), LucideIcons.milk);
+      expect(
+        CategoryHelper.getIcon('Embutidos y Fiambrería'),
+        LucideIcons.beef,
+      );
+      expect(
+        CategoryHelper.getIcon('Helados y Congelados'),
+        LucideIcons.snowflake,
+      );
+      expect(
+        CategoryHelper.getIcon('Cigarrillos y Tabaco'),
+        LucideIcons.cigarette,
+      );
+      expect(
+        CategoryHelper.getIcon('Mascotas y Alimento'),
+        LucideIcons.pawPrint,
+      );
       expect(CategoryHelper.getIcon('Golosinas y Dulces'), LucideIcons.candy);
       expect(CategoryHelper.getIcon('Panadería'), LucideIcons.croissant);
       expect(CategoryHelper.getIcon('Frutas y Verduras'), LucideIcons.apple);
@@ -302,15 +324,26 @@ void main() {
       expect(CategoryHelper.getIcon(null), LucideIcons.package2);
     });
 
-    test('Returns signature colors in both light and dark themes', () {
-      final lightBebidas = CategoryHelper.getColor('Bebidas', false);
-      final darkBebidas = CategoryHelper.getColor('Bebidas', true);
-      expect(lightBebidas, darkBebidas);
+    test(
+      'Returns adaptive WCAG signature colors in both light and dark themes',
+      () {
+        final lightBebidas = CategoryHelper.getColor('Bebidas', false);
+        final darkBebidas = CategoryHelper.getColor('Bebidas', true);
+        expect(lightBebidas, isNot(darkBebidas));
+        expect(
+          CategoryHelper.getColor('Bebidas Alcohólicas', false),
+          isNot(lightBebidas),
+        );
+        expect(
+          CategoryHelper.getColor('Helados y Congelados', false),
+          isNot(CategoryHelper.getColor('Mascotas y Alimento', false)),
+        );
 
-      final nullLight = CategoryHelper.getColor(null, false);
-      final nullDark = CategoryHelper.getColor(null, true);
-      expect(nullLight, isNot(nullDark));
-    });
+        final nullLight = CategoryHelper.getColor(null, false);
+        final nullDark = CategoryHelper.getColor(null, true);
+        expect(nullLight, isNot(nullDark));
+      },
+    );
   });
 
   group('Stock Multi-Dimensional Filtering Logic Tests', () {

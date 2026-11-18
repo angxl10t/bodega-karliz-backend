@@ -1130,9 +1130,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: isTablet ? 10 : 6),
           SizedBox(
-            height: isTablet ? 142 : 128,
+            height: isTablet ? 142 : 112,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -1468,10 +1468,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             SliverToBoxAdapter(
               child: Container(
                 margin: EdgeInsets.fromLTRB(
-                  isTablet ? 20 : 16,
-                  isShortHeight ? 8 : (isTablet ? 18 : 14),
-                  isTablet ? 20 : 16,
-                  isShortHeight ? 8 : 14,
+                  isTablet ? 20 : 14,
+                  isShortHeight ? 6 : (isTablet ? 18 : 10),
+                  isTablet ? 20 : 14,
+                  isShortHeight ? 6 : (isTablet ? 14 : 8),
                 ),
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
@@ -1548,10 +1548,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           ),
                           Padding(
                             padding: EdgeInsets.fromLTRB(
-                              isShortHeight ? 12 : (isTablet ? 24 : 16),
-                              isShortHeight ? 10 : (isTablet ? 22 : 16),
-                              isShortHeight ? 12 : (isTablet ? 24 : 16),
-                              isShortHeight ? 10 : (isTablet ? 20 : 16),
+                              isShortHeight ? 12 : (isTablet ? 24 : 14),
+                              isShortHeight ? 10 : (isTablet ? 22 : 12),
+                              isShortHeight ? 12 : (isTablet ? 24 : 14),
+                              isShortHeight ? 10 : (isTablet ? 20 : 12),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1560,10 +1560,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 Container(
                                   width: isShortHeight
                                       ? 44
-                                      : (isTablet ? 68 : 56),
+                                      : (isTablet ? 68 : 48),
                                   height: isShortHeight
                                       ? 44
-                                      : (isTablet ? 68 : 56),
+                                      : (isTablet ? 68 : 48),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.16),
                                     borderRadius: BorderRadius.circular(
@@ -1786,15 +1786,71 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                       color: Colors.white,
                                                     ),
                                                     const SizedBox(width: 5),
-                                                    Text(
-                                                      'Delivery rápido',
-                                                      style:
-                                                          GoogleFonts.plusJakartaSans(
-                                                            fontSize: 11,
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            color: Colors.white,
-                                                          ),
+                                                    Flexible(
+                                                      child: Text(
+                                                        'Delivery rápido',
+                                                        style:
+                                                            GoogleFonts.plusJakartaSans(
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 9,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.14),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  border: Border.all(
+                                                    color: Colors.white
+                                                        .withValues(
+                                                          alpha: 0.28,
+                                                        ),
+                                                    width: 0.9,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      LucideIcons.shoppingBag,
+                                                      size: 12,
+                                                      color: Colors.white,
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Flexible(
+                                                      child: Text(
+                                                        'Retiro en tienda',
+                                                        style:
+                                                            GoogleFonts.plusJakartaSans(
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
@@ -1828,17 +1884,24 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                       color: Color(0xFFFEF3C7),
                                                     ),
                                                     const SizedBox(width: 5),
-                                                    Text(
-                                                      'Solo retiro en tienda',
-                                                      style:
-                                                          GoogleFonts.plusJakartaSans(
-                                                            fontSize: 11,
-                                                            fontWeight:
-                                                                FontWeight.w800,
-                                                            color: const Color(
-                                                              0xFFFEF3C7,
+                                                    Flexible(
+                                                      child: Text(
+                                                        'Solo retiro en tienda',
+                                                        style:
+                                                            GoogleFonts.plusJakartaSans(
+                                                              fontSize: 11,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800,
+                                                              color:
+                                                                  const Color(
+                                                                    0xFFFEF3C7,
+                                                                  ),
                                                             ),
-                                                          ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
@@ -1867,15 +1930,22 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                     color: Colors.white,
                                                   ),
                                                   const SizedBox(width: 5),
-                                                  Text(
-                                                    '${_productos.length} productos · ${_categorias.length} categorías',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: 11,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color: Colors.white,
-                                                        ),
+                                                  Flexible(
+                                                    child: Text(
+                                                      isTablet
+                                                          ? '${_productos.length} productos · ${_categorias.length} categorías'
+                                                          : '${_productos.length} prods · ${_categorias.length} cats',
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: Colors.white,
+                                                          ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -1957,17 +2027,22 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                         color: Colors.white,
                                                       ),
                                                       const SizedBox(width: 5),
-                                                      Text(
-                                                        'WhatsApp: ${_bodega['telefono']}',
-                                                        style:
-                                                            GoogleFonts.outfit(
-                                                              fontSize: 11.5,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w800,
-                                                              color:
-                                                                  Colors.white,
-                                                            ),
+                                                      Flexible(
+                                                        child: Text(
+                                                          'WhatsApp: ${_bodega['telefono']}',
+                                                          style:
+                                                              GoogleFonts.outfit(
+                                                                fontSize: 11.5,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
                                                       ),
                                                     ],
                                                   ),
@@ -2024,7 +2099,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     // Cuerpo inferior del Hero: Guía 3 Pasos + Buscador de Alto Contraste
                     Padding(
                       padding: EdgeInsets.all(
-                        isShortHeight ? 10 : (isTablet ? 18 : 14),
+                        isShortHeight ? 8 : (isTablet ? 18 : 10),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2032,8 +2107,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           if (!isShortHeight) ...[
                             Container(
                               padding: EdgeInsets.symmetric(
-                                horizontal: isTablet ? 14 : 10,
-                                vertical: isTablet ? 10 : 8,
+                                horizontal: isTablet ? 14 : 8,
+                                vertical: isTablet ? 10 : 6,
                               ),
                               decoration: BoxDecoration(
                                 color: isDark
@@ -3885,7 +3960,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         // Fotografía Packshot en Gran Detalle (Escenario estudio limpio)
                         Center(
                           child: Container(
-                            padding: const EdgeInsets.all(10),
+                            padding: EdgeInsets.all(
+                              (MediaQuery.of(modalCtx).size.height < 700 ||
+                                      MediaQuery.of(modalCtx).size.width < 380)
+                                  ? 4
+                                  : 10,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(24),
@@ -3912,8 +3992,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               size:
                                   (MediaQuery.of(modalCtx).size.height < 700 ||
                                       MediaQuery.of(modalCtx).size.width < 380)
-                                  ? 124
-                                  : 164,
+                                  ? 106
+                                  : 160,
                               borderRadius: 18,
                               isDark: false,
                               seamless: true,
