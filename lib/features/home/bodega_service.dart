@@ -180,6 +180,12 @@ class BodegaService {
     _inFlightMiBodega = null;
   }
 
+  /// Permite inyectar información de bodega en tests sin llamadas HTTP
+  @visibleForTesting
+  static void setMockMiBodega(BodegaInfo info) {
+    _actualizarCacheLocal(info);
+  }
+
   static void _actualizarCacheLocal(BodegaInfo info) {
     _cachedMiBodega = info;
     _cachedAt = DateTime.now();
@@ -703,8 +709,15 @@ class BodegaService {
     return [];
   }
 
+  @visibleForTesting
+  static int? mockSugerenciasPendientes;
+
   /// Conteo de sugerencias de precios pendientes para la bodega actual
   Future<int> contarMisSugerenciasPendientes() async {
+    if (mockSugerenciasPendientes != null) {
+      sugerenciasPendientesNotifier.value = mockSugerenciasPendientes!;
+      return mockSugerenciasPendientes!;
+    }
     try {
       final response = await _client.get(
         '/bodegas/mis-sugerencias-precio/conteo',
