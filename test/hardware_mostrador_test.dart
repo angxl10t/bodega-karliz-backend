@@ -48,14 +48,15 @@ void main() {
       expect(html, contains('MINIMARKET CENTRAL'));
     });
 
-    test('ThermalTicketService.abrirGavetaDinero sends pure pulse without error in test environment', () async {
+    test('ThermalTicketService.abrirGavetaDinero reports actionable bridge requirement in navegador mode', () async {
       const cfg = ConfiguracionTicket(
         modoConexion: 'navegador',
         abrirGaveta: true,
       );
 
       final res = await ThermalTicketService.abrirGavetaDinero(config: cfg);
-      expect(res.exito, isTrue);
+      expect(res.exito, isFalse);
+      expect(res.mensaje, contains('Servidor Local'));
     });
 
     testWidgets(
