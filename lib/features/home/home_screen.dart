@@ -153,6 +153,11 @@ class _HomeScreenState extends State<HomeScreen> {
     if (route != null && !route.isCurrent) return false;
 
     final key = event.logicalKey;
+    // En la pestaña de Venta POS (índice 1), F2 y F4 son fast-keys internos (Buscar y Cobrar)
+    if (_selectedIndex == 1 &&
+        (key == LogicalKeyboardKey.f2 || key == LogicalKeyboardKey.f4)) {
+      return false;
+    }
     if (key == LogicalKeyboardKey.f1) {
       _selectTab(0);
       return true;

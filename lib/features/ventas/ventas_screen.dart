@@ -313,8 +313,9 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   Color _getCategoryColor(String? categoryName, bool isDark) {
-    if (categoryName == 'Promociones') return const Color(0xFFEF4444);
-    return CategoryHelper.getColor(categoryName, isDark);
+    // En el terminal POS mantenemos las categorías inactivas en pizarra neutra
+    // para evitar el efecto arcoíris y dejar que destaquen las fotos y la selección activa.
+    return isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B);
   }
 
   void _handleHardwareKey(KeyEvent event) {
@@ -6710,23 +6711,38 @@ class _VentasScreenState extends State<VentasScreen>
     IconData? icon,
     bool isLoading = false,
     required String label,
-    required Color color,
-    required Color bgColor,
+    Color? iconColor,
+    int? badgeCount,
+    Color? badgeColor,
     required VoidCallback? onTap,
     required bool isDark,
   }) {
+    final Color surface = isDark ? AppTheme.cardDark : Colors.white;
+    final Color border = isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0);
+    final Color textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final Color effectiveIconColor =
+        iconColor ??
+        (isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B));
+    final bool hasBadge = (badgeCount ?? 0) > 0;
+    final Color effectiveBadgeColor = badgeColor ?? AppTheme.brandPrimary;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        mouseCursor: onTap != null
+            ? SystemMouseCursors.click
+            : SystemMouseCursors.basic,
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(11),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(12),
+            color: surface,
+            borderRadius: BorderRadius.circular(11),
             border: Border.all(
-              color: color.withValues(alpha: isDark ? 0.35 : 0.2),
+              color: hasBadge
+                  ? effectiveBadgeColor.withValues(alpha: isDark ? 0.45 : 0.35)
+                  : border,
               width: 1,
             ),
           ),
@@ -6739,24 +6755,271 @@ class _VentasScreenState extends State<VentasScreen>
                   height: 13,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: color,
+                    color: AppTheme.brandPrimary,
                   ),
                 )
               else if (icon != null)
-                Icon(icon, size: 14, color: color),
+                Icon(icon, size: 14, color: effectiveIconColor),
               if (isLoading || icon != null) const SizedBox(width: 6),
               Text(
                 label,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
-                  color: color,
+                  color: textColor,
+                ),
+              ),
+              if (hasBadge) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: effectiveBadgeColor.withValues(
+                      alpha: isDark ? 0.22 : 0.14,
+                    ),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Text(
+                    '$badgeCount',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: effectiveBadgeColor,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Barra unificada de acciones POS (6 acciones de turno en neutro + menú
+  /// "Más opciones" para utilidades secundarias, eliminando la sobrecarga cromática).
+  Widget _buildPosToolbar(bool isDark) {
+    final Color surface = isDark ? AppTheme.cardDark : Colors.white;
+    final Color border = isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0);
+    final Color textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final Color mutedIcon = isDark
+        ? AppTheme.textDarkSecondary
+        : const Color(0xFF64748B);
+
+    final PopupMenuButton<String> moreOptionsMenu = PopupMenuButton<String>(
+      tooltip: 'Más opciones del terminal',
+      color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+      elevation: 6,
+      offset: const Offset(0, 38),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: border),
+      ),
+      onSelected: (value) {
+        HapticFeedback.selectionClick();
+        switch (value) {
+          case 'hardware':
+            _abrirHardwareMostrador();
+            break;
+          case 'ticket':
+            ConfiguracionTicketModal.show(context);
+            break;
+          case 'tips':
+            BriefingTurnoModal.show(context);
+            break;
+          case 'sync':
+            if (!_isLoading) _cargarProductos(forceRefresh: true);
+            break;
+        }
+      },
+      itemBuilder: (ctx) => [
+        PopupMenuItem<String>(
+          value: 'hardware',
+          child: Row(
+            children: [
+              Icon(LucideIcons.cpu, size: 15, color: mutedIcon),
+              const SizedBox(width: 10),
+              Text(
+                'Hardware POS',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
                 ),
               ),
             ],
           ),
         ),
+        PopupMenuItem<String>(
+          value: 'ticket',
+          child: Row(
+            children: [
+              Icon(LucideIcons.settings, size: 15, color: mutedIcon),
+              const SizedBox(width: 10),
+              Text(
+                'Ticket',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'tips',
+          child: Row(
+            children: [
+              Icon(LucideIcons.sparkles, size: 15, color: mutedIcon),
+              const SizedBox(width: 10),
+              Text(
+                'Tips Turno',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(height: 8),
+        PopupMenuItem<String>(
+          value: 'sync',
+          enabled: !_isLoading,
+          child: Row(
+            children: [
+              Icon(LucideIcons.refreshCw, size: 15, color: mutedIcon),
+              const SizedBox(width: 10),
+              Text(
+                _isLoading ? 'Sincronizando...' : 'Sincronizar',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: border, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(LucideIcons.ellipsis, size: 14, color: mutedIcon),
+            const SizedBox(width: 5),
+            Text(
+              'Más opciones',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Icon(LucideIcons.chevronDown, size: 13, color: mutedIcon),
+          ],
+        ),
       ),
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: VentaEnEsperaService.countNotifier,
+                  builder: (context, count, _) {
+                    return _buildPosActionChip(
+                      icon: LucideIcons.pauseCircle,
+                      label: 'En Espera',
+                      badgeCount: count,
+                      badgeColor: const Color(0xFFD97706),
+                      onTap: _mostrarModalVentasEnEspera,
+                      isDark: isDark,
+                    );
+                  },
+                ),
+                const SizedBox(width: 6),
+                ValueListenableBuilder<int>(
+                  valueListenable:
+                      PedidoWebService.pedidosPendientesCountNotifier,
+                  builder: (context, count, _) {
+                    return _buildPosActionChip(
+                      icon: LucideIcons.globe,
+                      label: 'Pedidos Web',
+                      badgeCount: count,
+                      badgeColor: AppTheme.accentGreen,
+                      onTap: _mostrarBandejaPedidosWeb,
+                      isDark: isDark,
+                    );
+                  },
+                ),
+                const SizedBox(width: 6),
+                _buildPosActionChip(
+                  icon: LucideIcons.wine,
+                  label: 'Garantía Botellas',
+                  onTap: _abrirModalGarantiaEnvase,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _buildPosActionChip(
+                  icon: LucideIcons.arrowDownRight,
+                  iconColor: AppTheme.alertRed,
+                  label: 'Egreso Caja',
+                  onTap: () => EgresoCajaModal.show(context),
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _buildPosActionChip(
+                  icon: LucideIcons.receiptText,
+                  label: 'Cierre Caja',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CajaVentasScreen(),
+                      ),
+                    );
+                  },
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _buildPosActionChip(
+                  icon: LucideIcons.vault,
+                  label: 'Abrir Gaveta',
+                  onTap: _abrirGavetaManual,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          width: 1,
+          height: 20,
+          color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+        ),
+        const SizedBox(width: 8),
+        moreOptionsMenu,
+      ],
     );
   }
 
@@ -6822,10 +7085,12 @@ class _VentasScreenState extends State<VentasScreen>
                   ),
                   IconButton.filledTonal(
                     style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? const Color(0xFF134E4A)
-                          : const Color(0xFFCCFBF1),
-                      foregroundColor: const Color(0xFF0F766E),
+                      backgroundColor: AppTheme.brandPrimary.withValues(
+                        alpha: isDark ? 0.18 : 0.10,
+                      ),
+                      foregroundColor: isDark
+                          ? const Color(0xFF60A5FA)
+                          : AppTheme.brandPrimary,
                     ),
                     tooltip: 'Escanear con Cámara (Lector POS)',
                     icon: const Icon(LucideIcons.scanLine, size: 20),
@@ -6834,153 +7099,7 @@ class _VentasScreenState extends State<VentasScreen>
                 ],
               ),
               const SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
-                    ValueListenableBuilder<int>(
-                      valueListenable: VentaEnEsperaService.countNotifier,
-                      builder: (context, count, _) {
-                        return _buildPosActionChip(
-                          icon: LucideIcons.pauseCircle,
-                          label: count > 0 ? 'En Espera ($count)' : 'En Espera',
-                          color: count > 0
-                              ? const Color(0xFFD97706)
-                              : (isDark
-                                    ? Colors.white70
-                                    : const Color(0xFF64748B)),
-                          bgColor: count > 0
-                              ? (isDark
-                                    ? const Color(0xFF78350F)
-                                          .withValues(alpha: 0.3)
-                                    : const Color(0xFFFEF3C7))
-                              : (isDark
-                                    ? const Color(0xFF1E293B)
-                                    : const Color(0xFFF1F5F9)),
-                          onTap: _mostrarModalVentasEnEspera,
-                          isDark: isDark,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    ValueListenableBuilder<int>(
-                      valueListenable:
-                          PedidoWebService.pedidosPendientesCountNotifier,
-                      builder: (context, count, _) {
-                        return _buildPosActionChip(
-                          icon: LucideIcons.globe,
-                          label: count > 0
-                              ? 'Pedidos Web ($count)'
-                              : 'Pedidos Web',
-                          color: count > 0
-                              ? const Color(0xFF0D9488)
-                              : (isDark
-                                    ? Colors.white70
-                                    : const Color(0xFF64748B)),
-                          bgColor: count > 0
-                              ? (isDark
-                                    ? const Color(0xFF134E4A)
-                                          .withValues(alpha: 0.3)
-                                    : const Color(0xFFCCFBF1))
-                              : (isDark
-                                    ? const Color(0xFF1E293B)
-                                    : const Color(0xFFF1F5F9)),
-                          onTap: _mostrarBandejaPedidosWeb,
-                          isDark: isDark,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: _isLoading ? null : LucideIcons.refreshCw,
-                      isLoading: _isLoading,
-                      label: 'Sincronizar',
-                      color: isDark ? Colors.white : const Color(0xFF475569),
-                      bgColor: isDark
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFFF1F5F9),
-                      onTap: _isLoading
-                          ? null
-                          : () => _cargarProductos(forceRefresh: true),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.arrowDownRight,
-                      label: 'Egreso Caja',
-                      color: const Color(0xFFE11D48),
-                      bgColor: isDark
-                          ? const Color(0xFF4C0519)
-                          : const Color(0xFFFFE4E6),
-                      onTap: () => EgresoCajaModal.show(context),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.wine,
-                      label: 'Garantía Botellas',
-                      color: const Color(0xFF2563EB),
-                      bgColor: isDark
-                          ? const Color(0xFF2563EB).withValues(alpha: 0.18)
-                          : const Color(0xFFEFF6FF),
-                      onTap: _abrirModalGarantiaEnvase,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.receiptText,
-                      label: 'Cierre Caja',
-                      color: AppTheme.brandPrimary,
-                      bgColor: isDark
-                          ? AppTheme.brandPrimary.withValues(alpha: 0.15)
-                          : AppTheme.surfaceTint,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CajaVentasScreen(),
-                          ),
-                        );
-                      },
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.sparkles,
-                      label: 'Tips Turno',
-                      color: const Color(0xFF0284C7),
-                      bgColor: isDark
-                          ? const Color(0xFF38BDF8).withValues(alpha: 0.15)
-                          : const Color(0xFFE0F2FE),
-                      onTap: () => BriefingTurnoModal.show(context),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.vault,
-                      label: 'Abrir Gaveta',
-                      color: const Color(0xFF10B981),
-                      bgColor: isDark
-                          ? const Color(0xFF10B981).withValues(alpha: 0.18)
-                          : const Color(0xFFECFDF5),
-                      onTap: _abrirGavetaManual,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.cpu,
-                      label: 'Hardware POS',
-                      color: const Color(0xFF6366F1),
-                      bgColor: isDark
-                          ? const Color(0xFF6366F1).withValues(alpha: 0.18)
-                          : const Color(0xFFEEF2FF),
-                      onTap: _abrirHardwareMostrador,
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
+              _buildPosToolbar(isDark),
               const SizedBox(height: 12),
 
               // Selector de Comprobante (Boleta de Venta, Ticket de Venta - Nuevo RUS)
@@ -7572,167 +7691,8 @@ class _VentasScreenState extends State<VentasScreen>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const OfflineStatusBar(),
-              // Barra de Acciones POS Integral para Tablet / Escritorio (Scrollable horizontal)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
-                    ValueListenableBuilder<int>(
-                      valueListenable: VentaEnEsperaService.countNotifier,
-                      builder: (context, count, _) {
-                        return _buildPosActionChip(
-                          icon: LucideIcons.pauseCircle,
-                          label: count > 0 ? 'En Espera ($count)' : 'En Espera',
-                          color: count > 0
-                              ? const Color(0xFFD97706)
-                              : (isDark
-                                    ? Colors.white70
-                                    : const Color(0xFF64748B)),
-                          bgColor: count > 0
-                              ? (isDark
-                                    ? const Color(0xFF78350F)
-                                          .withValues(alpha: 0.3)
-                                    : const Color(0xFFFEF3C7))
-                              : (isDark
-                                    ? const Color(0xFF1E293B)
-                                    : const Color(0xFFF1F5F9)),
-                          onTap: _mostrarModalVentasEnEspera,
-                          isDark: isDark,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    ValueListenableBuilder<int>(
-                      valueListenable:
-                          PedidoWebService.pedidosPendientesCountNotifier,
-                      builder: (context, count, _) {
-                        return _buildPosActionChip(
-                          icon: LucideIcons.globe,
-                          label: count > 0
-                              ? 'Pedidos Web ($count)'
-                              : 'Pedidos Web',
-                          color: count > 0
-                              ? const Color(0xFF0D9488)
-                              : (isDark
-                                    ? Colors.white70
-                                    : const Color(0xFF64748B)),
-                          bgColor: count > 0
-                              ? (isDark
-                                    ? const Color(0xFF134E4A)
-                                          .withValues(alpha: 0.3)
-                                    : const Color(0xFFCCFBF1))
-                              : (isDark
-                                    ? const Color(0xFF1E293B)
-                                    : const Color(0xFFF1F5F9)),
-                          onTap: _mostrarBandejaPedidosWeb,
-                          isDark: isDark,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.wine,
-                      label: 'Garantía Botellas',
-                      color: const Color(0xFF2563EB),
-                      bgColor: isDark
-                          ? const Color(0xFF2563EB).withValues(alpha: 0.18)
-                          : const Color(0xFFEFF6FF),
-                      onTap: _abrirModalGarantiaEnvase,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.arrowDownRight,
-                      label: 'Egreso Caja',
-                      color: const Color(0xFFE11D48),
-                      bgColor: isDark
-                          ? const Color(0xFF4C0519)
-                          : const Color(0xFFFFE4E6),
-                      onTap: () => EgresoCajaModal.show(context),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.receiptText,
-                      label: 'Cierre Caja',
-                      color: AppTheme.brandPrimary,
-                      bgColor: isDark
-                          ? AppTheme.brandPrimary.withValues(alpha: 0.15)
-                          : AppTheme.surfaceTint,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CajaVentasScreen(),
-                          ),
-                        );
-                      },
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.sparkles,
-                      label: 'Tips Turno',
-                      color: const Color(0xFF0284C7),
-                      bgColor: isDark
-                          ? const Color(0xFF38BDF8).withValues(alpha: 0.15)
-                          : const Color(0xFFE0F2FE),
-                      onTap: () => BriefingTurnoModal.show(context),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.vault,
-                      label: 'Abrir Gaveta',
-                      color: const Color(0xFF10B981),
-                      bgColor: isDark
-                          ? const Color(0xFF10B981).withValues(alpha: 0.18)
-                          : const Color(0xFFECFDF5),
-                      onTap: _abrirGavetaManual,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.cpu,
-                      label: 'Hardware POS',
-                      color: const Color(0xFF6366F1),
-                      bgColor: isDark
-                          ? const Color(0xFF6366F1).withValues(alpha: 0.18)
-                          : const Color(0xFFEEF2FF),
-                      onTap: _abrirHardwareMostrador,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: LucideIcons.settings,
-                      label: 'Ticket',
-                      color: isDark
-                          ? const Color(0xFFCBD5E1)
-                          : const Color(0xFF475569),
-                      bgColor: isDark
-                          ? const Color(0xFF1F2937)
-                          : const Color(0xFFF3F4F6),
-                      onTap: () => ConfiguracionTicketModal.show(context),
-                      isDark: isDark,
-                    ),
-                    const SizedBox(width: 6),
-                    _buildPosActionChip(
-                      icon: _isLoading ? null : LucideIcons.refreshCw,
-                      isLoading: _isLoading,
-                      label: 'Sincronizar',
-                      color: isDark ? Colors.white : const Color(0xFF475569),
-                      bgColor: isDark
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFFF1F5F9),
-                      onTap: _isLoading
-                          ? null
-                          : () => _cargarProductos(forceRefresh: true),
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-              ),
+              // Barra de Acciones POS unificada (6 acciones de turno + Más opciones)
+              _buildPosToolbar(isDark),
               const SizedBox(height: 10),
               Expanded(
                 child: Row(
@@ -8131,13 +8091,15 @@ class _VentasScreenState extends State<VentasScreen>
               ),
               const SizedBox(width: 6),
 
-              // Botón Escáner Láser / Cámara
+              // Botón Escáner Láser / Cámara (armonizado en Cobalt suave)
               IconButton.filledTonal(
                 style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? const Color(0xFF134E4A)
-                      : const Color(0xFFCCFBF1),
-                  foregroundColor: const Color(0xFF0F766E),
+                  backgroundColor: AppTheme.brandPrimary.withValues(
+                    alpha: isDark ? 0.18 : 0.10,
+                  ),
+                  foregroundColor: isDark
+                      ? const Color(0xFF60A5FA)
+                      : AppTheme.brandPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -8448,10 +8410,12 @@ class _VentasScreenState extends State<VentasScreen>
                             decoration: BoxDecoration(
                               color: isDark
                                   ? (inCart
-                                        ? const Color(0xFF1E293B)
+                                        ? AppTheme.brandPrimary.withValues(
+                                            alpha: 0.16,
+                                          )
                                         : const Color(0xFF1B2030))
                                   : (inCart
-                                        ? const Color(0xFFF0FDFA)
+                                        ? const Color(0xFFEFF6FF)
                                         : const Color(0xFFF8FAFC)),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
@@ -8466,7 +8430,7 @@ class _VentasScreenState extends State<VentasScreen>
                                   ? [
                                       BoxShadow(
                                         color: AppTheme.brandPrimary.withValues(
-                                          alpha: 0.18,
+                                          alpha: 0.14,
                                         ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
@@ -8494,18 +8458,25 @@ class _VentasScreenState extends State<VentasScreen>
                                           decoration: BoxDecoration(
                                             color: isLowStock
                                                 ? AppTheme.alertRed.withValues(
-                                                    alpha: 0.15,
+                                                    alpha: 0.14,
                                                   )
                                                 : (isDark
-                                                      ? const Color(
-                                                          0xFF134E4A,
-                                                        ).withValues(alpha: 0.5)
-                                                      : const Color(
-                                                          0xFFCCFBF1,
-                                                        )),
+                                                      ? AppTheme
+                                                            .cardDarkElevated
+                                                      : Colors.white),
                                             borderRadius: BorderRadius.circular(
                                               6,
                                             ),
+                                            border: isLowStock
+                                                ? null
+                                                : Border.all(
+                                                    color: isDark
+                                                        ? AppTheme.borderDark
+                                                        : const Color(
+                                                            0xFFE2E8F0,
+                                                          ),
+                                                    width: 0.8,
+                                                  ),
                                           ),
                                           child: Text(
                                             p.esPesableOGranel
@@ -8517,11 +8488,10 @@ class _VentasScreenState extends State<VentasScreen>
                                               color: isLowStock
                                                   ? AppTheme.alertRed
                                                   : (isDark
-                                                        ? const Color(
-                                                            0xFF2DD4BF,
-                                                          )
+                                                        ? AppTheme
+                                                              .textDarkSecondary
                                                         : const Color(
-                                                            0xFF0F766E,
+                                                            0xFF64748B,
                                                           )),
                                             ),
                                           ),
@@ -8900,35 +8870,41 @@ class _VentasScreenState extends State<VentasScreen>
                 children: [
                   IconButton(
                     tooltip: 'Garantía de Botellas / Retornables',
-                    icon: const Icon(
+                    icon: Icon(
                       LucideIcons.wine,
-                      size: 18,
-                      color: Color(0xFF2563EB),
+                      size: 17,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
                     ),
                     onPressed: _abrirModalGarantiaEnvase,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
                   if (_carrito.isNotEmpty) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     IconButton(
                       tooltip: 'Poner en Espera (Pausar Ticket)',
-                      icon: const Icon(
+                      icon: Icon(
                         LucideIcons.pauseCircle,
-                        size: 18,
-                        color: Color(0xFFD97706),
+                        size: 17,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
                       ),
                       onPressed: _ponerVentaEnEspera,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     IconButton(
                       tooltip: 'Registrar como Consumo Interno de Bodega',
-                      icon: const Icon(
+                      icon: Icon(
                         LucideIcons.coffee,
-                        size: 18,
-                        color: Color(0xFF8B5CF6),
+                        size: 17,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
                       ),
                       onPressed: _registrarConsumoInterno,
                       padding: EdgeInsets.zero,
@@ -9790,32 +9766,32 @@ class _VentasScreenState extends State<VentasScreen>
     bool isExacto = false,
   }) {
     final isSelected = (_montoRecibido - amount).abs() < 0.01;
-    final primaryColor = isExacto
-        ? AppTheme.accentGreen
-        : AppTheme.brandPrimary;
+    const primaryColor = AppTheme.brandPrimary;
 
     return ActionChip(
       avatar: isExacto
           ? Icon(
               LucideIcons.zap,
               size: 13,
-              color: isSelected ? Colors.white : AppTheme.accentGreen,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? const Color(0xFF60A5FA) : AppTheme.brandPrimary),
             )
           : null,
       label: Text(label),
       labelStyle: GoogleFonts.outfit(
         fontSize: 11.5,
-        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+        fontWeight: isSelected || isExacto ? FontWeight.w800 : FontWeight.w700,
         color: isSelected
             ? Colors.white
-            : (isDark ? Colors.white : AppTheme.textDark),
+            : (isExacto
+                  ? (isDark ? const Color(0xFF60A5FA) : AppTheme.brandPrimary)
+                  : (isDark ? Colors.white : AppTheme.textDark)),
       ),
       backgroundColor: isSelected
           ? primaryColor
           : (isExacto
-                ? (isDark
-                      ? const Color(0xFF064E3B).withValues(alpha: 0.3)
-                      : const Color(0xFFD1FAE5))
+                ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.18 : 0.10)
                 : (isDark
                       ? AppTheme.cardDarkHighlight
                       : const Color(0xFFF1F5F9))),
@@ -9823,9 +9799,9 @@ class _VentasScreenState extends State<VentasScreen>
         color: isSelected
             ? primaryColor
             : (isExacto
-                  ? AppTheme.accentGreen.withValues(alpha: 0.7)
+                  ? AppTheme.brandPrimary.withValues(alpha: 0.35)
                   : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0))),
-        width: isSelected || isExacto ? 1.4 : 1.0,
+        width: isSelected ? 1.4 : 1.0,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onPressed: () {
@@ -9838,31 +9814,13 @@ class _VentasScreenState extends State<VentasScreen>
 
   Widget _buildPaymentChip(String metodo, IconData icon, bool isDark) {
     final bool isSelected = _metodoPago == metodo;
-    Color methodColor;
-    switch (metodo) {
-      case 'Yape':
-        methodColor = const Color(0xFF7C3AED); // Púrpura Yape
-        break;
-      case 'Plin':
-        methodColor = const Color(0xFF0284C7); // Celeste Plin
-        break;
-      case 'Tarjeta':
-        methodColor = const Color(0xFF2563EB); // Azul Cobalto
-        break;
-      case 'Crédito':
-        methodColor = const Color(0xFFD97706); // Ámbar
-        break;
-      case 'Efectivo':
-      default:
-        methodColor = const Color(0xFF059669); // Esmeralda Fintech
-        break;
-    }
+    const Color activeColor = AppTheme.brandPrimary;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         mouseCursor: SystemMouseCursors.click,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         onTap: () {
           setState(() {
             _metodoPago = metodo;
@@ -9876,17 +9834,17 @@ class _VentasScreenState extends State<VentasScreen>
           curve: Curves.easeOutCubic,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected
-                  ? methodColor
+                  ? activeColor
                   : (isDark
                         ? AppTheme.cardDarkHighlight
                         : const Color(0xFFF5F6F8)),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected
-                    ? methodColor
+                    ? activeColor
                     : (isDark
                           ? AppTheme.borderDarkElevated
                           : const Color(0xFFE2E8F0)),
@@ -9895,7 +9853,7 @@ class _VentasScreenState extends State<VentasScreen>
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: methodColor.withValues(alpha: 0.35),
+                        color: activeColor.withValues(alpha: 0.28),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -9907,12 +9865,14 @@ class _VentasScreenState extends State<VentasScreen>
               children: [
                 Icon(
                   icon,
-                  size: 16,
+                  size: 15,
                   color: isSelected
                       ? Colors.white
-                      : (isDark ? Colors.white : methodColor),
+                      : (isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B)),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 7),
                 Text(
                   metodo,
                   style: GoogleFonts.plusJakartaSans(

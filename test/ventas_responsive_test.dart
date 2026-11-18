@@ -141,16 +141,23 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Verificar que en vista de tablet/ordenador aparezca el chip de Garantía Botellas
+        // Verificar las 6 acciones visibles del turno en barra unificada
         expect(find.text('Garantía Botellas'), findsAtLeastNWidgets(1));
-
-        // Verificar que las demás acciones críticas de caja estén visibles
         expect(find.text('En Espera'), findsAtLeastNWidgets(1));
         expect(find.text('Pedidos Web'), findsAtLeastNWidgets(1));
         expect(find.text('Egreso Caja'), findsAtLeastNWidgets(1));
         expect(find.text('Cierre Caja'), findsAtLeastNWidgets(1));
-        expect(find.text('Tips Turno'), findsAtLeastNWidgets(1));
-        expect(find.text('Ticket'), findsAtLeastNWidgets(1));
+        expect(find.text('Abrir Gaveta'), findsAtLeastNWidgets(1));
+        expect(find.text('Más opciones'), findsOneWidget);
+
+        // Abrir el menú agrupado "Más opciones" y verificar utilidades secundarias
+        await tester.tap(find.text('Más opciones'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Hardware POS'), findsOneWidget);
+        expect(find.text('Ticket'), findsOneWidget);
+        expect(find.text('Tips Turno'), findsOneWidget);
+        expect(find.text('Sincronizar'), findsOneWidget);
       },
     );
   });
