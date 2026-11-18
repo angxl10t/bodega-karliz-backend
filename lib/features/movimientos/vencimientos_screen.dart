@@ -489,7 +489,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
   }) {
     return Column(
       children: [
-        // 1. Panel Superior de Métricas Semáforo FIFO
+        // 1. Panel Superior de Métricas Semáforo FIFO (Calma Visual)
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           color: cardBg,
@@ -499,7 +499,8 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
             child: Row(
               children: [
                 SizedBox(
-                  width: 140,
+                  width: 154,
+                  height: 88,
                   child: _buildKpiCard(
                     titulo: 'Vencidos (≤ 0d)',
                     cantidad: vencidos.length,
@@ -515,11 +516,13 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       });
                     },
                     isDark: isDark,
+                    subtext: 'Pérdida inmediata',
                   ),
                 ),
                 const SizedBox(width: 8),
                 SizedBox(
-                  width: 140,
+                  width: 154,
+                  height: 88,
                   child: _buildKpiCard(
                     titulo: 'Críticos (1-7d)',
                     cantidad: criticos.length,
@@ -535,11 +538,13 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       });
                     },
                     isDark: isDark,
+                    subtext: 'Riesgo inminente',
                   ),
                 ),
                 const SizedBox(width: 8),
                 SizedBox(
-                  width: 140,
+                  width: 154,
+                  height: 88,
                   child: _buildKpiCard(
                     titulo: 'Rotación (8-30d)',
                     cantidad: enRiesgo.length,
@@ -555,11 +560,13 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       });
                     },
                     isDark: isDark,
+                    subtext: 'Ofertar / Frente',
                   ),
                 ),
                 const SizedBox(width: 8),
                 SizedBox(
-                  width: 140,
+                  width: 154,
+                  height: 88,
                   child: _buildKpiCard(
                     titulo: 'Vigentes (> 30d)',
                     cantidad: vigentes.length,
@@ -575,6 +582,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                       });
                     },
                     isDark: isDark,
+                    subtext: 'Stock saludable',
                   ),
                 ),
               ],
@@ -582,7 +590,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
           ),
         ),
         Container(
-          margin: const EdgeInsets.fromLTRB(16, 6, 16, 2),
+          margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: AppTheme.brandPrimary.withValues(
@@ -603,7 +611,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Criterio FIFO Activo: Los productos más próximos a vencer aparecen primero para priorizar su rotación al frente de góndola.',
+                  'Criterio FIFO Activo (Protocolo FEFO): Los productos más próximos a vencer aparecen primero para priorizar su rotación al frente de góndola.',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -615,78 +623,106 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
           ),
         ),
 
-        // 2. Buscador y Filtro Rápido
+        // 2. Buscador y Filtros Semáforo (Calma Visual)
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
           color: cardBg,
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Container(
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.cardDarkSunken
-                        : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: TextField(
-                    controller: _searchCtrl,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : AppTheme.textDark,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Filtrar por nombre o código...',
-                      hintStyle: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
-                        color: AppTheme.getAdaptiveHintText(isDark),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.cardDarkSunken
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: borderColor),
                       ),
-                      prefixIcon: const Icon(
-                        LucideIcons.search,
-                        size: 16,
-                        color: AppTheme.brandPrimary,
+                      child: TextField(
+                        controller: _searchCtrl,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Filtrar por nombre o código...',
+                          hintStyle: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            color: AppTheme.getAdaptiveHintText(isDark),
+                          ),
+                          prefixIcon: const Icon(
+                            LucideIcons.search,
+                            size: 16,
+                            color: AppTheme.brandPrimary,
+                          ),
+                          suffixIcon: _filtroTexto.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(LucideIcons.x, size: 14),
+                                  onPressed: () {
+                                    _searchCtrl.clear();
+                                    _searchDebouncer.cancel();
+                                    setState(() => _filtroTexto = '');
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                          ),
+                        ),
+                        onChanged: (val) => _searchDebouncer.run(() {
+                          if (mounted) {
+                            setState(() => _filtroTexto = val);
+                          }
+                        }),
+                        onSubmitted: (val) {
+                          _searchDebouncer.cancel();
+                          setState(() => _filtroTexto = val);
+                        },
                       ),
-                      suffixIcon: _filtroTexto.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(LucideIcons.x, size: 14),
-                              onPressed: () {
-                                _searchCtrl.clear();
-                                _searchDebouncer.cancel();
-                                setState(() => _filtroTexto = '');
-                              },
-                            )
-                          : null,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
                     ),
-                    onChanged: (val) => _searchDebouncer.run(() {
-                      if (mounted) {
-                        setState(() => _filtroTexto = val);
-                      }
-                    }),
-                    onSubmitted: (val) {
-                      _searchDebouncer.cancel();
-                      setState(() => _filtroTexto = val);
-                    },
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Escanear Código',
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.brandPrimary.withValues(
+                        alpha: isDark ? 0.2 : 0.1,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
+                    icon: const Icon(
+                      LucideIcons.scanBarcode,
+                      size: 18,
+                      color: AppTheme.brandPrimary,
+                    ),
+                    onPressed: _escanearCodigo,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              if (_filtroSemaforo != 'TODOS')
-                ActionChip(
-                  avatar: const Icon(LucideIcons.x, size: 14),
-                  label: Text(
-                    _filtroSemaforo,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  onPressed: () => setState(() => _filtroSemaforo = 'TODOS'),
-                ),
+              const SizedBox(height: 8),
+              _buildFilterPills(
+                isDark,
+                total:
+                    vencidos.length +
+                    criticos.length +
+                    enRiesgo.length +
+                    vigentes.length,
+                vencidos: vencidos.length,
+                criticos: criticos.length,
+                enRiesgo: enRiesgo.length,
+                vigentes: vigentes.length,
+              ),
             ],
           ),
         ),
@@ -740,84 +776,100 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. Rejilla Superior de 4 KPIs Semáforo FEFO de Ancho Completo
+        // 1. Rejilla Superior de 4 KPIs Semáforo FEFO de Ancho Completo (Calma Visual)
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
           child: Row(
             children: [
               Expanded(
-                child: _buildKpiCard(
-                  titulo: 'Vencidos (≤ 0d)',
-                  cantidad: vencidos.length,
-                  montoSoles: valorVencidoSoles,
-                  color: const Color(0xFFDC2626),
-                  icon: LucideIcons.alertOctagon,
-                  isSelected: _filtroSemaforo == 'VENCIDOS',
-                  onTap: () {
-                    setState(() {
-                      _filtroSemaforo = _filtroSemaforo == 'VENCIDOS'
-                          ? 'TODOS'
-                          : 'VENCIDOS';
-                    });
-                  },
-                  isDark: isDark,
+                child: SizedBox(
+                  height: 88,
+                  child: _buildKpiCard(
+                    titulo: 'Vencidos (≤ 0d)',
+                    cantidad: vencidos.length,
+                    montoSoles: valorVencidoSoles,
+                    color: const Color(0xFFDC2626),
+                    icon: LucideIcons.alertOctagon,
+                    isSelected: _filtroSemaforo == 'VENCIDOS',
+                    onTap: () {
+                      setState(() {
+                        _filtroSemaforo = _filtroSemaforo == 'VENCIDOS'
+                            ? 'TODOS'
+                            : 'VENCIDOS';
+                      });
+                    },
+                    isDark: isDark,
+                    subtext: 'Pérdida inmediata',
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildKpiCard(
-                  titulo: 'Críticos (1-7d)',
-                  cantidad: criticos.length,
-                  montoSoles: valorCriticoSoles,
-                  color: const Color(0xFFEA580C),
-                  icon: LucideIcons.zap,
-                  isSelected: _filtroSemaforo == 'CRITICOS',
-                  onTap: () {
-                    setState(() {
-                      _filtroSemaforo = _filtroSemaforo == 'CRITICOS'
-                          ? 'TODOS'
-                          : 'CRITICOS';
-                    });
-                  },
-                  isDark: isDark,
+                child: SizedBox(
+                  height: 88,
+                  child: _buildKpiCard(
+                    titulo: 'Críticos (1-7d)',
+                    cantidad: criticos.length,
+                    montoSoles: valorCriticoSoles,
+                    color: const Color(0xFFEA580C),
+                    icon: LucideIcons.zap,
+                    isSelected: _filtroSemaforo == 'CRITICOS',
+                    onTap: () {
+                      setState(() {
+                        _filtroSemaforo = _filtroSemaforo == 'CRITICOS'
+                            ? 'TODOS'
+                            : 'CRITICOS';
+                      });
+                    },
+                    isDark: isDark,
+                    subtext: 'Riesgo inminente',
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildKpiCard(
-                  titulo: 'Rotación (8-30d)',
-                  cantidad: enRiesgo.length,
-                  montoSoles: valorRiesgoSoles,
-                  color: const Color(0xFFD97706),
-                  icon: LucideIcons.rotateCw,
-                  isSelected: _filtroSemaforo == 'ATENCION',
-                  onTap: () {
-                    setState(() {
-                      _filtroSemaforo = _filtroSemaforo == 'ATENCION'
-                          ? 'TODOS'
-                          : 'ATENCION';
-                    });
-                  },
-                  isDark: isDark,
+                child: SizedBox(
+                  height: 88,
+                  child: _buildKpiCard(
+                    titulo: 'Rotación (8-30d)',
+                    cantidad: enRiesgo.length,
+                    montoSoles: valorRiesgoSoles,
+                    color: const Color(0xFFD97706),
+                    icon: LucideIcons.rotateCw,
+                    isSelected: _filtroSemaforo == 'ATENCION',
+                    onTap: () {
+                      setState(() {
+                        _filtroSemaforo = _filtroSemaforo == 'ATENCION'
+                            ? 'TODOS'
+                            : 'ATENCION';
+                      });
+                    },
+                    isDark: isDark,
+                    subtext: 'Ofertar / Frente',
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildKpiCard(
-                  titulo: 'Vigentes (> 30d)',
-                  cantidad: vigentes.length,
-                  montoSoles: null,
-                  color: AppTheme.accentGreen,
-                  icon: LucideIcons.shieldCheck,
-                  isSelected: _filtroSemaforo == 'VIGENTES',
-                  onTap: () {
-                    setState(() {
-                      _filtroSemaforo = _filtroSemaforo == 'VIGENTES'
-                          ? 'TODOS'
-                          : 'VIGENTES';
-                    });
-                  },
-                  isDark: isDark,
+                child: SizedBox(
+                  height: 88,
+                  child: _buildKpiCard(
+                    titulo: 'Vigentes (> 30d)',
+                    cantidad: vigentes.length,
+                    montoSoles: null,
+                    color: AppTheme.accentGreen,
+                    icon: LucideIcons.shieldCheck,
+                    isSelected: _filtroSemaforo == 'VIGENTES',
+                    onTap: () {
+                      setState(() {
+                        _filtroSemaforo = _filtroSemaforo == 'VIGENTES'
+                            ? 'TODOS'
+                            : 'VIGENTES';
+                      });
+                    },
+                    isDark: isDark,
+                    subtext: 'Stock saludable',
+                  ),
                 ),
               ),
             ],
@@ -843,114 +895,120 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Barra Superior de Controles y Buscador
+                        // Barra Superior de Controles y Buscador (Calma Visual)
                         Padding(
                           padding: const EdgeInsets.all(12),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Expanded(
-                                child: Container(
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? AppTheme.cardDarkSunken
-                                        : const Color(0xFFF1F5F9),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: borderColor),
-                                  ),
-                                  child: TextField(
-                                    controller: _searchCtrl,
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? AppTheme.cardDarkSunken
+                                            : const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: borderColor),
+                                      ),
+                                      child: TextField(
+                                        controller: _searchCtrl,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                        decoration: InputDecoration(
+                                          hintText: 'Buscar lote por producto, código o código de barras...',
+                                          hintStyle: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            color: AppTheme.getAdaptiveHintText(
+                                              isDark,
+                                            ),
+                                          ),
+                                          prefixIcon: const Icon(
+                                            LucideIcons.search,
+                                            size: 16,
+                                            color: AppTheme.brandPrimary,
+                                          ),
+                                          suffixIcon: _filtroTexto.isNotEmpty
+                                              ? IconButton(
+                                                  icon: const Icon(
+                                                    LucideIcons.x,
+                                                    size: 14,
+                                                  ),
+                                                  onPressed: () {
+                                                    _searchCtrl.clear();
+                                                    _searchDebouncer.cancel();
+                                                    setState(
+                                                      () => _filtroTexto = '',
+                                                    );
+                                                  },
+                                                )
+                                              : null,
+                                          border: InputBorder.none,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 10,
+                                              ),
+                                        ),
+                                        onChanged: (val) =>
+                                            _searchDebouncer.run(() {
+                                              if (mounted) {
+                                                setState(
+                                                  () => _filtroTexto = val,
+                                                );
+                                              }
+                                            }),
+                                        onSubmitted: (val) {
+                                          _searchDebouncer.cancel();
+                                          setState(() => _filtroTexto = val);
+                                        },
+                                      ),
                                     ),
-                                    decoration: InputDecoration(
-                                      hintText: 'Buscar lote por producto, código o código de barras...',
-                                      hintStyle: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        color: AppTheme.getAdaptiveHintText(
-                                          isDark,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    tooltip: 'Escanear con Cámara / Lector',
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: AppTheme.brandPrimary
+                                          .withValues(
+                                            alpha: isDark ? 0.2 : 0.1,
+                                          ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        side: BorderSide(
+                                          color: AppTheme.brandPrimary
+                                              .withValues(alpha: 0.3),
                                         ),
                                       ),
-                                      prefixIcon: const Icon(
-                                        LucideIcons.search,
-                                        size: 16,
-                                        color: AppTheme.brandPrimary,
-                                      ),
-                                      suffixIcon: _filtroTexto.isNotEmpty
-                                          ? IconButton(
-                                              icon: const Icon(
-                                                LucideIcons.x,
-                                                size: 14,
-                                              ),
-                                              onPressed: () {
-                                                _searchCtrl.clear();
-                                                _searchDebouncer.cancel();
-                                                setState(
-                                                  () => _filtroTexto = '',
-                                                );
-                                              },
-                                            )
-                                          : null,
-                                      border: InputBorder.none,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            vertical: 10,
-                                          ),
                                     ),
-                                    onChanged: (val) =>
-                                        _searchDebouncer.run(() {
-                                          if (mounted) {
-                                            setState(() => _filtroTexto = val);
-                                          }
-                                        }),
-                                    onSubmitted: (val) {
-                                      _searchDebouncer.cancel();
-                                      setState(() => _filtroTexto = val);
-                                    },
+                                    icon: const Icon(
+                                      LucideIcons.scanBarcode,
+                                      size: 18,
+                                      color: AppTheme.brandPrimary,
+                                    ),
+                                    onPressed: _escanearCodigo,
                                   ),
-                                ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                tooltip: 'Escanear con Cámara / Lector',
-                                style: IconButton.styleFrom(
-                                  backgroundColor: AppTheme.brandPrimary
-                                      .withValues(alpha: isDark ? 0.2 : 0.1),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    side: BorderSide(
-                                      color: AppTheme.brandPrimary.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  LucideIcons.scanBarcode,
-                                  size: 18,
-                                  color: AppTheme.brandPrimary,
-                                ),
-                                onPressed: _escanearCodigo,
+                              const SizedBox(height: 10),
+                              _buildFilterPills(
+                                isDark,
+                                total:
+                                    vencidos.length +
+                                    criticos.length +
+                                    enRiesgo.length +
+                                    vigentes.length,
+                                vencidos: vencidos.length,
+                                criticos: criticos.length,
+                                enRiesgo: enRiesgo.length,
+                                vigentes: vigentes.length,
                               ),
-                              if (_filtroSemaforo != 'TODOS') ...[
-                                const SizedBox(width: 8),
-                                ActionChip(
-                                  avatar: const Icon(LucideIcons.x, size: 14),
-                                  label: Text(
-                                    _filtroSemaforo,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  onPressed: () =>
-                                      setState(() => _filtroSemaforo = 'TODOS'),
-                                ),
-                              ],
                             ],
                           ),
                         ),
@@ -1788,7 +1846,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // KPI CARD (USADO TANTO EN MÓVIL COMO EN DESKTOP)
+  // KPI CARD CALMA VISUAL (USADO TANTO EN MÓVIL COMO EN DESKTOP)
   // ---------------------------------------------------------------------------
   Widget _buildKpiCard({
     required String titulo,
@@ -1799,74 +1857,255 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     required bool isSelected,
     required VoidCallback onTap,
     required bool isDark,
+    String? subtext,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: isDark ? 0.25 : 0.15)
-              : color.withValues(alpha: isDark ? 0.10 : 0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? color : color.withValues(alpha: 0.3),
-            width: isSelected ? 1.8 : 1.0,
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? color
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+              width: isSelected ? 2.0 : 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? color.withValues(alpha: isDark ? 0.35 : 0.16)
+                    : Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: isSelected ? 8 : 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(icon, size: 14, color: color),
-                const Spacer(),
-                Text(
-                  '$cantidad',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: color,
+                // Barra lateral semántica discreta
+                Container(width: 4.5, color: color),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: color.withValues(
+                                  alpha: isDark ? 0.22 : 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(icon, size: 13, color: color),
+                            ),
+                            Text(
+                              '$cantidad',
+                              style: GoogleFonts.outfit(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w900,
+                                color: color,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          titulo,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 1),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            montoSoles != null
+                                ? 'Riesgo: S/ ${montoSoles.toStringAsFixed(2)}'
+                                : (subtext ?? 'Inventario seguro'),
+                            style: GoogleFonts.outfit(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: montoSoles != null
+                                  ? color
+                                  : AppTheme.accentGreen,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              titulo,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : AppTheme.textDark,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (montoSoles != null)
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'S/ ${montoSoles.toStringAsFixed(2)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    color: color,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // CARD INDIVIDUAL PARA MÓVIL
+  // FILTER PILLS & CHIPS (CALMA VISUAL)
+  // ---------------------------------------------------------------------------
+  Widget _buildFilterPills(
+    bool isDark, {
+    required int total,
+    required int vencidos,
+    required int criticos,
+    required int enRiesgo,
+    required int vigentes,
+  }) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: [
+          _buildFilterChip(
+            label: 'Todos ($total)',
+            isSelected: _filtroSemaforo == 'TODOS',
+            onTap: () => setState(() => _filtroSemaforo = 'TODOS'),
+            isDark: isDark,
+          ),
+          const SizedBox(width: 6),
+          _buildFilterChip(
+            label: 'Vencidos ($vencidos)',
+            isSelected: _filtroSemaforo == 'VENCIDOS',
+            accentColor: const Color(0xFFDC2626),
+            onTap: () => setState(() {
+              _filtroSemaforo = _filtroSemaforo == 'VENCIDOS'
+                  ? 'TODOS'
+                  : 'VENCIDOS';
+            }),
+            isDark: isDark,
+          ),
+          const SizedBox(width: 6),
+          _buildFilterChip(
+            label: 'Críticos 1-7d ($criticos)',
+            isSelected: _filtroSemaforo == 'CRITICOS',
+            accentColor: const Color(0xFFEA580C),
+            onTap: () => setState(() {
+              _filtroSemaforo = _filtroSemaforo == 'CRITICOS'
+                  ? 'TODOS'
+                  : 'CRITICOS';
+            }),
+            isDark: isDark,
+          ),
+          const SizedBox(width: 6),
+          _buildFilterChip(
+            label: 'Rotación 8-30d ($enRiesgo)',
+            isSelected: _filtroSemaforo == 'ATENCION',
+            accentColor: const Color(0xFFD97706),
+            onTap: () => setState(() {
+              _filtroSemaforo = _filtroSemaforo == 'ATENCION'
+                  ? 'TODOS'
+                  : 'ATENCION';
+            }),
+            isDark: isDark,
+          ),
+          const SizedBox(width: 6),
+          _buildFilterChip(
+            label: 'Vigentes ($vigentes)',
+            isSelected: _filtroSemaforo == 'VIGENTES',
+            accentColor: AppTheme.accentGreen,
+            onTap: () => setState(() {
+              _filtroSemaforo = _filtroSemaforo == 'VIGENTES'
+                  ? 'TODOS'
+                  : 'VIGENTES';
+            }),
+            isDark: isDark,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+    Color? accentColor,
+  }) {
+    final activeColor = accentColor ?? AppTheme.brandPrimary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? activeColor
+                : (isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9)),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected
+                  ? activeColor
+                  : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+              width: 0.8,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: activeColor.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1.5),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11.5,
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF475569)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // CARD INDIVIDUAL PARA MÓVIL (CALMA VISUAL)
   // ---------------------------------------------------------------------------
   Widget _buildProductoVencimientoCard(
     Producto p,
@@ -1890,7 +2129,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
     } else if (semaforo == SemaforoVencimiento.atencion) {
       badgeColor = const Color(0xFFF59E0B);
       badgeIcon = LucideIcons.alertTriangle;
-      badgeTexto = 'EN $dias DÍAS (OFERTA)';
+      badgeTexto = 'EN $dias DÍAS (ROTACIÓN)';
     } else if (semaforo == SemaforoVencimiento.vigente) {
       badgeColor = AppTheme.accentGreen;
       badgeIcon = LucideIcons.checkCircle;
@@ -1905,204 +2144,484 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         ? '${p.fechaVencimiento!.day.toString().padLeft(2, '0')}/${p.fechaVencimiento!.month.toString().padLeft(2, '0')}/${p.fechaVencimiento!.year}'
         : 'Sin fecha';
 
+    final surfaceBg = isDark ? AppTheme.cardDark : Colors.white;
+    final sunkenBg = isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9);
+    final borderCol = isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0);
+
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: cardBg,
+        color: surfaceBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: semaforo == SemaforoVencimiento.critico
-              ? const Color(0xFFEF4444).withValues(alpha: 0.5)
-              : borderColor,
+              ? const Color(0xFFEF4444).withValues(alpha: 0.6)
+              : borderCol,
           width: semaforo == SemaforoVencimiento.critico ? 1.4 : 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Fila Superior: Badge Semáforo y Fecha
-          Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeColor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: badgeColor.withValues(alpha: 0.4),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+              // Barra lateral semántica discreta
+              Container(width: 4.5, color: badgeColor),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(badgeIcon, size: 12, color: badgeColor),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          badgeTexto,
-                          style: GoogleFonts.outfit(
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                            color: badgeColor,
+                      // Fila Superior: Badge Semáforo + Fecha Lote + Acciones More
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: badgeColor.withValues(
+                                  alpha: isDark ? 0.2 : 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: badgeColor.withValues(alpha: 0.35),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(badgeIcon, size: 12, color: badgeColor),
+                                  const SizedBox(width: 5),
+                                  Flexible(
+                                    child: Text(
+                                      badgeTexto,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: badgeColor,
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          const SizedBox(width: 6),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                LucideIcons.calendar,
+                                size: 12,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                fechaStr,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              PopupMenuButton<String>(
+                                icon: Icon(
+                                  LucideIcons.moreVertical,
+                                  size: 16,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 32,
+                                  minHeight: 32,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                onSelected: (val) {
+                                  if (val == 'remate') {
+                                    _mostrarDialogoRemate(p);
+                                  } else if (val == 'rotulo') {
+                                    _imprimirRotuloOferta(p);
+                                  } else if (val == 'actualizar') {
+                                    _actualizarFechaVencimiento(p);
+                                  } else if (val == 'merma') {
+                                    AjusteStockSheet.show(
+                                      context,
+                                      p,
+                                      _cargarProductos,
+                                    );
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  if (dias <= 30 && dias >= 0)
+                                    const PopupMenuItem(
+                                      value: 'remate',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            LucideIcons.tag,
+                                            size: 15,
+                                            color: Color(0xFFD97706),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Remate Preventivo (-25%)',
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  const PopupMenuItem(
+                                    value: 'rotulo',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.printer,
+                                          size: 15,
+                                          color: AppTheme.brandPrimary,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Imprimir Rótulo de Góndola',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'actualizar',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.calendarClock,
+                                          size: 15,
+                                          color: AppTheme.brandPrimary,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Actualizar Fecha de Lote',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'merma',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          LucideIcons.trash2,
+                                          size: 15,
+                                          color: Color(0xFFDC2626),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Dar de Baja (Ajuste de Merma)',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Centro: Packshot, Nombre, Categoría
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ProductImageWidget(
+                            imagenUrl: p.imagenUrl,
+                            categoria: p.nombreCategoria,
+                            size: 46,
+                            borderRadius: 10,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  p.nombre,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${p.nombreCategoria ?? 'General'} • Cód: ${p.codigo}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF64748B),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Contenedor Sunken Financiero (Stock, Valor, Días)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 7,
                         ),
+                        decoration: BoxDecoration(
+                          color: sunkenBg,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: borderCol, width: 0.8),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'STOCK',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 1),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '${p.stockActual.toStringAsFixed(0)} un.',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(width: 1, height: 24, color: borderCol),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'VALOR RIESGO',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF64748B),
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'S/ ${(p.stockActual * p.precioVenta).toStringAsFixed(2)}',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                          fontFeatures: const [
+                                            FontFeature.tabularFigures(),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Container(width: 1, height: 24, color: borderCol),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'PLAZO FEFO',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 1),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                      dias < 0
+                                          ? '${-dias}d vencido'
+                                          : (dias == 0
+                                                ? 'Vence hoy'
+                                                : '$dias d restantes'),
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: badgeColor,
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Fila de Acciones Rápidas
+                      Row(
+                        children: [
+                          // Botón Actualizar Fecha / Lote
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                foregroundColor: AppTheme.brandPrimary,
+                                side: BorderSide(
+                                  color: isDark
+                                      ? AppTheme.borderDark
+                                      : const Color(0xFFCBD5E1),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              icon: const Icon(
+                                LucideIcons.calendarClock,
+                                size: 14,
+                              ),
+                              label: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  'Actualizar Lote',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              onPressed: () => _actualizarFechaVencimiento(p),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Botón Dar de Baja / Registrar Merma
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                backgroundColor: const Color(0xFFDC2626),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              icon: const Icon(LucideIcons.trash2, size: 13),
+                              label: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  'Dar de Baja',
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                              onPressed: () {
+                                AjusteStockSheet.show(
+                                  context,
+                                  p,
+                                  _cargarProductos,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    LucideIcons.calendar,
-                    size: 12,
-                    color: isDark
-                        ? AppTheme.textDarkSecondary
-                        : const Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    fechaStr,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : AppTheme.textDark,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
-          const SizedBox(height: 10),
-
-          // Centro: Packshot, Nombre, Categoría y Stock
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProductImageWidget(
-                imagenUrl: p.imagenUrl,
-                categoria: p.nombreCategoria,
-                size: 54,
-                borderRadius: 12,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p.nombre,
-                      style: GoogleFonts.outfit(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 2,
-                      children: [
-                        Text(
-                          'Stock: ${p.stockActual.toStringAsFixed(0)} un.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : AppTheme.textDark,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                        Text(
-                          '•  Valor: S/ ${(p.stockActual * p.precioVenta).toStringAsFixed(2)}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : const Color(0xFF334155),
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Fila de Acciones Rápidas
-          Row(
-            children: [
-              // Botón Actualizar Fecha / Lote
-              Expanded(
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: AppTheme.brandPrimary,
-                    side: BorderSide(
-                      color: isDark
-                          ? AppTheme.borderDark
-                          : AppTheme.borderLight,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(LucideIcons.calendarClock, size: 14),
-                  label: const FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      'Actualizar Lote',
-                      style: TextStyle(fontSize: 11.5),
-                    ),
-                  ),
-                  onPressed: () => _actualizarFechaVencimiento(p),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Botón Dar de Baja / Registrar Merma
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    backgroundColor: const Color(0xFFEF4444),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  icon: const Icon(LucideIcons.trash2, size: 14),
-                  label: const FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      'Dar de Baja',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    AjusteStockSheet.show(context, p, _cargarProductos);
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
