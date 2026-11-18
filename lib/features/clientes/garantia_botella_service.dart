@@ -29,12 +29,30 @@ class GarantiaBotellaService {
   static int _cacheEpoch = 0;
   static const Duration _cacheDuration = Duration(seconds: 45);
 
+  static List<GarantiaBotella>? _mockGarantias;
+  static ResumenGarantias? _mockResumenGarantias;
+
+  @visibleForTesting
+  static void setMockGarantias(
+    List<GarantiaBotella> garantias, {
+    ResumenGarantias? resumen,
+  }) {
+    _mockGarantias = List<GarantiaBotella>.from(garantias);
+    _mockResumenGarantias = resumen;
+    _cachedGarantias = List<GarantiaBotella>.from(garantias);
+    _cacheTimestamp = DateTime.now();
+    _inFlightGarantias = null;
+    _cacheEpoch++;
+  }
+
   static final ValueNotifier<int> garantiasRevision = ValueNotifier<int>(0);
 
   static void invalidateCache({bool notify = true}) {
     _cachedGarantias = null;
     _cacheTimestamp = null;
     _inFlightGarantias = null;
+    _mockGarantias = null;
+    _mockResumenGarantias = null;
     _cacheEpoch++;
     if (notify) {
       garantiasRevision.value++;
@@ -46,6 +64,28 @@ class GarantiaBotellaService {
     String? query,
     bool forceRefresh = false,
   }) async {
+    if (_mockGarantias != null) {
+      var res = List<GarantiaBotella>.from(_mockGarantias!);
+      if (estado != null && estado.isNotEmpty && estado != 'TODAS') {
+        if (estado == 'PENDIENTE') {
+          res = res.where((g) => g.estaPendiente).toList();
+        } else if (estado == 'DEVUELTO') {
+          res = res.where((g) => g.estaDevuelto).toList();
+        }
+      }
+      if (query != null && query.trim().isNotEmpty) {
+        final q = query.trim().toLowerCase();
+        res = res
+            .where(
+              (g) =>
+                  g.nombrePersona.toLowerCase().contains(q) ||
+                  (g.telefono ?? '').contains(q) ||
+                  g.tipoBotella.toLowerCase().contains(q),
+            )
+            .toList();
+      }
+      return res;
+    }
     final hasFilter =
         (query != null && query.trim().isNotEmpty) ||
         (estado != null && estado.trim().isNotEmpty && estado != 'TODAS');
@@ -122,6 +162,9 @@ class GarantiaBotellaService {
   }
 
   Future<ResumenGarantias?> getResumenGarantias() async {
+    if (_mockResumenGarantias != null) {
+      return _mockResumenGarantias;
+    }
     try {
       final response = await _apiClient.get('/garantias-botellas/resumen');
       if (response.statusCode == 200) {

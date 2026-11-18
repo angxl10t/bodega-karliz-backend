@@ -169,6 +169,8 @@ class _ClientesScreenState extends State<ClientesScreen>
         return c.tieneDeuda;
       } else if (_filtroEstado == 'al_dia') {
         return !c.tieneDeuda;
+      } else if (_filtroEstado == 'caseritos') {
+        return c.esCaserito;
       }
       return true;
     }).toList();
@@ -392,7 +394,7 @@ class _ClientesScreenState extends State<ClientesScreen>
     final canPop = ModalRoute.of(context)?.canPop ?? false;
     final screenWidth = MediaQuery.of(context).size.width;
     final isWide = screenWidth >= 720;
-    final isNarrow = screenWidth < 380;
+    final isNarrow = screenWidth < 500;
 
     final totalPorCobrar = _resumen?.totalSaldoDeudor ?? 0.0;
     final vecinosDeudores = _resumen?.clientesConDeuda ?? 0;
@@ -694,54 +696,53 @@ class _ClientesScreenState extends State<ClientesScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
-
-                    // Botón + Acción según pestaña activa
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          if (_tabController.index == 0) {
-                            _abrirNuevoCliente();
-                          } else {
-                            _abrirNuevaGarantia();
-                          }
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isNarrow ? 8 : 11,
-                            vertical: 6.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _tabController.index == 0
-                                ? AppTheme.brandPrimary
-                                : const Color(0xFF2563EB),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    (_tabController.index == 0
-                                            ? AppTheme.brandPrimary
-                                            : const Color(0xFF2563EB))
-                                        .withValues(alpha: 0.3),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _tabController.index == 0
-                                    ? LucideIcons.userPlus
-                                    : LucideIcons.wine,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              if (!isNarrow) ...[
+                    // Botón + Acción según pestaña activa (solo en pantallas anchas, en móvil está el FAB)
+                    if (isWide) ...[
+                      const SizedBox(width: 6),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            if (_tabController.index == 0) {
+                              _abrirNuevoCliente();
+                            } else {
+                              _abrirNuevaGarantia();
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 11,
+                              vertical: 6.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _tabController.index == 0
+                                  ? AppTheme.brandPrimary
+                                  : const Color(0xFF2563EB),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      (_tabController.index == 0
+                                              ? AppTheme.brandPrimary
+                                              : const Color(0xFF2563EB))
+                                          .withValues(alpha: 0.3),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _tabController.index == 0
+                                      ? LucideIcons.userPlus
+                                      : LucideIcons.wine,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   _tabController.index == 0
@@ -754,11 +755,11 @@ class _ClientesScreenState extends State<ClientesScreen>
                                   ),
                                 ),
                               ],
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -807,6 +808,10 @@ class _ClientesScreenState extends State<ClientesScreen>
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+          width: 0.8,
+        ),
       ),
       child: TabBar(
         controller: _tabController,
@@ -823,7 +828,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                   (_tabController.index == 0
                           ? AppTheme.brandPrimary
                           : const Color(0xFF2563EB))
-                      .withValues(alpha: 0.3),
+                      .withValues(alpha: 0.25),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -839,17 +844,23 @@ class _ClientesScreenState extends State<ClientesScreen>
           fontSize: 12.5,
           fontWeight: FontWeight.w600,
         ),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
         tabs: [
           Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(LucideIcons.bookUser, size: 15),
-                const SizedBox(width: 6),
-                Text(
-                  isNarrow
-                      ? 'Fiados ($totalVecinos)'
-                      : 'Libreta de Fiados ($totalVecinos)',
+                const Icon(LucideIcons.bookUser, size: 14),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    isNarrow
+                        ? 'Fiados ($totalVecinos)'
+                        : 'Libreta de Fiados ($totalVecinos)',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -857,13 +868,18 @@ class _ClientesScreenState extends State<ClientesScreen>
           Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(LucideIcons.wine, size: 15),
-                const SizedBox(width: 6),
-                Text(
-                  isNarrow
-                      ? 'Botellas ($botellasPendientes)'
-                      : 'Garantía Botellas ($botellasPendientes)',
+                const Icon(LucideIcons.wine, size: 14),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    isNarrow
+                        ? 'Botellas ($botellasPendientes)'
+                        : 'Garantía Botellas ($botellasPendientes)',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -909,7 +925,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                         gridDelegate:
                             const SliverGridDelegateWithMaxCrossAxisExtent(
                               maxCrossAxisExtent: 480,
-                              mainAxisExtent: 232,
+                              mainAxisExtent: 308,
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
                             ),
@@ -920,10 +936,12 @@ class _ClientesScreenState extends State<ClientesScreen>
                         },
                       );
                     } else {
-                      return ListView.builder(
+                      return ListView.separated(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                         itemCount: clientesFiltrados.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
                         itemBuilder: (context, idx) {
                           final c = clientesFiltrados[idx];
                           return _buildClienteCard(c, isDark);
@@ -961,7 +979,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                         gridDelegate:
                             const SliverGridDelegateWithMaxCrossAxisExtent(
                               maxCrossAxisExtent: 480,
-                              mainAxisExtent: 250,
+                              mainAxisExtent: 308,
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
                             ),
@@ -972,10 +990,12 @@ class _ClientesScreenState extends State<ClientesScreen>
                         },
                       );
                     } else {
-                      return ListView.builder(
+                      return ListView.separated(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                         itemCount: garantiasFiltradas.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
                         itemBuilder: (context, idx) {
                           final g = garantiasFiltradas[idx];
                           return _buildGarantiaCard(g, isDark);
@@ -995,8 +1015,44 @@ class _ClientesScreenState extends State<ClientesScreen>
     final personasPend = _resumenGarantias?.personasPendientes ?? 0;
     final devueltoMes = _resumenGarantias?.totalDevueltoMes ?? 0.0;
 
+    final card1 = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.handCoins,
+      title: 'Dinero en Custodia',
+      value: 'S/ ${totalCustodia.toStringAsFixed(2)}',
+      subtitle: 'Garantía en caja',
+      accentColor: AppTheme.accentGreen,
+    );
+
+    final card2 = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.wine,
+      title: 'Botellas Fuera',
+      value: '$botellasPend botellas',
+      subtitle: 'Por devolver',
+      accentColor: AppTheme.warningAmber,
+    );
+
+    final card3 = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.users,
+      title: 'Personas Activas',
+      value: '$personasPend personas',
+      subtitle: 'Con envases pendientes',
+      accentColor: const Color(0xFF2563EB),
+    );
+
+    final card4 = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.packageCheck,
+      title: 'Devuelto Mes',
+      value: 'S/ ${devueltoMes.toStringAsFixed(2)}',
+      subtitle: '${_resumenGarantias?.botellasDevueltasMes ?? 0} recuperadas',
+      accentColor: AppTheme.accentGreen,
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isDesktop = constraints.maxWidth >= 900;
@@ -1004,112 +1060,32 @@ class _ClientesScreenState extends State<ClientesScreen>
           if (isDesktop) {
             return Row(
               children: [
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.handCoins,
-                    title: 'Dinero en Custodia',
-                    value: 'S/ ${totalCustodia.toStringAsFixed(2)}',
-                    subtitle: 'Garantía retenida en caja',
-                    accentColor: const Color(0xFF16A34A),
-                    bgColor: isDark
-                        ? const Color(0xFF06231A)
-                        : const Color(0xFFECFDF5),
-                    borderColor: isDark
-                        ? const Color(0xFF047857).withValues(alpha: 0.6)
-                        : const Color(0xFFA7F3D0),
-                  ),
-                ),
+                Expanded(child: card1),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.wine,
-                    title: 'Botellas Fuera',
-                    value: '$botellasPend botellas',
-                    subtitle: 'Por devolver a la bodega',
-                    accentColor: AppTheme.warningAmber,
-                    bgColor: isDark
-                        ? const Color(0xFF261D0C)
-                        : const Color(0xFFFFFBEB),
-                    borderColor: isDark
-                        ? AppTheme.warningAmber.withValues(alpha: 0.4)
-                        : const Color(0xFFFDE68A),
-                  ),
-                ),
+                Expanded(child: card2),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.users,
-                    title: 'Personas Activas',
-                    value: '$personasPend personas',
-                    subtitle: 'Con botellas pendientes',
-                    accentColor: const Color(0xFF2563EB),
-                    bgColor: isDark
-                        ? const Color(0xFF101C38)
-                        : const Color(0xFFEFF6FF),
-                    borderColor: isDark
-                        ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
-                        : const Color(0xFFBFDBFE),
-                  ),
-                ),
+                Expanded(child: card3),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.packageCheck,
-                    title: 'Devuelto Mes',
-                    value: 'S/ ${devueltoMes.toStringAsFixed(2)}',
-                    subtitle:
-                        '${_resumenGarantias?.botellasDevueltasMes ?? 0} botellas recuperadas',
-                    accentColor: const Color(0xFF059669),
-                    bgColor: isDark
-                        ? const Color(0xFF042118)
-                        : const Color(0xFFECFDF5),
-                    borderColor: isDark
-                        ? const Color(0xFF059669).withValues(alpha: 0.5)
-                        : const Color(0xFFA7F3D0),
-                  ),
-                ),
+                Expanded(child: card4),
               ],
             );
           } else {
-            return Row(
+            return Column(
               children: [
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.handCoins,
-                    title: 'Dinero en Custodia',
-                    value: 'S/ ${totalCustodia.toStringAsFixed(2)}',
-                    subtitle: '$botellasPend botellas fuera',
-                    accentColor: const Color(0xFF16A34A),
-                    bgColor: isDark
-                        ? const Color(0xFF06231A)
-                        : const Color(0xFFECFDF5),
-                    borderColor: isDark
-                        ? const Color(0xFF047857).withValues(alpha: 0.6)
-                        : const Color(0xFFA7F3D0),
-                  ),
+                Row(
+                  children: [
+                    Expanded(child: card1),
+                    const SizedBox(width: 8),
+                    Expanded(child: card2),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.packageCheck,
-                    title: 'Devuelto Mes',
-                    value: 'S/ ${devueltoMes.toStringAsFixed(2)}',
-                    subtitle:
-                        '${_resumenGarantias?.botellasDevueltasMes ?? 0} recuperadas',
-                    accentColor: const Color(0xFF2563EB),
-                    bgColor: isDark
-                        ? const Color(0xFF101C38)
-                        : const Color(0xFFEFF6FF),
-                    borderColor: isDark
-                        ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
-                        : const Color(0xFFBFDBFE),
-                  ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(child: card3),
+                    const SizedBox(width: 8),
+                    Expanded(child: card4),
+                  ],
                 ),
               ],
             );
@@ -1123,117 +1099,138 @@ class _ClientesScreenState extends State<ClientesScreen>
     final pendientesCount = _garantias.where((g) => g.estaPendiente).length;
     final devueltasCount = _garantias.where((g) => g.estaDevuelto).length;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+    final chips = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+          width: 0.8,
+        ),
+      ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Container(
-              height: 42,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppTheme.cardDarkSunken
-                    : const Color(0xFFF5F6F8),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
-                ),
-              ),
-              child: TextField(
-                controller: _searchCtrlGarantias,
-                onChanged: (val) => _garantiasDebouncer.run(() {
-                  if (mounted) setState(() => _filtroTextoGarantias = val);
-                }),
-                onSubmitted: (val) {
-                  _garantiasDebouncer.cancel();
-                  setState(() => _filtroTextoGarantias = val);
-                },
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : AppTheme.textDark,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Buscar persona, teléfono o botella...',
-                  hintStyle: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.5,
-                    color: AppTheme.getAdaptiveHintText(isDark),
-                  ),
-                  prefixIcon: Icon(
-                    LucideIcons.search,
-                    size: 16,
-                    color: AppTheme.getAdaptiveHintText(isDark),
-                  ),
-                  suffixIcon: _filtroTextoGarantias.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(LucideIcons.x, size: 15),
-                          onPressed: () {
-                            _garantiasDebouncer.cancel();
-                            _searchCtrlGarantias.clear();
-                            setState(() => _filtroTextoGarantias = '');
-                          },
-                        )
-                      : null,
-                  filled: false,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
+          _buildFiltroGarantiaChip(
+            'PENDIENTE',
+            'Pendientes ($pendientesCount)',
+            isDark,
           ),
-          const SizedBox(width: 8),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppTheme.cardDarkElevated
-                  : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildFiltroGarantiaChip(
-                  'PENDIENTE',
-                  'Pendientes ($pendientesCount)',
-                  isDark,
-                ),
-                _buildFiltroGarantiaChip(
-                  'DEVUELTO',
-                  'Devueltas ($devueltasCount)',
-                  isDark,
-                ),
-                _buildFiltroGarantiaChip('TODAS', 'Todas', isDark),
-              ],
-            ),
+          _buildFiltroGarantiaChip(
+            'DEVUELTO',
+            'Devueltas ($devueltasCount)',
+            isDark,
           ),
-          const SizedBox(width: 8),
-
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
-            ),
-            icon: const Icon(LucideIcons.wine, size: 15),
-            label: Text(
-              'Dejar Botellas',
-              style: GoogleFonts.outfit(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            onPressed: _abrirNuevaGarantia,
-          ),
+          _buildFiltroGarantiaChip('TODAS', 'Todas', isDark),
         ],
+      ),
+    );
+
+    if (isWide) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+        child: Row(
+          children: [
+            Expanded(child: _buildSearchTextFieldGarantias(isDark)),
+            const SizedBox(width: 10),
+            chips,
+            const SizedBox(width: 10),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 11,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              icon: const Icon(LucideIcons.wine, size: 15),
+              label: Text(
+                'Dejar Botellas',
+                style: GoogleFonts.outfit(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              onPressed: _abrirNuevaGarantia,
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+        child: Column(
+          children: [
+            _buildSearchTextFieldGarantias(isDark),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: chips,
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Widget _buildSearchTextFieldGarantias(bool isDark) {
+    return Container(
+      height: 42,
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF5F6F8),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: TextField(
+        controller: _searchCtrlGarantias,
+        onChanged: (val) => _garantiasDebouncer.run(() {
+          if (mounted) setState(() => _filtroTextoGarantias = val);
+        }),
+        onSubmitted: (val) {
+          _garantiasDebouncer.cancel();
+          setState(() => _filtroTextoGarantias = val);
+        },
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: isDark ? Colors.white : AppTheme.textDark,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Buscar persona, teléfono o botella...',
+          hintStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 12.5,
+            color: AppTheme.getAdaptiveHintText(isDark),
+          ),
+          prefixIcon: Icon(
+            LucideIcons.search,
+            size: 16,
+            color: AppTheme.getAdaptiveHintText(isDark),
+          ),
+          suffixIcon: _filtroTextoGarantias.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(LucideIcons.x, size: 15),
+                  onPressed: () {
+                    _garantiasDebouncer.cancel();
+                    _searchCtrlGarantias.clear();
+                    setState(() => _filtroTextoGarantias = '');
+                  },
+                )
+              : null,
+          filled: false,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+          border: InputBorder.none,
+        ),
       ),
     );
   }
@@ -1271,272 +1268,319 @@ class _ClientesScreenState extends State<ClientesScreen>
   Widget _buildGarantiaCard(GarantiaBotella g, bool isDark) {
     final isPendiente = g.estaPendiente;
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
-    final borderColor = isPendiente
-        ? const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.4 : 0.3)
-        : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0));
 
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: borderColor, width: isPendiente ? 1.5 : 1.0),
+        border: Border.all(
+          color: isPendiente
+              ? const Color(0xFFF59E0B).withValues(alpha: isDark ? 0.4 : 0.3)
+              : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+          width: isPendiente ? 1.2 : 1.0,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color:
-                      (isPendiente
-                              ? const Color(0xFFF59E0B)
-                              : const Color(0xFF16A34A))
-                          .withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  isPendiente ? LucideIcons.wine : LucideIcons.packageCheck,
-                  size: 18,
-                  color: isPendiente
-                      ? const Color(0xFFF59E0B)
-                      : const Color(0xFF16A34A),
-                ),
+                width: 4.5,
+                color: isPendiente
+                    ? const Color(0xFFF59E0B)
+                    : const Color(0xFF16A34A),
               ),
-              const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      g.nombrePersona,
-                      style: GoogleFonts.outfit(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : AppTheme.textDark,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (g.telefono != null && g.telefono!.isNotEmpty)
-                      Text(
-                        'Tel: ${g.telefono}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: isDark
-                              ? AppTheme.textDarkSecondary
-                              : AppTheme.textMuted,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 3.5,
-                ),
-                decoration: BoxDecoration(
-                  color:
-                      (isPendiente
-                              ? const Color(0xFFF59E0B)
-                              : const Color(0xFF16A34A))
-                          .withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isPendiente
-                            ? const Color(0xFFF59E0B)
-                            : const Color(0xFF16A34A),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      isPendiente ? 'PENDIENTE' : 'DEVUELTO',
-                      style: GoogleFonts.outfit(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        color: isPendiente
-                            ? const Color(0xFFD97706)
-                            : const Color(0xFF16A34A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        '${g.cantidadBotellas} ${g.cantidadBotellas == 1 ? "botella" : "botellas"} • ${g.tipoBotella}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color:
+                                  (isPendiente
+                                          ? const Color(0xFFF59E0B)
+                                          : const Color(0xFF16A34A))
+                                      .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              isPendiente
+                                  ? LucideIcons.wine
+                                  : LucideIcons.packageCheck,
+                              size: 18,
+                              color: isPendiente
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFF16A34A),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  g.nombrePersona,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (g.telefono != null &&
+                                    g.telefono!.isNotEmpty)
+                                  Text(
+                                    'Tel: ${g.telefono}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : AppTheme.textMuted,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  (isPendiente
+                                          ? const Color(0xFFF59E0B)
+                                          : const Color(0xFF16A34A))
+                                      .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isPendiente
+                                        ? const Color(0xFFF59E0B)
+                                        : const Color(0xFF16A34A),
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  isPendiente ? 'PENDIENTE' : 'DEVUELTO',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: isPendiente
+                                        ? const Color(0xFFD97706)
+                                        : const Color(0xFF16A34A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.borderDark
+                                : const Color(0xFFF1F5F9),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${g.cantidadBotellas} ${g.cantidadBotellas == 1 ? "botella" : "botellas"} • ${g.tipoBotella}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  if (g.botellasDevueltas > 0 && isPendiente)
+                                    Text(
+                                      '(${g.botellasDevueltas} entregadas, quedan ${g.botellasRestantes})',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 10.5,
+                                        color: const Color(0xFF16A34A),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  if (g.notas != null && g.notas!.isNotEmpty)
+                                    Text(
+                                      g.notas!,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: AppTheme.getAdaptiveMutedText(
+                                          isDark,
+                                        ),
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  isPendiente
+                                      ? 'Dinero en Custodia:'
+                                      : 'Dinero Devuelto:',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.getAdaptiveMutedText(
+                                      isDark,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  'S/ ${(isPendiente ? g.montoRestante : g.montoDevuelto).toStringAsFixed(2)}',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: isPendiente
+                                        ? const Color(0xFF16A34A)
+                                        : const Color(0xFF2563EB),
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      if (g.botellasDevueltas > 0 && isPendiente)
-                        Text(
-                          '(${g.botellasDevueltas} entregadas, quedan ${g.botellasRestantes})',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5,
-                            color: const Color(0xFF16A34A),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      if (g.notas != null && g.notas!.isNotEmpty)
-                        Text(
-                          g.notas!,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.calendar,
+                            size: 12,
                             color: AppTheme.getAdaptiveMutedText(isDark),
-                            fontStyle: FontStyle.italic,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          const SizedBox(width: 4),
+                          Text(
+                            g.fechaRegistro != null
+                                ? '${g.fechaRegistro!.day.toString().padLeft(2, "0")}/${g.fechaRegistro!.month.toString().padLeft(2, "0")} ${g.fechaRegistro!.hour.toString().padLeft(2, "0")}:${g.fechaRegistro!.minute.toString().padLeft(2, "0")}'
+                                : 'Hoy',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              color: AppTheme.getAdaptiveMutedText(isDark),
+                            ),
+                          ),
+                          if (g.fechaDevolucion != null) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '•',
+                              style: TextStyle(
+                                color: AppTheme.getAdaptiveMutedText(isDark),
+                                fontSize: 10,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              LucideIcons.check,
+                              size: 12,
+                              color: Color(0xFF16A34A),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Devuelto: ${g.fechaDevolucion!.day.toString().padLeft(2, "0")}/${g.fechaDevolucion!.month.toString().padLeft(2, "0")}',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5,
+                                color: const Color(0xFF16A34A),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(
+                              LucideIcons.trash2,
+                              size: 15,
+                              color: Color(0xFFEF4444),
+                            ),
+                            tooltip: 'Eliminar Registro',
+                            onPressed: () => _confirmarEliminarGarantia(g),
+                          ),
+                        ],
+                      ),
+                      if (isPendiente) ...[
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 38,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF16A34A),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            icon: const Icon(
+                              LucideIcons.packageCheck,
+                              size: 15,
+                            ),
+                            label: Text(
+                              'Devolver Botella(s) y Entregar S/ ${g.montoRestante.toStringAsFixed(2)}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            onPressed: () => _abrirDevolverBotella(g),
+                          ),
                         ),
+                      ],
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      isPendiente ? 'Dinero en Custodia:' : 'Dinero Devuelto:',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.getAdaptiveMutedText(isDark),
-                      ),
-                    ),
-                    Text(
-                      'S/ ${(isPendiente ? g.montoRestante : g.montoDevuelto).toStringAsFixed(2)}',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: isPendiente
-                            ? const Color(0xFF16A34A)
-                            : const Color(0xFF2563EB),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          Row(
-            children: [
-              Icon(
-                LucideIcons.calendar,
-                size: 12,
-                color: AppTheme.getAdaptiveMutedText(isDark),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                g.fechaRegistro != null
-                    ? '${g.fechaRegistro!.day.toString().padLeft(2, "0")}/${g.fechaRegistro!.month.toString().padLeft(2, "0")} ${g.fechaRegistro!.hour.toString().padLeft(2, "0")}:${g.fechaRegistro!.minute.toString().padLeft(2, "0")}'
-                    : 'Hoy',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
-                  color: AppTheme.getAdaptiveMutedText(isDark),
-                ),
-              ),
-              if (g.fechaDevolucion != null) ...[
-                const SizedBox(width: 8),
-                Text(
-                  '•',
-                  style: TextStyle(
-                    color: AppTheme.getAdaptiveMutedText(isDark),
-                    fontSize: 10,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(
-                  LucideIcons.check,
-                  size: 12,
-                  color: Color(0xFF16A34A),
-                ),
-                const SizedBox(width: 3),
-                Text(
-                  'Devuelto: ${g.fechaDevolucion!.day.toString().padLeft(2, "0")}/${g.fechaDevolucion!.month.toString().padLeft(2, "0")}',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    color: const Color(0xFF16A34A),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-              const Spacer(),
-              IconButton(
-                icon: const Icon(
-                  LucideIcons.trash2,
-                  size: 15,
-                  color: Color(0xFFEF4444),
-                ),
-                tooltip: 'Eliminar Registro',
-                onPressed: () => _confirmarEliminarGarantia(g),
               ),
             ],
           ),
-
-          if (isPendiente) ...[
-            const SizedBox(height: 4),
-            SizedBox(
-              width: double.infinity,
-              height: 38,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF16A34A),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                icon: const Icon(LucideIcons.packageCheck, size: 15),
-                label: Text(
-                  'Devolver Botella(s) y Entregar S/ ${g.montoRestante.toStringAsFixed(2)}',
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                onPressed: () => _abrirDevolverBotella(g),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -1640,204 +1684,78 @@ class _ClientesScreenState extends State<ClientesScreen>
     required int vecinosAlDia,
     required double creditoTotal,
   }) {
+    final cardPorCobrar = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.handCoins,
+      title: 'Por Cobrar',
+      value: 'S/ ${totalPorCobrar.toStringAsFixed(2)}',
+      subtitle: '$vecinosDeudores vecinos con saldo',
+      accentColor: AppTheme.alertRed,
+    );
+
+    final cardCobradoMes = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.checkCheck,
+      title: 'Cobrado Mes',
+      value: 'S/ ${cobradoMes.toStringAsFixed(2)}',
+      subtitle: 'Recuperado a la fecha',
+      accentColor: AppTheme.accentGreen,
+    );
+
+    final cardVecinosAlDia = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.shieldCheck,
+      title: 'Vecinos al Día',
+      value: '$vecinosAlDia vecinos',
+      subtitle:
+          '${_clientes.isNotEmpty ? ((vecinosAlDia / _clientes.length) * 100).toStringAsFixed(0) : 100}% de la cartera',
+      accentColor: const Color(0xFF2563EB),
+    );
+
+    final cardCreditoTotal = _buildKpiCard(
+      isDark: isDark,
+      icon: LucideIcons.wallet,
+      title: 'Crédito Total',
+      value: 'S/ ${creditoTotal.toStringAsFixed(0)}',
+      subtitle: 'Límite vecinal activo',
+      accentColor: const Color(0xFF6366F1),
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isDesktop = constraints.maxWidth >= 900;
-          final isTablet =
-              constraints.maxWidth >= 540 && constraints.maxWidth < 900;
 
           if (isDesktop) {
             return Row(
               children: [
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.handCoins,
-                    title: 'Por Cobrar',
-                    value: 'S/ ${totalPorCobrar.toStringAsFixed(2)}',
-                    subtitle: '$vecinosDeudores vecinos con saldo',
-                    accentColor: AppTheme.alertRed,
-                    bgColor: isDark
-                        ? const Color(0xFF2A1215)
-                        : const Color(0xFFFEF2F2),
-                    borderColor: isDark
-                        ? const Color(0xFF991B1B).withValues(alpha: 0.6)
-                        : const Color(0xFFFECACA),
-                  ),
-                ),
+                Expanded(child: cardPorCobrar),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.checkCheck,
-                    title: 'Cobrado Mes',
-                    value: 'S/ ${cobradoMes.toStringAsFixed(2)}',
-                    subtitle: 'Recuperado a la fecha',
-                    accentColor: AppTheme.accentGreen,
-                    bgColor: isDark
-                        ? const Color(0xFF06231A)
-                        : const Color(0xFFECFDF5),
-                    borderColor: isDark
-                        ? const Color(0xFF047857).withValues(alpha: 0.6)
-                        : const Color(0xFFA7F3D0),
-                  ),
-                ),
+                Expanded(child: cardCobradoMes),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.shieldCheck,
-                    title: 'Vecinos al Día',
-                    value: '$vecinosAlDia vecinos',
-                    subtitle:
-                        '${_clientes.isNotEmpty ? ((vecinosAlDia / _clientes.length) * 100).toStringAsFixed(0) : 100}% de la cartera',
-                    accentColor: const Color(0xFF2563EB),
-                    bgColor: isDark
-                        ? const Color(0xFF101C38)
-                        : const Color(0xFFEFF6FF),
-                    borderColor: isDark
-                        ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
-                        : const Color(0xFFBFDBFE),
-                  ),
-                ),
+                Expanded(child: cardVecinosAlDia),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.wallet,
-                    title: 'Límite Total',
-                    value: 'S/ ${creditoTotal.toStringAsFixed(0)}',
-                    subtitle: 'Crédito vecinal activo',
-                    accentColor: const Color(0xFF7C3AED),
-                    bgColor: isDark
-                        ? const Color(0xFF1E1338)
-                        : const Color(0xFFFAF5FF),
-                    borderColor: isDark
-                        ? const Color(0xFF6D28D9).withValues(alpha: 0.6)
-                        : const Color(0xFFE9D5FF),
-                  ),
-                ),
+                Expanded(child: cardCreditoTotal),
               ],
             );
-          } else if (isTablet) {
+          } else {
             return Column(
               children: [
                 Row(
                   children: [
-                    Expanded(
-                      child: _buildKpiCard(
-                        isDark: isDark,
-                        icon: LucideIcons.handCoins,
-                        title: 'Por Cobrar',
-                        value: 'S/ ${totalPorCobrar.toStringAsFixed(2)}',
-                        subtitle: '$vecinosDeudores vecinos con saldo',
-                        accentColor: AppTheme.alertRed,
-                        bgColor: isDark
-                            ? const Color(0xFF2A1215)
-                            : const Color(0xFFFEF2F2),
-                        borderColor: isDark
-                            ? const Color(0xFF991B1B).withValues(alpha: 0.6)
-                            : const Color(0xFFFECACA),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildKpiCard(
-                        isDark: isDark,
-                        icon: LucideIcons.checkCheck,
-                        title: 'Cobrado Mes',
-                        value: 'S/ ${cobradoMes.toStringAsFixed(2)}',
-                        subtitle: 'Recuperado a la fecha',
-                        accentColor: AppTheme.accentGreen,
-                        bgColor: isDark
-                            ? const Color(0xFF06231A)
-                            : const Color(0xFFECFDF5),
-                        borderColor: isDark
-                            ? const Color(0xFF047857).withValues(alpha: 0.6)
-                            : const Color(0xFFA7F3D0),
-                      ),
-                    ),
+                    Expanded(child: cardPorCobrar),
+                    const SizedBox(width: 8),
+                    Expanded(child: cardCobradoMes),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Expanded(
-                      child: _buildKpiCard(
-                        isDark: isDark,
-                        icon: LucideIcons.shieldCheck,
-                        title: 'Vecinos al Día',
-                        value: '$vecinosAlDia vecinos',
-                        subtitle:
-                            '${_clientes.isNotEmpty ? ((vecinosAlDia / _clientes.length) * 100).toStringAsFixed(0) : 100}% de la cartera',
-                        accentColor: const Color(0xFF2563EB),
-                        bgColor: isDark
-                            ? const Color(0xFF101C38)
-                            : const Color(0xFFEFF6FF),
-                        borderColor: isDark
-                            ? const Color(0xFF1D4ED8).withValues(alpha: 0.6)
-                            : const Color(0xFFBFDBFE),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildKpiCard(
-                        isDark: isDark,
-                        icon: LucideIcons.wallet,
-                        title: 'Límite Total',
-                        value: 'S/ ${creditoTotal.toStringAsFixed(0)}',
-                        subtitle: 'Crédito vecinal activo',
-                        accentColor: const Color(0xFF7C3AED),
-                        bgColor: isDark
-                            ? const Color(0xFF1E1338)
-                            : const Color(0xFFFAF5FF),
-                        borderColor: isDark
-                            ? const Color(0xFF6D28D9).withValues(alpha: 0.6)
-                            : const Color(0xFFE9D5FF),
-                      ),
-                    ),
+                    Expanded(child: cardVecinosAlDia),
+                    const SizedBox(width: 8),
+                    Expanded(child: cardCreditoTotal),
                   ],
-                ),
-              ],
-            );
-          } else {
-            // Móvil estándar
-            return Row(
-              children: [
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.handCoins,
-                    title: 'Por Cobrar',
-                    value: 'S/ ${totalPorCobrar.toStringAsFixed(2)}',
-                    subtitle: '$vecinosDeudores con saldo',
-                    accentColor: AppTheme.alertRed,
-                    bgColor: isDark
-                        ? const Color(0xFF2A1215)
-                        : const Color(0xFFFEF2F2),
-                    borderColor: isDark
-                        ? const Color(0xFF991B1B).withValues(alpha: 0.6)
-                        : const Color(0xFFFECACA),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _buildKpiCard(
-                    isDark: isDark,
-                    icon: LucideIcons.checkCheck,
-                    title: 'Cobrado Mes',
-                    value: 'S/ ${cobradoMes.toStringAsFixed(2)}',
-                    subtitle: 'Recuperado a la fecha',
-                    accentColor: AppTheme.accentGreen,
-                    bgColor: isDark
-                        ? const Color(0xFF06231A)
-                        : const Color(0xFFECFDF5),
-                    borderColor: isDark
-                        ? const Color(0xFF047857).withValues(alpha: 0.6)
-                        : const Color(0xFFA7F3D0),
-                  ),
                 ),
               ],
             );
@@ -1854,47 +1772,71 @@ class _ClientesScreenState extends State<ClientesScreen>
     required String value,
     required String subtitle,
     required Color accentColor,
-    required Color bgColor,
-    required Color borderColor,
   }) {
     final effectiveAccent = isDark
         ? (accentColor == AppTheme.alertRed ||
                   accentColor == const Color(0xFFEF4444)
               ? const Color(0xFFF87171)
               : accentColor == AppTheme.accentGreen ||
-                    accentColor == const Color(0xFF10B981)
+                    accentColor == const Color(0xFF10B981) ||
+                    accentColor == const Color(0xFF16A34A) ||
+                    accentColor == const Color(0xFF059669)
               ? const Color(0xFF34D399)
               : accentColor == AppTheme.brandPrimary ||
                     accentColor == const Color(0xFF2563EB)
               ? const Color(0xFF60A5FA)
-              : accentColor == const Color(0xFF7C3AED)
+              : accentColor == const Color(0xFF7C3AED) ||
+                    accentColor == const Color(0xFF6366F1) ||
+                    accentColor == const Color(0xFF6D28D9)
               ? const Color(0xFFA78BFA)
+              : accentColor == AppTheme.warningAmber ||
+                    accentColor == const Color(0xFFF59E0B) ||
+                    accentColor == const Color(0xFFD97706)
+              ? const Color(0xFFFBBF24)
               : accentColor)
         : accentColor;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor, width: 1.2),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             children: [
-              Icon(icon, size: 15, color: effectiveAccent),
-              const SizedBox(width: 5),
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: effectiveAccent.withValues(alpha: isDark ? 0.2 : 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 14, color: effectiveAccent),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
                     color: isDark
-                        ? const Color(0xFFF1F5F9)
-                        : const Color(0xFF1E293B),
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1902,7 +1844,7 @@ class _ClientesScreenState extends State<ClientesScreen>
               ),
             ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 6),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
@@ -1912,7 +1854,12 @@ class _ClientesScreenState extends State<ClientesScreen>
               style: GoogleFonts.outfit(
                 fontSize: 18.5,
                 fontWeight: FontWeight.w900,
-                color: effectiveAccent,
+                color: (accentColor == AppTheme.alertRed)
+                    ? (isDark ? const Color(0xFFF87171) : AppTheme.alertRed)
+                    : (accentColor == AppTheme.accentGreen ||
+                          accentColor == const Color(0xFF16A34A))
+                    ? (isDark ? const Color(0xFF34D399) : AppTheme.accentGreen)
+                    : (isDark ? Colors.white : AppTheme.textDark),
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
@@ -1921,11 +1868,11 @@ class _ClientesScreenState extends State<ClientesScreen>
           Text(
             subtitle,
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
               color: isDark
                   ? AppTheme.textDarkSecondary
-                  : const Color(0xFF334155),
+                  : const Color(0xFF94A3B8),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -1942,50 +1889,57 @@ class _ClientesScreenState extends State<ClientesScreen>
     int vecinosDeudores,
     int vecinosAlDia,
   ) {
+    final vecinosCaseritos = _clientes.where((c) => c.esCaserito).length;
+
+    final chips = [
+      _buildFiltroChip('todos', 'Todos (${_clientes.length})', isDark),
+      _buildFiltroChip(
+        'deudores',
+        'Con Deuda ($vecinosDeudores)',
+        isDark,
+        dotColor: AppTheme.alertRed,
+      ),
+      _buildFiltroChip(
+        'al_dia',
+        'Al Día ($vecinosAlDia)',
+        isDark,
+        dotColor: AppTheme.accentGreen,
+      ),
+      if (vecinosCaseritos > 0)
+        _buildFiltroChip(
+          'caseritos',
+          'Caseritos ($vecinosCaseritos)',
+          isDark,
+          icon: LucideIcons.star,
+          iconColor: const Color(0xFFEAB308),
+        ),
+    ];
+
     if (isWide) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
         child: Row(
           children: [
             Expanded(child: _buildSearchTextField(isDark)),
-            const SizedBox(width: 14),
-            _buildFiltroChip('todos', 'Todos (${_clientes.length})', isDark),
-            const SizedBox(width: 8),
-            _buildFiltroChip(
-              'deudores',
-              'Con Deuda ($vecinosDeudores)',
-              isDark,
-            ),
-            const SizedBox(width: 8),
-            _buildFiltroChip('al_dia', 'Al Día ($vecinosAlDia)', isDark),
+            const SizedBox(width: 12),
+            ...chips.expand((w) => [w, const SizedBox(width: 6)]).toList()
+              ..removeLast(),
           ],
         ),
       );
     } else {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
         child: Column(
           children: [
             _buildSearchTextField(isDark),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: [
-                  _buildFiltroChip(
-                    'todos',
-                    'Todos (${_clientes.length})',
-                    isDark,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildFiltroChip(
-                    'deudores',
-                    'Con Deuda ($vecinosDeudores)',
-                    isDark,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildFiltroChip('al_dia', 'Al Día ($vecinosAlDia)', isDark),
-                ],
+                children:
+                    chips.expand((w) => [w, const SizedBox(width: 6)]).toList()
+                      ..removeLast(),
               ),
             ),
           ],
@@ -2050,55 +2004,105 @@ class _ClientesScreenState extends State<ClientesScreen>
     );
   }
 
-  Widget _buildFiltroChip(String clave, String label, bool isDark) {
+  Widget _buildFiltroChip(
+    String clave,
+    String label,
+    bool isDark, {
+    Color? dotColor,
+    IconData? icon,
+    Color? iconColor,
+  }) {
     final isSelected = _filtroEstado == clave;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      labelStyle: GoogleFonts.plusJakartaSans(
-        fontSize: 11.5,
-        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-        color: isSelected
-            ? Colors.white
-            : (isDark ? Colors.white : AppTheme.textDark),
-      ),
-      selectedColor: AppTheme.brandPrimary,
-      backgroundColor: isDark ? AppTheme.cardDarkHighlight : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _filtroEstado = clave);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
           color: isSelected
-              ? Colors.transparent
-              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
+              ? (isDark
+                    ? AppTheme.brandPrimary.withValues(alpha: 0.25)
+                    : AppTheme.brandPrimary.withValues(alpha: 0.1))
+              : (isDark ? AppTheme.cardDark : Colors.white),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.brandPrimary
+                : (isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1)),
+            width: isSelected ? 1.4 : 0.9,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (dotColor != null) ...[
+              Container(
+                width: 6.5,
+                height: 6.5,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: dotColor,
+                ),
+              ),
+              const SizedBox(width: 5.5),
+            ] else if (icon != null) ...[
+              Icon(icon, size: 12, color: iconColor ?? AppTheme.brandPrimary),
+              const SizedBox(width: 5.5),
+            ],
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected
+                    ? (isDark ? const Color(0xFF60A5FA) : AppTheme.brandPrimary)
+                    : (isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF475569)),
+              ),
+            ),
+          ],
         ),
       ),
-      onSelected: (_) => setState(() => _filtroEstado = clave),
     );
   }
 
   Widget _buildEmptyState(bool isDark) {
     final esBusqueda = _filtroTexto.isNotEmpty;
-    final soloConDeuda = _filtroEstado == 'CON_DEUDA';
+    final soloConDeuda = _filtroEstado == 'deudores';
+    final soloCaseritos = _filtroEstado == 'caseritos';
 
     final Color badgeColor = soloConDeuda
         ? AppTheme.accentGreen
+        : soloCaseritos
+        ? const Color(0xFFEAB308)
         : (esBusqueda ? AppTheme.brandPrimary : const Color(0xFFD97706));
 
     final IconData icon = soloConDeuda
         ? LucideIcons.badgeCheck
+        : soloCaseritos
+        ? LucideIcons.star
         : (esBusqueda ? LucideIcons.searchX : LucideIcons.bookOpen);
 
     final String title = esBusqueda
         ? 'Sin resultados para "$_filtroTexto"'
-        : (soloConDeuda
-              ? '¡Excelente! Nadie tiene deudas pendientes'
-              : 'Tu Libreta de Fiados Inteligente');
+        : soloConDeuda
+        ? '¡Excelente! Nadie tiene deudas pendientes'
+        : soloCaseritos
+        ? 'No tienes vecinos marcados como Caseritos'
+        : 'Tu Libreta de Fiados Inteligente';
 
     final String subtitle = esBusqueda
         ? 'Verifica que el nombre, DNI o celular esté bien escrito o limpia la búsqueda.'
-        : (soloConDeuda
-              ? 'Todos los fiados y compras al crédito han sido cancelados. La cartera de cobranzas está 100% al día.'
-              : 'Lleva el control de los vecinos de confianza, sus límites de crédito y comprobantes de abono para que nunca pierdas capital.');
+        : soloConDeuda
+        ? 'Todos los fiados y compras al crédito han sido cancelados. La cartera de cobranzas está 100% al día.'
+        : soloCaseritos
+        ? 'Marca a tus vecinos más frecuentes como "Caseritos" al registrarlos o editarlos para ubicarlos al instante.'
+        : 'Lleva el control de los vecinos de confianza, sus límites de crédito y comprobantes de abono para que nunca pierdas capital.';
 
     return Center(
       child: SingleChildScrollView(
@@ -2182,6 +2186,8 @@ class _ClientesScreenState extends State<ClientesScreen>
                       child: Text(
                         soloConDeuda
                             ? 'Tip de Finanzas: Un balance en cero te da liquidez inmediata para negociar mejores precios al por mayor con tus proveedores de abarrotes.'
+                            : soloCaseritos
+                            ? 'Tip de Fidelización: Tus caseritos compran hasta 3 veces más seguido. Dales prioridad o anótalos con notas especiales de pago.'
                             : 'Tip de Bodega: Fiar con límite de S/ 50 a S/ 100 fideliza al vecino del barrio. Puedes imprimirle su ticket térmico con el saldo pendiente tras cada compra.',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
@@ -2229,7 +2235,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                     setState(() => _filtroTexto = '');
                   },
                 )
-              else if (soloConDeuda)
+              else if (soloConDeuda || soloCaseritos)
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.brandPrimary,
@@ -2251,7 +2257,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                       fontSize: 13,
                     ),
                   ),
-                  onPressed: () => setState(() => _filtroEstado = 'TODOS'),
+                  onPressed: () => setState(() => _filtroEstado = 'todos'),
                 )
               else
                 ElevatedButton.icon(
@@ -2287,403 +2293,618 @@ class _ClientesScreenState extends State<ClientesScreen>
   Widget _buildClienteCard(Cliente c, bool isDark) {
     final tieneDeuda = c.tieneDeuda;
     final tieneTelefono = c.telefono != null && c.telefono!.trim().isNotEmpty;
+    final cardBg = isDark ? AppTheme.cardDark : Colors.white;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      color: isDark ? AppTheme.cardDark : Colors.white,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBg,
         borderRadius: BorderRadius.circular(18),
-        side: BorderSide(
+        border: Border.all(
           color: tieneDeuda
               ? (isDark
                     ? const Color(0xFF7F1D1D).withValues(alpha: 0.6)
                     : const Color(0xFFFECACA))
-              : (isDark ? AppTheme.borderDark : AppTheme.borderLight),
-          width: tieneDeuda ? 1.3 : 0.9,
+              : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+          width: tieneDeuda ? 1.3 : 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Fila 1: Avatar + Nombre + Estado de Deuda + Menú
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 19,
-                  backgroundColor: tieneDeuda
-                      ? const Color(0xFFFEE2E2)
-                      : AppTheme.brandPrimary.withValues(alpha: 0.12),
-                  child: Text(
-                    c.nombreCompleto.isNotEmpty
-                        ? c.nombreCompleto.substring(0, 1).toUpperCase()
-                        : 'V',
-                    style: GoogleFonts.outfit(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: tieneDeuda
-                          ? AppTheme.alertRed
-                          : AppTheme.brandPrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Barra lateral semántica discreta
+              Container(
+                width: 4.5,
+                color: tieneDeuda ? AppTheme.alertRed : AppTheme.accentGreen,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        c.nombreCompleto,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 2,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          if (c.documento != null && c.documento!.isNotEmpty)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  LucideIcons.idCard,
-                                  size: 12,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : const Color(0xFF64748B),
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  c.documento!,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF334155),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          if (tieneTelefono)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  LucideIcons.phone,
-                                  size: 12,
-                                  color: isDark
-                                      ? AppTheme.textDarkSecondary
-                                      : const Color(0xFF64748B),
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  c.telefono!,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF334155),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-                // Badge Deuda con Semáforo de Riesgo
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: c.colorRiesgo.withValues(alpha: isDark ? 0.2 : 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: c.colorRiesgo.withValues(
-                        alpha: isDark ? 0.4 : 0.3,
-                      ),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Fila 1: Avatar con Pip + Nombre + Semáforo + Menú
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Stack(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: tieneDeuda
+                                      ? (isDark
+                                            ? const Color(0xFF451A1A)
+                                            : const Color(0xFFFEE2E2))
+                                      : (isDark
+                                            ? const Color(0xFF1E293B)
+                                            : AppTheme.brandPrimary.withValues(
+                                                alpha: 0.1,
+                                              )),
+                                  border: Border.all(
+                                    color: tieneDeuda
+                                        ? (isDark
+                                              ? const Color(0xFF7F1D1D)
+                                              : const Color(0xFFFECACA))
+                                        : (isDark
+                                              ? AppTheme.borderDark
+                                              : const Color(0xFFBFDBFE)),
+                                    width: 1,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  c.nombreCompleto.isNotEmpty
+                                      ? c.nombreCompleto
+                                            .substring(0, 1)
+                                            .toUpperCase()
+                                      : 'V',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: tieneDeuda
+                                        ? (isDark
+                                              ? const Color(0xFFF87171)
+                                              : AppTheme.alertRed)
+                                        : AppTheme.brandPrimary,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: c.colorRiesgo,
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppTheme.cardDark
+                                          : Colors.white,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        c.nombreCompleto,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (c.esCaserito) ...[
+                                      const SizedBox(width: 5),
+                                      const Icon(
+                                        LucideIcons.star,
+                                        size: 13,
+                                        color: Color(0xFFEAB308),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 2,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    if (c.documento != null &&
+                                        c.documento!.isNotEmpty)
+                                      Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            WidgetSpan(
+                                              alignment:
+                                                  PlaceholderAlignment.middle,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 3,
+                                                ),
+                                                child: Icon(
+                                                  LucideIcons.idCard,
+                                                  size: 12,
+                                                  color: isDark
+                                                      ? AppTheme
+                                                            .textDarkSecondary
+                                                      : const Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: c.documento!,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isDark
+                                                        ? AppTheme
+                                                              .textDarkSecondary
+                                                        : const Color(
+                                                            0xFF475569,
+                                                          ),
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    if (tieneTelefono)
+                                      Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            WidgetSpan(
+                                              alignment:
+                                                  PlaceholderAlignment.middle,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                  right: 3,
+                                                ),
+                                                child: Icon(
+                                                  LucideIcons.phone,
+                                                  size: 12,
+                                                  color: isDark
+                                                      ? AppTheme
+                                                            .textDarkSecondary
+                                                      : const Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: c.telefono!,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isDark
+                                                        ? AppTheme
+                                                              .textDarkSecondary
+                                                        : const Color(
+                                                            0xFF475569,
+                                                          ),
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          // Badge Semáforo de Riesgo
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: c.colorRiesgo.withValues(
+                                alpha: isDark ? 0.2 : 0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: c.colorRiesgo.withValues(
+                                  alpha: isDark ? 0.35 : 0.25,
+                                ),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: c.colorRiesgo,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  tieneDeuda ? c.etiquetaRiesgo : 'Al Día',
+                                  maxLines: 1,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: c.colorRiesgo,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(
+                              LucideIcons.moreVertical,
+                              size: 16,
+                            ),
+                            padding: EdgeInsets.zero,
+                            onSelected: (val) {
+                              if (val == 'editar') _abrirNuevoCliente(c);
+                              if (val == 'historial') _abrirEstadoCuenta(c);
+                              if (val == 'eliminar')
+                                _confirmarEliminarCliente(c);
+                            },
+                            itemBuilder: (ctx) => [
+                              const PopupMenuItem(
+                                value: 'historial',
+                                child: Row(
+                                  children: [
+                                    Icon(LucideIcons.fileSpreadsheet, size: 16),
+                                    SizedBox(width: 8),
+                                    Text('Estado de Cuenta'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'editar',
+                                child: Row(
+                                  children: [
+                                    Icon(LucideIcons.pencil, size: 16),
+                                    SizedBox(width: 8),
+                                    Text('Editar Datos'),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuItem(
+                                value: 'eliminar',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.trash2,
+                                      size: 16,
+                                      color: AppTheme.alertRed,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Dar de Baja',
+                                      style: TextStyle(
+                                        color: AppTheme.alertRed,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Cockpit Financiero Interno de la Tarjeta
                       Container(
-                        width: 7,
-                        height: 7,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 9,
+                        ),
                         decoration: BoxDecoration(
-                          color: c.colorRiesgo,
-                          shape: BoxShape.circle,
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.borderDark
+                                : const Color(0xFFF1F5F9),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'Saldo Deudor:',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'S/ ${c.saldoDeudor.toStringAsFixed(2)}',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: tieneDeuda
+                                        ? (isDark
+                                              ? const Color(0xFFF87171)
+                                              : AppTheme.alertRed)
+                                        : AppTheme.accentGreen,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            // Micro-barra de progreso de crédito
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: c.porcentajeCreditoUsado,
+                                minHeight: 4.5,
+                                backgroundColor: isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFE2E8F0),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  c.porcentajeCreditoUsado > 0.85
+                                      ? AppTheme.alertRed
+                                      : (c.porcentajeCreditoUsado > 0.5
+                                            ? Colors.amber
+                                            : AppTheme.accentGreen),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)}',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B),
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    'Disp: S/ ${c.creditoDisponible.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: c.creditoDisponible < 20
+                                          ? AppTheme.alertRed
+                                          : AppTheme.accentGreen,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 5),
-                      Text(
-                        tieneDeuda
-                            ? 'S/ ${c.saldoDeudor.toStringAsFixed(2)} • ${c.etiquetaRiesgo}'
-                            : 'Al Día',
-                        maxLines: 1,
-                        style: GoogleFonts.outfit(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w800,
-                          color: c.colorRiesgo,
-                          fontFeatures: const [FontFeature.tabularFigures()],
+
+                      if (c.notas != null && c.notas!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 7),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF131D31)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                LucideIcons.messageSquare,
+                                size: 11,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text(
+                                  c.notas!,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF475569),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                      ],
+
+                      const SizedBox(height: 10),
+
+                      // Fila de Botones de Acción
+                      Row(
+                        children: [
+                          // Botón Cobrar / Abonar
+                          Expanded(
+                            child: SizedBox(
+                              height: 38,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: tieneDeuda
+                                      ? AppTheme.accentGreen
+                                      : AppTheme.brandPrimary,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                ),
+                                onPressed: () => _abrirRegistrarAbono(c),
+                                icon: const Icon(
+                                  LucideIcons.circleDollarSign,
+                                  size: 14,
+                                ),
+                                label: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    tieneDeuda
+                                        ? 'Cobrar / Abonar'
+                                        : 'Abonar Saldo',
+                                    maxLines: 1,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Botón WhatsApp (si tiene teléfono y deuda)
+                          if (tieneTelefono && tieneDeuda) ...[
+                            SizedBox(
+                              height: 38,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF25D366),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
+                                ),
+                                onPressed: () => _enviarWhatsAppRecordatorio(c),
+                                icon: const Icon(
+                                  LucideIcons.messageSquare,
+                                  size: 14,
+                                ),
+                                label: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'WhatsApp',
+                                    maxLines: 1,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+
+                          // Botón Ver Estado de Cuenta
+                          SizedBox(
+                            height: 38,
+                            width: 38,
+                            child: IconButton(
+                              style: IconButton.styleFrom(
+                                backgroundColor: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? AppTheme.borderDark
+                                        : const Color(0xFFE2E8F0),
+                                  ),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              icon: const Icon(
+                                LucideIcons.fileSpreadsheet,
+                                size: 15,
+                              ),
+                              tooltip: 'Ver Historial / Estado de Cuenta',
+                              onPressed: () => _abrirEstadoCuenta(c),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                PopupMenuButton<String>(
-                  icon: const Icon(LucideIcons.moreVertical, size: 17),
-                  padding: EdgeInsets.zero,
-                  onSelected: (val) {
-                    if (val == 'editar') _abrirNuevoCliente(c);
-                    if (val == 'historial') _abrirEstadoCuenta(c);
-                    if (val == 'eliminar') _confirmarEliminarCliente(c);
-                  },
-                  itemBuilder: (ctx) => [
-                    const PopupMenuItem(
-                      value: 'historial',
-                      child: Row(
-                        children: [
-                          Icon(LucideIcons.fileSpreadsheet, size: 16),
-                          SizedBox(width: 8),
-                          Text('Estado de Cuenta'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'editar',
-                      child: Row(
-                        children: [
-                          Icon(LucideIcons.pencil, size: 16),
-                          SizedBox(width: 8),
-                          Text('Editar Datos'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'eliminar',
-                      child: Row(
-                        children: [
-                          Icon(
-                            LucideIcons.trash2,
-                            size: 16,
-                            color: AppTheme.alertRed,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Dar de Baja',
-                            style: TextStyle(color: AppTheme.alertRed),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            if (c.notas != null && c.notas!.trim().isNotEmpty) ...[
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  Icon(
-                    LucideIcons.messageCircle,
-                    size: 12,
-                    color: isDark
-                        ? AppTheme.textDarkSecondary
-                        : const Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      c.notas!,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w500,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF334155),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
               ),
             ],
-
-            const SizedBox(height: 10),
-
-            // Barra de Límite de Crédito
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    'Límite: S/ ${c.limiteCredito.toStringAsFixed(0)}',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF334155),
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    'Disponible: S/ ${c.creditoDisponible.toStringAsFixed(2)}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: c.creditoDisponible < 20
-                          ? AppTheme.alertRed
-                          : AppTheme.accentGreen,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: c.porcentajeCreditoUsado,
-                minHeight: 5,
-                backgroundColor: isDark
-                    ? const Color(0xFF334155)
-                    : const Color(0xFFE2E8F0),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  c.porcentajeCreditoUsado > 0.85
-                      ? AppTheme.alertRed
-                      : (c.porcentajeCreditoUsado > 0.5
-                            ? Colors.amber
-                            : AppTheme.brandPrimary),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Fila de Botones de Acción
-            Row(
-              children: [
-                // Botón Cobrar / Abonar
-                Expanded(
-                  child: SizedBox(
-                    height: 38,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: tieneDeuda
-                            ? AppTheme.accentGreen
-                            : AppTheme.brandPrimary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
-                      onPressed: () => _abrirRegistrarAbono(c),
-                      icon: const Icon(LucideIcons.circleDollarSign, size: 14),
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          tieneDeuda ? 'Cobrar / Abonar' : 'Abonar Saldo',
-                          maxLines: 1,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Botón WhatsApp (si tiene teléfono y deuda)
-                if (tieneTelefono && tieneDeuda) ...[
-                  SizedBox(
-                    height: 38,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF25D366),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
-                      onPressed: () => _enviarWhatsAppRecordatorio(c),
-                      icon: const Icon(LucideIcons.messageSquare, size: 14),
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          'WhatsApp',
-                          maxLines: 1,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-
-                // Botón Ver Estado de Cuenta
-                SizedBox(
-                  height: 38,
-                  width: 38,
-                  child: IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: isDark
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFFF1F5F9),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide(
-                          color: isDark
-                              ? AppTheme.borderDark
-                              : AppTheme.borderLight,
-                        ),
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                    icon: const Icon(LucideIcons.fileSpreadsheet, size: 15),
-                    tooltip: 'Ver Historial / Estado de Cuenta',
-                    onPressed: () => _abrirEstadoCuenta(c),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );

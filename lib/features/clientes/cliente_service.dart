@@ -30,12 +30,30 @@ class ClienteService {
   static int _cacheEpoch = 0;
   static const Duration _cacheDuration = Duration(seconds: 45);
 
+  static List<Cliente>? _mockClientes;
+  static ResumenCreditos? _mockResumenCreditos;
+
+  @visibleForTesting
+  static void setMockClientes(
+    List<Cliente> clientes, {
+    ResumenCreditos? resumen,
+  }) {
+    _mockClientes = List<Cliente>.from(clientes);
+    _mockResumenCreditos = resumen;
+    _cachedClientes = List<Cliente>.from(clientes);
+    _cacheTimestamp = DateTime.now();
+    _inFlightClientes = null;
+    _cacheEpoch++;
+  }
+
   static final ValueNotifier<int> clientesRevision = ValueNotifier<int>(0);
 
   static void invalidateCache({bool notify = true}) {
     _cachedClientes = null;
     _cacheTimestamp = null;
     _inFlightClientes = null;
+    _mockClientes = null;
+    _mockResumenCreditos = null;
     _cacheEpoch++;
     if (notify) {
       clientesRevision.value++;
@@ -47,6 +65,22 @@ class ClienteService {
     bool soloDeudores = false,
     bool forceRefresh = false,
   }) async {
+    if (_mockClientes != null) {
+      var res = List<Cliente>.from(_mockClientes!);
+      if (soloDeudores) res = res.where((c) => c.tieneDeuda).toList();
+      if (query != null && query.trim().isNotEmpty) {
+        final q = query.trim().toLowerCase();
+        res = res
+            .where(
+              (c) =>
+                  c.nombreCompleto.toLowerCase().contains(q) ||
+                  (c.documento ?? '').contains(q) ||
+                  (c.telefono ?? '').contains(q),
+            )
+            .toList();
+      }
+      return res;
+    }
     final hasFilter =
         (query != null && query.trim().isNotEmpty) || soloDeudores;
 
@@ -233,6 +267,9 @@ class ClienteService {
   }
 
   Future<ResumenCreditos?> getResumenCreditos() async {
+    if (_mockResumenCreditos != null) {
+      return _mockResumenCreditos;
+    }
     try {
       final response = await _apiClient.get('/clientes/resumen-creditos');
       if (response.statusCode == 200) {
