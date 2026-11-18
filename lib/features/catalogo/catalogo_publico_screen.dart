@@ -102,10 +102,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   Map<String, dynamic> _bodega = {};
   List<Map<String, dynamic>> _productos = [];
   Map<String, Map<String, dynamic>> _productosPorId = const {};
+  Map<String, int> _conteoPorCategoria = const {};
   int _ofertasCount = 0;
   List<String> _categorias = [];
   List<Map<String, dynamic>> _promociones = [];
   String _categoriaSeleccionada = 'TODAS';
+  String _ordenSeleccionado = 'DESTACADOS';
   String _filtroBusqueda = '';
   List<Map<String, dynamic>> _cachedProductosFiltrados = [];
   Timer? _searchDebounce;
@@ -116,6 +118,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   bool _isEnviandoPedido = false;
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _notasPedidoCtrl = TextEditingController();
+  final ScrollController _catScrollCtrl = ScrollController();
 
   Color get _colorMarca {
     final hex = _bodega['colorPrimario']?.toString();
@@ -128,6 +131,34 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     }
     return AppTheme.brandPrimary;
   }
+
+  /// Tono más profundo y saturado del color de marca para garantizar contraste WCAG AA (>= 4.5:1)
+  /// con texto blanco en botones, encabezados y acentos sobre fondo claro (especialmente para Cyan/Ámbar).
+  Color get _colorMarcaProfundo {
+    final hsl = HSLColor.fromColor(_colorMarca);
+    return hsl
+        .withLightness(hsl.lightness.clamp(0.20, 0.34))
+        .withSaturation((hsl.saturation + 0.08).clamp(0.45, 0.96))
+        .toColor();
+  }
+
+  /// Tono de marca optimizado para texto e iconos según el brillo del tema.
+  Color _colorMarcaTexto(bool isDark) {
+    final hsl = HSLColor.fromColor(_colorMarca);
+    if (isDark) {
+      return hsl
+          .withLightness(hsl.lightness.clamp(0.62, 0.78))
+          .withSaturation((hsl.saturation + 0.06).clamp(0.50, 0.95))
+          .toColor();
+    }
+    return _colorMarcaProfundo;
+  }
+
+  LinearGradient get _brandGradient => LinearGradient(
+    colors: [_colorMarcaProfundo, _colorMarca],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
   Color get _colorPromocion =>
       CatalogoPublicoScreen.generarColorSecundarioPromocion(_colorMarca);
@@ -144,10 +175,24 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     _autoRetryTimer?.cancel();
     _searchCtrl.dispose();
     _notasPedidoCtrl.dispose();
+    _catScrollCtrl.dispose();
     if (widget.httpClient == null) {
       _client.close();
     }
     super.dispose();
+  }
+
+  void _scrollCategorias(double delta) {
+    if (!_catScrollCtrl.hasClients) return;
+    final target = (_catScrollCtrl.offset + delta).clamp(
+      0.0,
+      _catScrollCtrl.position.maxScrollExtent,
+    );
+    _catScrollCtrl.animateTo(
+      target,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _aplicarDatosCatalogo(Map<String, dynamic> data) {
@@ -172,11 +217,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         .toList();
 
     final prodsById = <String, Map<String, dynamic>>{};
+    final catCounts = <String, int>{};
     int ofertas = 0;
     for (final p in prodsList) {
       final idStr = p['idProducto']?.toString();
       if (idStr != null && idStr.isNotEmpty) {
         prodsById[idStr] = p;
+      }
+      final catKey = (p['categoria']?.toString() ?? '').trim().toUpperCase();
+      if (catKey.isNotEmpty) {
+        catCounts[catKey] = (catCounts[catKey] ?? 0) + 1;
       }
       if (p['tienePromocion'] == true) {
         ofertas++;
@@ -190,6 +240,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         _mensajeNoPro = msg;
         _productos = prodsList;
         _productosPorId = prodsById;
+        _conteoPorCategoria = catCounts;
         _ofertasCount = ofertas;
         _categorias = catsList;
         _promociones = promosList;
@@ -280,12 +331,28 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   List<Map<String, dynamic>> get _productosFiltrados =>
       _cachedProductosFiltrados;
 
+  double _precioEfectivoProducto(Map<String, dynamic> p) {
+    final double regular = (p['precioVenta'] is num)
+        ? (p['precioVenta'] as num).toDouble()
+        : 0.0;
+    final double? promo = (p['precioPromocional'] is num)
+        ? (p['precioPromocional'] as num).toDouble()
+        : null;
+    if (p['tienePromocion'] == true &&
+        promo != null &&
+        promo > 0 &&
+        promo < regular) {
+      return promo;
+    }
+    return regular;
+  }
+
   void _recomputeProductosFiltrados() {
     final catUpper = _categoriaSeleccionada.toUpperCase();
     final query = _filtroBusqueda.trim();
     final queryLower = query.toLowerCase();
 
-    _cachedProductosFiltrados = _productos.where((p) {
+    final filtered = _productos.where((p) {
       bool matchesCat = false;
       if (_categoriaSeleccionada == 'TODAS') {
         matchesCat = true;
@@ -306,6 +373,25 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           marca.toLowerCase().contains(queryLower) ||
           MarcaDetectorService.coincideMarca(query, marca, nombre);
     }).toList();
+
+    if (_ordenSeleccionado == 'PRECIO_ASC') {
+      filtered.sort(
+        (a, b) =>
+            _precioEfectivoProducto(a).compareTo(_precioEfectivoProducto(b)),
+      );
+    } else if (_ordenSeleccionado == 'PRECIO_DESC') {
+      filtered.sort(
+        (a, b) =>
+            _precioEfectivoProducto(b).compareTo(_precioEfectivoProducto(a)),
+      );
+    } else if (_ordenSeleccionado == 'NOMBRE_AZ') {
+      filtered.sort(
+        (a, b) => (a['nombre']?.toString() ?? '').toLowerCase().compareTo(
+          (b['nombre']?.toString() ?? '').toLowerCase(),
+        ),
+      );
+    }
+    _cachedProductosFiltrados = filtered;
   }
 
   double get _totalAhorroCarrito {
@@ -535,40 +621,46 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? const Color(0xFF0F172A)
-          : const Color(0xFFF8FAFC),
+          ? const Color(0xFF0B0F19)
+          : const Color(0xFFF4F7FB),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 16,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(3.0),
+          preferredSize: const Size.fromHeight(1.0),
           child: Container(
-            height: 3.0,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [_colorMarca, _colorMarca.withValues(alpha: 0.15)],
-              ),
-            ),
+            height: 1.0,
+            color: isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0),
           ),
         ),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _colorMarca.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: _colorMarca.withValues(alpha: 0.35),
-                  width: 1.0,
-                ),
+                gradient: _brandGradient,
+                borderRadius: BorderRadius.circular(11),
+                boxShadow: [
+                  BoxShadow(
+                    color: _colorMarcaProfundo.withValues(
+                      alpha: isDark ? 0.35 : 0.24,
+                    ),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(LucideIcons.store, color: _colorMarca, size: 20),
+              child: const Icon(
+                LucideIcons.store,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 11),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,8 +673,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           _bodega['nombreComercial']?.toString() ??
                               'CajaYa POS',
                           style: GoogleFonts.outfit(
-                            fontSize: 16,
+                            fontSize: 16.5,
                             fontWeight: FontWeight.w900,
+                            letterSpacing: -0.2,
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                           maxLines: 1,
@@ -590,11 +683,19 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         ),
                       ),
                       if (_esPro) ...[
-                        const SizedBox(width: 5),
-                        const Icon(
-                          LucideIcons.badgeCheck,
-                          size: 16,
-                          color: Color(0xFF059669),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: isDark ? 0.22 : 0.14),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.badgeCheck,
+                            size: 14,
+                            color: Color(0xFF10B981),
+                          ),
                         ),
                       ],
                     ],
@@ -605,8 +706,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF1E293B),
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF475569),
                     ),
                   ),
                 ],
@@ -615,11 +716,54 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           ],
         ),
         actions: [
+          if (_esPro && _carrito.isNotEmpty) ...[
+            InkWell(
+              onTap: _mostrarCarritoModal,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  gradient: _brandGradient,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _colorMarcaProfundo.withValues(alpha: 0.25),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      LucideIcons.shoppingBag,
+                      size: 15,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      '$_totalUnidadesCarrito',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
           WaterDropThemeButton(
             isDark: isDark,
             onToggle: () => context.read<ThemeProvider>().toggleTheme(),
-            iconSize: 18,
-            padding: const EdgeInsets.all(7),
+            iconSize: 17,
+            padding: const EdgeInsets.all(8),
             borderRadius: 10,
             backgroundColor: isDark
                 ? const Color(0xFF1E293B)
@@ -628,13 +772,36 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 ? const Color(0xFF334155)
                 : const Color(0xFFE2E8F0),
           ),
-          const SizedBox(width: 6),
-          IconButton(
-            icon: const Icon(LucideIcons.refreshCw, size: 18),
-            tooltip: 'Actualizar',
-            onPressed: _cargarCatalogo,
-          ),
           const SizedBox(width: 8),
+          Tooltip(
+            message: 'Actualizar catálogo',
+            child: InkWell(
+              onTap: _cargarCatalogo,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Icon(
+                  LucideIcons.refreshCw,
+                  size: 17,
+                  color: isDark
+                      ? const Color(0xFFE2E8F0)
+                      : const Color(0xFF334155),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
         ],
       ),
       body: _buildBody(isDark),
@@ -891,33 +1058,71 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     }
   }
 
+  IconData _iconoParaPromo(String badge) {
+    final lower = badge.toLowerCase();
+    if (lower.contains('x') || lower.contains('3x') || lower.contains('2x')) {
+      return LucideIcons.gift;
+    }
+    if (lower.contains('%') || lower.contains('desc')) {
+      return LucideIcons.percent;
+    }
+    if (lower.contains('combo') ||
+        lower.contains('dúo') ||
+        lower.contains('duo')) {
+      return LucideIcons.sparkles;
+    }
+    return LucideIcons.flame;
+  }
+
+  String _limpiarBadgePromo(String raw) {
+    // Remueve emojis bitmap que se renderizan borrosos en Flutter Web CanvasKit
+    final cleaned = raw
+        .replaceAll(
+          RegExp(r'[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]', unicode: true),
+          '',
+        )
+        .trim();
+    return cleaned.isEmpty ? 'OFERTA' : cleaned;
+  }
+
   Widget _buildPromocionesHeroBanner(bool isDark, bool isTablet) {
     if (_promociones.isEmpty) return const SizedBox.shrink();
 
     return Container(
       margin: EdgeInsets.fromLTRB(
         isTablet ? 20 : 16,
-        0,
+        2,
         isTablet ? 20 : 16,
-        isTablet ? 12 : 8,
+        isTablet ? 14 : 10,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(LucideIcons.sparkles, size: 16, color: _colorPromocion),
-              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: _colorPromocion.withValues(
+                    alpha: isDark ? 0.22 : 0.12,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  LucideIcons.flame,
+                  size: 14,
+                  color: _colorPromocion,
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'OFERTAS Y PROMOCIONES ACTIVAS',
                   style: GoogleFonts.outfit(
-                    fontSize: isTablet ? 12 : 11,
+                    fontSize: isTablet ? 12.5 : 11.5,
                     fontWeight: FontWeight.w900,
                     letterSpacing: isTablet ? 0.8 : 0.5,
-                    color: isDark
-                        ? _colorPromocion.withValues(alpha: 0.9)
-                        : _colorPromocion,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -925,20 +1130,28 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           SizedBox(
-            height: isTablet ? 140 : 124,
+            height: isTablet ? 142 : 128,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemCount: _promociones.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (ctx, i) {
                 final pm = _promociones[i];
                 final color = _parseColorBadge(pm['colorBadge']);
+                final hslColor = HSLColor.fromColor(color);
+                final colorDeep = hslColor
+                    .withLightness(
+                      (hslColor.lightness - 0.12).clamp(0.18, 0.42),
+                    )
+                    .toColor();
                 final titulo = pm['titulo']?.toString() ?? 'Oferta Especial';
                 final desc = pm['descripcion']?.toString() ?? '';
-                final badge = pm['badgeTexto']?.toString() ?? '🔥 OFERTA';
+                final rawBadge = pm['badgeTexto']?.toString() ?? 'OFERTA';
+                final badgeText = _limpiarBadgePromo(rawBadge);
+                final promoIcon = _iconoParaPromo(rawBadge);
                 final cat = pm['categoriaObjetivo']?.toString();
                 final marca = pm['marcaObjetivo']?.toString();
 
@@ -968,88 +1181,178 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       });
                     }
                   },
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
                   child: Container(
-                    width: isTablet ? 300 : 260,
-                    padding: const EdgeInsets.all(14),
+                    width: isTablet ? 316 : 272,
+                    clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: isDark
                             ? [
-                                color.withValues(alpha: 0.25),
-                                const Color(0xFF1E293B),
+                                colorDeep.withValues(alpha: 0.42),
+                                const Color(0xFF162032),
                               ]
-                            : [color.withValues(alpha: 0.12), Colors.white],
+                            : [color.withValues(alpha: 0.14), Colors.white],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                        color: color.withValues(alpha: 0.35),
-                        width: 1.2,
+                        color: color.withValues(alpha: isDark ? 0.50 : 0.35),
+                        width: 1.3,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: color.withValues(alpha: 0.08),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                          color: color.withValues(alpha: isDark ? 0.18 : 0.10),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Stack(
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: color,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                badge,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
+                        // Barra lateral de acento vibrante
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 4.5,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [colorDeep, color],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
                               ),
                             ),
-                            const Spacer(),
-                            Icon(
-                              LucideIcons.chevronRight,
-                              size: 16,
-                              color: _colorPromocion,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          titulo,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.outfit(
-                            fontSize: isTablet ? 14.5 : 13.5,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                         ),
-                        const SizedBox(height: 3),
-                        Expanded(
-                          child: Text(
-                            desc.isNotEmpty ? desc : 'Aprovecha este descuento exclusivo disponible en tienda.',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: isTablet ? 11.5 : 11,
-                              color: isDark
-                                  ? AppTheme.textDarkSecondary
-                                  : AppTheme.textMuted,
+                        // Marca de agua vectorial decorativa
+                        Positioned(
+                          right: -12,
+                          bottom: -14,
+                          child: Icon(
+                            promoIcon,
+                            size: isTablet ? 86 : 74,
+                            color: color.withValues(
+                              alpha: isDark ? 0.12 : 0.08,
                             ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 13, 14, 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 9,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [colorDeep, color],
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: color.withValues(alpha: 0.32),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          promoIcon,
+                                          size: 11.5,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          badgeText,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.4,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: color.withValues(
+                                        alpha: isDark ? 0.22 : 0.10,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Ver',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: isDark
+                                                ? Colors.white
+                                                : colorDeep,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Icon(
+                                          LucideIcons.chevronRight,
+                                          size: 13,
+                                          color: isDark
+                                              ? Colors.white
+                                              : colorDeep,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 9),
+                              Text(
+                                titulo,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.outfit(
+                                  fontSize: isTablet ? 15 : 13.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Expanded(
+                                child: Text(
+                                  desc.isNotEmpty ? desc : 'Aprovecha este descuento exclusivo disponible en tienda.',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: isTablet ? 11.5 : 11,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.35,
+                                    color: isDark
+                                        ? const Color(0xFFCBD5E1)
+                                        : const Color(0xFF475569),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1072,20 +1375,36 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     required bool isDark,
     required bool isTablet,
   }) {
+    final hsl = HSLColor.fromColor(color);
+    final deeper = hsl
+        .withLightness((hsl.lightness - 0.12).clamp(0.20, 0.42))
+        .toColor();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(isTablet ? 7 : 5),
+            width: isTablet ? 34 : 28,
+            height: isTablet ? 34 : 28,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: isDark ? 0.20 : 0.12),
-              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [deeper, color],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(isTablet ? 10 : 8),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: isDark ? 0.30 : 0.22),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Icon(icon, size: isTablet ? 15 : 13, color: color),
+            child: Icon(icon, size: isTablet ? 16 : 13.5, color: Colors.white),
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 9),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1094,9 +1413,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 Text(
                   title,
                   style: GoogleFonts.outfit(
-                    fontSize: isTablet ? 12 : 10.5,
+                    fontSize: isTablet ? 12.5 : 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppTheme.textDark,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1104,11 +1423,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 Text(
                   desc,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: isTablet ? 10.5 : 9,
+                    fontSize: isTablet ? 11 : 9.5,
                     fontWeight: FontWeight.w600,
                     color: isDark
                         ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                        : const Color(0xFF475569),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1145,556 +1464,203 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // Banner Superior de la Tienda (Modern Retail Storefront)
+            // Banner Superior de la Tienda (Premium Retail Storefront)
             SliverToBoxAdapter(
               child: Container(
                 margin: EdgeInsets.fromLTRB(
                   isTablet ? 20 : 16,
-                  isShortHeight ? 6 : (isTablet ? 18 : 14),
+                  isShortHeight ? 8 : (isTablet ? 18 : 14),
                   isTablet ? 20 : 16,
-                  isShortHeight ? 6 : 12,
+                  isShortHeight ? 8 : 14,
                 ),
+                clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF111827) : Colors.white,
-                  gradient: LinearGradient(
-                    colors: isDark
-                        ? [
-                            _colorMarca.withValues(alpha: 0.16),
-                            const Color(0xFF111827),
-                            const Color(0xFF0B0F19),
-                          ]
-                        : [
-                            _colorMarca.withValues(alpha: 0.08),
-                            Colors.white,
-                            const Color(0xFFF8FAFC),
-                          ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
                   borderRadius: BorderRadius.circular(isTablet ? 24 : 20),
                   border: Border.all(
                     color: isDark
-                        ? _colorMarca.withValues(alpha: 0.28)
-                        : _colorMarca.withValues(alpha: 0.18),
-                    width: 1.2,
+                        ? const Color(0xFF1F2937)
+                        : const Color(0xFFE2E8F0),
+                    width: 1.0,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: isDark
-                          ? Colors.black.withValues(alpha: 0.40)
-                          : const Color(0xFF334155).withValues(alpha: 0.08),
+                          ? Colors.black.withValues(alpha: 0.45)
+                          : const Color(0xFF0F172A).withValues(alpha: 0.08),
                       blurRadius: 24,
                       offset: const Offset(0, 8),
-                    ),
-                    BoxShadow(
-                      color: _colorMarca.withValues(
-                        alpha: isDark ? 0.12 : 0.06,
-                      ),
-                      blurRadius: 16,
-                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Acento decorativo superior con shimmer de marca
+                    // Cabecera de Marca de Alto Impacto (Gradiente profundo WCAG-safe)
                     Container(
-                      height: isShortHeight ? 2.5 : 4.0,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            _colorMarca.withValues(alpha: 0.3),
-                            _colorMarca,
-                            _colorPromocion,
-                            _colorMarca,
-                            _colorMarca.withValues(alpha: 0.3),
-                          ],
-                        ),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
+                          colors: isDark
+                              ? [
+                                  const Color(0xFF0F172A),
+                                  _colorMarcaProfundo,
+                                  _colorMarca.withValues(alpha: 0.85),
+                                ]
+                              : [
+                                  _colorMarcaProfundo,
+                                  Color.lerp(
+                                        _colorMarcaProfundo,
+                                        _colorMarca,
+                                        0.68,
+                                      ) ??
+                                      _colorMarca,
+                                ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(
-                        isShortHeight ? 10 : (isTablet ? 22 : 16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Avatar / Logo del Comercio
-                              Container(
-                                width: isShortHeight
-                                    ? 40
-                                    : (isTablet ? 64 : 54),
-                                height: isShortHeight
-                                    ? 40
-                                    : (isTablet ? 64 : 54),
-                                decoration: BoxDecoration(
-                                  color: _colorMarca.withValues(
-                                    alpha: isDark ? 0.22 : 0.12,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    isShortHeight ? 10 : (isTablet ? 18 : 15),
-                                  ),
-                                  border: Border.all(
-                                    color: _colorMarca.withValues(
-                                      alpha: isDark ? 0.55 : 0.35,
+                          // Destello ambiental suave en esquina superior derecha
+                          Positioned(
+                            right: -32,
+                            top: -32,
+                            child: Container(
+                              width: 150,
+                              height: 150,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.09),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            right: 48,
+                            bottom: -44,
+                            child: Container(
+                              width: 110,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.06),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              isShortHeight ? 12 : (isTablet ? 24 : 16),
+                              isShortHeight ? 10 : (isTablet ? 22 : 16),
+                              isShortHeight ? 12 : (isTablet ? 24 : 16),
+                              isShortHeight ? 10 : (isTablet ? 20 : 16),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Avatar / Logo del Comercio con marco cristalino
+                                Container(
+                                  width: isShortHeight
+                                      ? 44
+                                      : (isTablet ? 68 : 56),
+                                  height: isShortHeight
+                                      ? 44
+                                      : (isTablet ? 68 : 56),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.16),
+                                    borderRadius: BorderRadius.circular(
+                                      isShortHeight ? 12 : (isTablet ? 18 : 15),
                                     ),
-                                    width: 1.5,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: _colorMarca.withValues(
-                                        alpha: isDark ? 0.25 : 0.12,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.42,
                                       ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
+                                      width: 1.5,
                                     ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    isShortHeight ? 9 : (isTablet ? 17 : 14),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.18,
+                                        ),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
-                                  child:
-                                      (_bodega['logoUrl'] != null &&
-                                          _bodega['logoUrl']
-                                              .toString()
-                                              .trim()
-                                              .isNotEmpty)
-                                      ? Image.network(
-                                          _bodega['logoUrl'].toString().trim(),
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, _, _) => Center(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                      isShortHeight ? 11 : (isTablet ? 17 : 14),
+                                    ),
+                                    child:
+                                        (_bodega['logoUrl'] != null &&
+                                            _bodega['logoUrl']
+                                                .toString()
+                                                .trim()
+                                                .isNotEmpty)
+                                        ? Image.network(
+                                            _bodega['logoUrl']
+                                                .toString()
+                                                .trim(),
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) => Center(
+                                              child: Icon(
+                                                LucideIcons.store,
+                                                size: isShortHeight
+                                                    ? 22
+                                                    : (isTablet ? 32 : 26),
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : Center(
                                             child: Icon(
                                               LucideIcons.store,
                                               size: isShortHeight
                                                   ? 22
-                                                  : (isTablet ? 30 : 26),
-                                              color: _colorMarca,
+                                                  : (isTablet ? 32 : 26),
+                                              color: Colors.white,
                                             ),
                                           ),
-                                        )
-                                      : Center(
-                                          child: Icon(
-                                            LucideIcons.store,
-                                            size: isShortHeight
-                                                ? 22
-                                                : (isTablet ? 30 : 26),
-                                            color: _colorMarca,
-                                          ),
-                                        ),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(
-                                width: isShortHeight
-                                    ? 10
-                                    : (isTablet ? 16 : 12),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 4,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        Text(
-                                          nombreBodega,
-                                          style: GoogleFonts.outfit(
-                                            fontSize: isShortHeight
-                                                ? 16.5
-                                                : (isTablet ? 22 : 18.5),
-                                            fontWeight: FontWeight.w900,
-                                            color: isDark
-                                                ? Colors.white
-                                                : AppTheme.textDark,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: isTablet ? 9 : 8,
-                                            vertical: isTablet ? 3.5 : 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF059669)
-                                                .withValues(
-                                                  alpha: isDark ? 0.22 : 0.12,
-                                                ),
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            border: Border.all(
-                                              color: const Color(0xFF059669)
-                                                  .withValues(alpha: 0.45),
-                                              width: 1.0,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                LucideIcons.badgeCheck,
-                                                size: 13,
-                                                color: Color(0xFF10B981),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                'PRO ONLINE',
-                                                style: GoogleFonts.outfit(
-                                                  fontSize: isTablet ? 11 : 9.5,
-                                                  fontWeight: FontWeight.w900,
-                                                  letterSpacing: 0.6,
-                                                  color: const Color(
-                                                    0xFF10B981,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (lema.isNotEmpty && !isShortHeight) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        lema,
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: isTablet ? 13 : 11.5,
-                                          fontWeight: FontWeight.w600,
-                                          color: isDark
-                                              ? const Color(0xFF94A3B8)
-                                              : const Color(0xFF64748B),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                    if (!isShortHeight) ...[
-                                      const SizedBox(height: 6),
-                                      // Badges de Servicio Dinámicos
+                                SizedBox(
+                                  width: isShortHeight
+                                      ? 12
+                                      : (isTablet ? 18 : 14),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
                                       Wrap(
-                                        spacing: 6,
-                                        runSpacing: 4,
+                                        spacing: 8,
+                                        runSpacing: 6,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
                                         children: [
-                                          // Badge Estado (Abierto ahora vs Cerrado temporalmente)
+                                          Text(
+                                            nombreBodega,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: isShortHeight
+                                                  ? 17
+                                                  : (isTablet ? 24 : 19.5),
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: -0.3,
+                                              color: Colors.white,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 7,
-                                              vertical: 2.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  (estaAbierto
-                                                          ? const Color(
-                                                              0xFF10B981,
-                                                            )
-                                                          : const Color(
-                                                              0xFFEF4444,
-                                                            ))
-                                                      .withValues(
-                                                        alpha: isDark
-                                                            ? 0.20
-                                                            : 0.10,
-                                                      ),
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              border: Border.all(
-                                                color:
-                                                    (estaAbierto
-                                                            ? const Color(
-                                                                0xFF10B981,
-                                                              )
-                                                            : const Color(
-                                                                0xFFEF4444,
-                                                              ))
-                                                        .withValues(
-                                                          alpha: 0.40,
-                                                        ),
-                                                width: 0.8,
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Container(
-                                                  width: 6,
-                                                  height: 6,
-                                                  decoration: BoxDecoration(
-                                                    color: estaAbierto
-                                                        ? const Color(
-                                                            0xFF10B981,
-                                                          )
-                                                        : const Color(
-                                                            0xFFEF4444,
-                                                          ),
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  estaAbierto
-                                                      ? 'Abierto ahora'
-                                                      : 'Cerrado temporalmente',
-                                                  style:
-                                                      GoogleFonts.plusJakartaSans(
-                                                        fontSize: 10.5,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color: estaAbierto
-                                                            ? const Color(
-                                                                0xFF10B981,
-                                                              )
-                                                            : const Color(
-                                                                0xFFEF4444,
-                                                              ),
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (deliveryActivo) ...[
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 7,
-                                                    vertical: 2.5,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: _colorMarca.withValues(
-                                                  alpha: isDark ? 0.18 : 0.08,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                                border: Border.all(
-                                                  color: _colorMarca.withValues(
-                                                    alpha: 0.35,
-                                                  ),
-                                                  width: 0.8,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    LucideIcons.bike,
-                                                    size: 11,
-                                                    color: _colorMarca,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Delivery rápido',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: 10.5,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color: _colorMarca,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 7,
-                                                    vertical: 2.5,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? const Color(0xFF1E293B)
-                                                    : const Color(0xFFF1F5F9),
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                                border: Border.all(
-                                                  color: isDark
-                                                      ? const Color(0xFF334155)
-                                                      : const Color(0xFFE2E8F0),
-                                                  width: 0.8,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    LucideIcons.shoppingBag,
-                                                    size: 11,
-                                                    color: isDark
-                                                        ? const Color(
-                                                            0xFFCBD5E1,
-                                                          )
-                                                        : const Color(
-                                                            0xFF475569,
-                                                          ),
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Retiro en tienda',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: 10.5,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color: isDark
-                                                              ? const Color(
-                                                                  0xFFCBD5E1,
-                                                                )
-                                                              : const Color(
-                                                                  0xFF475569,
-                                                                ),
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ] else ...[
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 7,
-                                                    vertical: 2.5,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFD97706)
-                                                    .withValues(
-                                                      alpha: isDark
-                                                          ? 0.20
-                                                          : 0.10,
-                                                    ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                                border: Border.all(
-                                                  color: const Color(0xFFD97706)
-                                                      .withValues(alpha: 0.35),
-                                                  width: 0.8,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const Icon(
-                                                    LucideIcons.shoppingBag,
-                                                    size: 11,
-                                                    color: Color(0xFFD97706),
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Solo retiro en tienda',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: 10.5,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color: const Color(
-                                                            0xFFD97706,
-                                                          ),
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      if (direccion.isNotEmpty) ...[
-                                        const SizedBox(height: 6),
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              LucideIcons.mapPin,
-                                              size: isTablet ? 14 : 12,
-                                              color: _colorMarca,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Text(
-                                                direccion,
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                      fontSize: isTablet
-                                                          ? 12
-                                                          : 11,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      color: isDark
-                                                          ? const Color(
-                                                              0xFFCBD5E1,
-                                                            )
-                                                          : const Color(
-                                                              0xFF475569,
-                                                            ),
-                                                    ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                      if (_bodega['telefono'] != null &&
-                                          _bodega['telefono']
-                                              .toString()
-                                              .trim()
-                                              .isNotEmpty) ...[
-                                        const SizedBox(height: 8),
-                                        InkWell(
-                                          onTap: () async {
-                                            final rawT = _bodega['telefono']
-                                                .toString()
-                                                .trim();
-                                            final l = rawT.replaceAll(
-                                              RegExp(r'[^0-9]'),
-                                              '',
-                                            );
-                                            final tf =
-                                                (l.length == 9 &&
-                                                    l.startsWith('9'))
-                                                ? '51$l'
-                                                : (l.startsWith('51')
-                                                      ? l
-                                                      : '51$l');
-                                            final msg = Uri.encodeComponent(
-                                              '¡Hola *$nombreBodega*! 👋 Quisiera hacerles una consulta sobre su catálogo online.',
-                                            );
-                                            final uri = Uri.parse(
-                                              'https://wa.me/$tf?text=$msg',
-                                            );
-                                            if (await canLaunchUrl(uri)) {
-                                              await launchUrl(
-                                                uri,
-                                                mode: LaunchMode
-                                                    .externalApplication,
-                                              );
-                                            }
-                                          },
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: Container(
                                             padding: EdgeInsets.symmetric(
-                                              horizontal: isTablet ? 10 : 8,
-                                              vertical: isTablet ? 5 : 4,
+                                              horizontal: isTablet ? 9 : 8,
+                                              vertical: isTablet ? 4 : 3,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF16A34A)
-                                                  .withValues(
-                                                    alpha: isDark ? 0.22 : 0.12,
-                                                  ),
+                                              color: const Color(0xFF065F46),
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                                  BorderRadius.circular(20),
                                               border: Border.all(
-                                                color: const Color(0xFF16A34A)
-                                                    .withValues(alpha: 0.45),
+                                                color: const Color(0xFF34D399),
                                                 width: 1.0,
                                               ),
                                             ),
@@ -1702,45 +1668,368 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 const Icon(
-                                                  LucideIcons.messageCircle,
+                                                  LucideIcons.badgeCheck,
                                                   size: 13,
-                                                  color: Color(0xFF16A34A),
+                                                  color: Color(0xFF6EE7B7),
                                                 ),
-                                                const SizedBox(width: 5),
-                                                Flexible(
-                                                  child: Text(
-                                                    'WhatsApp: ${_bodega['telefono']}',
-                                                    style: GoogleFonts.outfit(
-                                                      fontSize: isTablet
-                                                          ? 12
-                                                          : 11,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      color: const Color(
-                                                        0xFF16A34A,
-                                                      ),
-                                                    ),
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'PRO ONLINE',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: isTablet
+                                                        ? 10.5
+                                                        : 9.5,
+                                                    fontWeight: FontWeight.w900,
+                                                    letterSpacing: 0.6,
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ),
+                                        ],
+                                      ),
+                                      if (lema.isNotEmpty &&
+                                          !isShortHeight) ...[
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          lema,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: isTablet ? 13 : 11.5,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.90,
+                                            ),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
+                                      if (!isShortHeight) ...[
+                                        const SizedBox(height: 10),
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 6,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          children: [
+                                            // Estado Abierto / Cerrado
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 9,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: estaAbierto
+                                                    ? const Color(0xFF10B981)
+                                                    : const Color(0xFFEF4444),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Container(
+                                                    width: 6,
+                                                    height: 6,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                          color: Colors.white,
+                                                          shape:
+                                                              BoxShape.circle,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                    estaAbierto
+                                                        ? 'Abierto ahora'
+                                                        : 'Cerrado temporalmente',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color: Colors.white,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if (deliveryActivo) ...[
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 9,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.18),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  border: Border.all(
+                                                    color: Colors.white
+                                                        .withValues(
+                                                          alpha: 0.35,
+                                                        ),
+                                                    width: 0.9,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      LucideIcons.bike,
+                                                      size: 12,
+                                                      color: Colors.white,
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Text(
+                                                      'Delivery rápido',
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: Colors.white,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ] else ...[
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 9,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFF59E0B)
+                                                      .withValues(alpha: 0.25),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                  border: Border.all(
+                                                    color: const Color(
+                                                      0xFFFDE68A,
+                                                    ).withValues(alpha: 0.65),
+                                                    width: 0.9,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      LucideIcons.shoppingBag,
+                                                      size: 12,
+                                                      color: Color(0xFFFEF3C7),
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Text(
+                                                      'Solo retiro en tienda',
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color: const Color(
+                                                              0xFFFEF3C7,
+                                                            ),
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                            // Contador vivo del catálogo
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 9,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.22,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    LucideIcons.layoutGrid,
+                                                    size: 11.5,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                    '${_productos.length} productos · ${_categorias.length} categorías',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: Colors.white,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if (_bodega['telefono'] != null &&
+                                                _bodega['telefono']
+                                                    .toString()
+                                                    .trim()
+                                                    .isNotEmpty)
+                                              InkWell(
+                                                onTap: () async {
+                                                  final rawT =
+                                                      _bodega['telefono']
+                                                          .toString()
+                                                          .trim();
+                                                  final l = rawT.replaceAll(
+                                                    RegExp(r'[^0-9]'),
+                                                    '',
+                                                  );
+                                                  final tf =
+                                                      (l.length == 9 &&
+                                                          l.startsWith('9'))
+                                                      ? '51$l'
+                                                      : (l.startsWith('51')
+                                                            ? l
+                                                            : '51$l');
+                                                  final msg = Uri.encodeComponent(
+                                                    '¡Hola *$nombreBodega*! Quisiera hacerles una consulta sobre su catálogo online.',
+                                                  );
+                                                  final uri = Uri.parse(
+                                                    'https://wa.me/$tf?text=$msg',
+                                                  );
+                                                  if (await canLaunchUrl(uri)) {
+                                                    await launchUrl(
+                                                      uri,
+                                                      mode: LaunchMode
+                                                          .externalApplication,
+                                                    );
+                                                  }
+                                                },
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 11,
+                                                        vertical: 4.5,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(
+                                                      0xFF16A34A,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withValues(
+                                                              alpha: 0.22,
+                                                            ),
+                                                        blurRadius: 6,
+                                                        offset: const Offset(
+                                                          0,
+                                                          2,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(
+                                                        LucideIcons
+                                                            .messageCircle,
+                                                        size: 13,
+                                                        color: Colors.white,
+                                                      ),
+                                                      const SizedBox(width: 5),
+                                                      Text(
+                                                        'WhatsApp: ${_bodega['telefono']}',
+                                                        style:
+                                                            GoogleFonts.outfit(
+                                                              fontSize: 11.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800,
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        if (direccion.isNotEmpty) ...[
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                LucideIcons.mapPin,
+                                                size: isTablet ? 14 : 12.5,
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.90,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Flexible(
+                                                child: Text(
+                                                  direccion,
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontSize: isTablet
+                                                            ? 12
+                                                            : 11,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: Colors.white
+                                                            .withValues(
+                                                              alpha: 0.92,
+                                                            ),
+                                                      ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                        ],
+                      ),
+                    ),
 
+                    // Cuerpo inferior del Hero: Guía 3 Pasos + Buscador de Alto Contraste
+                    Padding(
+                      padding: EdgeInsets.all(
+                        isShortHeight ? 10 : (isTablet ? 18 : 14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           if (!isShortHeight) ...[
-                            SizedBox(height: isTablet ? 16 : 12),
-
-                            // Guía de Compra en 3 Pasos (Storefront Trust Strip)
                             Container(
                               padding: EdgeInsets.symmetric(
                                 horizontal: isTablet ? 14 : 10,
@@ -1749,15 +2038,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? const Color(0xFF0B0F19)
-                                          .withValues(alpha: 0.6)
-                                    : const Color(0xFFF1F5F9)
-                                          .withValues(alpha: 0.7),
+                                    : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: isDark
                                       ? const Color(0xFF1F2937)
                                       : const Color(0xFFE2E8F0),
-                                  width: 0.8,
+                                  width: 1.0,
                                 ),
                               ),
                               child: Row(
@@ -1765,7 +2052,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   Expanded(
                                     child: _buildTrustStep(
                                       icon: LucideIcons.shoppingBag,
-                                      color: _colorMarca,
+                                      color: _colorMarcaProfundo,
                                       title: '1. Elige',
                                       desc: 'Agrega a tu lista',
                                       isDark: isDark,
@@ -1774,10 +2061,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   ),
                                   Container(
                                     width: 1,
-                                    height: 24,
+                                    height: 26,
                                     color: isDark
                                         ? const Color(0xFF334155)
-                                        : const Color(0xFFCBD5E1),
+                                        : const Color(0xFFE2E8F0),
                                   ),
                                   Expanded(
                                     child: _buildTrustStep(
@@ -1791,10 +2078,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   ),
                                   Container(
                                     width: 1,
-                                    height: 24,
+                                    height: 26,
                                     color: isDark
                                         ? const Color(0xFF334155)
-                                        : const Color(0xFFCBD5E1),
+                                        : const Color(0xFFE2E8F0),
                                   ),
                                   Expanded(
                                     child: _buildTrustStep(
@@ -1809,25 +2096,28 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 ],
                               ),
                             ),
+                            SizedBox(height: isTablet ? 14 : 10),
                           ],
                           if (!estaAbierto) ...[
-                            SizedBox(height: isTablet ? 12 : 8),
                             Container(
+                              margin: EdgeInsets.only(
+                                bottom: isTablet ? 12 : 8,
+                              ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
-                                vertical: 8,
+                                vertical: 9,
                               ),
                               decoration: BoxDecoration(
                                 color: isDark
                                     ? const Color(0xFF450A0A)
-                                          .withValues(alpha: 0.5)
+                                          .withValues(alpha: 0.6)
                                     : const Color(0xFFFEF2F2),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isDark
-                                      ? const Color(0xFF7F1D1D)
+                                      ? const Color(0xFF991B1B)
                                       : const Color(0xFFFCA5A5),
-                                  width: 0.8,
+                                  width: 1.0,
                                 ),
                               ),
                               child: Row(
@@ -1843,7 +2133,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       'Tienda en pausa temporal: puedes explorar productos y precios, pero los pedidos están en espera.',
                                       style: GoogleFonts.plusJakartaSans(
                                         fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w700,
                                         color: isDark
                                             ? const Color(0xFFFCA5A5)
                                             : const Color(0xFF991B1B),
@@ -1855,11 +2145,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             ),
                           ],
 
-                          SizedBox(
-                            height: isShortHeight ? 8 : (isTablet ? 14 : 12),
-                          ),
-
-                          // Buscador
+                          // Buscador con contraste reforzado
                           TextField(
                             controller: _searchCtrl,
                             onChanged: (val) {
@@ -1890,22 +2176,25 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               });
                             },
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: isTablet ? 15 : 13.5,
-                              color: isDark ? Colors.white : AppTheme.textDark,
+                              fontSize: isTablet ? 14.5 : 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                             decoration: InputDecoration(
-                              hintText:
-                                  'Buscar productos, abarrotes, bebidas...',
+                              hintText: 'Buscar productos, marcas, bebidas, mascotas...',
                               hintStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: isTablet ? 14 : 13,
+                                fontWeight: FontWeight.w500,
                                 color: isDark
-                                    ? const Color(0xFFCBD5E1)
-                                    : const Color(0xFF64748B),
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF475569),
                               ),
                               prefixIcon: Icon(
                                 LucideIcons.search,
                                 size: isTablet ? 20 : 18,
-                                color: _colorMarca,
+                                color: _colorMarcaTexto(isDark),
                               ),
                               suffixIcon: _filtroBusqueda.isNotEmpty
                                   ? IconButton(
@@ -1925,42 +2214,42 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   : null,
                               filled: true,
                               fillColor: isDark
-                                  ? const Color(0xFF0C1019)
-                                  : Colors.white,
+                                  ? const Color(0xFF0B0F19)
+                                  : const Color(0xFFF8FAFC),
                               contentPadding: EdgeInsets.symmetric(
                                 horizontal: isTablet ? 16 : 14,
                                 vertical: isShortHeight
                                     ? 8
-                                    : (isTablet ? 14 : 10),
+                                    : (isTablet ? 14 : 11),
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                  isTablet ? 16 : 14,
+                                  isTablet ? 14 : 12,
                                 ),
                                 borderSide: BorderSide(
                                   color: isDark
                                       ? const Color(0xFF334155)
-                                      : const Color(0xFFE2E8F0),
+                                      : const Color(0xFFCBD5E1),
                                   width: 1.2,
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                  isTablet ? 16 : 14,
+                                  isTablet ? 14 : 12,
                                 ),
                                 borderSide: BorderSide(
                                   color: isDark
                                       ? const Color(0xFF334155)
-                                      : const Color(0xFFE2E8F0),
+                                      : const Color(0xFFCBD5E1),
                                   width: 1.2,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                  isTablet ? 16 : 14,
+                                  isTablet ? 14 : 12,
                                 ),
                                 borderSide: BorderSide(
-                                  color: _colorMarca,
+                                  color: _colorMarcaTexto(isDark),
                                   width: 1.8,
                                 ),
                               ),
@@ -1979,37 +2268,76 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               child: _buildPromocionesHeroBanner(isDark, isTablet),
             ),
 
-            // Filtros de Categoría Horizontales
+            // Barra de Categorías con Iconos Temáticos, Conteo y Flechas Desktop
             SliverToBoxAdapter(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
+              child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: isTablet ? 20 : 16,
                   vertical: isTablet ? 8 : 6,
                 ),
                 child: Row(
                   children: [
-                    _buildCategoriaChip(
-                      'TODAS',
-                      'Todos (${_productos.length})',
-                      isDark,
-                      isTablet,
-                    ),
-                    if (_ofertasCount > 0)
-                      _buildCategoriaChip(
-                        'OFERTAS',
-                        '🔥 Ofertas ($_ofertasCount)',
-                        isDark,
-                        isTablet,
-                        esOferta: true,
+                    if (isTablet) ...[
+                      _buildScrollArrowButton(
+                        icon: LucideIcons.chevronLeft,
+                        isDark: isDark,
+                        onTap: () => _scrollCategorias(-320),
                       ),
-                    ..._categorias.map(
-                      (c) => _buildCategoriaChip(c, c, isDark, isTablet),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _catScrollCtrl,
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _buildCategoriaChip(
+                              'TODAS',
+                              'Todos',
+                              isDark,
+                              isTablet,
+                              count: _productos.length,
+                            ),
+                            if (_ofertasCount > 0)
+                              _buildCategoriaChip(
+                                'OFERTAS',
+                                'Ofertas',
+                                isDark,
+                                isTablet,
+                                esOferta: true,
+                                count: _ofertasCount,
+                              ),
+                            ..._categorias.map(
+                              (c) => _buildCategoriaChip(
+                                c,
+                                c,
+                                isDark,
+                                isTablet,
+                                count:
+                                    _conteoPorCategoria[c.trim().toUpperCase()],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                    if (isTablet) ...[
+                      const SizedBox(width: 8),
+                      _buildScrollArrowButton(
+                        icon: LucideIcons.chevronRight,
+                        isDark: isDark,
+                        onTap: () => _scrollCategorias(320),
+                      ),
+                    ],
                   ],
                 ),
               ),
+            ),
+
+            // Barra de Resultados y Ordenamiento
+            SliverToBoxAdapter(
+              child: _buildResultsAndSortBar(prods.length, isDark, isTablet),
             ),
 
             // Grilla de Productos
@@ -2346,77 +2674,412 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     }
   }
 
+  Widget _buildScrollArrowButton({
+    required IconData icon,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF334155),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String get _ordenLabel {
+    switch (_ordenSeleccionado) {
+      case 'PRECIO_ASC':
+        return 'Menor precio';
+      case 'PRECIO_DESC':
+        return 'Mayor precio';
+      case 'NOMBRE_AZ':
+        return 'Nombre A-Z';
+      default:
+        return 'Destacados';
+    }
+  }
+
+  Widget _buildResultsAndSortBar(
+    int totalMostrados,
+    bool isDark,
+    bool isTablet,
+  ) {
+    final bool estaFiltrado =
+        _categoriaSeleccionada != 'TODAS' || _filtroBusqueda.trim().isNotEmpty;
+    final String tituloActual = _categoriaSeleccionada == 'TODAS'
+        ? 'Catálogo completo'
+        : (_categoriaSeleccionada == 'OFERTAS'
+              ? 'Ofertas activas'
+              : _categoriaSeleccionada);
+    final Color activeColor = _categoriaSeleccionada == 'OFERTAS'
+        ? _colorPromocion
+        : (_categoriaSeleccionada == 'TODAS'
+              ? _colorMarcaTexto(isDark)
+              : CategoryHelper.getColor(_categoriaSeleccionada, isDark));
+    final IconData activeIcon = _categoriaSeleccionada == 'OFERTAS'
+        ? LucideIcons.flame
+        : (_categoriaSeleccionada == 'TODAS'
+              ? LucideIcons.layoutGrid
+              : CategoryHelper.getIcon(_categoriaSeleccionada));
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        isTablet ? 20 : 16,
+        4,
+        isTablet ? 20 : 16,
+        2,
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: activeColor.withValues(alpha: isDark ? 0.20 : 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(activeIcon, size: 14, color: activeColor),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  tituloActual,
+                  style: GoogleFonts.outfit(
+                    fontSize: isTablet ? 15 : 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFE2E8F0).withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '$totalMostrados ${totalMostrados == 1 ? "disponible" : "disponibles"}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? const Color(0xFFCBD5E1)
+                          : const Color(0xFF334155),
+                    ),
+                  ),
+                ),
+                if (estaFiltrado)
+                  InkWell(
+                    onTap: () {
+                      _searchDebounce?.cancel();
+                      _searchCtrl.clear();
+                      setState(() {
+                        _categoriaSeleccionada = 'TODAS';
+                        _filtroBusqueda = '';
+                        _recomputeProductosFiltrados();
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _colorMarcaTexto(isDark).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.x,
+                            size: 11,
+                            color: _colorMarcaTexto(isDark),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Limpiar filtro',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: _colorMarcaTexto(isDark),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          PopupMenuButton<String>(
+            initialValue: _ordenSeleccionado,
+            tooltip: 'Ordenar productos',
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            onSelected: (val) {
+              setState(() {
+                _ordenSeleccionado = val;
+                _recomputeProductosFiltrados();
+              });
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'DESTACADOS', child: Text('Destacados')),
+              PopupMenuItem(value: 'PRECIO_ASC', child: Text('Menor precio')),
+              PopupMenuItem(value: 'PRECIO_DESC', child: Text('Mayor precio')),
+              PopupMenuItem(value: 'NOMBRE_AZ', child: Text('Nombre A-Z')),
+            ],
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 12 : 9,
+                vertical: isTablet ? 7 : 6,
+              ),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    LucideIcons.arrowUpDown,
+                    size: 13.5,
+                    color: _colorMarcaTexto(isDark),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _ordenLabel,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isTablet ? 12 : 11,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCategoriaChip(
     String key,
     String label,
     bool isDark,
     bool isTablet, {
     bool esOferta = false,
+    int? count,
   }) {
     final isSelected =
         _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
-    final chipColor = esOferta ? _colorPromocion : _colorMarca;
+    final Color catAccent = esOferta
+        ? _colorPromocion
+        : (key == 'TODAS'
+              ? _colorMarcaTexto(isDark)
+              : CategoryHelper.getColor(key, isDark));
+    final List<Color> selectedGradient = esOferta
+        ? [
+            HSLColor.fromColor(_colorPromocion)
+                .withLightness(
+                  (HSLColor.fromColor(_colorPromocion).lightness - 0.10).clamp(
+                    0.18,
+                    0.42,
+                  ),
+                )
+                .toColor(),
+            _colorPromocion,
+          ]
+        : (key == 'TODAS'
+              ? [_colorMarcaProfundo, _colorMarca]
+              : CategoryHelper.getGradientColors(key, isDark));
     final iconData = esOferta
         ? LucideIcons.flame
         : (key == 'TODAS'
               ? LucideIcons.layoutGrid
               : CategoryHelper.getIcon(key));
-    final iconColor = isSelected
-        ? Colors.white
-        : (esOferta ? _colorPromocion : CategoryHelper.getColor(key, isDark));
 
     return Padding(
       padding: EdgeInsets.only(right: isTablet ? 10 : 8),
-      child: FilterChip(
-        showCheckmark: false,
-        avatar: Icon(iconData, size: isTablet ? 15 : 13.5, color: iconColor),
-        labelPadding: EdgeInsets.symmetric(horizontal: isTablet ? 6 : 4),
-        label: Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: isTablet ? 13.5 : 12,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
-            color: isSelected
-                ? Colors.white
-                : (esOferta
-                      ? (isDark
-                            ? _colorPromocion.withValues(alpha: 0.95)
-                            : _colorPromocion)
-                      : (isDark ? Colors.white : const Color(0xFF0F172A))),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(isTablet ? 15 : 13),
+          onTap: () {
+            HapticFeedback.selectionClick();
+            setState(() {
+              _categoriaSeleccionada = key;
+              _recomputeProductosFiltrados();
+            });
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.fromLTRB(
+              isTablet ? 8 : 7,
+              isTablet ? 7 : 6,
+              isTablet ? 12 : 10,
+              isTablet ? 7 : 6,
+            ),
+            decoration: BoxDecoration(
+              gradient: isSelected
+                  ? LinearGradient(
+                      colors: selectedGradient,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: isSelected
+                  ? null
+                  : (isDark
+                        ? (esOferta
+                              ? _colorPromocion.withValues(alpha: 0.16)
+                              : const Color(0xFF162032))
+                        : (esOferta
+                              ? _colorPromocion.withValues(alpha: 0.08)
+                              : Colors.white)),
+              borderRadius: BorderRadius.circular(isTablet ? 15 : 13),
+              border: Border.all(
+                color: isSelected
+                    ? Colors.transparent
+                    : (esOferta
+                          ? _colorPromocion.withValues(alpha: 0.45)
+                          : (isDark
+                                ? const Color(0xFF283548)
+                                : const Color(0xFFE2E8F0))),
+                width: 1.1,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: selectedGradient.first.withValues(
+                          alpha: isDark ? 0.40 : 0.28,
+                        ),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : [
+                      if (!isDark)
+                        BoxShadow(
+                          color: const Color(0xFF0F172A)
+                              .withValues(alpha: 0.04),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                    ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Medallón de icono temático con color propio de categoría
+                Container(
+                  width: isTablet ? 28 : 24,
+                  height: isTablet ? 28 : 24,
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : catAccent.withValues(alpha: isDark ? 0.22 : 0.13),
+                    borderRadius: BorderRadius.circular(isTablet ? 9 : 7),
+                  ),
+                  child: Icon(
+                    iconData,
+                    size: isTablet ? 15 : 13.5,
+                    color: isSelected ? Colors.white : catAccent,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: isTablet ? 13 : 12,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                    color: isSelected
+                        ? Colors.white
+                        : (esOferta
+                              ? (isDark
+                                    ? const Color(0xFFFDA4AF)
+                                    : _colorPromocion)
+                              : (isDark
+                                    ? const Color(0xFFF1F5F9)
+                                    : const Color(0xFF0F172A))),
+                  ),
+                ),
+                if (count != null && count > 0) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.22)
+                          : (isDark
+                                ? const Color(0xFF0F172A)
+                                : const Color(0xFFF1F5F9)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$count',
+                      style: GoogleFonts.outfit(
+                        fontSize: isTablet ? 11 : 10,
+                        fontWeight: FontWeight.w800,
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF475569)),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-        padding: isTablet
-            ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
-            : const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-        selected: isSelected,
-        selectedColor: chipColor,
-        backgroundColor: isDark
-            ? (esOferta
-                  ? _colorPromocion.withValues(alpha: 0.2)
-                  : const Color(0xFF1E2436))
-            : (esOferta
-                  ? _colorPromocion.withValues(alpha: 0.08)
-                  : _colorMarca.withValues(alpha: 0.04)),
-        side: BorderSide(
-          color: isSelected
-              ? chipColor
-              : (esOferta
-                    ? _colorPromocion.withValues(alpha: 0.45)
-                    : (isDark
-                          ? const Color(0xFF262E44)
-                          : _colorMarca.withValues(alpha: 0.18))),
-          width: isSelected ? 1.4 : 1.0,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isTablet ? 14 : 12),
-        ),
-        onSelected: (_) {
-          HapticFeedback.selectionClick();
-          setState(() {
-            _categoriaSeleccionada = key;
-            _recomputeProductosFiltrados();
-          });
-        },
       ),
     );
   }
@@ -2476,26 +3139,27 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final int cantidadEnCarrito = _carrito[id] ?? 0;
     final bool isTablet = config.isTablet;
     final catColor = CategoryHelper.getColor(categoria, isDark);
+    final catIcon = CategoryHelper.getIcon(categoria);
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? const Color(0xFF162032) : Colors.white,
         borderRadius: BorderRadius.circular(isTablet ? 20 : 18),
         border: Border.all(
           color: cantidadEnCarrito > 0
-              ? _colorMarca
-              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+              ? _colorMarcaTexto(isDark)
+              : (isDark ? const Color(0xFF263348) : const Color(0xFFE2E8F0)),
           width: cantidadEnCarrito > 0 ? 2.0 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
             color: cantidadEnCarrito > 0
-                ? _colorMarca.withValues(alpha: 0.20)
+                ? _colorMarcaProfundo.withValues(alpha: isDark ? 0.30 : 0.18)
                 : (isDark
-                      ? Colors.black.withValues(alpha: 0.25)
-                      : const Color(0xFF0F172A).withValues(alpha: 0.05)),
-            blurRadius: isTablet ? 12 : 8,
-            offset: const Offset(0, 3),
+                      ? Colors.black.withValues(alpha: 0.28)
+                      : const Color(0xFF0F172A).withValues(alpha: 0.06)),
+            blurRadius: isTablet ? 14 : 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -2513,17 +3177,26 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Imagen del Producto adaptativa y ampliada
+                    // Escenario de estudio limpio (sin doble marco)
                     Expanded(
                       flex: 3,
                       child: Container(
-                        margin: EdgeInsets.all(isTablet ? 10 : 8),
+                        margin: EdgeInsets.fromLTRB(
+                          isTablet ? 10 : 8,
+                          isTablet ? 10 : 8,
+                          isTablet ? 10 : 8,
+                          isTablet ? 6 : 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF0F172A)
-                              : const Color(0xFFF8FAFC),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(
                             isTablet ? 16 : 14,
+                          ),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.08)
+                                : const Color(0xFFF1F5F9),
+                            width: 1.0,
                           ),
                         ),
                         child: Stack(
@@ -2535,9 +3208,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   boxConstraints.maxHeight,
                                 );
                                 final double effectiveSize =
-                                    (availableMax * 0.88).clamp(
-                                      64.0,
-                                      config.maxImageSize,
+                                    (availableMax * 0.90).clamp(
+                                      68.0,
+                                      config.maxImageSize + 14,
                                     );
                                 return Center(
                                   child: ProductImageWidget(
@@ -2546,8 +3219,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     codigoBarras: codigoBarras,
                                     categoria: categoria,
                                     size: effectiveSize,
-                                    borderRadius: isTablet ? 16 : 14,
-                                    isDark: isDark,
+                                    borderRadius: isTablet ? 14 : 12,
+                                    isDark: false,
+                                    seamless: true,
                                   ),
                                 );
                               },
@@ -2559,29 +3233,45 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 7,
-                                    vertical: 3,
+                                    vertical: 3.5,
                                   ),
                                   decoration: BoxDecoration(
                                     color: _parseColorBadge(prod['colorBadge']),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
                                         color: _parseColorBadge(
                                           prod['colorBadge'],
-                                        ).withValues(alpha: 0.4),
-                                        blurRadius: 4,
+                                        ).withValues(alpha: 0.35),
+                                        blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
-                                  child: Text(
-                                    prod['badgePromocion']?.toString() ??
-                                        '🔥 OFERTA',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: isTablet ? 11 : 10,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _iconoParaPromo(
+                                          prod['badgePromocion']?.toString() ??
+                                              'OFERTA',
+                                        ),
+                                        size: 10.5,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        _limpiarBadgePromo(
+                                          prod['badgePromocion']?.toString() ??
+                                              'OFERTA',
+                                        ),
+                                        style: GoogleFonts.outfit(
+                                          fontSize: isTablet ? 10.5 : 9.5,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -2592,17 +3282,17 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 7,
-                                    vertical: 3,
+                                    vertical: 3.5,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _colorMarca,
-                                    borderRadius: BorderRadius.circular(6),
+                                    gradient: _brandGradient,
+                                    borderRadius: BorderRadius.circular(8),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.2,
+                                        color: _colorMarcaProfundo.withValues(
+                                          alpha: 0.30,
                                         ),
-                                        blurRadius: 4,
+                                        blurRadius: 5,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
@@ -2633,7 +3323,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       ),
                     ),
 
-                    // Datos del Producto (Categoría, Título, Precio)
+                    // Datos del Producto (Categoría con Icono, Marca, Título, Precio)
                     Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: config.cardPadding,
@@ -2649,33 +3339,48 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             children: [
                               Container(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: isTablet ? 8 : 6,
+                                  horizontal: isTablet ? 7 : 5.5,
                                   vertical: isTablet ? 3 : 2,
                                 ),
                                 decoration: BoxDecoration(
                                   color: catColor.withValues(
-                                    alpha: isDark ? 0.20 : 0.10,
+                                    alpha: isDark ? 0.20 : 0.11,
                                   ),
                                   borderRadius: BorderRadius.circular(
-                                    isTablet ? 7 : 5,
+                                    isTablet ? 7 : 5.5,
                                   ),
                                   border: Border.all(
                                     color: catColor.withValues(
-                                      alpha: isDark ? 0.35 : 0.25,
+                                      alpha: isDark ? 0.38 : 0.24,
                                     ),
-                                    width: 0.7,
+                                    width: 0.8,
                                   ),
                                 ),
-                                child: Text(
-                                  categoria.toUpperCase(),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: config.categoriaFontSize,
-                                    fontWeight: FontWeight.w800,
-                                    color: catColor,
-                                    letterSpacing: 0.3,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      catIcon,
+                                      size: isTablet ? 11 : 9.5,
+                                      color: catColor,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        categoria.toUpperCase(),
+                                        style: GoogleFonts.outfit(
+                                          fontSize:
+                                              (config.categoriaFontSize - 0.5)
+                                                  .clamp(8.5, 11.0),
+                                          fontWeight: FontWeight.w800,
+                                          color: catColor,
+                                          letterSpacing: 0.25,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               if (prod['marca'] != null &&
@@ -2697,16 +3402,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? const Color(0xFF1E293B)
+                                        ? const Color(0xFF0F172A)
                                         : const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(
-                                      isTablet ? 7 : 5,
+                                      isTablet ? 7 : 5.5,
                                     ),
                                     border: Border.all(
                                       color: isDark
                                           ? const Color(0xFF334155)
                                           : const Color(0xFFE2E8F0),
-                                      width: 0.6,
+                                      width: 0.7,
                                     ),
                                   ),
                                   child: Text(
@@ -2716,13 +3421,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                         .toUpperCase(),
                                     style: GoogleFonts.outfit(
                                       fontSize:
-                                          (config.categoriaFontSize * 0.95)
-                                              .clamp(8.5, 11.0),
+                                          (config.categoriaFontSize * 0.90)
+                                              .clamp(8.5, 10.5),
                                       fontWeight: FontWeight.w700,
                                       color: isDark
                                           ? const Color(0xFF94A3B8)
-                                          : const Color(0xFF64748B),
-                                      letterSpacing: 0.3,
+                                          : const Color(0xFF475569),
+                                      letterSpacing: 0.25,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -2739,12 +3444,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       0xFF0284C7,
                                     ).withValues(alpha: isDark ? 0.25 : 0.12),
                                     borderRadius: BorderRadius.circular(
-                                      isTablet ? 7 : 5,
+                                      isTablet ? 7 : 5.5,
                                     ),
                                     border: Border.all(
                                       color: const Color(0xFF0284C7)
-                                          .withValues(alpha: 0.3),
-                                      width: 0.6,
+                                          .withValues(alpha: 0.35),
+                                      width: 0.7,
                                     ),
                                   ),
                                   child: Row(
@@ -2760,10 +3465,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                         'Retornable',
                                         style: GoogleFonts.outfit(
                                           fontSize:
-                                              (config.categoriaFontSize * 0.95)
-                                                  .clamp(8.5, 11.0),
+                                              (config.categoriaFontSize * 0.90)
+                                                  .clamp(8.5, 10.5),
                                           fontWeight: FontWeight.w800,
-                                          color: const Color(0xFF0284C7),
+                                          color: isDark
+                                              ? const Color(0xFF38BDF8)
+                                              : const Color(0xFF0369A1),
                                         ),
                                       ),
                                     ],
@@ -2771,14 +3478,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 ),
                             ],
                           ),
-                          SizedBox(height: isTablet ? 5 : 3),
+                          SizedBox(height: isTablet ? 6 : 4),
                           Text(
                             nombre,
                             style: GoogleFonts.outfit(
                               fontSize: config.nombreFontSize,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                              height: 1.22,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                              height: 1.2,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -2791,10 +3500,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 Text(
                                   'S/ ${precio.toStringAsFixed(2)}',
                                   style: GoogleFonts.outfit(
-                                    fontSize: (config.precioFontSize * 0.68)
+                                    fontSize: (config.precioFontSize * 0.66)
                                         .clamp(9.5, 13.0),
                                     fontWeight: FontWeight.w700,
                                     decoration: TextDecoration.lineThrough,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
                                     color: isDark
                                         ? const Color(0xFF94A3B8)
                                         : const Color(0xFF64748B),
@@ -2804,14 +3516,14 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   const SizedBox(width: 5),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 4.5,
+                                      horizontal: 5,
                                       vertical: 1.5,
                                     ),
                                     decoration: BoxDecoration(
                                       color: _colorPromocion.withValues(
                                         alpha: 0.14,
                                       ),
-                                      borderRadius: BorderRadius.circular(4.5),
+                                      borderRadius: BorderRadius.circular(5),
                                       border: Border.all(
                                         color: _colorPromocion.withValues(
                                           alpha: 0.35,
@@ -2838,6 +3550,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: config.precioFontSize,
                                 fontWeight: FontWeight.w900,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                                 color: _colorPromocion,
                                 letterSpacing: -0.3,
                               ),
@@ -2848,9 +3563,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: config.precioFontSize,
                                 fontWeight: FontWeight.w900,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                                 color: isDark
                                     ? Colors.white
-                                    : AppTheme.textDark,
+                                    : const Color(0xFF0F172A),
                                 letterSpacing: -0.3,
                               ),
                             ),
@@ -2864,20 +3582,34 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             ),
           ),
 
-          // Botón / Selector de Cantidad
+          // Botón CTA de Alto Contraste / Selector de Cantidad
           Padding(
             padding: EdgeInsets.fromLTRB(
               config.cardPadding,
-              isTablet ? 6 : 3,
+              isTablet ? 6 : 4,
               config.cardPadding,
               config.cardPadding,
             ),
             child: cantidadEnCarrito == 0
-                ? SizedBox(
+                ? Container(
                     height: config.botonHeight,
+                    decoration: BoxDecoration(
+                      gradient: _brandGradient,
+                      borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _colorMarcaProfundo.withValues(
+                            alpha: isDark ? 0.30 : 0.22,
+                          ),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _colorMarca,
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: EdgeInsets.zero,
@@ -2894,6 +3626,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: config.botonFontSize,
                           fontWeight: FontWeight.w800,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
@@ -2901,10 +3634,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                 : Container(
                     height: config.botonHeight,
                     decoration: BoxDecoration(
-                      color: _colorMarca.withValues(alpha: 0.12),
+                      color: _colorMarcaTexto(isDark)
+                          .withValues(alpha: isDark ? 0.18 : 0.10),
                       borderRadius: BorderRadius.circular(isTablet ? 12 : 10),
                       border: Border.all(
-                        color: _colorMarca.withValues(alpha: 0.3),
+                        color: _colorMarcaTexto(isDark).withValues(alpha: 0.40),
+                        width: 1.2,
                       ),
                     ),
                     child: Row(
@@ -2919,7 +3654,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           icon: Icon(
                             LucideIcons.minus,
                             size: config.botonIconSize,
-                            color: _colorMarca,
+                            color: _colorMarcaTexto(isDark),
                           ),
                           onPressed: () => _modificarCantidad(id, -1),
                         ),
@@ -2928,7 +3663,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: config.botonFontSize + 1,
                             fontWeight: FontWeight.w900,
-                            color: _colorMarca,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                            color: _colorMarcaTexto(isDark),
                           ),
                         ),
                         IconButton(
@@ -2940,7 +3676,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           icon: Icon(
                             LucideIcons.plus,
                             size: config.botonIconSize,
-                            color: _colorMarca,
+                            color: _colorMarcaTexto(isDark),
                           ),
                           onPressed: () => _modificarCantidad(id, 1),
                         ),
@@ -3082,26 +3818,52 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             ),
                             const SizedBox(width: 6),
                             Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _colorMarca.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  categoria.toUpperCase(),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: _colorMarca,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                ),
+                              child: Builder(
+                                builder: (_) {
+                                  final cColor = CategoryHelper.getColor(
+                                    categoria,
+                                    isDark,
+                                  );
+                                  final cIcon = CategoryHelper.getIcon(
+                                    categoria,
+                                  );
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: cColor.withValues(
+                                        alpha: isDark ? 0.22 : 0.12,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: cColor.withValues(alpha: 0.32),
+                                        width: 0.9,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(cIcon, size: 13, color: cColor),
+                                        const SizedBox(width: 5),
+                                        Flexible(
+                                          child: Text(
+                                            categoria.toUpperCase(),
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w800,
+                                              color: cColor,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -3120,21 +3882,43 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         ),
                         const SizedBox(height: 10),
 
-                        // Fotografía Packshot en Gran Detalle
+                        // Fotografía Packshot en Gran Detalle (Escenario estudio limpio)
                         Center(
-                          child: ProductImageWidget(
-                            imagenUrl: imagenUrl,
-                            nombre: nombre,
-                            codigoBarras: codigoBarras,
-                            categoria: categoria,
-                            size:
-                                (MediaQuery.of(modalCtx).size.height < 700 ||
-                                    MediaQuery.of(modalCtx).size.width < 380)
-                                ? 120
-                                : 160,
-                            borderRadius: 24,
-                            isDark: isDark,
-                            padding: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.12)
+                                    : const Color(0xFFE2E8F0),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.25 : 0.06,
+                                  ),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ProductImageWidget(
+                              imagenUrl: imagenUrl,
+                              nombre: nombre,
+                              codigoBarras: codigoBarras,
+                              categoria: categoria,
+                              size:
+                                  (MediaQuery.of(modalCtx).size.height < 700 ||
+                                      MediaQuery.of(modalCtx).size.width < 380)
+                                  ? 124
+                                  : 164,
+                              borderRadius: 18,
+                              isDark: false,
+                              seamless: true,
+                              padding: 4,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -4491,7 +5275,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   // En pantallas tablet hay espacio para ambos botones completos
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: isDark ? Colors.white : _colorMarca,
+                      foregroundColor: _colorMarcaTexto(isDark),
                       side: BorderSide(
                         color: isDark
                             ? const Color(0xFF334155)
@@ -4545,7 +5329,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                   // En móviles: Botón directo para Ver Pedido y finalizar por WhatsApp
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _colorMarca,
+                      backgroundColor: _colorMarcaProfundo,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(

@@ -24,6 +24,7 @@ class ProductImageWidget extends StatelessWidget {
   final double borderRadius;
   final bool isDark;
   final double padding;
+  final bool seamless;
   final VoidCallback? onTap;
 
   const ProductImageWidget({
@@ -36,6 +37,7 @@ class ProductImageWidget extends StatelessWidget {
     this.borderRadius = 14.0,
     this.isDark = false,
     this.padding = 4.0,
+    this.seamless = false,
     this.onTap,
   });
 
@@ -135,25 +137,32 @@ class ProductImageWidget extends StatelessWidget {
       content = Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(
-            color: isDark
-                ? AppTheme.borderDarkElevated
-                : const Color(0xFFE2E8F0),
-            width: 1.0,
-          ),
-          boxShadow: [
-            if (!isDark)
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
+        decoration: seamless
+            ? BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(borderRadius),
+              )
+            : BoxDecoration(
+                color: isDark
+                    ? AppTheme.cardDarkHighlight
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(borderRadius),
+                border: Border.all(
+                  color: isDark
+                      ? AppTheme.borderDarkElevated
+                      : const Color(0xFFE2E8F0),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  if (!isDark)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                ],
               ),
-          ],
-        ),
-        padding: EdgeInsets.all(padding),
+        padding: EdgeInsets.all(seamless ? (padding * 0.5) : padding),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius - 2),
           child: Image.network(
