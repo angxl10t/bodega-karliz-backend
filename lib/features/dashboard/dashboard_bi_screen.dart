@@ -416,29 +416,53 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
 
   Widget _buildDashboardContent(bool isDark) {
     final data = _data!;
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Selector de Rango Temporal
-          _buildPeriodSelector(isDark),
-          const SizedBox(height: 16),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 950;
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Selector de Rango Temporal
+              _buildPeriodSelector(isDark),
+              const SizedBox(height: 16),
 
-          // Tarjetas de Rentabilidad y Métricas Clave (KPIs)
-          _buildRentabilidadSection(data, isDark),
-          const SizedBox(height: 20),
+              // Tarjetas de Rentabilidad y Métricas Clave (KPIs)
+              _buildRentabilidadSection(data, isDark, isWide: isWide),
+              const SizedBox(height: 20),
 
-          // Mapa de Calor de Horarios Pico (24 Horas)
-          _buildHorariosPicoSection(data, isDark),
-          const SizedBox(height: 20),
+              // Cockpit responsivo: Si es Desktop (>= 950px), 2 columnas balanceadas
+              if (isWide)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Columna Izquierda: Mapa de Calor 24H
+                    Expanded(
+                      flex: 6,
+                      child: _buildHorariosPicoSection(data, isDark),
+                    ),
+                    const SizedBox(width: 16),
 
-          // Reporte de Rotación: Estrellas vs Huesos
-          _buildRotacionSection(data, isDark),
-          const SizedBox(height: 40),
-        ],
-      ),
+                    // Columna Derecha: Reporte de Rotación Táctico
+                    Expanded(
+                      flex: 6,
+                      child: _buildRotacionSection(data, isDark),
+                    ),
+                  ],
+                )
+              else ...[
+                // En móvil se apilan verticalmente
+                _buildHorariosPicoSection(data, isDark),
+                const SizedBox(height: 20),
+                _buildRotacionSection(data, isDark),
+              ],
+              const SizedBox(height: 40),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -514,54 +538,43 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
     );
   }
 
-  Widget _buildRentabilidadSection(DashboardBiData data, bool isDark) {
+  Widget _buildRentabilidadSection(
+    DashboardBiData data,
+    bool isDark, {
+    bool isWide = false,
+  }) {
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
-    final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
+    final borderColor = isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    final cardMargen = Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Stack(
           children: [
-            const Icon(
-              LucideIcons.trendingUp,
-              size: 20,
-              color: AppTheme.brandPrimary,
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4.5,
+              child: Container(color: AppTheme.accentGreen),
             ),
-            const SizedBox(width: 8),
-            Text(
-              'Métricas de Rentabilidad Real',
-              style: AppTheme.headingStyle(
-                size: 15,
-                weight: FontWeight.w700,
-                color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Grid o fila responsiva de KPIs
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 950;
-
-            final cardMargen = Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -572,11 +585,11 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
                             color: isDark
                                 ? AppTheme.textDarkSecondary
-                                : AppTheme.textMuted,
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ),
@@ -587,21 +600,30 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.accentGreen.withValues(alpha: 0.15),
+                          color: AppTheme.accentGreen.withValues(
+                            alpha: isDark ? 0.22 : 0.12,
+                          ),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.accentGreen.withValues(
+                              alpha: isDark ? 0.4 : 0.25,
+                            ),
+                            width: 1,
+                          ),
                         ),
                         child: Text(
                           '${data.porcentajeMargenBruto >= 0 ? "+" : ""}${data.porcentajeMargenBruto.toStringAsFixed(1)}%',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
+                          style: GoogleFonts.outfit(
+                            fontSize: 11.5,
                             fontWeight: FontWeight.w800,
                             color: AppTheme.accentGreen,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'S/ ${data.margenBrutoSoles.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
@@ -611,13 +633,13 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
 
                   // Mini barra de Costo vs Ganancia
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(4),
                     child: SizedBox(
-                      height: 8,
+                      height: 6,
                       child: Row(
                         children: [
                           Expanded(
@@ -648,7 +670,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                                               .toInt()
                                         : 30)
                                     .clamp(5, 95),
-                            child: Container(color: AppTheme.brandPrimary),
+                            child: Container(color: AppTheme.accentGreen),
                           ),
                         ],
                       ),
@@ -665,7 +687,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           fontWeight: FontWeight.w600,
                           color: isDark
                               ? AppTheme.textDarkSecondary
-                              : AppTheme.textMuted,
+                              : const Color(0xFF64748B),
                         ),
                       ),
                       Text(
@@ -675,24 +697,48 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           fontWeight: FontWeight.w600,
                           color: isDark
                               ? AppTheme.textDarkSecondary
-                              : AppTheme.textMuted,
+                              : const Color(0xFF64748B),
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-            );
+            ),
+          ],
+        ),
+      ),
+    );
 
-            final cardTicket = Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor),
-              ),
+    final cardTicket = Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4.5,
+              child: Container(color: const Color(0xFF2563EB)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -700,38 +746,41 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       Text(
                         'Ticket Promedio',
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
                           color: isDark
                               ? AppTheme.textDarkSecondary
-                              : AppTheme.textMuted,
+                              : const Color(0xFF64748B),
                         ),
                       ),
                       const Icon(
                         LucideIcons.receipt,
                         size: 18,
-                        color: AppTheme.brandPrimary,
+                        color: Color(0xFF2563EB),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'S/ ${data.ticketPromedioPeriodo.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
-                      color: isDark
-                          ? AppTheme.textDarkPrimary
-                          : AppTheme.textDark,
+                      color: isDark ? Colors.white : AppTheme.textDark,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.bgDark : AppTheme.surfaceTint,
-                      borderRadius: BorderRadius.circular(8),
+                      color: isDark
+                          ? AppTheme.cardDarkSunken
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -746,20 +795,29 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                                 fontWeight: FontWeight.w600,
                                 color: isDark
                                     ? AppTheme.textDarkSecondary
-                                    : AppTheme.textMuted,
+                                    : const Color(0xFF64748B),
                               ),
                             ),
                             Text(
                               'S/ ${data.ticketPromedioHoy.toStringAsFixed(2)}',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
-                                color: AppTheme.brandPrimary,
+                                color: const Color(0xFF2563EB),
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                        Container(width: 1, height: 20, color: borderColor),
+                        Container(
+                          width: 1,
+                          height: 20,
+                          color: isDark
+                              ? AppTheme.borderDark
+                              : const Color(0xFFCBD5E1),
+                        ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -770,17 +828,20 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                                 fontWeight: FontWeight.w600,
                                 color: isDark
                                     ? AppTheme.textDarkSecondary
-                                    : AppTheme.textMuted,
+                                    : const Color(0xFF64748B),
                               ),
                             ),
                             Text(
                               'S/ ${data.ticketPromedioSemanal.toStringAsFixed(2)}',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
                                 color: isDark
-                                    ? AppTheme.textDarkPrimary
+                                    ? Colors.white
                                     : AppTheme.textDark,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
                               ),
                             ),
                           ],
@@ -790,17 +851,41 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                   ),
                 ],
               ),
-            );
+            ),
+          ],
+        ),
+      ),
+    );
 
-            final cardHuesoKpi = Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor),
-              ),
+    final cardHuesoKpi = Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 4.5,
+              child: Container(color: AppTheme.alertRed),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -811,11 +896,11 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
                             color: isDark
                                 ? AppTheme.textDarkSecondary
-                                : AppTheme.textMuted,
+                                : const Color(0xFF64748B),
                           ),
                         ),
                       ),
@@ -826,27 +911,37 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.alertRed.withValues(alpha: 0.15),
+                          color: AppTheme.alertRed.withValues(
+                            alpha: isDark ? 0.22 : 0.12,
+                          ),
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.alertRed.withValues(
+                              alpha: isDark ? 0.4 : 0.25,
+                            ),
+                            width: 1,
+                          ),
                         ),
                         child: Text(
                           '${data.totalProductosHueso} productos',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.outfit(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
                             color: AppTheme.alertRed,
+                            fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'S/ ${data.totalCapitalInmovilizado.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
                       fontSize: 26,
                       fontWeight: FontWeight.w900,
                       color: AppTheme.alertRed,
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -856,37 +951,65 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                       fontSize: 11,
                       color: isDark
                           ? AppTheme.textDarkSecondary
-                          : AppTheme.textMuted,
-                      height: 1.3,
+                          : const Color(0xFF64748B),
+                      height: 1.35,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            );
-
-            if (isWide) {
-              return Row(
-                children: [
-                  Expanded(child: cardMargen),
-                  const SizedBox(width: 12),
-                  Expanded(child: cardTicket),
-                  const SizedBox(width: 12),
-                  Expanded(child: cardHuesoKpi),
-                ],
-              );
-            } else {
-              return Column(
-                children: [
-                  cardMargen,
-                  const SizedBox(height: 12),
-                  cardTicket,
-                  const SizedBox(height: 12),
-                  cardHuesoKpi,
-                ],
-              );
-            }
-          },
+            ),
+          ],
         ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              LucideIcons.trendingUp,
+              size: 20,
+              color: AppTheme.brandPrimary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Métricas de Rentabilidad Real',
+              style: AppTheme.headingStyle(
+                size: 15,
+                weight: FontWeight.w700,
+                color: isDark ? AppTheme.textDarkPrimary : AppTheme.textDark,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (isWide)
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: cardMargen),
+                const SizedBox(width: 12),
+                Expanded(child: cardTicket),
+                const SizedBox(width: 12),
+                Expanded(child: cardHuesoKpi),
+              ],
+            ),
+          )
+        else
+          Column(
+            children: [
+              cardMargen,
+              const SizedBox(height: 12),
+              cardTicket,
+              const SizedBox(height: 12),
+              cardHuesoKpi,
+            ],
+          ),
       ],
     );
   }
