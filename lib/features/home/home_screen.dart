@@ -110,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
     BodegaService.sugerenciasPendientesNotifier.addListener(
       _onSugerenciasNotifierChanged,
     );
+    HardwareKeyboard.instance.addHandler(_handleGlobalShortcut);
     _cargarDatosUsuario();
     _resetInactivityTimer();
     _screens = [
@@ -135,6 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleGlobalShortcut);
     BodegaService.sugerenciasPendientesNotifier.removeListener(
       _onSugerenciasNotifierChanged,
     );
@@ -142,6 +144,36 @@ class _HomeScreenState extends State<HomeScreen> {
     _activeTabNotifier.dispose();
     _topBarRevision.dispose();
     super.dispose();
+  }
+
+  bool _handleGlobalShortcut(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (!mounted || LockService().isLocked) return false;
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) return false;
+
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.f1) {
+      _selectTab(0);
+      return true;
+    }
+    if (key == LogicalKeyboardKey.f2) {
+      _selectTab(1);
+      return true;
+    }
+    if (key == LogicalKeyboardKey.f3) {
+      _selectTab(3);
+      return true;
+    }
+    if (key == LogicalKeyboardKey.f4) {
+      _selectTab(2);
+      return true;
+    }
+    if (key == LogicalKeyboardKey.f5) {
+      _selectTab(4);
+      return true;
+    }
+    return false;
   }
 
   void _resetInactivityTimer({bool throttle = false}) {

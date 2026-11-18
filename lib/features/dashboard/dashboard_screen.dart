@@ -143,6 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     ProductoService.productosRevision.addListener(_onProductosRevisionChanged);
     VentaService.ventasRevision.addListener(_onVentasRevisionChanged);
     _searchFocusNode.addListener(_onSearchFocusChanged);
+    HardwareKeyboard.instance.addHandler(_handleSearchShortcut);
     _cargarMetaDiaria();
     _cargarFavoritos();
     _cargarDatos();
@@ -155,8 +156,36 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
+  bool _handleSearchShortcut(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    if (!mounted || !isTabCurrentlyVisible) return false;
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) return false;
+
+    final isCtrlOrMeta =
+        HardwareKeyboard.instance.isControlPressed ||
+        HardwareKeyboard.instance.isMetaPressed;
+    if (isCtrlOrMeta && event.logicalKey == LogicalKeyboardKey.keyK) {
+      _searchFocusNode.requestFocus();
+      setState(() => _searchOpen = true);
+      return true;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.escape &&
+        (_searchOpen || _searchQuery.isNotEmpty)) {
+      _searchCtrl.clear();
+      _searchFocusNode.unfocus();
+      setState(() {
+        _searchQuery = '';
+        _searchOpen = false;
+      });
+      return true;
+    }
+    return false;
+  }
+
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleSearchShortcut);
     disposeTabVisibilityListener();
     ProductoService.productosRevision.removeListener(
       _onProductosRevisionChanged,
@@ -208,6 +237,115 @@ class _DashboardScreenState extends State<DashboardScreen>
         setState(() => _favoritosIds = list);
       }
     } catch (_) {}
+  }
+
+  Future<bool> _confirmarToggleFavorito(
+    String opId,
+    String opTitle, {
+    bool? isDarkOverride,
+  }) async {
+    HapticFeedback.selectionClick();
+    final bool removing = _favoritosIds.contains(opId);
+
+    if (removing && _favoritosIds.length <= 1) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Debes mantener al menos un acceso rápido.'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return false;
+    }
+
+    final isDark =
+        isDarkOverride ?? Theme.of(context).brightness == Brightness.dark;
+    final accentColor = removing ? AppTheme.alertRed : AppTheme.brandPrimary;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                removing ? LucideIcons.bookmarkMinus : LucideIcons.bookmarkPlus,
+                color: accentColor,
+                size: 19,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                removing
+                    ? '¿Quitar de accesos rápidos?'
+                    : '¿Añadir a accesos rápidos?',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          removing
+              ? '¿Deseas quitar "$opTitle" de tus accesos rápidos en la página de inicio?'
+              : '¿Deseas añadir "$opTitle" a tus accesos rápidos en la página de inicio?',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            height: 1.4,
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF475569),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              removing ? 'Sí, quitar' : 'Sí, añadir',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return false;
+    await _toggleFavorito(opId, opTitle);
+    return true;
   }
 
   Future<void> _toggleFavorito(String opId, [String? opTitle]) async {
@@ -767,8 +905,38 @@ class _DashboardScreenState extends State<DashboardScreen>
 
       // --- MOSTRADOR ---
       _OperacionItem(
+        id: 'cobrar_pos',
+        categoria: 'mostrador',
+        title: 'Cobrar en POS',
+        subtitle: 'Terminal de venta rápida',
+        icon: LucideIcons.shoppingBag,
+        color: AppTheme.brandPrimary,
+        onTap: () => widget.onNavigateTab(1),
+      ),
+      _OperacionItem(
+        id: 'arqueo_caja',
+        categoria: 'mostrador',
+        title: 'Arqueo de Caja',
+        subtitle: 'Corte, historial y cuadre',
+        icon: LucideIcons.banknote,
+        color: AppTheme.accentGreen,
+        onTap: () => widget.onNavigateTab(2),
+      ),
+      _OperacionItem(
+        id: 'fiados',
+        categoria: 'mostrador',
+        title: 'Libreta de Fiados',
+        subtitle: 'Cobros y WhatsApp',
+        icon: LucideIcons.bookUser,
+        color: const Color(0xFFD97706),
+        onTap: () {
+          widget.onNavigateTab(4);
+          ClientesScreen.cambiarPestana(0);
+        },
+      ),
+      _OperacionItem(
         id: 'garantias',
-        categoria: 'gestion',
+        categoria: 'mostrador',
         title: 'Garantía Botellas',
         subtitle: 'Envases retornables',
         icon: LucideIcons.wine,
@@ -787,20 +955,25 @@ class _DashboardScreenState extends State<DashboardScreen>
         .toList();
     final List<_OperacionItem> seleccionados = [];
 
+    // Mostrar exactamente los accesos directos elegidos por el usuario, sin
+    // truncarlos a 6 ni volver a inyectar los que el usuario quitó.
     for (final id in _favoritosIds) {
       final idx = todas.indexWhere((op) => op.id == id);
       if (idx != -1 && !seleccionados.contains(todas[idx])) {
         seleccionados.add(todas[idx]);
       }
-      if (seleccionados.length >= 6) break;
     }
 
-    // Completar hasta 6 con defaults para mantener grilla equilibrada 3x2 / 2x3
-    for (final id in _defaultFavoritos) {
-      if (seleccionados.length >= 6) break;
-      final idx = todas.indexWhere((op) => op.id == id);
-      if (idx != -1 && !seleccionados.contains(todas[idx])) {
-        seleccionados.add(todas[idx]);
+    // Respaldo solo si todos los guardados no fueran visibles para el rol actual
+    if (seleccionados.isEmpty && todas.isNotEmpty) {
+      for (final id in _defaultFavoritos) {
+        final idx = todas.indexWhere((op) => op.id == id);
+        if (idx != -1 && !seleccionados.contains(todas[idx])) {
+          seleccionados.add(todas[idx]);
+        }
+      }
+      if (seleccionados.isEmpty) {
+        seleccionados.add(todas.first);
       }
     }
     return seleccionados;
@@ -961,8 +1134,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                                               : const Color(0xFF94A3B8)),
                                   ),
                                   onPressed: () async {
-                                    await _toggleFavorito(op.id, op.title);
-                                    setModalState(() {});
+                                    final changed =
+                                        await _confirmarToggleFavorito(
+                                          op.id,
+                                          op.title,
+                                          isDarkOverride: isDark,
+                                        );
+                                    if (changed) {
+                                      setModalState(() {});
+                                    }
                                   },
                                 ),
                               ],
@@ -1019,7 +1199,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                         ),
                                       ),
                                       Text(
-                                        'Toca el marcador para fijar tus 6 accesos rápidos en el inicio.',
+                                        'Toca el marcador para añadir o quitar accesos rápidos en el inicio.',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
                                           color: isDark
@@ -1048,9 +1228,20 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Expanded(
-                                    child: buildCategoryGroup(
-                                      'ALMACÉN',
-                                      'almacen',
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        buildCategoryGroup(
+                                          'ALMACÉN',
+                                          'almacen',
+                                        ),
+                                        const SizedBox(height: 12),
+                                        buildCategoryGroup(
+                                          'MOSTRADOR',
+                                          'mostrador',
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(width: 14),
@@ -1082,6 +1273,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 'GESTIÓN & HARDWARE',
                                 'gestion',
                               ),
+                              const SizedBox(height: 12),
+                              buildCategoryGroup('MOSTRADOR', 'mostrador'),
                             ],
                           ],
                         ),
@@ -2992,12 +3185,17 @@ class _DashboardScreenState extends State<DashboardScreen>
                       color: tileBg,
                       borderRadius: BorderRadius.circular(14),
                       child: InkWell(
+                        mouseCursor: SystemMouseCursors.click,
                         borderRadius: BorderRadius.circular(14),
                         onTap: () {
                           HapticFeedback.selectionClick();
                           op.onTap();
                         },
-                        onLongPress: () => _toggleFavorito(op.id, op.title),
+                        onLongPress: () => _confirmarToggleFavorito(
+                          op.id,
+                          op.title,
+                          isDarkOverride: isDark,
+                        ),
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -3026,26 +3224,58 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       color: op.color,
                                     ),
                                   ),
-                                  if (op.isLocked)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                        vertical: 1.5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFD97706)
-                                            .withValues(alpha: 0.16),
-                                        borderRadius: BorderRadius.circular(5),
-                                      ),
-                                      child: Text(
-                                        'PRO',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w900,
-                                          color: const Color(0xFFD97706),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (op.isLocked) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 1.5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFD97706)
+                                                .withValues(alpha: 0.16),
+                                            borderRadius: BorderRadius.circular(
+                                              5,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'PRO',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                              color: const Color(0xFFD97706),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                      ],
+                                      Tooltip(
+                                        message: 'Quitar de accesos rápidos',
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          onTap: () => _confirmarToggleFavorito(
+                                            op.id,
+                                            op.title,
+                                            isDarkOverride: isDark,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(4),
+                                            child: Icon(
+                                              LucideIcons.bookmarkCheck,
+                                              size: 14,
+                                              color: isDark
+                                                  ? AppTheme.textDarkSecondary
+                                                  : const Color(0xFF94A3B8),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                    ],
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 10),

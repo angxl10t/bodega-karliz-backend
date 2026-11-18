@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +29,7 @@ void main() {
   });
 
   testWidgets(
-    'DashboardScreen renderiza Accesos rápidos, modal Todas las Herramientas y buscador global',
+    'DashboardScreen muestra exactamente los accesos rápidos guardados, confirma al añadir/quitar y soporta buscador global',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(1280, 900));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -45,19 +46,12 @@ void main() {
       // Cabecera unificada con saludo y buscador global
       expect(find.text('Hola, admin'), findsOneWidget);
       expect(find.text('Nueva Venta'), findsOneWidget);
-      expect(
-        find.byWidgetPredicate(
-          (w) =>
-              w is TextField &&
-              (w.decoration?.hintText?.contains('Buscar producto') ?? false),
-        ),
-        findsOneWidget,
-      );
 
-      // Sección de Accesos rápidos con favoritos guardados + defaults
+      // Muestra únicamente los 2 favoritos guardados (sin rellenar forzadamente con otros)
       expect(find.text('Accesos rápidos'), findsOneWidget);
       expect(find.text('+ Nuevo Producto'), findsOneWidget);
       expect(find.text('Compras & Lotes'), findsOneWidget);
+      expect(find.text('Kardex Auditoría'), findsNothing);
       expect(find.textContaining('Ver todas ('), findsOneWidget);
 
       // Probar buscador global de módulos
@@ -66,28 +60,60 @@ void main() {
       expect(find.textContaining('MÓDULOS Y HERRAMIENTAS'), findsOneWidget);
       expect(find.text('Kardex Auditoría'), findsAtLeastNWidgets(1));
 
-      // Limpiar búsqueda
-      await tester.enterText(find.byType(TextField).first, '');
+      // Limpiar búsqueda con Escape
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pump();
+      expect(find.textContaining('MÓDULOS Y HERRAMIENTAS'), findsNothing);
 
-      // Abrir modal de Todas las Herramientas
+      // Abrir modal Todas las Herramientas y añadir Kardex Auditoría con alerta de confirmación
       await tester.tap(find.textContaining('Ver todas ('));
       await tester.pumpAndSettle();
 
       expect(find.text('Todas las Herramientas'), findsOneWidget);
       expect(find.text('ALMACÉN'), findsOneWidget);
+      expect(find.text('MOSTRADOR'), findsOneWidget);
       expect(find.text('VENTAS & WEB'), findsOneWidget);
       expect(find.text('GESTIÓN & HARDWARE'), findsOneWidget);
-      expect(find.text('Control Vencimientos'), findsOneWidget);
-      expect(find.text('Mi Bodega Online'), findsAtLeastNWidgets(1));
-      expect(find.text('Impresora Térmica'), findsAtLeastNWidgets(1));
 
-      // Cerrar modal y probar long-press en favorito
-      await tester.tapAt(const Offset(10, 10));
+      final kardexCard = find.ancestor(
+        of: find.text('Kardex Auditoría'),
+        matching: find.byType(InkWell),
+      );
+      await tester.tap(
+        find.descendant(
+          of: kardexCard.first,
+          matching: find.byType(IconButton),
+        ),
+      );
       await tester.pumpAndSettle();
 
+      // Alerta de confirmación para añadir
+      expect(find.text('¿Añadir a accesos rápidos?'), findsOneWidget);
+      expect(
+        find.textContaining('¿Deseas añadir "Kardex Auditoría"'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Sí, añadir'));
+      await tester.pumpAndSettle();
+
+      // Cerrar modal y verificar que Kardex Auditoría aparece en el inicio
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(find.text('Kardex Auditoría'), findsOneWidget);
+
+      // Probar long-press para quitar "Compras & Lotes" con alerta de confirmación
       await tester.longPress(find.text('Compras & Lotes'));
-      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('¿Quitar de accesos rápidos?'), findsOneWidget);
+      expect(
+        find.textContaining('¿Deseas quitar "Compras & Lotes"'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Sí, quitar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Compras & Lotes'), findsNothing);
       expect(
         find.textContaining(
           'Se quitó "Compras & Lotes" de tus accesos rápidos',
