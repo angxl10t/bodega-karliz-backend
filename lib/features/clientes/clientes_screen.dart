@@ -473,7 +473,7 @@ class _ClientesScreenState extends State<ClientesScreen>
               icon: Icon(
                 _tabController.index == 0
                     ? LucideIcons.userPlus
-                    : LucideIcons.wine,
+                    : LucideIcons.bottleWine,
                 size: 18,
               ),
               label: Text(
@@ -739,7 +739,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                                 Icon(
                                   _tabController.index == 0
                                       ? LucideIcons.userPlus
-                                      : LucideIcons.wine,
+                                      : LucideIcons.bottleWine,
                                   size: 14,
                                   color: Colors.white,
                                 ),
@@ -816,6 +816,9 @@ class _ClientesScreenState extends State<ClientesScreen>
       child: TabBar(
         controller: _tabController,
         mouseCursor: SystemMouseCursors.click,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        overlayColor: WidgetStateProperty.all(Colors.transparent),
         onTap: (_) => HapticFeedback.selectionClick(),
         indicator: BoxDecoration(
           color: _tabController.index == 0
@@ -844,9 +847,10 @@ class _ClientesScreenState extends State<ClientesScreen>
           fontSize: 12.5,
           fontWeight: FontWeight.w600,
         ),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+        labelPadding: EdgeInsets.zero,
         tabs: [
           Tab(
+            height: 38,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -866,11 +870,12 @@ class _ClientesScreenState extends State<ClientesScreen>
             ),
           ),
           Tab(
+            height: 38,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(LucideIcons.wine, size: 14),
+                const Icon(LucideIcons.bottleWine, size: 14),
                 const SizedBox(width: 5),
                 Flexible(
                   child: Text(
@@ -1026,7 +1031,7 @@ class _ClientesScreenState extends State<ClientesScreen>
 
     final card2 = _buildKpiCard(
       isDark: isDark,
-      icon: LucideIcons.wine,
+      icon: LucideIcons.bottleWine,
       title: 'Botellas Fuera',
       value: '$botellasPend botellas',
       subtitle: 'Por devolver',
@@ -1149,7 +1154,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                 ),
                 elevation: 0,
               ),
-              icon: const Icon(LucideIcons.wine, size: 15),
+              icon: const Icon(LucideIcons.bottleWine, size: 15),
               label: Text(
                 'Dejar Botellas',
                 style: GoogleFonts.outfit(
@@ -1320,7 +1325,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                             ),
                             child: Icon(
                               isPendiente
-                                  ? LucideIcons.wine
+                                  ? LucideIcons.bottleWine
                                   : LucideIcons.packageCheck,
                               size: 18,
                               color: isPendiente
@@ -1617,7 +1622,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                           .withValues(alpha: isDark ? 0.25 : 0.14),
                     ),
                     child: const Icon(
-                      LucideIcons.wine,
+                      LucideIcons.bottleWine,
                       size: 26,
                       color: Color(0xFF2563EB),
                     ),
