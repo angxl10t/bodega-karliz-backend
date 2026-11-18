@@ -114,7 +114,9 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
 
-        await tester.pumpWidget(const MaterialApp(home: Scaffold(body: ProductosScreen())));
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: ProductosScreen())),
+        );
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
 
@@ -169,7 +171,9 @@ void main() {
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
 
-        await tester.pumpWidget(const MaterialApp(home: Scaffold(body: ProductosScreen())));
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: ProductosScreen())),
+        );
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
 
@@ -223,7 +227,9 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(const MaterialApp(home: Scaffold(body: ProductosScreen())));
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: ProductosScreen())),
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 

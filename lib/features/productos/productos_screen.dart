@@ -1743,9 +1743,7 @@ class _ProductosScreenState extends State<ProductosScreen>
               HapticFeedback.lightImpact();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text(
-                    '¡Enlace de catálogo copiado al portapapeles!',
-                  ),
+                  content: Text('¡Enlace de catálogo copiado al portapapeles!'),
                   backgroundColor: AppTheme.accentGreen,
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -1758,9 +1756,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                 color: isDark ? AppTheme.cardDarkSunken : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isDark
-                      ? AppTheme.borderDark
-                      : const Color(0xFFCBD5E1),
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
                 ),
               ),
               child: Row(
@@ -1810,11 +1806,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    LucideIcons.qrCode,
-                    size: 13,
-                    color: Colors.white,
-                  ),
+                  const Icon(LucideIcons.qrCode, size: 13, color: Colors.white),
                   const SizedBox(width: 4),
                   Text(
                     'QR / Compartir',
@@ -1834,7 +1826,9 @@ class _ProductosScreenState extends State<ProductosScreen>
           margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDarkHighlight : const Color(0xFFEFF6FF),
+            color: isDark
+                ? AppTheme.cardDarkHighlight
+                : const Color(0xFFEFF6FF),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isDark
@@ -1852,7 +1846,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                            color: AppTheme.brandPrimary.withValues(
+                              alpha: 0.15,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -1871,7 +1867,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : AppTheme.textDark,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
                                 ),
                               ),
                               const SizedBox(height: 1),
