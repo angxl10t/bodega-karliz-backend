@@ -313,6 +313,9 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   Color _getCategoryColor(String? categoryName, bool isDark) {
+    if (categoryName == 'Promociones') {
+      return isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+    }
     // En el terminal POS mantenemos las categorías inactivas en pizarra neutra
     // para evitar el efecto arcoíris y dejar que destaquen las fotos y la selección activa.
     return isDark ? AppTheme.textDarkSecondary : const Color(0xFF64748B);
@@ -8172,6 +8175,7 @@ class _VentasScreenState extends State<VentasScreen>
                   final catIcon = _getCategoryIcon(cat);
                   final catColor = _getCategoryColor(cat, isDark);
                   final count = _getCountForCategoria(cat);
+                  final storeAccentColor = Theme.of(context).colorScheme.primary;
 
                   return Material(
                     color: Colors.transparent,
@@ -8192,18 +8196,14 @@ class _VentasScreenState extends State<VentasScreen>
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? (cat == 'Todos'
-                                    ? Theme.of(context).colorScheme.primary
-                                    : catColor)
+                              ? storeAccentColor
                               : (isDark
                                     ? AppTheme.cardDarkHighlight
                                     : const Color(0xFFF8FAFC)),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
-                                ? (cat == 'Todos'
-                                      ? Theme.of(context).colorScheme.primary
-                                      : catColor)
+                                ? storeAccentColor
                                 : (isDark
                                       ? AppTheme.borderDark
                                       : const Color(0xFFE2E8F0)),
@@ -8212,13 +8212,7 @@ class _VentasScreenState extends State<VentasScreen>
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color:
-                                        (cat == 'Todos'
-                                                ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                : catColor)
-                                            .withValues(alpha: 0.3),
+                                    color: storeAccentColor.withValues(alpha: 0.35),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -8437,17 +8431,19 @@ class _VentasScreenState extends State<VentasScreen>
                             decoration: BoxDecoration(
                               color: isDark
                                   ? (inCart
-                                        ? AppTheme.brandPrimary.withValues(
-                                            alpha: 0.16,
+                                        ? Theme.of(context).colorScheme.primary.withValues(
+                                            alpha: 0.18,
                                           )
                                         : const Color(0xFF1B2030))
                                   : (inCart
-                                        ? const Color(0xFFEFF6FF)
+                                        ? Theme.of(context).colorScheme.primary.withValues(
+                                            alpha: 0.08,
+                                          )
                                         : const Color(0xFFF8FAFC)),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: inCart
-                                    ? AppTheme.brandPrimary
+                                    ? Theme.of(context).colorScheme.primary
                                     : (isDark
                                           ? const Color(0xFF2C354C)
                                           : const Color(0xFFE2E8F0)),
@@ -8456,8 +8452,8 @@ class _VentasScreenState extends State<VentasScreen>
                               boxShadow: inCart
                                   ? [
                                       BoxShadow(
-                                        color: AppTheme.brandPrimary.withValues(
-                                          alpha: 0.14,
+                                        color: Theme.of(context).colorScheme.primary.withValues(
+                                          alpha: 0.20,
                                         ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
@@ -9793,7 +9789,7 @@ class _VentasScreenState extends State<VentasScreen>
     bool isExacto = false,
   }) {
     final isSelected = (_montoRecibido - amount).abs() < 0.01;
-    const primaryColor = AppTheme.brandPrimary;
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return ActionChip(
       avatar: isExacto
@@ -9802,7 +9798,7 @@ class _VentasScreenState extends State<VentasScreen>
               size: 13,
               color: isSelected
                   ? Colors.white
-                  : (isDark ? const Color(0xFF60A5FA) : AppTheme.brandPrimary),
+                  : (isDark ? primaryColor : primaryColor),
             )
           : null,
       label: Text(label),
@@ -9812,13 +9808,13 @@ class _VentasScreenState extends State<VentasScreen>
         color: isSelected
             ? Colors.white
             : (isExacto
-                  ? (isDark ? const Color(0xFF60A5FA) : AppTheme.brandPrimary)
+                  ? (isDark ? const Color(0xFF60A5FA) : primaryColor)
                   : (isDark ? Colors.white : AppTheme.textDark)),
       ),
       backgroundColor: isSelected
           ? primaryColor
           : (isExacto
-                ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.18 : 0.10)
+                ? primaryColor.withValues(alpha: isDark ? 0.18 : 0.10)
                 : (isDark
                       ? AppTheme.cardDarkHighlight
                       : const Color(0xFFF1F5F9))),
@@ -9826,7 +9822,7 @@ class _VentasScreenState extends State<VentasScreen>
         color: isSelected
             ? primaryColor
             : (isExacto
-                  ? AppTheme.brandPrimary.withValues(alpha: 0.35)
+                  ? primaryColor.withValues(alpha: 0.35)
                   : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0))),
         width: isSelected ? 1.4 : 1.0,
       ),
@@ -9841,7 +9837,7 @@ class _VentasScreenState extends State<VentasScreen>
 
   Widget _buildPaymentChip(String metodo, IconData icon, bool isDark) {
     final bool isSelected = _metodoPago == metodo;
-    const Color activeColor = AppTheme.brandPrimary;
+    final Color activeColor = Theme.of(context).colorScheme.primary;
 
     return Material(
       color: Colors.transparent,
@@ -11800,7 +11796,7 @@ class _VentasScreenState extends State<VentasScreen>
             duration: const Duration(milliseconds: 180),
             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
+              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
               borderRadius: BorderRadius.circular(9),
             ),
             child: Row(

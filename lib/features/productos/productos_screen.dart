@@ -2236,21 +2236,21 @@ class _ProductosScreenState extends State<ProductosScreen>
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppTheme.brandPrimary
+                ? Theme.of(context).colorScheme.primary
                 : (isDark
                       ? AppTheme.cardDarkHighlight
                       : const Color(0xFFF8FAFC)),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isSelected
-                  ? AppTheme.brandPrimary
+                  ? Theme.of(context).colorScheme.primary
                   : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
               width: isSelected ? 1.2 : 0.8,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.25),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),

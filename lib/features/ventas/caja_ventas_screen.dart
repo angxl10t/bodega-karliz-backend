@@ -6588,7 +6588,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     bool isDark,
   ) {
     final isSelected = _filtroEstadoVenta == key;
-    final color = accent ?? AppTheme.brandPrimary;
+    final color = accent ?? Theme.of(context).colorScheme.primary;
     return InkWell(
       onTap: () => setState(() => _filtroEstadoVenta = key),
       borderRadius: BorderRadius.circular(12),
