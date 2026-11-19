@@ -369,6 +369,25 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         .toList();
     final rawCats = (data['categorias'] as List<dynamic>?) ?? [];
     final catsList = rawCats.map((e) => e.toString()).toList();
+    final giro =
+        (bodegaMap['giroNegocio']?.toString() ??
+                data['giroNegocio']?.toString() ??
+                'BODEGA')
+            .toUpperCase();
+    final bool esGastro =
+        giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro.contains('FAST') ||
+        giro == 'RESTAURANTE';
+    if (esGastro) {
+      catsList.sort((a, b) {
+        final prioA = GastronomiaHelper.prioridadCategoria(a);
+        final prioB = GastronomiaHelper.prioridadCategoria(b);
+        if (prioA != prioB) return prioA.compareTo(prioB);
+        return a.compareTo(b);
+      });
+    }
 
     final rawPromos = (data['promociones'] as List<dynamic>?) ?? [];
     final promosList = rawPromos
@@ -533,12 +552,14 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           MarcaDetectorService.coincideMarca(query, marca, nombre);
     }).toList();
 
-    if (_ordenSeleccionado == 'PRECIO_ASC') {
+    if (_ordenSeleccionado == 'PRECIO_ASC' ||
+        _ordenSeleccionado == 'MENOR_PRECIO') {
       filtered.sort(
         (a, b) =>
             _precioEfectivoProducto(a).compareTo(_precioEfectivoProducto(b)),
       );
-    } else if (_ordenSeleccionado == 'PRECIO_DESC') {
+    } else if (_ordenSeleccionado == 'PRECIO_DESC' ||
+        _ordenSeleccionado == 'MAYOR_PRECIO') {
       filtered.sort(
         (a, b) =>
             _precioEfectivoProducto(b).compareTo(_precioEfectivoProducto(a)),
@@ -549,6 +570,31 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           (b['nombre']?.toString() ?? '').toLowerCase(),
         ),
       );
+    } else if (_esGastronomico) {
+      // Por defecto (DESTACADOS): En la carta gastronómica online, los Platos Principales
+      // salen siempre al frente y de forma prioritaria, mientras que gaseosas y cremas
+      // pasan a sus secciones complementarias correspondientes.
+      filtered.sort((a, b) {
+        final prioA = GastronomiaHelper.prioridadCulinaria(
+          a['nombre']?.toString(),
+          a['categoria']?.toString(),
+        );
+        final prioB = GastronomiaHelper.prioridadCulinaria(
+          b['nombre']?.toString(),
+          b['categoria']?.toString(),
+        );
+        if (prioA != prioB) return prioA.compareTo(prioB);
+
+        // A igualdad de prioridad: promociones primero
+        final promoA = a['tienePromocion'] == true ? 0 : 1;
+        final promoB = b['tienePromocion'] == true ? 0 : 1;
+        if (promoA != promoB) return promoA.compareTo(promoB);
+
+        // Mayor precio primero (platos insignia de mayor jerarquía)
+        final precioA = _precioEfectivoProducto(a);
+        final precioB = _precioEfectivoProducto(b);
+        return precioB.compareTo(precioA);
+      });
     }
     _cachedProductosFiltrados = filtered;
   }

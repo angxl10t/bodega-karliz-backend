@@ -501,5 +501,122 @@ void main() {
         expect(find.text('Pedir por WhatsApp'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'CatalogoPublicoScreen places Platos Principales prominently first over sodas and cremas',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        // Simular backend retornando bebidas y cremas antes que los platos
+        final mockClient = MockClient((request) async {
+          final data = {
+            'esPro': true,
+            'mensaje': null,
+            'giroNegocio': 'POLLERIA',
+            'bodega': {
+              'idBodega': 9,
+              'nombreComercial': 'La Leña & Brasa Express',
+              'telefono': '987000111',
+              'direccion': 'Av. Grau 456',
+              'lemaComercial': 'Sabor a leña de verdad',
+              'plan': 'PRO',
+              'esPro': true,
+              'giroNegocio': 'POLLERIA',
+              'deliveryActivo': true,
+            },
+            'categorias': [
+              'Bebidas y Gaseosas',
+              'Salsas y Cremas',
+              'Brasas y Pollos',
+              'Guarniciones',
+            ],
+            'productos': [
+              {
+                'idProducto': 901,
+                'codigo': 'BEB-01',
+                'nombre': 'Inca Kola 500ml',
+                'precioVenta': 5.00,
+                'stockActual': 100.0,
+                'categoria': 'Bebidas y Gaseosas',
+                'imagenUrl': '',
+                'disponible': true,
+              },
+              {
+                'idProducto': 902,
+                'codigo': 'SAL-01',
+                'nombre': 'Porción de Crema de Ají Pollero Extra',
+                'precioVenta': 3.00,
+                'stockActual': 100.0,
+                'categoria': 'Salsas y Cremas',
+                'imagenUrl': '',
+                'disponible': true,
+              },
+              {
+                'idProducto': 903,
+                'codigo': 'POL-01',
+                'nombre': '1 Pollo Entero a la Brasa con Papas y Ensalada',
+                'precioVenta': 68.00,
+                'stockActual': 50.0,
+                'categoria': 'Brasas y Pollos',
+                'imagenUrl': '',
+                'disponible': true,
+              },
+              {
+                'idProducto': 904,
+                'codigo': 'GUA-01',
+                'nombre': 'Porción de Papas Fritas Amarillas',
+                'precioVenta': 12.00,
+                'stockActual': 80.0,
+                'categoria': 'Guarniciones',
+                'imagenUrl': '',
+                'disponible': true,
+              },
+            ],
+          };
+          return http.Response(
+            jsonEncode(data),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        });
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CatalogoPublicoScreen(
+              tiendaSlug: 'la-lena-brasa-express',
+              httpClient: mockClient,
+            ),
+          ),
+        );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        // El header de Platos Principales con badge PRINCIPAL debe estar renderizado
+        expect(find.text('🔥 Brasas & Platos Principales'), findsOneWidget);
+        expect(find.text('PRINCIPAL'), findsOneWidget);
+
+        // El plato principal estrella está presente
+        expect(
+          find.text('1 Pollo Entero a la Brasa con Papas y Ensalada'),
+          findsOneWidget,
+        );
+
+        // Verificar que en la pantalla el Plato Principal está posicionado ANTES que la gaseosa
+        final topPlato = tester
+            .getTopLeft(
+              find.text('1 Pollo Entero a la Brasa con Papas y Ensalada'),
+            )
+            .dy;
+        final topGaseosa = tester.getTopLeft(find.text('Inca Kola 500ml')).dy;
+
+        expect(topPlato, lessThan(topGaseosa));
+      },
+    );
   });
 }

@@ -248,6 +248,28 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
     final bool isShortHeight = mediaQuery.size.height < 500;
     final double screenWidth = mediaQuery.size.width;
 
+    // Agrupación culinaria para mostrar Platos Principales de forma prioritaria
+    final Map<int, List<Map<String, dynamic>>> gruposPorSeccion = {};
+    for (final prod in widget.productos) {
+      final prio = GastronomiaHelper.prioridadCulinaria(
+        prod['nombre']?.toString(),
+        prod['categoria']?.toString(),
+      );
+      gruposPorSeccion.putIfAbsent(prio, () => []).add(prod);
+    }
+    final seccionKeys = [
+      1,
+      2,
+      3,
+      4,
+    ].where((k) => (gruposPorSeccion[k]?.isNotEmpty ?? false)).toList();
+
+    final bool mostrarSeccionesDivididas =
+        widget.categoriaSeleccionada == 'TODAS' &&
+        widget.filtroBusqueda.isEmpty &&
+        widget.ordenSeleccionado == 'DESTACADOS' &&
+        seccionKeys.length > 1;
+
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
@@ -291,7 +313,65 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
                 hasScrollBody: false,
                 child: _buildEstadoVacio(isTablet: isTablet),
               )
-            else if (screenWidth < 680)
+            else if (mostrarSeccionesDivididas) ...[
+              for (final prio in seccionKeys) ...[
+                SliverToBoxAdapter(
+                  child: _buildHeaderSeccionCulinaria(
+                    context,
+                    prioridad: prio,
+                    cantidad: gruposPorSeccion[prio]!.length,
+                    isTablet: isTablet,
+                  ),
+                ),
+                if (screenWidth < 680)
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      4,
+                      16,
+                      prio == seccionKeys.last ? 120 : 16,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final prod = gruposPorSeccion[prio]![index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _buildPlatoHorizontalCard(
+                            context,
+                            prod: prod,
+                            isTablet: false,
+                          ),
+                        );
+                      }, childCount: gruposPorSeccion[prio]!.length),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      isTablet ? 24 : 16,
+                      6,
+                      isTablet ? 24 : 16,
+                      prio == seccionKeys.last ? 120 : 28,
+                    ),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: screenWidth >= 1050 ? 3 : 2,
+                        childAspectRatio: screenWidth >= 1050 ? 0.88 : 0.82,
+                        crossAxisSpacing: 18,
+                        mainAxisSpacing: 18,
+                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final prod = gruposPorSeccion[prio]![index];
+                        return _buildPlatoVerticalGridCard(
+                          context,
+                          prod: prod,
+                          isTablet: isTablet,
+                        );
+                      }, childCount: gruposPorSeccion[prio]!.length),
+                    ),
+                  ),
+              ],
+            ] else if (screenWidth < 680)
               // Mobile Layout: Cards de restaurante horizontal (estilo delivery gourmet)
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 6, 16, 120),
@@ -1218,6 +1298,14 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
     required bool isTablet,
   }) {
     final isDark = widget.isDark;
+    final sortedCats = List<String>.from(widget.categorias)
+      ..sort((a, b) {
+        final prioA = GastronomiaHelper.prioridadCategoria(a);
+        final prioB = GastronomiaHelper.prioridadCategoria(b);
+        if (prioA != prioB) return prioA.compareTo(prioB);
+        return a.compareTo(b);
+      });
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: isTablet ? 24 : 14,
@@ -1257,7 +1345,7 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
                       isDark: isDark,
                       esOferta: true,
                     ),
-                  ...widget.categorias.map((c) {
+                  ...sortedCats.map((c) {
                     return _buildCategoriaPill(
                       label: c,
                       categoryKey: c,
@@ -1449,6 +1537,179 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // =========================================================================
+  // 5B. HEADER DE SECCIÓN CULINARIA (Platos Principales, Guarniciones, Bebidas, Salsas)
+  // =========================================================================
+  Widget _buildHeaderSeccionCulinaria(
+    BuildContext context, {
+    required int prioridad,
+    required int cantidad,
+    required bool isTablet,
+  }) {
+    final isDark = widget.isDark;
+    final titulo = GastronomiaHelper.nombreSeccionCulinaria(
+      prioridad,
+      esPolleria: _esPolleria,
+      esChifa: _esChifa,
+    );
+    final subtitulo = GastronomiaHelper.subtituloSeccionCulinaria(prioridad);
+
+    Color acento;
+    IconData icono;
+    switch (prioridad) {
+      case 1:
+        acento = const Color(0xFFEA580C);
+        icono = _esChifa ? LucideIcons.flame : LucideIcons.drumstick;
+        break;
+      case 2:
+        acento = const Color(0xFFD97706);
+        icono = LucideIcons.salad;
+        break;
+      case 3:
+        acento = const Color(0xFF0284C7);
+        icono = LucideIcons.glassWater;
+        break;
+      case 4:
+      default:
+        acento = const Color(0xFFE11D48);
+        icono = LucideIcons.soup;
+        break;
+    }
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        isTablet ? 24 : 16,
+        prioridad == 1 ? 12 : 24,
+        isTablet ? 24 : 16,
+        8,
+      ),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 18 : 14,
+          vertical: isTablet ? 12 : 10,
+        ),
+        decoration: BoxDecoration(
+          color: isDark
+              ? (prioridad == 1
+                    ? const Color(0xFF231713)
+                    : const Color(0xFF1A1513))
+              : (prioridad == 1
+                    ? const Color(0xFFFFF7ED)
+                    : const Color(0xFFF8FAFC)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: prioridad == 1
+                ? acento.withValues(alpha: isDark ? 0.45 : 0.35)
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : const Color(0xFFE2E8F0)),
+            width: prioridad == 1 ? 1.4 : 1.0,
+          ),
+          boxShadow: prioridad == 1
+              ? [
+                  BoxShadow(
+                    color: acento.withValues(alpha: isDark ? 0.15 : 0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: acento.withValues(alpha: isDark ? 0.22 : 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icono, size: isTablet ? 20 : 17, color: acento),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          titulo,
+                          style: GoogleFonts.outfit(
+                            fontSize: isTablet ? 16 : 14.5,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (prioridad == 1) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEA580C),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'PRINCIPAL',
+                            style: GoogleFonts.outfit(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitulo,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: isTablet ? 11.5 : 10.5,
+                      fontWeight: FontWeight.w500,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF2C241E)
+                    : const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$cantidad ${cantidad == 1 ? "plato" : "platos"}',
+                style: GoogleFonts.outfit(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  color: isDark
+                      ? const Color(0xFFCBD5E1)
+                      : const Color(0xFF475569),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
