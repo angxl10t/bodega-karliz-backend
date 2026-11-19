@@ -88,18 +88,26 @@ class AuthService {
           await SecureStorageService.write('user_email', data['email']);
         }
         if (data['idBodega'] != null) {
-          await SecureStorageService.write(
-            'id_bodega',
-            data['idBodega'].toString(),
-          );
-          await PermisosCajeroService.obtenerPermisos(
-            bodegaId: data['idBodega'].toString(),
-          );
+          final idBod = data['idBodega'].toString();
+          await SecureStorageService.write('id_bodega', idBod);
+          await SecureStorageService.write('terminal_id_bodega', idBod);
+          await PermisosCajeroService.obtenerPermisos(bodegaId: idBod);
         }
         if (data['nombreBodega'] != null) {
           await SecureStorageService.write(
             'nombre_bodega',
             data['nombreBodega'],
+          );
+          await SecureStorageService.write(
+            'terminal_nombre_bodega',
+            data['nombreBodega'],
+          );
+        }
+        if (data['giroNegocio'] != null) {
+          await SecureStorageService.write('giro_negocio', data['giroNegocio']);
+          await SecureStorageService.write(
+            'terminal_giro_negocio',
+            data['giroNegocio'],
           );
         }
         if (data['plan'] != null) {
@@ -171,6 +179,162 @@ class AuthService {
         errorMessage: 'Error de conexión con el servidor. Verifica tu internet o el estado del servicio.',
       );
     }
+  }
+
+  /// Autentica rápidamente a un cajero o mozo en una terminal vinculada con PIN numérico de 4 a 6 dígitos.
+  Future<AuthResult> loginCajero({
+    required String pin,
+    String? idBodega,
+    String? codigoTienda,
+    int? idUsuario,
+  }) async {
+    try {
+      final Map<String, dynamic> body = {'pin': pin.trim()};
+      if (idBodega != null && idBodega.trim().isNotEmpty) {
+        body['idBodega'] = int.tryParse(idBodega.trim());
+      }
+      if (codigoTienda != null && codigoTienda.trim().isNotEmpty) {
+        body['codigoTienda'] = codigoTienda.trim();
+      }
+      if (idUsuario != null) {
+        body['idUsuario'] = idUsuario;
+      }
+
+      final response = await http
+          .post(
+            Uri.parse('${ApiConstants.baseUrl}/auth/login-cajero'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 45));
+
+      if (response.statusCode == 200) {
+        clearAllSessionState();
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final String token = data['token'];
+        final String rol = data['rol'] ?? 'CAJERO';
+        _cachedRol = rol;
+
+        await SecureStorageService.write('jwt_token', token);
+        await SecureStorageService.write('user_rol', rol);
+        if (data['username'] != null) {
+          await SecureStorageService.write('username', data['username']);
+        }
+        if (data['nombreCompleto'] != null) {
+          await SecureStorageService.write(
+            'nombre_completo',
+            data['nombreCompleto'],
+          );
+        }
+        if (data['idBodega'] != null) {
+          final idBod = data['idBodega'].toString();
+          await SecureStorageService.write('id_bodega', idBod);
+          await SecureStorageService.write('terminal_id_bodega', idBod);
+          await PermisosCajeroService.obtenerPermisos(bodegaId: idBod);
+        }
+        if (data['nombreBodega'] != null) {
+          await SecureStorageService.write(
+            'nombre_bodega',
+            data['nombreBodega'],
+          );
+          await SecureStorageService.write(
+            'terminal_nombre_bodega',
+            data['nombreBodega'],
+          );
+        }
+        if (data['giroNegocio'] != null) {
+          await SecureStorageService.write('giro_negocio', data['giroNegocio']);
+          await SecureStorageService.write(
+            'terminal_giro_negocio',
+            data['giroNegocio'],
+          );
+        }
+        if (data['plan'] != null) {
+          await SecureStorageService.write('plan_bodega', data['plan']);
+        }
+        if (data['ruc'] != null) {
+          await SecureStorageService.write('ruc_bodega', data['ruc']);
+        }
+        if (data['colorPrimario'] != null) {
+          await SecureStorageService.write(
+            'color_primario',
+            data['colorPrimario'],
+          );
+        }
+        return AuthResult(success: true);
+      }
+
+      if (response.statusCode == 429) {
+        final rateMsg = ApiClient.extractErrorMessage(
+          response,
+          'Demasiados intentos con PIN. Acceso bloqueado temporalmente por seguridad.',
+        );
+        return AuthResult(success: false, errorMessage: rateMsg);
+      }
+
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'PIN incorrecto para esta terminal',
+      );
+      return AuthResult(success: false, errorMessage: errorMsg);
+    } on TimeoutException {
+      return AuthResult(
+        success: false,
+        errorMessage:
+            'El servidor tardó en responder. Por favor reintenta ingresar.',
+      );
+    } catch (_) {
+      return AuthResult(
+        success: false,
+        errorMessage:
+            'Error de conexión con el servidor. Verifica tu internet.',
+      );
+    }
+  }
+
+  /// Obtiene los cajeros activos de una tienda para mostrarlos en la pantalla de bloqueo de la terminal.
+  Future<List<Map<String, dynamic>>> obtenerCajerosTerminal(
+    String idBodega,
+  ) async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse(
+              '${ApiConstants.baseUrl}/auth/terminal/$idBodega/cajeros',
+            ),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes));
+        return list.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<String?> getTerminalIdBodega() async {
+    return await SecureStorageService.read('terminal_id_bodega');
+  }
+
+  static Future<String?> getTerminalNombreBodega() async {
+    return await SecureStorageService.read('terminal_nombre_bodega');
+  }
+
+  static Future<void> vincularTerminal({
+    required String idBodega,
+    required String nombreBodega,
+  }) async {
+    await SecureStorageService.write('terminal_id_bodega', idBodega);
+    await SecureStorageService.write('terminal_nombre_bodega', nombreBodega);
+  }
+
+  static Future<void> desvincularTerminal() async {
+    await SecureStorageService.delete('terminal_id_bodega');
+    await SecureStorageService.delete('terminal_nombre_bodega');
   }
 
   /// Realiza un ping ligero en segundo plano para despertar el contenedor de Render
@@ -278,6 +442,10 @@ class AuthService {
     return await SecureStorageService.read('regimen_tributario') ?? 'NUEVO_RUS';
   }
 
+  Future<String> getGiroNegocio() async {
+    return await SecureStorageService.read('giro_negocio') ?? 'BODEGA';
+  }
+
   Future<bool> isFacturacionSunatActiva() async {
     final val = await SecureStorageService.read('facturacion_sunat_activa');
     return val == 'true';
@@ -293,6 +461,8 @@ class AuthService {
     required String adminPassword,
     String? colorPrimario,
     String? lemaComercial,
+    String? regimenTributario,
+    String? giroNegocio,
     String plan = 'PRO',
   }) async {
     try {
@@ -305,6 +475,8 @@ class AuthService {
         'password': adminPassword,
         'colorPrimario': colorPrimario ?? '#2563EB',
         'lemaComercial': lemaComercial,
+        'regimenTributario': regimenTributario ?? 'NUEVO_RUS',
+        'giroNegocio': giroNegocio ?? 'BODEGA',
         'plan': plan,
       };
       if (email != null && email.trim().isNotEmpty) {
@@ -333,18 +505,26 @@ class AuthService {
           await SecureStorageService.write('user_email', data['email']);
         }
         if (data['idBodega'] != null) {
-          await SecureStorageService.write(
-            'id_bodega',
-            data['idBodega'].toString(),
-          );
-          await PermisosCajeroService.obtenerPermisos(
-            bodegaId: data['idBodega'].toString(),
-          );
+          final idBod = data['idBodega'].toString();
+          await SecureStorageService.write('id_bodega', idBod);
+          await SecureStorageService.write('terminal_id_bodega', idBod);
+          await PermisosCajeroService.obtenerPermisos(bodegaId: idBod);
         }
         if (data['nombreBodega'] != null) {
           await SecureStorageService.write(
             'nombre_bodega',
             data['nombreBodega'],
+          );
+          await SecureStorageService.write(
+            'terminal_nombre_bodega',
+            data['nombreBodega'],
+          );
+        }
+        if (data['giroNegocio'] != null) {
+          await SecureStorageService.write('giro_negocio', data['giroNegocio']);
+          await SecureStorageService.write(
+            'terminal_giro_negocio',
+            data['giroNegocio'],
           );
         }
         if (data['plan'] != null) {

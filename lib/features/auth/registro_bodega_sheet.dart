@@ -37,6 +37,8 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
 
   final _authService = AuthService();
   String _selectedPlan = 'PRO';
+  String _selectedGiro = 'BODEGA';
+  String _selectedRegimen = 'NUEVO_RUS';
   bool _isLoading = false;
   bool _obscurePass = true;
   String _errorMessage = '';
@@ -73,6 +75,8 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
       email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
       adminUsername: _adminUserCtrl.text.trim(),
       adminPassword: _adminPassCtrl.text.trim(),
+      regimenTributario: _selectedRegimen,
+      giroNegocio: _selectedGiro,
       plan: _selectedPlan,
     );
 
@@ -266,7 +270,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    'Tu bodega se creará con las 12 categorías estándar (Bebidas, Lácteos, Abarrotes, etc.) listas para usar.',
+                                    _obtenerTextoBannerGiro(),
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w500,
@@ -280,6 +284,10 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                             ),
                           ),
                           const SizedBox(height: 16),
+
+                          // 0. Selector de Giro de Negocio Multinegocio
+                          _buildGiroSelector(isDark),
+                          const SizedBox(height: 18),
 
                           if (_errorMessage.isNotEmpty) ...[
                             Container(
@@ -475,6 +483,10 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
                               prefixIcon: Icon(LucideIcons.mapPin, size: 18),
                             ),
                           ),
+                          const SizedBox(height: 16),
+
+                          // 3.1 Selector de Régimen SUNAT
+                          _buildRegimenSelector(isDark),
                           const SizedBox(height: 18),
 
                           const Divider(),
@@ -922,6 +934,357 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
               ],
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  String _obtenerTextoBannerGiro() {
+    switch (_selectedGiro) {
+      case 'POLLERIA':
+        return 'Tu pollería se creará con categorías de Brasas, Guarniciones y Bebidas, lista para cobrar en mostrador y salón.';
+      case 'CHIFA':
+        return 'Tu chifa se creará con categorías de Arroces Chaufas, Wantanes, Aeropuertos y Salteados listos para venta rápida.';
+      case 'FASTFOOD':
+        return 'Tu fast food se creará con categorías de Broaster, Salchipapas, Burgers y Jugos con stock inicial en 0.';
+      case 'BODEGA':
+      default:
+        return 'Tu bodega se creará con las 12 categorías estándar (Bebidas, Lácteos, Abarrotes, etc.) listas para usar.';
+    }
+  }
+
+  Widget _buildGiroSelector(bool isDark) {
+    final giros = [
+      {
+        'key': 'BODEGA',
+        'label': 'Bodega & Minimarket',
+        'icon': LucideIcons.shoppingBag,
+        'desc': 'Abarrotes, bebidas y golosinas',
+      },
+      {
+        'key': 'POLLERIA',
+        'label': 'Pollería & Brasas',
+        'icon': LucideIcons.flame,
+        'desc': 'Pollos a la brasa, papas y mostritos',
+      },
+      {
+        'key': 'CHIFA',
+        'label': 'Chifa & Oriental',
+        'icon': LucideIcons.utensils,
+        'desc': 'Chaufas, aeropuertos y wantanes',
+      },
+      {
+        'key': 'FASTFOOD',
+        'label': 'Fast Food & Sanguchería',
+        'icon': LucideIcons.sandwich,
+        'desc': 'Broaster, salchipapas y jugos',
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Giro de tu Negocio *',
+              style: GoogleFonts.outfit(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Catálogo Automático',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.brandPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isNarrow = constraints.maxWidth < 450;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: giros.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: isNarrow ? 1 : 2,
+                mainAxisExtent: 68,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 8,
+              ),
+              itemBuilder: (context, index) {
+                final g = giros[index];
+                final isSelected = _selectedGiro == g['key'];
+                return InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedGiro = g['key'] as String;
+                      final currentName = _nombreBodegaCtrl.text.trim();
+                      if (currentName.isEmpty ||
+                          currentName == 'Minimarket San Martín' ||
+                          currentName == 'Pollería & Brasas San Martín' ||
+                          currentName == 'Chifa Dragón Dorado' ||
+                          currentName == 'La Esquina Broaster & Burger') {
+                        if (_selectedGiro == 'POLLERIA') {
+                          _nombreBodegaCtrl.text =
+                              'Pollería & Brasas San Martín';
+                        } else if (_selectedGiro == 'CHIFA') {
+                          _nombreBodegaCtrl.text = 'Chifa Dragón Dorado';
+                        } else if (_selectedGiro == 'FASTFOOD') {
+                          _nombreBodegaCtrl.text =
+                              'La Esquina Broaster & Burger';
+                        } else {
+                          _nombreBodegaCtrl.text = 'Minimarket San Martín';
+                        }
+                      }
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.brandPrimary.withValues(
+                              alpha: isDark ? 0.22 : 0.08,
+                            )
+                          : (isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFF8FAFC)),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppTheme.brandPrimary
+                            : (isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0)),
+                        width: isSelected ? 1.8 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppTheme.brandPrimary
+                                : (isDark
+                                      ? const Color(0xFF0F172A)
+                                      : const Color(0xFFE2E8F0)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            g['icon'] as IconData,
+                            size: 18,
+                            color: isSelected
+                                ? Colors.white
+                                : (isDark
+                                      ? Colors.white70
+                                      : const Color(0xFF475569)),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                g['label'] as String,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12.5,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w800
+                                      : FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                g['desc'] as String,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  color: isDark
+                                      ? Colors.white60
+                                      : const Color(0xFF64748B),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelected)
+                          const Icon(
+                            LucideIcons.checkCircle2,
+                            size: 16,
+                            color: AppTheme.brandPrimary,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRegimenSelector(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Régimen Tributario SUNAT (Opcional)',
+          style: GoogleFonts.outfit(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: isDark
+                ? AppTheme.textDarkSecondary
+                : const Color(0xFF334155),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () => setState(() => _selectedRegimen = 'NUEVO_RUS'),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _selectedRegimen == 'NUEVO_RUS'
+                        ? AppTheme.brandPrimary.withValues(
+                            alpha: isDark ? 0.22 : 0.08,
+                          )
+                        : (isDark
+                              ? const Color(0xFF1E293B)
+                              : const Color(0xFFF8FAFC)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _selectedRegimen == 'NUEVO_RUS'
+                          ? AppTheme.brandPrimary
+                          : (isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0)),
+                      width: _selectedRegimen == 'NUEVO_RUS' ? 1.6 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.receipt,
+                        size: 15,
+                        color: _selectedRegimen == 'NUEVO_RUS'
+                            ? AppTheme.brandPrimary
+                            : const Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Nuevo RUS (Tickets)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: _selectedRegimen == 'NUEVO_RUS'
+                              ? AppTheme.brandPrimary
+                              : (isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF334155)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: InkWell(
+                onTap: () =>
+                    setState(() => _selectedRegimen = 'MYPE_TRIBUTARIO'),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _selectedRegimen == 'MYPE_TRIBUTARIO'
+                        ? AppTheme.brandPrimary.withValues(
+                            alpha: isDark ? 0.22 : 0.08,
+                          )
+                        : (isDark
+                              ? const Color(0xFF1E293B)
+                              : const Color(0xFFF8FAFC)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _selectedRegimen == 'MYPE_TRIBUTARIO'
+                          ? AppTheme.brandPrimary
+                          : (isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0)),
+                      width: _selectedRegimen == 'MYPE_TRIBUTARIO' ? 1.6 : 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        LucideIcons.landmark,
+                        size: 15,
+                        color: _selectedRegimen == 'MYPE_TRIBUTARIO'
+                            ? AppTheme.brandPrimary
+                            : const Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'MYPE (Facturas)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: _selectedRegimen == 'MYPE_TRIBUTARIO'
+                              ? AppTheme.brandPrimary
+                              : (isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF334155)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

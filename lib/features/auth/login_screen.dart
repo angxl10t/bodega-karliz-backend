@@ -31,6 +31,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _codigoTiendaCtrl = TextEditingController();
   final _authService = AuthService();
 
   bool _isLoading = false;
@@ -41,6 +42,16 @@ class _LoginScreenState extends State<LoginScreen> {
   String _errorMessage = '';
   bool _sessionExpiredNotice = false;
   bool _isLoginPressed = false;
+
+  // Estado para Modo Cajero con PIN en terminal vinculada
+  bool _isCajeroPinMode = false;
+  String _enteredPin = '';
+  String? _terminalIdBodega;
+  String? _terminalNombreBodega;
+  List<Map<String, dynamic>> _cajerosTerminal = [];
+  int? _selectedIdUsuario;
+  String? _selectedCajeroNombre;
+  bool _mostrarCambioTienda = false;
 
   @override
   void initState() {
@@ -53,6 +64,30 @@ class _LoginScreenState extends State<LoginScreen> {
     _authService.precalentarServidor();
     // Limpia cualquier residuo de sesión anterior al abrir el login
     SecureStorageService.clearAuth();
+    _cargarInfoTerminal();
+  }
+
+  void _cargarInfoTerminal() {
+    AuthService.getTerminalIdBodega().then((id) {
+      if (id != null && id.isNotEmpty && mounted) {
+        setState(() => _terminalIdBodega = id);
+        AuthService.getTerminalNombreBodega().then((nom) {
+          if (nom != null && mounted) {
+            setState(() => _terminalNombreBodega = nom);
+          }
+        });
+        _authService.obtenerCajerosTerminal(id).then((cajeros) {
+          if (mounted && cajeros.isNotEmpty) {
+            setState(() {
+              _cajerosTerminal = cajeros;
+              _selectedIdUsuario = cajeros.first['idUsuario'] as int?;
+              _selectedCajeroNombre =
+                  cajeros.first['nombreCompleto'] as String?;
+            });
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -60,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _coldStartTimer?.cancel();
     _usernameController.dispose();
     _passwordController.dispose();
+    _codigoTiendaCtrl.dispose();
     super.dispose();
   }
 
@@ -136,6 +172,142 @@ class _LoginScreenState extends State<LoginScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  void _pressPinDigit(String digit) {
+    if (_isLoading) return;
+    if (_enteredPin.length >= 4) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _enteredPin += digit;
+      _errorMessage = '';
+    });
+    if (_enteredPin.length == 4) {
+      _loginCajero();
+    }
+  }
+
+  void _deletePinDigit() {
+    if (_isLoading) return;
+    if (_enteredPin.isEmpty) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _enteredPin = _enteredPin.substring(0, _enteredPin.length - 1);
+      _errorMessage = '';
+    });
+  }
+
+  void _clearPin() {
+    if (_isLoading) return;
+    if (_enteredPin.isEmpty) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _enteredPin = '';
+      _errorMessage = '';
+    });
+  }
+
+  Future<void> _loginCajero() async {
+    if (_terminalIdBodega == null || _terminalIdBodega!.isEmpty) {
+      setState(
+        () => _errorMessage =
+            'Por favor vincula esta terminal al ID de tu negocio.',
+      );
+      HapticFeedback.heavyImpact();
+      return;
+    }
+    if (_selectedIdUsuario == null) {
+      setState(
+        () => _errorMessage = 'Por favor selecciona tu perfil de cajero.',
+      );
+      HapticFeedback.heavyImpact();
+      return;
+    }
+    if (_enteredPin.length < 4) {
+      setState(() => _errorMessage = 'Ingresa los 4 dígitos de tu PIN.');
+      HapticFeedback.heavyImpact();
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    final result = await _authService.loginCajero(
+      idBodega: _terminalIdBodega,
+      idUsuario: _selectedIdUsuario,
+      pin: _enteredPin,
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (result.success) {
+        HapticFeedback.lightImpact();
+        final colorHex = await _authService.getColorPrimario();
+        if (mounted && colorHex.isNotEmpty) {
+          context.read<ThemeProvider>().setAccentColorFromHex(colorHex);
+        }
+        if (mounted) {
+          context.go('/home');
+        }
+      } else {
+        HapticFeedback.heavyImpact();
+        setState(() {
+          _errorMessage =
+              result.errorMessage ?? 'PIN incorrecto. Intenta de nuevo.';
+          _enteredPin = '';
+        });
+      }
+    }
+  }
+
+  Future<void> _vincularTienda() async {
+    final codigo = _codigoTiendaCtrl.text.trim();
+    if (codigo.isEmpty) return;
+    final id = int.tryParse(codigo);
+    if (id == null) {
+      setState(() => _errorMessage = 'El ID de negocio debe ser numérico.');
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      final cajeros = await _authService.obtenerCajerosTerminal(codigo);
+      if (mounted) {
+        if (cajeros.isEmpty) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage =
+                'No se encontraron cajeros activos para el local #$codigo';
+          });
+        } else {
+          await AuthService.vincularTerminal(
+            idBodega: codigo,
+            nombreBodega: 'Local #$codigo',
+          );
+          setState(() {
+            _isLoading = false;
+            _terminalIdBodega = codigo;
+            _terminalNombreBodega = 'Local #$codigo';
+            _cajerosTerminal = cajeros;
+            _selectedIdUsuario = cajeros.first['idUsuario'] as int?;
+            _selectedCajeroNombre = cajeros.first['nombreCompleto'] as String?;
+            _mostrarCambioTienda = false;
+            _errorMessage = '';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Error al vincular con el servidor: $e';
+        });
+      }
     }
   }
 
@@ -657,402 +829,421 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          _buildModeTabs(isDark),
+          const SizedBox(height: 16),
 
-          // Campo 1: Usuario
-          Text(
-            'USUARIO / OPERADOR',
-            style: GoogleFonts.outfit(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-              color: isDark
-                  ? AppTheme.textDarkSecondary
-                  : const Color(0xFF334155),
+          if (!_isCajeroPinMode) ...[
+            // Campo 1: Usuario
+            Text(
+              'USUARIO / OPERADOR',
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          TextField(
-            controller: _usernameController,
-            textInputAction: TextInputAction.next,
-            onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-            autocorrect: false,
-            enableSuggestions: false,
-            textCapitalization: TextCapitalization.none,
-            cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 16, // Previene auto-zoom molesto en navegadores móviles (iOS Safari)
-              fontWeight: FontWeight.w600,
-              color: isDark
-                  ? AppTheme.textDarkPrimary
-                  : const Color(0xFF0F172A),
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: isDark
-                  ? AppTheme.cardDarkSunken
-                  : const Color(0xFFF1F5F9),
-              hintText: 'Ingresa tu usuario',
-              hintStyle: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                color: AppTheme.getAdaptiveHintText(isDark),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _usernameController,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+              autocorrect: false,
+              enableSuggestions: false,
+              textCapitalization: TextCapitalization.none,
+              cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16, // Previene auto-zoom molesto en navegadores móviles (iOS Safari)
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppTheme.textDarkPrimary
+                    : const Color(0xFF0F172A),
               ),
-              prefixIcon: Icon(
-                LucideIcons.user,
-                size: 18,
-                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: isDark
+                    ? AppTheme.cardDarkSunken
+                    : const Color(0xFFF1F5F9),
+                hintText: 'Ingresa tu usuario',
+                hintStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: AppTheme.getAdaptiveHintText(isDark),
                 ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
+                prefixIcon: Icon(
+                  LucideIcons.user,
+                  size: 18,
                   color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                  width: 1.8,
                 ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 14),
-
-          // Campo 2: Contraseña
-          Text(
-            'CONTRASEÑA',
-            style: GoogleFonts.outfit(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-              color: isDark
-                  ? AppTheme.textDarkSecondary
-                  : const Color(0xFF334155),
-            ),
-          ),
-          const SizedBox(height: 6),
-          TextField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _login(),
-            cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 16, // Previene auto-zoom molesto en navegadores móviles (iOS Safari)
-              fontWeight: FontWeight.w600,
-              color: isDark
-                  ? AppTheme.textDarkPrimary
-                  : const Color(0xFF0F172A),
-            ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: isDark
-                  ? AppTheme.cardDarkSunken
-                  : const Color(0xFFF1F5F9),
-              hintText: '••••••',
-              hintStyle: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                color: AppTheme.getAdaptiveHintText(isDark),
-              ),
-              prefixIcon: Icon(
-                LucideIcons.lock,
-                size: 18,
-                color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-              ),
-              suffixIcon: IconButton(
-                icon: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 180),
-                  transitionBuilder: (child, anim) =>
-                      ScaleTransition(scale: anim, child: child),
-                  child: Icon(
-                    _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
-                    key: ValueKey<bool>(_obscurePassword),
-                    size: 18,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
                     color: isDark
-                        ? AppTheme.textDarkSecondary
-                        : const Color(0xFF334155),
+                        ? AppTheme.borderDark
+                        : const Color(0xFFCBD5E1),
                   ),
                 ),
-                onPressed: () {
-                  HapticFeedback.selectionClick();
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
+                  ),
                 ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                    width: 1.8,
+                  ),
                 ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                  width: 1.8,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
                 ),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
               ),
             ),
-          ),
 
-          // Error Banner con transición animada suave
-          AnimatedCrossFade(
-            duration: const Duration(milliseconds: 220),
-            firstCurve: Curves.easeOutCubic,
-            secondCurve: Curves.easeInCubic,
-            crossFadeState: _errorMessage.isNotEmpty
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
-            firstChild: _errorMessage.isNotEmpty
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.alertRed.withValues(
-                          alpha: isDark ? 0.15 : 0.08,
+            const SizedBox(height: 14),
+
+            // Campo 2: Contraseña
+            Text(
+              'CONTRASEÑA',
+              style: GoogleFonts.outfit(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+                color: isDark
+                    ? AppTheme.textDarkSecondary
+                    : const Color(0xFF334155),
+              ),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _login(),
+              cursorColor: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16, // Previene auto-zoom molesto en navegadores móviles (iOS Safari)
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppTheme.textDarkPrimary
+                    : const Color(0xFF0F172A),
+              ),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: isDark
+                    ? AppTheme.cardDarkSunken
+                    : const Color(0xFFF1F5F9),
+                hintText: '••••••',
+                hintStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: AppTheme.getAdaptiveHintText(isDark),
+                ),
+                prefixIcon: Icon(
+                  LucideIcons.lock,
+                  size: 18,
+                  color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                ),
+                suffixIcon: IconButton(
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    transitionBuilder: (child, anim) =>
+                        ScaleTransition(scale: anim, child: child),
+                    child: Icon(
+                      _obscurePassword ? LucideIcons.eyeOff : LucideIcons.eye,
+                      key: ValueKey<bool>(_obscurePassword),
+                      size: 18,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF334155),
+                    ),
+                  ),
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFCBD5E1),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
+                    width: 1.8,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            ),
+
+            // Error Banner con transición animada suave
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 220),
+              firstCurve: Curves.easeOutCubic,
+              secondCurve: Curves.easeInCubic,
+              crossFadeState: _errorMessage.isNotEmpty
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+              firstChild: _errorMessage.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
+                        decoration: BoxDecoration(
                           color: AppTheme.alertRed.withValues(
-                            alpha: isDark ? 0.4 : 0.25,
+                            alpha: isDark ? 0.15 : 0.08,
                           ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            LucideIcons.alertCircle,
-                            color: AppTheme.alertRed,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _errorMessage,
-                              style: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.alertRed,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppTheme.alertRed.withValues(
+                              alpha: isDark ? 0.4 : 0.25,
                             ),
                           ),
-                        ],
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.alertCircle,
+                              color: AppTheme.alertRed,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMessage,
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: AppTheme.alertRed,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            secondChild: const SizedBox.shrink(),
-          ),
+                    )
+                  : const SizedBox.shrink(),
+              secondChild: const SizedBox.shrink(),
+            ),
 
-          const SizedBox(height: 14),
+            const SizedBox(height: 14),
 
-          // Mantener sesión con micro-animación de resorte y feedback táctil
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              setState(() => _keepMeSignedIn = !_keepMeSignedIn);
-            },
-            child: Row(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOutCubic,
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: _keepMeSignedIn
-                        ? AppTheme.brandPrimary
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
+            // Mantener sesión con micro-animación de resorte y feedback táctil
+            GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _keepMeSignedIn = !_keepMeSignedIn);
+              },
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    curve: Curves.easeOutCubic,
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
                       color: _keepMeSignedIn
                           ? AppTheme.brandPrimary
-                          : (isDark
-                                ? AppTheme.borderDarkElevated
-                                : const Color(0xFFCBD5E1)),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: AnimatedScale(
-                    scale: _keepMeSignedIn ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 160),
-                    curve: Curves.easeOutBack,
-                    child: const Icon(
-                      Icons.check,
-                      size: 13,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Recordar dispositivo',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.5,
-                    color: AppTheme.getAdaptiveMutedText(isDark),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // Enlace ¿Olvidaste tu contraseña?
-          Align(
-            alignment: Alignment.centerRight,
-            child: InkWell(
-              mouseCursor: SystemMouseCursors.click,
-              onTap: () {
-                HapticFeedback.lightImpact();
-                _abrirModalRecuperarPassword();
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Text(
-                  '¿Olvidaste tu contraseña?',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppTheme.brandLight : AppTheme.brandPrimary,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Botón Ingresar con respuesta física táctil (escala en press) y desvanecimiento suave
-          Listener(
-            onPointerDown: (_) {
-              if (!_isLoading) {
-                HapticFeedback.lightImpact();
-                setState(() => _isLoginPressed = true);
-              }
-            },
-            onPointerUp: (_) {
-              if (_isLoginPressed) {
-                setState(() => _isLoginPressed = false);
-              }
-            },
-            onPointerCancel: (_) {
-              if (_isLoginPressed) {
-                setState(() => _isLoginPressed = false);
-              }
-            },
-            child: AnimatedScale(
-              scale: _isLoginPressed && !_isLoading ? 0.98 : 1.0,
-              duration: const Duration(milliseconds: 100),
-              curve: Curves.easeOutCubic,
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
-                    child: _isLoading
-                        ? const SizedBox(
-                            key: ValueKey('loading'),
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Text(
-                            'INGRESAR AL SISTEMA',
-                            key: ValueKey('text'),
-                          ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Banner de Servidor en Frío con transición animada
-          AnimatedCrossFade(
-            duration: const Duration(milliseconds: 220),
-            firstCurve: Curves.easeOutCubic,
-            secondCurve: Curves.easeInCubic,
-            crossFadeState: _isLoading && _isColdStarting
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
-            firstChild: Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB)
-                      .withValues(alpha: isDark ? 0.15 : 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF2563EB)
-                        .withValues(alpha: isDark ? 0.35 : 0.25),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF2563EB),
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: _keepMeSignedIn
+                            ? AppTheme.brandPrimary
+                            : (isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFCBD5E1)),
+                        width: 1.5,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Despertando servidor en la nube... Espera un momento.',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? const Color(0xFF93C5FD)
-                              : const Color(0xFF1D4ED8),
+                    child: AnimatedScale(
+                      scale: _keepMeSignedIn ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 160),
+                      curve: Curves.easeOutBack,
+                      child: const Icon(
+                        Icons.check,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Recordar dispositivo',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Enlace ¿Olvidaste tu contraseña?
+            Align(
+              alignment: Alignment.centerRight,
+              child: InkWell(
+                mouseCursor: SystemMouseCursors.click,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  _abrirModalRecuperarPassword();
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
+                  child: Text(
+                    '¿Olvidaste tu contraseña?',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppTheme.brandLight
+                          : AppTheme.brandPrimary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Botón Ingresar con respuesta física táctil (escala en press) y desvanecimiento suave
+            Listener(
+              onPointerDown: (_) {
+                if (!_isLoading) {
+                  HapticFeedback.lightImpact();
+                  setState(() => _isLoginPressed = true);
+                }
+              },
+              onPointerUp: (_) {
+                if (_isLoginPressed) {
+                  setState(() => _isLoginPressed = false);
+                }
+              },
+              onPointerCancel: (_) {
+                if (_isLoginPressed) {
+                  setState(() => _isLoginPressed = false);
+                }
+              },
+              child: AnimatedScale(
+                scale: _isLoginPressed && !_isLoading ? 0.98 : 1.0,
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeOutCubic,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: _isLoading
+                          ? const SizedBox(
+                              key: ValueKey('loading'),
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Text(
+                              'INGRESAR AL SISTEMA',
+                              key: ValueKey('text'),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Banner de Servidor en Frío con transición animada
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 220),
+              firstCurve: Curves.easeOutCubic,
+              secondCurve: Curves.easeInCubic,
+              crossFadeState: _isLoading && _isColdStarting
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+              firstChild: Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB)
+                        .withValues(alpha: isDark ? 0.15 : 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF2563EB)
+                          .withValues(alpha: isDark ? 0.35 : 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF2563EB),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Despertando servidor en la nube... Espera un momento.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? const Color(0xFF93C5FD)
+                                : const Color(0xFF1D4ED8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              secondChild: const SizedBox.shrink(),
             ),
-            secondChild: const SizedBox.shrink(),
-          ),
+          ] else ...[
+            _buildCajeroPinSection(context, isDark),
+          ],
 
           const SizedBox(height: 18),
 
@@ -1107,6 +1298,734 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModeTabs(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildModeTabItem(
+              title: 'Dueño / Admin',
+              icon: LucideIcons.shieldCheck,
+              isSelected: !_isCajeroPinMode,
+              isDark: isDark,
+              onTap: () {
+                if (_isCajeroPinMode) {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _isCajeroPinMode = false;
+                    _errorMessage = '';
+                  });
+                }
+              },
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: _buildModeTabItem(
+              title: 'Cajero (PIN)',
+              icon: LucideIcons.keyRound,
+              isSelected: _isCajeroPinMode,
+              isDark: isDark,
+              onTap: () {
+                if (!_isCajeroPinMode) {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    _isCajeroPinMode = true;
+                    _errorMessage = '';
+                    _enteredPin = '';
+                  });
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeTabItem({
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? AppTheme.cardDarkElevated : Colors.white)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 14,
+                  color: isSelected
+                      ? (isDark ? AppTheme.brandLight : AppTheme.brandPrimary)
+                      : (isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B)),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected
+                        ? (isDark ? Colors.white : AppTheme.brandInk)
+                        : (isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCajeroPinSection(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Terminal vinculada badge o input de vinculación
+        if (_terminalIdBodega != null && !_mostrarCambioTienda) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppTheme.brandPrimary.withValues(alpha: 0.15)
+                  : const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? AppTheme.brandPrimary.withValues(alpha: 0.35)
+                    : const Color(0xFFBFDBFE),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brandPrimary.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.store,
+                    size: 16,
+                    color: AppTheme.brandPrimary,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _terminalNombreBodega ?? 'Terminal #$_terminalIdBodega',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.brandInk,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppTheme.accentGreen,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              'Local ID: $_terminalIdBodega • Vinculada',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _mostrarCambioTienda = true);
+                  },
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  child: Text(
+                    'Cambiar',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppTheme.brandLight
+                          : AppTheme.brandPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          LucideIcons.link,
+                          size: 15,
+                          color: isDark
+                              ? AppTheme.brandLight
+                              : AppTheme.brandPrimary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Vincular Terminal',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.brandInk,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_terminalIdBodega != null)
+                      InkWell(
+                        onTap: () =>
+                            setState(() => _mostrarCambioTienda = false),
+                        child: Text(
+                          'Cancelar',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _codigoTiendaCtrl,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkPrimary
+                              : const Color(0xFF0F172A),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Ingresa ID de tu local (ej: 1)',
+                          hintStyle: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: AppTheme.getAdaptiveHintText(isDark),
+                          ),
+                          filled: true,
+                          fillColor: isDark
+                              ? AppTheme.cardDarkElevated
+                              : Colors.white,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 9,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : const Color(0xFFCBD5E1),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? AppTheme.borderDark
+                                  : const Color(0xFFCBD5E1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _vincularTienda,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 9,
+                        ),
+                        minimumSize: Size.zero,
+                      ),
+                      child: Text(
+                        'Vincular',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 14),
+
+        // 2. Selector de Perfil de Cajero
+        if (_cajerosTerminal.isNotEmpty) ...[
+          Text(
+            'SELECCIONA TU CAJERO',
+            style: GoogleFonts.outfit(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF475569),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 54,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _cajerosTerminal.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (ctx, idx) {
+                final c = _cajerosTerminal[idx];
+                final id = c['idUsuario'] as int?;
+                final nombre = c['nombreCompleto'] as String? ?? 'Cajero';
+                final isSelected = _selectedIdUsuario == id;
+                final initial = nombre.isNotEmpty
+                    ? nombre[0].toUpperCase()
+                    : 'C';
+
+                return InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedIdUsuario = id;
+                      _selectedCajeroNombre = nombre;
+                      _enteredPin = '';
+                      _errorMessage = '';
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? (isDark
+                                ? AppTheme.brandPrimary.withValues(alpha: 0.25)
+                                : const Color(0xFFEFF6FF))
+                          : (isDark
+                                ? AppTheme.cardDarkSunken
+                                : const Color(0xFFF8FAFC)),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? (isDark
+                                  ? AppTheme.brandLight
+                                  : AppTheme.brandPrimary)
+                            : (isDark
+                                  ? AppTheme.borderDark
+                                  : const Color(0xFFE2E8F0)),
+                        width: isSelected ? 1.8 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 14,
+                          backgroundColor: isSelected
+                              ? AppTheme.brandPrimary
+                              : (isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFCBD5E1)),
+                          child: Text(
+                            initial,
+                            style: GoogleFonts.outfit(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark
+                                        ? Colors.white
+                                        : const Color(0xFF334155)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nombre,
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.brandInk,
+                              ),
+                            ),
+                            Text(
+                              'Cajero',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 14),
+        ] else if (_terminalIdBodega != null) ...[
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50.withValues(alpha: isDark ? 0.15 : 1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.info,
+                  size: 16,
+                  color: isDark ? Colors.amber.shade300 : Colors.amber.shade800,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'No hay cajeros registrados en este local. Ingresa como Dueño para crear uno.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: isDark
+                          ? Colors.amber.shade200
+                          : Colors.amber.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+
+        // 3. Indicador de PIN (4 puntos)
+        Center(
+          child: Text(
+            _selectedCajeroNombre != null
+                ? 'PIN de acceso para $_selectedCajeroNombre'
+                : 'Ingresa tu PIN de 4 dígitos',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppTheme.textDarkSecondary
+                  : const Color(0xFF475569),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(4, (index) {
+            final filled = index < _enteredPin.length;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: filled
+                    ? (isDark ? AppTheme.brandLight : AppTheme.brandPrimary)
+                    : Colors.transparent,
+                border: Border.all(
+                  color: _errorMessage.isNotEmpty
+                      ? AppTheme.alertRed
+                      : (filled
+                            ? (isDark
+                                  ? AppTheme.brandLight
+                                  : AppTheme.brandPrimary)
+                            : (isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFCBD5E1))),
+                  width: 2,
+                ),
+              ),
+            );
+          }),
+        ),
+
+        // Error Banner animado
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 200),
+          firstCurve: Curves.easeOutCubic,
+          secondCurve: Curves.easeInCubic,
+          crossFadeState: _errorMessage.isNotEmpty
+              ? CrossFadeState.showFirst
+              : CrossFadeState.showSecond,
+          firstChild: _errorMessage.isNotEmpty
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Center(
+                    child: Text(
+                      _errorMessage,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: AppTheme.alertRed,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+          secondChild: const SizedBox.shrink(),
+        ),
+
+        if (_isLoading) ...[
+          const SizedBox(height: 12),
+          const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.2,
+                color: AppTheme.brandPrimary,
+              ),
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 12),
+
+        // 4. Teclado Numérico Ergonómico 3x4
+        _buildKeypadGrid(isDark),
+      ],
+    );
+  }
+
+  Widget _buildKeypadGrid(bool isDark) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(child: _buildKeypadButton('1', isDark)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildKeypadButton('2', isDark)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildKeypadButton('3', isDark)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(child: _buildKeypadButton('4', isDark)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildKeypadButton('5', isDark)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildKeypadButton('6', isDark)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(child: _buildKeypadButton('7', isDark)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildKeypadButton('8', isDark)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildKeypadButton('9', isDark)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: _buildKeypadActionButton(
+                label: 'C',
+                icon: null,
+                isDark: isDark,
+                onTap: _clearPin,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: _buildKeypadButton('0', isDark)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildKeypadActionButton(
+                label: null,
+                icon: LucideIcons.delete,
+                isDark: isDark,
+                onTap: _deletePinDigit,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKeypadButton(String digit, bool isDark) {
+    return Material(
+      color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: _isLoading ? null : () => _pressPinDigit(digit),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            digit,
+            style: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppTheme.brandInk,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKeypadActionButton({
+    String? label,
+    IconData? icon,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isDark ? AppTheme.cardDarkElevated : const Color(0xFFF1F5F9),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: _isLoading ? null : onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+            ),
+          ),
+          alignment: Alignment.center,
+          child: icon != null
+              ? Icon(
+                  icon,
+                  size: 18,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                )
+              : Text(
+                  label ?? '',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? AppTheme.textDarkSecondary
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+        ),
       ),
     );
   }
