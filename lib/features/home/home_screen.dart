@@ -36,6 +36,7 @@ import '../movimientos/kardex_screen.dart';
 import '../movimientos/vencimientos_screen.dart';
 import '../compras/compras_screen.dart';
 import '../configuracion/configuracion_screen.dart';
+import '../promociones/promociones_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/offline/offline_models.dart';
@@ -1016,6 +1017,124 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         Text(
                                           'Elige tu color preferido para la app y tu catálogo web',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: isDark
+                                        ? Colors.white54
+                                        : const Color(0xFF94A3B8),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Acceso directo a Promociones & Descuentos Inteligentes (Combos Hueso)
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PromocionesScreen(
+                                    isPro:
+                                        _plan.toUpperCase() == 'PRO' ||
+                                        _plan.toUpperCase() == 'CORPORATIVO',
+                                    nombreBodega: _nombreBodega,
+                                    onPlanUpdated: _cargarDatosUsuario,
+                                  ),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF5F3FF),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: const Color(0xFF8B5CF6)
+                                      .withValues(alpha: 0.35),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF8B5CF6)
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.tag,
+                                      color: Color(0xFF8B5CF6),
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                'Promociones & Combos Hueso',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 13.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : AppTheme.textDark,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF8B5CF6)
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: const Text(
+                                                'IA & OFERTAS',
+                                                style: TextStyle(
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Color(0xFF8B5CF6),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          'Combos automáticos, 2x1 y liquidación de inventario',
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11,
                                             color: isDark
@@ -3400,6 +3519,28 @@ class _HomeScreenState extends State<HomeScreen> {
                         isPro:
                             _plan.toUpperCase() == 'PRO' ||
                             _plan.toUpperCase() == 'CORPORATIVO',
+                      );
+                    },
+                  ),
+                  _buildSidebarActionTile(
+                    icon: LucideIcons.tag,
+                    label: 'Promociones & Ofertas',
+                    color: const Color(0xFF8B5CF6),
+                    badge: 'PRO',
+                    isDark: isDark,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PromocionesScreen(
+                            isPro:
+                                _plan.toUpperCase() == 'PRO' ||
+                                _plan.toUpperCase() == 'CORPORATIVO',
+                            nombreBodega: _nombreBodega,
+                            onPlanUpdated: _cargarDatosUsuario,
+                          ),
+                        ),
                       );
                     },
                   ),
